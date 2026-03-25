@@ -87,9 +87,10 @@ label{display:block;font-size:12px;font-weight:700;color:#4a5568;margin-bottom:4
 @media print{
   body *{visibility:hidden}
   #pdf-content,#pdf-content *{visibility:visible}
-  #pdf-content{position:fixed;inset:0;padding:24px}
-  #pdf-overlay{display:block!important;position:static;background:none}
-  .pdf-actions{display:none}
+  #pdf-content{position:absolute;top:0;left:0;width:100%;padding:24px}
+  #pdf-overlay,#pdf-overlay *{position:static!important;background:none!important;max-height:none!important;overflow:visible!important}
+  .pdf-actions{display:none!important}
+  .pdf-modal{box-shadow:none!important;border-radius:0!important;max-height:none!important;overflow:visible!important}
 }
 </style>
 </head>
