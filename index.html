@@ -2,12 +2,14 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Nativo – Orden de Compra</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',sans-serif;background:#f7f9fc;color:#1a202c;min-height:100vh}
-#login-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#1e3a5f,#2b6cb0);padding:20px}
+
+/* LOGIN */
+#screen-login{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#1e3a5f,#2b6cb0);padding:20px}
 .login-logo{color:white;font-size:32px;font-weight:800;margin-bottom:6px}
 .login-sub{color:#bee3f8;font-size:14px;margin-bottom:32px}
 .login-box{background:white;border-radius:16px;padding:32px;width:100%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
@@ -15,86 +17,80 @@ body{font-family:'Segoe UI',sans-serif;background:#f7f9fc;color:#1a202c;min-heig
 .login-box p{font-size:13px;color:#718096;margin-bottom:20px}
 .inp{width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;outline:none;font-family:inherit;transition:border .2s;margin-bottom:12px}
 .inp:focus{border-color:#4299e1}
-.btn-full{width:100%;padding:12px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;background:#2b6cb0;color:white;transition:background .2s}
+.btn-full{width:100%;padding:12px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;background:#2b6cb0;color:white}
 .btn-full:hover{background:#2c5282}
-.btn-full:disabled{background:#a0aec0;cursor:not-allowed}
 .alert{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:12px}
 .alert-error{background:#fed7d7;color:#742a2a}
 .alert-success{background:#c6f6d5;color:#1c4532}
-#app{display:none}
+
+/* CATÁLOGO */
+#screen-catalogo{display:none}
 header{background:#1e3a5f;color:white;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
 .header-logo{font-size:20px;font-weight:800}
 .header-user{font-size:13px;color:#bee3f8;display:flex;align-items:center;gap:12px}
 .btn-logout{background:#c53030;border:none;color:white;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700}
-main{max-width:960px;margin:0 auto;padding:28px 20px}
-.sec-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#4299e1;margin:28px 0 12px;border-bottom:2px solid #ebf4ff;padding-bottom:6px}
-.sec-title:first-child{margin-top:0}
-.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:4px}
+main{max-width:960px;margin:0 auto;padding:24px 16px}
+.sec-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#4299e1;margin:24px 0 10px;border-bottom:2px solid #ebf4ff;padding-bottom:6px}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
 .product-card{background:white;border-radius:10px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.07);display:flex;flex-direction:column;gap:8px;border:2px solid transparent;transition:all .2s}
 .product-card.selected{border-color:#4299e1;background:#ebf8ff}
 .product-name{font-size:13px;font-weight:600;color:#2d3748;line-height:1.3;flex:1}
+.product-format{font-size:11px;color:#a0aec0;font-weight:500}
 .qty-control{display:flex;align-items:center;gap:6px}
-.qty-btn{width:28px;height:28px;border:none;border-radius:6px;background:#e2e8f0;color:#2d3748;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.qty-btn{width:30px;height:30px;border:none;border-radius:6px;background:#e2e8f0;color:#2d3748;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
 .qty-btn:hover{background:#cbd5e0}
 .qty-inp{width:44px;text-align:center;padding:4px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;font-weight:700;outline:none}
 .qty-inp:focus{border-color:#4299e1}
-.cart{background:white;border-radius:12px;padding:24px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-top:28px}
+.cart{background:white;border-radius:12px;padding:24px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-top:24px}
 .cart h3{font-size:16px;font-weight:700;color:#1e3a5f;margin-bottom:16px}
 .cart-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f4f8;font-size:13px}
 .cart-item:last-child{border-bottom:none}
 .cart-item-qty{color:#2b6cb0;font-weight:700;background:#ebf8ff;padding:2px 10px;border-radius:12px;font-size:12px}
-.cart-empty{text-align:center;color:#a0aec0;padding:24px;font-size:13px}
-.btn-green{width:100%;padding:14px;border:none;border-radius:10px;background:#276749;color:white;font-size:15px;font-weight:700;cursor:pointer;margin-top:16px;transition:background .2s}
-.btn-green:hover{background:#22543d}
-.btn-green:disabled{background:#a0aec0;cursor:not-allowed}
-.info-box{background:white;border-radius:12px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:8px}
-.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-label{display:block;font-size:12px;font-weight:700;color:#4a5568;margin-bottom:4px}
-.info-val{font-size:14px;font-weight:600;color:#2d3748}
+.cart-empty{text-align:center;color:#a0aec0;padding:20px;font-size:13px}
+.btn-oc{width:100%;padding:14px;border:none;border-radius:10px;background:#276749;color:white;font-size:15px;font-weight:700;cursor:pointer;margin-top:16px}
+.btn-oc:hover{background:#22543d}
 
-/* PDF PREVIEW */
-#pdf-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;justify-content:center;align-items:center;padding:20px}
-#pdf-overlay.open{display:flex}
-.pdf-modal{background:white;border-radius:14px;width:100%;max-width:720px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.4)}
-.pdf-actions{display:flex;gap:10px;padding:16px 20px;border-bottom:1px solid #e2e8f0;justify-content:space-between;align-items:center}
-.pdf-actions span{font-weight:700;color:#1e3a5f;font-size:15px}
-.btn-pdf{padding:9px 20px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700}
-.btn-print{background:#2b6cb0;color:white}
-.btn-close-pdf{background:#e2e8f0;color:#4a5568}
-#pdf-content{padding:32px 40px}
-
-/* OC STYLES (para impresión) */
-.oc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #1e3a5f}
+/* OC SCREEN */
+#screen-oc{display:none;background:white;min-height:100vh}
+.oc-topbar{background:#1e3a5f;color:white;padding:12px 20px;display:flex;align-items:center;gap:14px}
+.oc-topbar button{background:#4299e1;border:none;color:white;padding:8px 18px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:700}
+.oc-topbar .btn-back{background:transparent;border:1px solid rgba(255,255,255,.3)}
+.oc-body{max-width:720px;margin:0 auto;padding:32px 24px}
+.oc-header-doc{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #1e3a5f}
 .oc-logo{font-size:26px;font-weight:900;color:#1e3a5f;letter-spacing:1px}
 .oc-logo span{color:#4299e1}
 .oc-titulo{text-align:right}
 .oc-titulo h1{font-size:20px;font-weight:800;color:#1e3a5f}
-.oc-titulo p{font-size:12px;color:#718096;margin-top:2px}
-.oc-datos{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;background:#f7fafc;padding:16px;border-radius:8px}
-.oc-dato label{font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:.5px}
-.oc-dato p{font-size:14px;font-weight:600;color:#1a202c;margin-top:2px}
+.oc-titulo p{font-size:12px;color:#718096;margin-top:3px}
+.oc-datos{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;background:#f7fafc;padding:16px;border-radius:8px}
+.oc-dato label{font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px}
+.oc-dato p{font-size:14px;font-weight:600;color:#1a202c}
 .oc-table{width:100%;border-collapse:collapse;margin-bottom:24px}
-.oc-table th{background:#1e3a5f;color:white;padding:10px 14px;text-align:left;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.oc-table th{background:#1e3a5f;color:white;padding:10px 14px;text-align:left;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
 .oc-table td{padding:10px 14px;border-bottom:1px solid #e2e8f0;font-size:13px}
-.oc-table tr:last-child td{border-bottom:none}
 .oc-table tr:nth-child(even) td{background:#f7fafc}
-.oc-cat{background:#edf2f7!important}
-.oc-cat td{font-weight:700;color:#4a5568;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:6px 14px}
-.oc-footer{border-top:2px solid #e2e8f0;padding-top:16px;display:flex;justify-content:space-between;align-items:center}
-.oc-footer p{font-size:12px;color:#a0aec0}
-.oc-num{font-size:13px;font-weight:700;color:#4a5568}
+.oc-cat-row td{background:#edf2f7!important;font-weight:700;color:#4a5568;font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:7px 14px!important}
+.oc-footer-doc{border-top:2px solid #e2e8f0;padding-top:16px;display:flex;justify-content:space-between;align-items:center}
+.oc-footer-doc p{font-size:12px;color:#a0aec0}
+.oc-num{font-size:13px;font-weight:700;color:#718096}
 
-
+@media print{
+  #screen-login,#screen-catalogo{display:none!important}
+  #screen-oc{display:block!important}
+  .oc-topbar{display:none!important}
+  .oc-body{padding:20px}
+}
 </style>
 </head>
 <body>
 
-<div id="login-screen">
+<!-- PANTALLA 1: LOGIN -->
+<div id="screen-login">
   <div class="login-logo">🏢 Nativo</div>
   <div class="login-sub">Portal de Órdenes de Compra B2B</div>
   <div class="login-box">
     <h3>Bienvenido</h3>
-    <p>Ingresa tus datos para acceder al catálogo y generar tu orden</p>
+    <p>Ingresa tus datos para acceder al catálogo</p>
     <div id="login-alert"></div>
     <input class="inp" type="text" id="rut-inp" placeholder="RUT empresa (Ej: 76.123.456-7)" oninput="fmtR(this)">
     <input class="inp" type="text" id="emp-inp" placeholder="Nombre de la empresa">
@@ -103,21 +99,13 @@ label{display:block;font-size:12px;font-weight:700;color:#4a5568;margin-bottom:4
   </div>
 </div>
 
-<div id="app">
+<!-- PANTALLA 2: CATÁLOGO -->
+<div id="screen-catalogo">
   <header>
     <div class="header-logo">🏢 Nativo</div>
     <div class="header-user"><span id="hdr-info"></span><button class="btn-logout" onclick="logout()">Salir</button></div>
   </header>
   <main>
-    <div class="info-box">
-      <div class="info-grid">
-        <div><label>Empresa</label><div class="info-val" id="d-emp"></div></div>
-        <div><label>RUT</label><div class="info-val" id="d-rut"></div></div>
-        <div><label>Dirección de Despacho</label><div class="info-val" id="d-dir"></div></div>
-        <div><label>Fecha</label><div class="info-val" id="d-fecha"></div></div>
-      </div>
-    </div>
-
     <div class="sec-title">🧊 Congelados</div>
     <div class="product-grid" id="g-congelados"></div>
     <div class="sec-title">🌰 Frutos Secos & Toppings</div>
@@ -128,55 +116,58 @@ label{display:block;font-size:12px;font-weight:700;color:#4a5568;margin-bottom:4
     <div class="product-grid" id="g-granolas"></div>
     <div class="sec-title">🥤 Vasos & Tapas</div>
     <div class="product-grid" id="g-vasos"></div>
-
     <div class="cart">
       <h3>🛒 Resumen de tu Orden</h3>
       <div id="cart-body"><div class="cart-empty">Agrega productos usando los controles de cantidad</div></div>
-      <button class="btn-green" id="btn-oc" onclick="generarOC()">Generar Orden de Compra (PDF)</button>
+      <button class="btn-oc" onclick="irAOC()">Ver Orden de Compra →</button>
     </div>
   </main>
 </div>
 
-<!-- PDF OVERLAY -->
-<div id="pdf-overlay">
-  <div class="pdf-modal">
-    <div class="pdf-actions">
-      <span>📄 Orden de Compra</span>
-      <div style="display:flex;gap:8px">
-        <button class="btn-pdf btn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
-        <button class="btn-pdf btn-close-pdf" onclick="closePDF()">Cerrar</button>
-      </div>
-    </div>
-    <div id="pdf-content"></div>
+<!-- PANTALLA 3: ORDEN DE COMPRA -->
+<div id="screen-oc">
+  <div class="oc-topbar">
+    <button class="btn-back" onclick="volverCatalogo()">← Volver</button>
+    <span style="flex:1;font-weight:700;font-size:15px">Orden de Compra</span>
+    <button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
   </div>
+  <div class="oc-body" id="oc-body"></div>
 </div>
 
 <script>
 const CATS = {
-  congelados: {label:'Congelados', items:[
-    'Balde Acai Nativo 3,6 L','Balde Pitaya 3,6 L','Balde Acai 3,6 L Blue Monkey',
-    'Balde Pistacho 5 L Soft Blue Monkey','Balde Yoghurt Griego 5 L Soft Blue Monkey'
+  congelados:{label:'Congelados',items:[
+    {n:'Balde Acai Nativo',f:'3,6 L'},
+    {n:'Balde Pitaya',f:'3,6 L'},
+    {n:'Balde Acai Blue Monkey',f:'3,6 L'},
+    {n:'Balde Pistacho Soft Blue Monkey',f:'5 L'},
+    {n:'Balde Yoghurt Griego Soft Blue Monkey',f:'5 L'}
   ]},
-  toppings: {label:'Frutos Secos & Toppings', items:[
-    'Cacao Nibs — 0,1 kg','Mantequilla de almendra — 1 kg','Mantequilla de mani — 1 kg',
-    'Mantequilla de pistachos — 1 kg','Castañas de caju — 2 kg','Avellana europea tostada — 2 kg',
-    'Nueces cuarto — 2 kg','Almendra Laminada — 2 kg','Oreo molidas — 4 kg',
-    'Avena integral — 2 kg','Chia — 2 kg','Coco laminado — 2 kg','Coco rallado — 2 kg',
-    'Colageno hidrolizado puro — 1 kg','Proteina vegana (arveja) — 1 kg',
-    'Proteina normal (sin sabor) — 0,66 kg','Chip de chocolate 60% — 0,25 kg'
+  toppings:{label:'Frutos Secos & Toppings',items:[
+    {n:'Cacao Nibs',f:'0,1 kg'},{n:'Mantequilla de almendra',f:'1 kg'},
+    {n:'Mantequilla de mani',f:'1 kg'},{n:'Mantequilla de pistachos',f:'1 kg'},
+    {n:'Castañas de caju',f:'2 kg'},{n:'Avellana europea tostada',f:'2 kg'},
+    {n:'Nueces cuarto',f:'2 kg'},{n:'Almendra Laminada',f:'2 kg'},
+    {n:'Oreo molidas',f:'4 kg'},{n:'Avena integral',f:'2 kg'},
+    {n:'Chia',f:'2 kg'},{n:'Coco laminado',f:'2 kg'},
+    {n:'Coco rallado',f:'2 kg'},{n:'Colageno hidrolizado puro',f:'1 kg'},
+    {n:'Proteina vegana (arveja)',f:'1 kg'},{n:'Proteina normal (sin sabor)',f:'0,66 kg'},
+    {n:'Chip de chocolate 60%',f:'0,25 kg'}
   ]},
-  salsas: {label:'Salsas & Otros', items:[
-    'Nutella — 3 kg','Miel — 3 kg','Leche condensada — 6 kg',
-    'Leche nido entera — 1,1 kg','Maní — 2 kg','Pacuquita — 100 unidades','Crema Oreo Zero — 3 kg'
+  salsas:{label:'Salsas & Otros',items:[
+    {n:'Nutella',f:'3 kg'},{n:'Miel',f:'3 kg'},{n:'Leche condensada',f:'6 kg'},
+    {n:'Leche nido entera',f:'1,1 kg'},{n:'Maní',f:'2 kg'},
+    {n:'Pacuquita',f:'100 un'},{n:'Crema Oreo Zero',f:'3 kg'}
   ]},
-  granolas: {label:'Granolas & Crumbles', items:[
-    'Crumbole Clásico — 3,5 kg','Granola Avena Miel — 2 kg',
-    'Granola Cacao Dulce — 2 kg','Granola Zero — 1 kg'
+  granolas:{label:'Granolas & Crumbles',items:[
+    {n:'Crumbole Clásico',f:'3,5 kg'},{n:'Granola Avena Miel',f:'2 kg'},
+    {n:'Granola Cacao Dulce',f:'2 kg'},{n:'Granola Zero',f:'1 kg'}
   ]},
-  vasos: {label:'Vasos & Tapas', items:[
-    'Vaso GD Nativo — 1 un','Vaso Classic Nativo — 1 un','Vaso Power Nativo — 1 un','Vaso Full Nativo — 1 un',
-    'Vaso GD Blue Monkey — 1 un','Vaso Classic Blue Monkey — 1 un',
-    'Vaso Power Blue Monkey — 1 un','Vaso Full Blue Monkey — 1 un'
+  vasos:{label:'Vasos & Tapas',items:[
+    {n:'Vaso GD Nativo',f:'1 un'},{n:'Vaso Classic Nativo',f:'1 un'},
+    {n:'Vaso Power Nativo',f:'1 un'},{n:'Vaso Full Nativo',f:'1 un'},
+    {n:'Vaso GD Blue Monkey',f:'1 un'},{n:'Vaso Classic Blue Monkey',f:'1 un'},
+    {n:'Vaso Power Blue Monkey',f:'1 un'},{n:'Vaso Full Blue Monkey',f:'1 un'}
   ]}
 };
 
@@ -190,6 +181,12 @@ function fmtR(el){
   el.value=b+'-'+d;
 }
 
+function showScreen(id){
+  ['screen-login','screen-catalogo','screen-oc'].forEach(s=>{
+    document.getElementById(s).style.display = s===id ? (id==='screen-login'?'flex':'block') : 'none';
+  });
+}
+
 function login(){
   const rut=document.getElementById('rut-inp').value.trim();
   const emp=document.getElementById('emp-inp').value.trim();
@@ -199,35 +196,32 @@ function login(){
     return;
   }
   sess={rut,emp,dir,fecha:new Date().toLocaleDateString('es-CL')};
-  document.getElementById('login-screen').style.display='none';
-  document.getElementById('app').style.display='block';
   document.getElementById('hdr-info').textContent=`${emp} | ${rut}`;
-  document.getElementById('d-emp').textContent=emp;
-  document.getElementById('d-rut').textContent=rut;
-  document.getElementById('d-dir').textContent=dir;
-  document.getElementById('d-fecha').textContent=sess.fecha;
   buildGrids();
+  showScreen('screen-catalogo');
 }
 
 function logout(){
   sess={}; qtys={};
-  document.getElementById('login-screen').style.display='flex';
-  document.getElementById('app').style.display='none';
   ['rut-inp','emp-inp','dir-inp'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('login-alert').innerHTML='';
+  showScreen('screen-login');
 }
 
 function slug(s){return s.replace(/[^a-zA-Z0-9]/g,'_');}
 
 function buildGrids(){
   Object.entries(CATS).forEach(([cat,{items}])=>{
-    document.getElementById('g-'+cat).innerHTML=items.map(p=>`
-      <div class="product-card" id="pc-${slug(p)}">
-        <div class="product-name">${p}</div>
+    document.getElementById('g-'+cat).innerHTML=items.map(({n,f})=>`
+      <div class="product-card" id="pc-${slug(n)}">
+        <div>
+          <div class="product-name">${n}</div>
+          <div class="product-format">${f}</div>
+        </div>
         <div class="qty-control">
-          <button class="qty-btn" onclick="chg('${slug(p)}','${p}',-1)">−</button>
-          <input class="qty-inp" type="number" min="0" id="qi-${slug(p)}" value="0" onchange="setQ('${slug(p)}','${p}',this.value)">
-          <button class="qty-btn" onclick="chg('${slug(p)}','${p}',1)">+</button>
+          <button class="qty-btn" onclick="chg('${slug(n)}','${n}',-1)">−</button>
+          <input class="qty-inp" type="number" min="0" id="qi-${slug(n)}" value="0" onchange="setQ('${slug(n)}','${n}',this.value)">
+          <button class="qty-btn" onclick="chg('${slug(n)}','${n}',1)">+</button>
         </div>
       </div>`).join('');
   });
@@ -247,35 +241,27 @@ function upd(id,name,v){
   document.getElementById('pc-'+id).classList.toggle('selected',v>0);
   renderCart();
 }
-
 function renderCart(){
   const items=Object.entries(qtys);
-  const el=document.getElementById('cart-body');
-  el.innerHTML=items.length
+  document.getElementById('cart-body').innerHTML=items.length
     ? items.map(([n,q])=>`<div class="cart-item"><span>${n}</span><span class="cart-item-qty">× ${q}</span></div>`).join('')
     : '<div class="cart-empty">Agrega productos usando los controles de cantidad</div>';
 }
 
-function ocNum(){return 'OC-'+Date.now().toString().slice(-6);}
-
-function generarOC(){
-  const items=Object.entries(qtys);
-  if(!items.length) return alert('Agrega al menos un producto.');
-  const num=ocNum();
-
-  // Agrupar por categoría
-  let tablaRows='';
-  Object.entries(CATS).forEach(([,{label,items:prods}])=>{
-    const seleccionados=prods.filter(p=>qtys[p]);
-    if(!seleccionados.length) return;
-    tablaRows+=`<tr class="oc-cat"><td colspan="2">${label}</td></tr>`;
-    seleccionados.forEach(p=>{
-      tablaRows+=`<tr><td>${p}</td><td style="text-align:center;font-weight:700">${qtys[p]}</td></tr>`;
+function irAOC(){
+  if(!Object.keys(qtys).length) return alert('Agrega al menos un producto.');
+  const num='OC-'+Date.now().toString().slice(-6);
+  let rows='';
+  Object.entries(CATS).forEach(([,{label,items}])=>{
+    const sel=items.filter(({n})=>qtys[n]);
+    if(!sel.length) return;
+    rows+=`<tr class="oc-cat-row"><td colspan="3">${label}</td></tr>`;
+    sel.forEach(({n,f})=>{
+      rows+=`<tr><td>${n}</td><td style="color:#718096;font-size:12px">${f}</td><td style="text-align:center;font-weight:700;color:#2b6cb0">${qtys[n]}</td></tr>`;
     });
   });
-
-  document.getElementById('pdf-content').innerHTML=`
-    <div class="oc-header">
+  document.getElementById('oc-body').innerHTML=`
+    <div class="oc-header-doc">
       <div>
         <div class="oc-logo">NA<span>TI</span>VO</div>
         <div style="font-size:12px;color:#718096;margin-top:4px">nativoacai.cl</div>
@@ -293,49 +279,19 @@ function generarOC(){
       <div class="oc-dato"><label>Fecha</label><p>${sess.fecha}</p></div>
     </div>
     <table class="oc-table">
-      <thead><tr><th style="width:75%">Producto</th><th style="text-align:center">Cantidad</th></tr></thead>
-      <tbody>${tablaRows}</tbody>
+      <thead><tr><th style="width:60%">Producto</th><th>Formato</th><th style="text-align:center">Cant.</th></tr></thead>
+      <tbody>${rows}</tbody>
     </table>
-    <div class="oc-footer">
+    <div class="oc-footer-doc">
       <p>Nativo — Documento generado electrónicamente</p>
       <p class="oc-num">${num}</p>
     </div>`;
-
-  // Abrir en ventana nueva para evitar hojas en blanco en móvil
-  const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>OC ${num}</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Segoe UI',sans-serif;color:#1a202c;padding:32px 40px}
-    .oc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #1e3a5f}
-    .oc-logo{font-size:26px;font-weight:900;color:#1e3a5f;letter-spacing:1px}
-    .oc-logo span{color:#4299e1}
-    .oc-titulo h1{font-size:20px;font-weight:800;color:#1e3a5f;text-align:right}
-    .oc-titulo p{font-size:12px;color:#718096;text-align:right;margin-top:2px}
-    .oc-datos{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;background:#f7fafc;padding:16px;border-radius:8px}
-    .oc-dato label{font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:.5px;display:block}
-    .oc-dato p{font-size:14px;font-weight:600;color:#1a202c;margin-top:2px}
-    .oc-table{width:100%;border-collapse:collapse;margin-bottom:24px}
-    .oc-table th{background:#1e3a5f;color:white;padding:10px 14px;text-align:left;font-size:12px;font-weight:700;text-transform:uppercase}
-    .oc-table td{padding:10px 14px;border-bottom:1px solid #e2e8f0;font-size:13px}
-    .oc-table tr:nth-child(even) td{background:#f7fafc}
-    .oc-cat td{background:#edf2f7!important;font-weight:700;color:#4a5568;font-size:11px;text-transform:uppercase;padding:6px 14px}
-    .oc-footer{border-top:2px solid #e2e8f0;padding-top:16px;display:flex;justify-content:space-between}
-    .oc-footer p{font-size:12px;color:#a0aec0}
-    .print-btn{display:block;margin:0 auto 24px;padding:12px 32px;background:#2b6cb0;color:white;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}
-    @media print{.print-btn{display:none}}
-  </style>
-  </head><body>
-  <button class="print-btn" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
-  ${document.getElementById('pdf-content').innerHTML}
-  </body></html>`);
-  win.document.close();
-  document.getElementById('pdf-overlay').classList.add('open');
+  showScreen('screen-oc');
 }
 
-function closePDF(){document.getElementById('pdf-overlay').classList.remove('open');}
+function volverCatalogo(){
+  showScreen('screen-catalogo');
+}
 </script>
 </body>
 </html>
