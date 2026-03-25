@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nativo – Orden de Compra</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f7f9fc;color:#1a202c;min-height:100vh}
+#login-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#1e3a5f,#2b6cb0);padding:20px}
+.login-logo{color:white;font-size:32px;font-weight:800;margin-bottom:6px}
+.login-sub{color:#bee3f8;font-size:14px;margin-bottom:32px}
+.login-box{background:white;border-radius:16px;padding:32px;width:100%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.login-box h3{font-size:17px;font-weight:700;color:#1e3a5f;margin-bottom:6px}
+.login-box p{font-size:13px;color:#718096;margin-bottom:20px}
+.inp{width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;outline:none;font-family:inherit;transition:border .2s;margin-bottom:12px}
+.inp:focus{border-color:#4299e1}
+.btn-full{width:100%;padding:12px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;background:#2b6cb0;color:white;transition:background .2s}
+.btn-full:hover{background:#2c5282}
+.btn-full:disabled{background:#a0aec0;cursor:not-allowed}
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:12px}
+.alert-error{background:#fed7d7;color:#742a2a}
+.alert-success{background:#c6f6d5;color:#1c4532}
+#app{display:none}
+header{background:#1e3a5f;color:white;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+.header-logo{font-size:20px;font-weight:800}
+.header-user{font-size:13px;color:#bee3f8;display:flex;align-items:center;gap:12px}
+.btn-logout{background:#c53030;border:none;color:white;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700}
+main{max-width:960px;margin:0 auto;padding:28px 20px}
+.sec-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#4299e1;margin:28px 0 12px;border-bottom:2px solid #ebf4ff;padding-bottom:6px}
+.sec-title:first-child{margin-top:0}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:4px}
+.product-card{background:white;border-radius:10px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.07);display:flex;flex-direction:column;gap:8px;border:2px solid transparent;transition:all .2s}
+.product-card.selected{border-color:#4299e1;background:#ebf8ff}
+.product-name{font-size:13px;font-weight:600;color:#2d3748;line-height:1.3;flex:1}
+.qty-control{display:flex;align-items:center;gap:6px}
+.qty-btn{width:28px;height:28px;border:none;border-radius:6px;background:#e2e8f0;color:#2d3748;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.qty-btn:hover{background:#cbd5e0}
+.qty-inp{width:44px;text-align:center;padding:4px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;font-weight:700;outline:none}
+.qty-inp:focus{border-color:#4299e1}
+.cart{background:white;border-radius:12px;padding:24px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-top:28px}
+.cart h3{font-size:16px;font-weight:700;color:#1e3a5f;margin-bottom:16px}
+.cart-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f4f8;font-size:13px}
+.cart-item:last-child{border-bottom:none}
+.cart-item-qty{color:#2b6cb0;font-weight:700;background:#ebf8ff;padding:2px 10px;border-radius:12px;font-size:12px}
+.cart-empty{text-align:center;color:#a0aec0;padding:24px;font-size:13px}
+.btn-green{width:100%;padding:14px;border:none;border-radius:10px;background:#276749;color:white;font-size:15px;font-weight:700;cursor:pointer;margin-top:16px;transition:background .2s}
+.btn-green:hover{background:#22543d}
+.btn-green:disabled{background:#a0aec0;cursor:not-allowed}
+.info-box{background:white;border-radius:12px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:8px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:12px;font-weight:700;color:#4a5568;margin-bottom:4px}
+.info-val{font-size:14px;font-weight:600;color:#2d3748}
+
+/* PDF PREVIEW */
+#pdf-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;justify-content:center;align-items:center;padding:20px}
+#pdf-overlay.open{display:flex}
+.pdf-modal{background:white;border-radius:14px;width:100%;max-width:720px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.pdf-actions{display:flex;gap:10px;padding:16px 20px;border-bottom:1px solid #e2e8f0;justify-content:space-between;align-items:center}
+.pdf-actions span{font-weight:700;color:#1e3a5f;font-size:15px}
+.btn-pdf{padding:9px 20px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700}
+.btn-print{background:#2b6cb0;color:white}
+.btn-close-pdf{background:#e2e8f0;color:#4a5568}
+#pdf-content{padding:32px 40px}
+
+/* OC STYLES (para impresión) */
+.oc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #1e3a5f}
+.oc-logo{font-size:26px;font-weight:900;color:#1e3a5f;letter-spacing:1px}
+.oc-logo span{color:#4299e1}
+.oc-titulo{text-align:right}
+.oc-titulo h1{font-size:20px;font-weight:800;color:#1e3a5f}
+.oc-titulo p{font-size:12px;color:#718096;margin-top:2px}
+.oc-datos{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;background:#f7fafc;padding:16px;border-radius:8px}
+.oc-dato label{font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:.5px}
+.oc-dato p{font-size:14px;font-weight:600;color:#1a202c;margin-top:2px}
+.oc-table{width:100%;border-collapse:collapse;margin-bottom:24px}
+.oc-table th{background:#1e3a5f;color:white;padding:10px 14px;text-align:left;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.oc-table td{padding:10px 14px;border-bottom:1px solid #e2e8f0;font-size:13px}
+.oc-table tr:last-child td{border-bottom:none}
+.oc-table tr:nth-child(even) td{background:#f7fafc}
+.oc-cat{background:#edf2f7!important}
+.oc-cat td{font-weight:700;color:#4a5568;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:6px 14px}
+.oc-footer{border-top:2px solid #e2e8f0;padding-top:16px;display:flex;justify-content:space-between;align-items:center}
+.oc-footer p{font-size:12px;color:#a0aec0}
+.oc-num{font-size:13px;font-weight:700;color:#4a5568}
+
+@media print{
+  body *{visibility:hidden}
+  #pdf-content,#pdf-content *{visibility:visible}
+  #pdf-content{position:fixed;inset:0;padding:24px}
+  #pdf-overlay{display:block!important;position:static;background:none}
+  .pdf-actions{display:none}
+}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-logo">🏢 Nativo</div>
+  <div class="login-sub">Portal de Órdenes de Compra B2B</div>
+  <div class="login-box">
+    <h3>Bienvenido</h3>
+    <p>Ingresa tus datos para acceder al catálogo y generar tu orden</p>
+    <div id="login-alert"></div>
+    <input class="inp" type="text" id="rut-inp" placeholder="RUT empresa (Ej: 76.123.456-7)" oninput="fmtR(this)">
+    <input class="inp" type="text" id="emp-inp" placeholder="Nombre de la empresa">
+    <input class="inp" type="text" id="dir-inp" placeholder="Dirección de despacho">
+    <button class="btn-full" onclick="login()">Ver catálogo →</button>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="header-logo">🏢 Nativo</div>
+    <div class="header-user"><span id="hdr-info"></span><button class="btn-logout" onclick="logout()">Salir</button></div>
+  </header>
+  <main>
+    <div class="info-box">
+      <div class="info-grid">
+        <div><label>Empresa</label><div class="info-val" id="d-emp"></div></div>
+        <div><label>RUT</label><div class="info-val" id="d-rut"></div></div>
+        <div><label>Dirección de Despacho</label><div class="info-val" id="d-dir"></div></div>
+        <div><label>Fecha</label><div class="info-val" id="d-fecha"></div></div>
+      </div>
+    </div>
+
+    <div class="sec-title">🧊 Congelados</div>
+    <div class="product-grid" id="g-congelados"></div>
+    <div class="sec-title">🌰 Frutos Secos & Toppings</div>
+    <div class="product-grid" id="g-toppings"></div>
+    <div class="sec-title">🍯 Salsas & Otros</div>
+    <div class="product-grid" id="g-salsas"></div>
+    <div class="sec-title">🥣 Granolas & Crumbles</div>
+    <div class="product-grid" id="g-granolas"></div>
+    <div class="sec-title">🥤 Vasos & Tapas</div>
+    <div class="product-grid" id="g-vasos"></div>
+
+    <div class="cart">
+      <h3>🛒 Resumen de tu Orden</h3>
+      <div id="cart-body"><div class="cart-empty">Agrega productos usando los controles de cantidad</div></div>
+      <button class="btn-green" id="btn-oc" onclick="generarOC()">Generar Orden de Compra (PDF)</button>
+    </div>
+  </main>
+</div>
+
+<!-- PDF OVERLAY -->
+<div id="pdf-overlay">
+  <div class="pdf-modal">
+    <div class="pdf-actions">
+      <span>📄 Orden de Compra</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn-pdf btn-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+        <button class="btn-pdf btn-close-pdf" onclick="closePDF()">Cerrar</button>
+      </div>
+    </div>
+    <div id="pdf-content"></div>
+  </div>
+</div>
+
+<script>
+const CATS = {
+  congelados: {label:'Congelados', items:[
+    'Balde Acai Nativo 3,6 L','Balde Pitaya 3,6 L','Balde Acai 3,6 L Blue Monkey',
+    'Balde Pistacho 5 L Soft Blue Monkey','Balde Yoghurt Griego 5 L Soft Blue Monkey'
+  ]},
+  toppings: {label:'Frutos Secos & Toppings', items:[
+    'Cacao Nibs — 0,1 kg','Mantequilla de almendra — 1 kg','Mantequilla de mani — 1 kg',
+    'Mantequilla de pistachos — 1 kg','Castañas de caju — 2 kg','Avellana europea tostada — 2 kg',
+    'Nueces cuarto — 2 kg','Almendra Laminada — 2 kg','Oreo molidas — 4 kg',
+    'Avena integral — 2 kg','Chia — 2 kg','Coco laminado — 2 kg','Coco rallado — 2 kg',
+    'Colageno hidrolizado puro — 1 kg','Proteina vegana (arveja) — 1 kg',
+    'Proteina normal (sin sabor) — 0,66 kg','Chip de chocolate 60% — 0,25 kg'
+  ]},
+  salsas: {label:'Salsas & Otros', items:[
+    'Nutella — 3 kg','Miel — 3 kg','Leche condensada — 6 kg',
+    'Leche nido entera — 1,1 kg','Maní — 2 kg','Pacuquita — 100 unidades','Crema Oreo Zero — 3 kg'
+  ]},
+  granolas: {label:'Granolas & Crumbles', items:[
+    'Crumbole Clásico — 3,5 kg','Granola Avena Miel — 2 kg',
+    'Granola Cacao Dulce — 2 kg','Granola Zero — 1 kg'
+  ]},
+  vasos: {label:'Vasos & Tapas', items:[
+    'Vaso GD Nativo — 1 un','Vaso Classic Nativo — 1 un','Vaso Power Nativo — 1 un','Vaso Full Nativo — 1 un',
+    'Vaso GD Blue Monkey — 1 un','Vaso Classic Blue Monkey — 1 un',
+    'Vaso Power Blue Monkey — 1 un','Vaso Full Blue Monkey — 1 un'
+  ]}
+};
+
+let sess={}, qtys={};
+
+function fmtR(el){
+  let v=el.value.replace(/[^0-9kK]/g,'');
+  if(v.length<2){el.value=v;return;}
+  let b=v.slice(0,-1),d=v.slice(-1).toUpperCase();
+  b=b.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  el.value=b+'-'+d;
+}
+
+function login(){
+  const rut=document.getElementById('rut-inp').value.trim();
+  const emp=document.getElementById('emp-inp').value.trim();
+  const dir=document.getElementById('dir-inp').value.trim();
+  if(!rut||!emp||!dir){
+    document.getElementById('login-alert').innerHTML='<div class="alert alert-error">Completa todos los campos.</div>';
+    return;
+  }
+  sess={rut,emp,dir,fecha:new Date().toLocaleDateString('es-CL')};
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('hdr-info').textContent=`${emp} | ${rut}`;
+  document.getElementById('d-emp').textContent=emp;
+  document.getElementById('d-rut').textContent=rut;
+  document.getElementById('d-dir').textContent=dir;
+  document.getElementById('d-fecha').textContent=sess.fecha;
+  buildGrids();
+}
+
+function logout(){
+  sess={}; qtys={};
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app').style.display='none';
+  ['rut-inp','emp-inp','dir-inp'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('login-alert').innerHTML='';
+}
+
+function slug(s){return s.replace(/[^a-zA-Z0-9]/g,'_');}
+
+function buildGrids(){
+  Object.entries(CATS).forEach(([cat,{items}])=>{
+    document.getElementById('g-'+cat).innerHTML=items.map(p=>`
+      <div class="product-card" id="pc-${slug(p)}">
+        <div class="product-name">${p}</div>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="chg('${slug(p)}','${p}',-1)">−</button>
+          <input class="qty-inp" type="number" min="0" id="qi-${slug(p)}" value="0" onchange="setQ('${slug(p)}','${p}',this.value)">
+          <button class="qty-btn" onclick="chg('${slug(p)}','${p}',1)">+</button>
+        </div>
+      </div>`).join('');
+  });
+}
+
+function chg(id,name,d){
+  const el=document.getElementById('qi-'+id);
+  const v=Math.max(0,(parseInt(el.value)||0)+d);
+  el.value=v; upd(id,name,v);
+}
+function setQ(id,name,v){
+  const val=Math.max(0,parseInt(v)||0);
+  document.getElementById('qi-'+id).value=val; upd(id,name,val);
+}
+function upd(id,name,v){
+  if(v>0) qtys[name]=v; else delete qtys[name];
+  document.getElementById('pc-'+id).classList.toggle('selected',v>0);
+  renderCart();
+}
+
+function renderCart(){
+  const items=Object.entries(qtys);
+  const el=document.getElementById('cart-body');
+  el.innerHTML=items.length
+    ? items.map(([n,q])=>`<div class="cart-item"><span>${n}</span><span class="cart-item-qty">× ${q}</span></div>`).join('')
+    : '<div class="cart-empty">Agrega productos usando los controles de cantidad</div>';
+}
+
+function ocNum(){return 'OC-'+Date.now().toString().slice(-6);}
+
+function generarOC(){
+  const items=Object.entries(qtys);
+  if(!items.length) return alert('Agrega al menos un producto.');
+  const num=ocNum();
+
+  // Agrupar por categoría
+  let tablaRows='';
+  Object.entries(CATS).forEach(([,{label,items:prods}])=>{
+    const seleccionados=prods.filter(p=>qtys[p]);
+    if(!seleccionados.length) return;
+    tablaRows+=`<tr class="oc-cat"><td colspan="2">${label}</td></tr>`;
+    seleccionados.forEach(p=>{
+      tablaRows+=`<tr><td>${p}</td><td style="text-align:center;font-weight:700">${qtys[p]}</td></tr>`;
+    });
+  });
+
+  document.getElementById('pdf-content').innerHTML=`
+    <div class="oc-header">
+      <div>
+        <div class="oc-logo">NA<span>TI</span>VO</div>
+        <div style="font-size:12px;color:#718096;margin-top:4px">nativoacai.cl</div>
+      </div>
+      <div class="oc-titulo">
+        <h1>ORDEN DE COMPRA</h1>
+        <p class="oc-num">${num}</p>
+        <p style="font-size:12px;color:#718096;margin-top:4px">${sess.fecha}</p>
+      </div>
+    </div>
+    <div class="oc-datos">
+      <div class="oc-dato"><label>Empresa</label><p>${sess.emp}</p></div>
+      <div class="oc-dato"><label>RUT</label><p>${sess.rut}</p></div>
+      <div class="oc-dato"><label>Dirección de Despacho</label><p>${sess.dir}</p></div>
+      <div class="oc-dato"><label>Fecha</label><p>${sess.fecha}</p></div>
+    </div>
+    <table class="oc-table">
+      <thead><tr><th style="width:75%">Producto</th><th style="text-align:center">Cantidad</th></tr></thead>
+      <tbody>${tablaRows}</tbody>
+    </table>
+    <div class="oc-footer">
+      <p>Nativo — Documento generado electrónicamente</p>
+      <p class="oc-num">${num}</p>
+    </div>`;
+
+  document.getElementById('pdf-overlay').classList.add('open');
+}
+
+function closePDF(){document.getElementById('pdf-overlay').classList.remove('open');}
+</script>
+</body>
+</html>
