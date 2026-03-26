@@ -222,6 +222,7 @@ tr:hover td{background:#f7fafc}
 
 <script>
 const PIN='1234';
+const PROXY='https://nativo-proxy.mkitzing.workers.dev';
 let pedidos=JSON.parse(localStorage.getItem('nativo_admin')||'[]');
 let editId=null;
 
@@ -263,7 +264,7 @@ async function procesarPDF(input){
   document.getElementById('pdf-status').innerHTML='<div class="alert" style="background:#ebf8ff;color:#1a365d">⏳ Procesando PDF con Claude...</div>';
   try{
     const b64=await toBase64(file);
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
+    const res=await fetch(PROXY,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
               body:JSON.stringify({
@@ -402,7 +403,7 @@ async function generarRuta(){
   const hoy=new Date().toLocaleDateString('es-CL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
+    const res=await fetch(PROXY,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
