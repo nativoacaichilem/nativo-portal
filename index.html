@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Nativo – Orden de Compra</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',sans-serif;background:#f7f9fc;color:#1a202c;min-height:100vh}
@@ -129,7 +130,7 @@ main{max-width:960px;margin:0 auto;padding:24px 16px}
   <div class="oc-topbar">
     <button class="btn-back" onclick="volverCatalogo()">← Volver</button>
     <span style="flex:1;font-weight:700;font-size:15px">Orden de Compra</span>
-    <button onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+    <button onclick="descargarImagen()" id="btn-img">📸 Guardar como imagen</button>
   </div>
   <div class="oc-body" id="oc-body"></div>
 </div>
@@ -291,6 +292,22 @@ function irAOC(){
 
 function volverCatalogo(){
   showScreen('screen-catalogo');
+}
+
+async function descargarImagen(){
+  const btn=document.getElementById('btn-img');
+  btn.textContent='⏳ Generando imagen...';
+  btn.disabled=true;
+  try {
+    const el=document.getElementById('oc-body');
+    const canvas=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true});
+    const link=document.createElement('a');
+    link.download=`OrdenCompra-${sess.emp.replace(/\s+/g,'-')}-${sess.fecha.replace(/\//g,'-')}.png`;
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+  } catch(e){ alert('Error generando imagen. Intenta de nuevo.'); }
+  btn.textContent='📸 Guardar como imagen';
+  btn.disabled=false;
 }
 </script>
 </body>
