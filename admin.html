@@ -67,7 +67,6 @@ tr:hover td{background:#f7fafc}
 .pedido-check-sub{font-size:12px;color:#718096;margin-top:2px}
 .ruta-output{background:#1a202c;color:#e2e8f0;border-radius:10px;padding:16px;font-family:monospace;font-size:12px;line-height:1.8;white-space:pre-wrap;margin-top:12px;max-height:500px;overflow-y:auto}
 .btn-copy{background:#4299e1;color:white;border:none;padding:8px 18px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:700;margin-top:10px}
-.ai-loading{color:#a0aec0;font-style:italic;padding:16px;text-align:center;font-family:'Segoe UI',sans-serif}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;justify-content:center;align-items:center}
 .modal-bg.open{display:flex}
 .modal{background:white;border-radius:14px;padding:28px;max-width:500px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3);max-height:90vh;overflow-y:auto}
@@ -101,7 +100,6 @@ tr:hover td{background:#f7fafc}
     <div class="nav-right">Equipo Nativo <button class="btn-logout" onclick="logout()">Salir</button></div>
   </nav>
 
-  <!-- PEDIDOS -->
   <div id="page-pedidos" class="page active">
     <div class="stats">
       <div class="stat"><div class="stat-num" id="s-total">0</div><div class="stat-label">Total</div></div>
@@ -133,11 +131,9 @@ tr:hover td{background:#f7fafc}
     </div>
   </div>
 
-  <!-- AGREGAR PEDIDO -->
   <div id="page-nuevo" class="page">
     <div class="card" style="max-width:680px;margin:0 auto">
       <h2>➕ Agregar Pedido Facturado</h2>
-
       <div class="upload-area" onclick="document.getElementById('pdf-upload').click()">
         <div style="font-size:32px">📄</div>
         <p style="font-weight:600;color:#4a5568">Subir Orden de Compra en PDF</p>
@@ -145,7 +141,6 @@ tr:hover td{background:#f7fafc}
       </div>
       <input type="file" id="pdf-upload" accept=".pdf" style="display:none" onchange="procesarPDF(this)">
       <div id="pdf-status"></div>
-
       <div style="border-top:1px solid #e2e8f0;padding-top:20px;margin-top:16px">
         <p style="font-size:12px;color:#a0aec0;margin-bottom:14px">O completa manualmente:</p>
         <div id="alert-nuevo"></div>
@@ -170,11 +165,10 @@ tr:hover td{background:#f7fafc}
     </div>
   </div>
 
-  <!-- RUTAS -->
   <div id="page-rutas" class="page">
     <div class="card">
       <h2>🚚 Armar Ruta</h2>
-      <p style="font-size:13px;color:#718096;margin-bottom:16px">Selecciona los pedidos para esta ruta y Claude sugerirá el orden más eficiente.</p>
+      <p style="font-size:13px;color:#718096;margin-bottom:16px">Selecciona los pedidos y Claude sugerirá el orden más eficiente.</p>
       <div class="ruta-builder">
         <h3>Pedidos pendientes de despacho:</h3>
         <div id="pedidos-checks"></div>
@@ -191,7 +185,6 @@ tr:hover td{background:#f7fafc}
   </div>
 </div>
 
-<!-- MODAL EDITAR -->
 <div class="modal-bg" id="modal-bg">
   <div class="modal">
     <h3>⚙️ Editar Pedido</h3>
@@ -221,16 +214,25 @@ tr:hover td{background:#f7fafc}
 </div>
 
 <script>
-const PIN='1234';
-const PROXY='https://nativo-proxy.mkitzing.workers.dev';
-let pedidos=JSON.parse(localStorage.getItem('nativo_admin')||'[]');
-let editId=null;
+const PIN = '1234';
+const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
+let pedidos = JSON.parse(localStorage.getItem('nativo_admin')||'[]');
+let editId = null;
 
-function save(){localStorage.setItem('nativo_admin',JSON.stringify(pedidos));}
+function save(){ localStorage.setItem('nativo_admin', JSON.stringify(pedidos)); }
+
+async function claudeAPI(body){
+  const res = await fetch(PROXY, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
 
 function doLogin(){
-  if(document.getElementById('pin-inp').value!==PIN){
-    document.getElementById('login-alert').innerHTML='<div class="alert alert-error">PIN incorrecto.</div>';return;
+  if(document.getElementById('pin-inp').value !== PIN){
+    document.getElementById('login-alert').innerHTML='<div class="alert alert-error">PIN incorrecto.</div>'; return;
   }
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='block';
@@ -257,42 +259,36 @@ function fmtR(el){
   el.value=b+'-'+d;
 }
 
-// PDF → Claude
 async function procesarPDF(input){
   const file=input.files[0];
   if(!file) return;
   document.getElementById('pdf-status').innerHTML='<div class="alert" style="background:#ebf8ff;color:#1a365d">⏳ Procesando PDF con Claude...</div>';
   try{
-    const b64=await toBase64(file);
-    const res=await fetch(PROXY,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-              body:JSON.stringify({
-        model:'claude-haiku-4-5-20251001',
-        max_tokens:500,
-        messages:[{role:'user',content:[
-          {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
-          {type:'text',text:'Del PDF extrae empresa, rut, direccion, detalle (productos y cantidades). Solo JSON: {"empresa":"","rut":"","direccion":"","detalle":""}'}
-        ]}]
-      })
+    const b64 = await toBase64(file);
+    const data = await claudeAPI({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 500,
+      messages:[{role:'user', content:[
+        {type:'document', source:{type:'base64', media_type:'application/pdf', data:b64}},
+        {type:'text', text:'Del PDF extrae empresa, rut, direccion, detalle (productos y cantidades). Solo JSON sin markdown: {"empresa":"","rut":"","direccion":"","detalle":""}'}
+      ]}]
     });
-    const data=await res.json();
-    const txt=data.content.find(b=>b.type==='text')?.text||'';
-    const obj=JSON.parse(txt.replace(/```json|```/g,'').trim());
+    const txt = data.content.find(b=>b.type==='text')?.text||'';
+    const obj = JSON.parse(txt.replace(/```json|```/g,'').trim());
     if(obj.empresa) document.getElementById('n-emp').value=obj.empresa;
     if(obj.rut) document.getElementById('n-rut').value=obj.rut;
     if(obj.direccion) document.getElementById('n-dir').value=obj.direccion;
     if(obj.detalle) document.getElementById('n-detalle').value=obj.detalle;
-    document.getElementById('pdf-status').innerHTML='<div class="alert alert-success">✅ Datos extraídos. Revisa, agrega la zona y el número de factura.</div>';
-  }catch(e){
+    document.getElementById('pdf-status').innerHTML='<div class="alert alert-success">✅ Datos extraídos. Agrega la zona y número de factura.</div>';
+  } catch(e){
     document.getElementById('pdf-status').innerHTML='<div class="alert alert-error">Error procesando PDF. Ingresa los datos manualmente.</div>';
+    console.error(e);
   }
 }
 function toBase64(file){
   return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});
 }
 
-// AGREGAR
 function agregarPedido(){
   const emp=document.getElementById('n-emp').value.trim();
   const rut=document.getElementById('n-rut').value.trim();
@@ -311,7 +307,6 @@ function agregarPedido(){
   renderChecks();
 }
 
-// RENDER TABLA
 function renderPedidos(){
   const q=(document.getElementById('search').value||'').toLowerCase();
   const fZ=document.getElementById('f-zona').value;
@@ -337,7 +332,6 @@ function renderPedidos(){
   </tr>`).join('');
 }
 
-// MODAL
 function openModal(id){
   editId=id;
   const p=pedidos.find(x=>x.id===id);
@@ -351,20 +345,25 @@ function openModal(id){
 function closeModal(){document.getElementById('modal-bg').classList.remove('open');}
 function guardar(){
   const idx=pedidos.findIndex(x=>x.id===editId);
-  pedidos[idx]={...pedidos[idx],zona:document.getElementById('m-zona').value,estado:document.getElementById('m-estado').value,dir:document.getElementById('m-dir').value,factura:document.getElementById('m-factura').value,detalle:document.getElementById('m-detalle').value};
-  save();renderPedidos();renderChecks();closeModal();
+  pedidos[idx]={...pedidos[idx],
+    zona:document.getElementById('m-zona').value,
+    estado:document.getElementById('m-estado').value,
+    dir:document.getElementById('m-dir').value,
+    factura:document.getElementById('m-factura').value,
+    detalle:document.getElementById('m-detalle').value
+  };
+  save(); renderPedidos(); renderChecks(); closeModal();
 }
 function eliminar(){
-  if(!confirm('¿Eliminar este pedido?'))return;
+  if(!confirm('¿Eliminar este pedido?')) return;
   pedidos=pedidos.filter(x=>x.id!==editId);
-  save();renderPedidos();renderChecks();closeModal();
+  save(); renderPedidos(); renderChecks(); closeModal();
 }
 
-// CHECKS RUTAS
 function renderChecks(){
   const pend=pedidos.filter(p=>p.estado==='pendiente');
   const el=document.getElementById('pedidos-checks');
-  if(!pend.length){el.innerHTML='<p style="color:#a0aec0;font-size:13px;padding:8px">No hay pedidos pendientes de despacho.</p>';return;}
+  if(!pend.length){el.innerHTML='<p style="color:#a0aec0;font-size:13px;padding:8px">No hay pedidos pendientes.</p>';return;}
   el.innerHTML=pend.map(p=>`
     <div class="pedido-check" id="chk-${p.id}" onclick="toggleCheck(${p.id})">
       <input type="checkbox" id="cb-${p.id}" onclick="event.stopPropagation();toggleCheck(${p.id})">
@@ -388,33 +387,26 @@ function deselectAll(){
   });
 }
 
-// GENERAR RUTA CON CLAUDE
 async function generarRuta(){
   const selIds=[...document.querySelectorAll('#pedidos-checks input[type=checkbox]:checked')].map(cb=>parseInt(cb.id.replace('cb-','')));
-  if(!selIds.length)return alert('Selecciona al menos un pedido.');
+  if(!selIds.length) return alert('Selecciona al menos un pedido.');
   const sel=pedidos.filter(p=>selIds.includes(p.id));
   const resDiv=document.getElementById('ruta-result');
   const outDiv=document.getElementById('ruta-output');
   resDiv.style.display='block';
-  outDiv.innerHTML='';
   outDiv.textContent='🤖 Claude está calculando la ruta más eficiente...';
-
   const lista=sel.map((p,i)=>`${i+1}. Empresa: ${p.emp} | Zona: ${p.zona} | Dirección: ${p.dir} | Detalle: ${p.detalle}${p.factura?' | Factura: '+p.factura:''}`).join('\n');
   const hoy=new Date().toLocaleDateString('es-CL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-
   try{
-    const res=await fetch(PROXY,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1500,
-        messages:[{role:'user',content:`Eres un experto en logística de Santiago de Chile. Organiza estos pedidos en la ruta más eficiente para un repartidor considerando la geografía real de Santiago.
+    const data = await claudeAPI({
+      model:'claude-haiku-4-5-20251001',
+      max_tokens:1500,
+      messages:[{role:'user',content:`Eres experto en logística de Santiago de Chile. Organiza estos pedidos en la ruta más eficiente considerando la geografía real de Santiago.
 
 Pedidos:
 ${lista}
 
-Responde SOLO con el texto listo para copiar y pegar al repartidor, con este formato:
+Responde SOLO con el texto listo para copiar al repartidor:
 
 🚚 RUTA DEL DÍA — ${hoy}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -422,25 +414,21 @@ Responde SOLO con el texto listo para copiar y pegar al repartidor, con este for
 📍 PARADA 1 — [Empresa]
 Cliente: [Empresa]
 Dirección: [Dirección]
-Pedido: [Detalle completo]
-Waze: https://waze.com/ul?q=[dirección+codificada]&navigate=yes
+Pedido: [Detalle]
+Waze: https://waze.com/ul?q=[dirección codificada]&navigate=yes
 
-[continuar con cada parada]
+[repetir por cada parada]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📊 RESUMEN
-Norte: X paradas
-Sur: X paradas
-Santiago: X paradas
-Litoral: X paradas
-Total: X paradas
+Norte: X | Sur: X | Santiago: X | Litoral: X | Total: X
 
-💡 [Breve explicación del orden elegido]`}]})
+💡 [Breve nota del orden elegido]`}]
     });
-    const data=await res.json();
     outDiv.textContent=data.content.find(b=>b.type==='text')?.text||'Error generando ruta.';
-  }catch(e){
-    outDiv.textContent='Error conectando con Claude. Intenta de nuevo.';
+  } catch(e){
+    outDiv.textContent='Error conectando. Intenta de nuevo.';
+    console.error(e);
   }
 }
 
