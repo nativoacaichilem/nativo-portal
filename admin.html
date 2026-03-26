@@ -18,6 +18,7 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;color:#1a202c;min-heig
 .alert{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:12px}
 .alert-error{background:#fed7d7;color:#742a2a}
 .alert-success{background:#c6f6d5;color:#1c4532}
+.alert-info{background:#ebf8ff;color:#1a365d}
 nav{background:#1e3a5f;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
 .nav-tabs{display:flex}
 nav button{background:none;border:none;color:white;padding:15px 16px;cursor:pointer;font-size:13px;font-weight:500;border-bottom:3px solid transparent;transition:background .2s}
@@ -74,7 +75,8 @@ tr:hover td{background:#f7fafc}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 .upload-area{border:2px dashed #cbd5e0;border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:border .2s;margin-bottom:12px;background:#f7fafc}
 .upload-area:hover{border-color:#4299e1;background:#ebf8ff}
-.upload-area p{color:#718096;font-size:13px;margin-top:6px}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid #bee3f8;border-top-color:#2b6cb0;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -100,6 +102,7 @@ tr:hover td{background:#f7fafc}
     <div class="nav-right">Equipo Nativo <button class="btn-logout" onclick="logout()">Salir</button></div>
   </nav>
 
+  <!-- PEDIDOS -->
   <div id="page-pedidos" class="page active">
     <div class="stats">
       <div class="stat"><div class="stat-num" id="s-total">0</div><div class="stat-label">Total</div></div>
@@ -108,9 +111,9 @@ tr:hover td{background:#f7fafc}
       <div class="stat"><div class="stat-num" id="s-stgo">0</div><div class="stat-label">Santiago</div></div>
     </div>
     <div class="card">
-      <h2>📋 Pedidos Facturados</h2>
+      <h2>📋 Pedidos <button class="btn btn-gray btn-sm" style="float:right" onclick="loadPedidos()">🔄 Actualizar</button></h2>
       <div class="filter-bar">
-        <input type="text" id="search" placeholder="🔍 Buscar empresa o RUT..." oninput="renderPedidos()">
+        <input type="text" id="search" placeholder="🔍 Buscar..." oninput="renderPedidos()">
         <select id="f-zona" onchange="renderPedidos()">
           <option value="">Todas las zonas</option>
           <option value="norte">Norte</option><option value="sur">Sur</option>
@@ -119,29 +122,30 @@ tr:hover td{background:#f7fafc}
         <select id="f-estado" onchange="renderPedidos()">
           <option value="">Todos</option>
           <option value="pendiente">Pendiente</option>
+          <option value="facturado">Facturado</option>
           <option value="despachado">Despachado</option>
         </select>
       </div>
+      <div id="pedidos-loading" style="text-align:center;padding:24px;color:#a0aec0;display:none"><span class="spinner"></span>Cargando...</div>
       <div class="table-wrap">
-        <table>
-          <thead><tr><th>Fecha</th><th>Empresa</th><th>RUT</th><th>Dirección</th><th>Zona</th><th>Estado</th><th></th></tr></thead>
-          <tbody id="pedidos-tbody"></tbody>
-        </table>
+        <table><thead><tr><th>Fecha</th><th>Empresa</th><th>RUT</th><th>Dirección</th><th>Zona</th><th>Estado</th><th>Factura</th><th></th></tr></thead>
+        <tbody id="pedidos-tbody"></tbody></table>
       </div>
     </div>
   </div>
 
+  <!-- AGREGAR -->
   <div id="page-nuevo" class="page">
     <div class="card" style="max-width:680px;margin:0 auto">
-      <h2>➕ Agregar Pedido Facturado</h2>
-      <div class="upload-area" onclick="document.getElementById('pdf-upload').click()">
-        <div style="font-size:32px">📄</div>
-        <p style="font-weight:600;color:#4a5568">Subir Orden de Compra en PDF</p>
-        <p>Claude extraerá los datos automáticamente</p>
+      <h2>➕ Agregar Pedido</h2>
+      <div class="upload-area" onclick="document.getElementById('img-upload').click()">
+        <div style="font-size:32px">🖼️</div>
+        <p style="font-weight:600;color:#4a5568">Subir imagen de Orden de Compra</p>
+        <p style="font-size:12px;color:#a0aec0;margin-top:4px">JPG o PNG — Claude extraerá los datos automáticamente</p>
       </div>
-      <input type="file" id="pdf-upload" accept=".pdf" style="display:none" onchange="procesarPDF(this)">
-      <div id="pdf-status"></div>
-      <div style="border-top:1px solid #e2e8f0;padding-top:20px;margin-top:16px">
+      <input type="file" id="img-upload" accept="image/*" style="display:none" onchange="procesarImagen(this)" multiple>
+      <div id="img-status"></div>
+      <div style="border-top:1px solid #e2e8f0;padding-top:20px;margin-top:4px">
         <p style="font-size:12px;color:#a0aec0;margin-bottom:14px">O completa manualmente:</p>
         <div id="alert-nuevo"></div>
         <div class="form-grid">
@@ -160,55 +164,61 @@ tr:hover td{background:#f7fafc}
         </div>
         <div style="margin-bottom:12px"><label>Detalle del Pedido *</label><textarea id="n-detalle" placeholder="Productos y cantidades..."></textarea></div>
         <div style="margin-bottom:16px"><label>N° Factura</label><input id="n-factura" type="text" placeholder="Ej: 001234"></div>
-        <button class="btn btn-primary" onclick="agregarPedido()">Agregar Pedido</button>
+        <button class="btn btn-primary" id="btn-agregar" onclick="agregarPedido()">Agregar Pedido</button>
       </div>
     </div>
   </div>
 
+  <!-- RUTAS -->
   <div id="page-rutas" class="page">
     <div class="card">
       <h2>🚚 Armar Ruta</h2>
-      <p style="font-size:13px;color:#718096;margin-bottom:16px">Selecciona los pedidos y Claude sugerirá el orden más eficiente.</p>
+      <p style="font-size:13px;color:#718096;margin-bottom:16px">Selecciona los pedidos facturados. Claude calculará el orden más eficiente.</p>
       <div class="ruta-builder">
-        <h3>Pedidos pendientes de despacho:</h3>
+        <h3>Pedidos facturados:</h3>
         <div id="pedidos-checks"></div>
         <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="generarRuta()">🤖 Generar ruta con Claude</button>
+          <button class="btn btn-primary" id="btn-ruta" onclick="generarRuta()">🤖 Generar ruta con Claude</button>
           <button class="btn btn-gray btn-sm" onclick="deselectAll()">Deseleccionar todo</button>
         </div>
       </div>
       <div id="ruta-result" style="display:none">
         <div id="ruta-output" class="ruta-output"></div>
-        <button class="btn-copy" onclick="copiarRuta()">📋 Copiar texto</button>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+          <button class="btn-copy" onclick="copiarRuta()">📋 Copiar texto</button>
+        </div>
+        <div id="facturas-ruta" style="margin-top:16px"></div>
       </div>
     </div>
   </div>
 </div>
 
+<!-- MODAL EDITAR -->
 <div class="modal-bg" id="modal-bg">
   <div class="modal">
     <h3>⚙️ Editar Pedido</h3>
     <div class="form-grid">
       <div><label>Zona</label>
-        <select id="m-zona">
-          <option value="norte">Norte</option><option value="sur">Sur</option>
-          <option value="santiago">Santiago</option><option value="litoral">Litoral</option>
-        </select>
+        <select id="m-zona"><option value="norte">Norte</option><option value="sur">Sur</option><option value="santiago">Santiago</option><option value="litoral">Litoral</option></select>
       </div>
       <div><label>Estado</label>
-        <select id="m-estado">
-          <option value="pendiente">Pendiente</option>
-          <option value="despachado">Despachado</option>
-        </select>
+        <select id="m-estado"><option value="pendiente">Pendiente</option><option value="facturado">Facturado</option><option value="despachado">Despachado</option></select>
       </div>
     </div>
+    <div style="margin-bottom:12px"><label>Empresa</label><input id="m-emp" type="text"></div>
+    <div style="margin-bottom:12px"><label>RUT</label><input id="m-rut" type="text"></div>
     <div style="margin-bottom:12px"><label>Dirección</label><input id="m-dir" type="text"></div>
-    <div style="margin-bottom:12px"><label>N° Factura</label><input id="m-factura" type="text"></div>
-    <div><label>Detalle</label><textarea id="m-detalle"></textarea></div>
+    <div style="margin-bottom:12px"><label>Detalle</label><textarea id="m-detalle"></textarea></div>
+    <div style="margin-bottom:12px"><label>N° Factura</label><input id="m-factura-num" type="text"></div>
+    <div style="margin-bottom:16px">
+      <label>Adjuntar Factura PDF</label>
+      <div id="m-factura-actual" style="font-size:12px;color:#718096;margin-bottom:6px"></div>
+      <input type="file" id="m-factura-file" accept=".pdf">
+    </div>
     <div class="modal-actions">
       <button class="btn btn-gray btn-sm" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-danger btn-sm" onclick="eliminar()">Eliminar</button>
-      <button class="btn btn-primary btn-sm" onclick="guardar()">Guardar</button>
+      <button class="btn btn-danger btn-sm" onclick="eliminarPedido()">Eliminar</button>
+      <button class="btn btn-primary btn-sm" id="btn-guardar" onclick="guardarModal()">Guardar</button>
     </div>
   </div>
 </div>
@@ -216,235 +226,281 @@ tr:hover td{background:#f7fafc}
 <script>
 const PIN = '1234';
 const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
-let pedidos = JSON.parse(localStorage.getItem('nativo_admin')||'[]');
+
+let pedidos = [];
 let editId = null;
 
-function save(){ localStorage.setItem('nativo_admin', JSON.stringify(pedidos)); }
+// ── API HELPERS ──────────────────────────────────────────
+async function supabase(method, path, body) {
+  const res = await fetch(`${PROXY}/supabase${path}`, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const text = await res.text();
+  try { return JSON.parse(text); } catch { return text; }
+}
 
-async function claudeAPI(body){
-  const res = await fetch(PROXY, {
+async function claudeAPI(messages, model = 'claude-haiku-4-5-20251001', max_tokens = 800) {
+  const res = await fetch(`${PROXY}/claude`, {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(body)
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, max_tokens, messages })
   });
   return res.json();
 }
 
-function doLogin(){
-  if(document.getElementById('pin-inp').value !== PIN){
-    document.getElementById('login-alert').innerHTML='<div class="alert alert-error">PIN incorrecto.</div>'; return;
+// ── LOGIN ────────────────────────────────────────────────
+function doLogin() {
+  if (document.getElementById('pin-inp').value !== PIN) {
+    document.getElementById('login-alert').innerHTML = '<div class="alert alert-error">PIN incorrecto.</div>'; return;
   }
-  document.getElementById('login-screen').style.display='none';
-  document.getElementById('app').style.display='block';
-  renderPedidos(); renderChecks();
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadPedidos();
 }
-function logout(){
-  document.getElementById('login-screen').style.display='flex';
-  document.getElementById('app').style.display='none';
-  document.getElementById('pin-inp').value='';
+function logout() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('pin-inp').value = '';
 }
-function switchTab(id,btn){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-tabs button').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
+function switchTab(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
   btn.classList.add('active');
-  if(id==='pedidos') renderPedidos();
-  if(id==='rutas') renderChecks();
+  if (id === 'pedidos') loadPedidos();
+  if (id === 'rutas') renderChecks();
 }
-function fmtR(el){
-  let v=el.value.replace(/[^0-9kK]/g,'');
-  if(v.length<2){el.value=v;return;}
-  let b=v.slice(0,-1),d=v.slice(-1).toUpperCase();
-  b=b.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
-  el.value=b+'-'+d;
-}
-
-async function procesarPDF(input){
-  const file=input.files[0];
-  if(!file) return;
-  document.getElementById('pdf-status').innerHTML='<div class="alert" style="background:#ebf8ff;color:#1a365d">⏳ Procesando PDF con Claude...</div>';
-  try{
-    const b64 = await toBase64(file);
-    const data = await claudeAPI({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 500,
-      messages:[{role:'user', content:[
-        {type:'document', source:{type:'base64', media_type:'application/pdf', data:b64}},
-        {type:'text', text:'Del PDF extrae empresa, rut, direccion, detalle (productos y cantidades). Solo JSON sin markdown: {"empresa":"","rut":"","direccion":"","detalle":""}'}
-      ]}]
-    });
-    const txt = data.content.find(b=>b.type==='text')?.text||'';
-    const obj = JSON.parse(txt.replace(/```json|```/g,'').trim());
-    if(obj.empresa) document.getElementById('n-emp').value=obj.empresa;
-    if(obj.rut) document.getElementById('n-rut').value=obj.rut;
-    if(obj.direccion) document.getElementById('n-dir').value=obj.direccion;
-    if(obj.detalle) document.getElementById('n-detalle').value=obj.detalle;
-    document.getElementById('pdf-status').innerHTML='<div class="alert alert-success">✅ Datos extraídos. Agrega la zona y número de factura.</div>';
-  } catch(e){
-    document.getElementById('pdf-status').innerHTML='<div class="alert alert-error">Error procesando PDF. Ingresa los datos manualmente.</div>';
-    console.error(e);
-  }
-}
-function toBase64(file){
-  return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});
+function fmtR(el) {
+  let v = el.value.replace(/[^0-9kK]/g, '');
+  if (v.length < 2) { el.value = v; return; }
+  let b = v.slice(0, -1), d = v.slice(-1).toUpperCase();
+  b = b.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  el.value = b + '-' + d;
 }
 
-function agregarPedido(){
-  const emp=document.getElementById('n-emp').value.trim();
-  const rut=document.getElementById('n-rut').value.trim();
-  const dir=document.getElementById('n-dir').value.trim();
-  const zona=document.getElementById('n-zona').value;
-  const detalle=document.getElementById('n-detalle').value.trim();
-  const factura=document.getElementById('n-factura').value.trim();
-  if(!emp||!rut||!dir||!zona||!detalle)
-    return showAlert('alert-nuevo','Completa todos los campos obligatorios.','error');
-  pedidos.push({id:Date.now(),emp,rut,dir,zona,detalle,factura,estado:'pendiente',fecha:new Date().toLocaleDateString('es-CL')});
-  save();
-  showAlert('alert-nuevo','✅ Pedido agregado correctamente.','success');
-  ['n-emp','n-rut','n-dir','n-detalle','n-factura'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('n-zona').value='';
-  document.getElementById('pdf-status').innerHTML='';
-  renderChecks();
+// ── CARGAR PEDIDOS ───────────────────────────────────────
+async function loadPedidos() {
+  document.getElementById('pedidos-loading').style.display = 'block';
+  try {
+    pedidos = await supabase('GET', '/pedidos?order=id.desc') || [];
+    renderPedidos();
+    renderChecks();
+  } catch (e) { console.error(e); }
+  document.getElementById('pedidos-loading').style.display = 'none';
 }
 
-function renderPedidos(){
-  const q=(document.getElementById('search').value||'').toLowerCase();
-  const fZ=document.getElementById('f-zona').value;
-  const fE=document.getElementById('f-estado').value;
-  const filt=pedidos.filter(p=>
-    (!q||p.emp.toLowerCase().includes(q)||p.rut.includes(q))&&
-    (!fZ||p.zona===fZ)&&(!fE||p.estado===fE)
+function renderPedidos() {
+  const q = (document.getElementById('search').value || '').toLowerCase();
+  const fZ = document.getElementById('f-zona').value;
+  const fE = document.getElementById('f-estado').value;
+  const filt = pedidos.filter(p =>
+    (!q || p.emp.toLowerCase().includes(q) || p.rut.includes(q)) &&
+    (!fZ || p.zona === fZ) && (!fE || p.estado === fE)
   );
-  document.getElementById('s-total').textContent=pedidos.length;
-  document.getElementById('s-norte').textContent=pedidos.filter(p=>p.zona==='norte').length;
-  document.getElementById('s-sur').textContent=pedidos.filter(p=>p.zona==='sur').length;
-  document.getElementById('s-stgo').textContent=pedidos.filter(p=>p.zona==='santiago').length;
-  const tb=document.getElementById('pedidos-tbody');
-  if(!filt.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:#a0aec0;padding:24px">Sin resultados</td></tr>';return;}
-  tb.innerHTML=filt.map(p=>`<tr>
+  document.getElementById('s-total').textContent = pedidos.length;
+  document.getElementById('s-norte').textContent = pedidos.filter(p => p.zona === 'norte').length;
+  document.getElementById('s-sur').textContent = pedidos.filter(p => p.zona === 'sur').length;
+  document.getElementById('s-stgo').textContent = pedidos.filter(p => p.zona === 'santiago').length;
+  const tb = document.getElementById('pedidos-tbody');
+  if (!filt.length) { tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#a0aec0;padding:24px">Sin pedidos</td></tr>'; return; }
+  tb.innerHTML = filt.map(p => `<tr>
     <td style="font-size:12px;color:#a0aec0">${p.fecha}</td>
-    <td><strong>${p.emp}</strong>${p.factura?`<br><span style="font-size:11px;color:#718096">F: ${p.factura}</span>`:''}</td>
+    <td><strong>${p.emp}</strong></td>
     <td style="font-size:12px">${p.rut}</td>
-    <td style="font-size:12px;max-width:150px">${p.dir}</td>
+    <td style="font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.dir}</td>
     <td><span class="badge badge-${p.zona}">${p.zona}</span></td>
-    <td><span class="badge" style="background:${p.estado==='despachado'?'#c6f6d5':'#fefcbf'};color:${p.estado==='despachado'?'#1c4532':'#744210'}">${p.estado==='despachado'?'Despachado':'Pendiente'}</span></td>
+    <td><span class="badge" style="background:${p.estado==='facturado'?'#bee3f8':p.estado==='despachado'?'#c6f6d5':'#fefcbf'};color:${p.estado==='facturado'?'#1a365d':p.estado==='despachado'?'#1c4532':'#744210'}">${p.estado}</span></td>
+    <td style="font-size:12px">${p.factura_num ? `<span style="color:#2b6cb0;font-weight:600">N° ${p.factura_num}</span>` : '<span style="color:#a0aec0">—</span>'}</td>
     <td><button class="btn btn-sm btn-outline" onclick="openModal(${p.id})">Editar</button></td>
   </tr>`).join('');
 }
 
-function openModal(id){
-  editId=id;
-  const p=pedidos.find(x=>x.id===id);
-  document.getElementById('m-zona').value=p.zona;
-  document.getElementById('m-estado').value=p.estado;
-  document.getElementById('m-dir').value=p.dir;
-  document.getElementById('m-factura').value=p.factura||'';
-  document.getElementById('m-detalle').value=p.detalle;
-  document.getElementById('modal-bg').classList.add('open');
-}
-function closeModal(){document.getElementById('modal-bg').classList.remove('open');}
-function guardar(){
-  const idx=pedidos.findIndex(x=>x.id===editId);
-  pedidos[idx]={...pedidos[idx],
-    zona:document.getElementById('m-zona').value,
-    estado:document.getElementById('m-estado').value,
-    dir:document.getElementById('m-dir').value,
-    factura:document.getElementById('m-factura').value,
-    detalle:document.getElementById('m-detalle').value
-  };
-  save(); renderPedidos(); renderChecks(); closeModal();
-}
-function eliminar(){
-  if(!confirm('¿Eliminar este pedido?')) return;
-  pedidos=pedidos.filter(x=>x.id!==editId);
-  save(); renderPedidos(); renderChecks(); closeModal();
+// ── PROCESAR IMAGEN CON CLAUDE ───────────────────────────
+async function procesarImagen(input) {
+  const files = [...input.files];
+  if (!files.length) return;
+  const statusEl = document.getElementById('img-status');
+  statusEl.innerHTML = `<div class="alert alert-info"><span class="spinner"></span>Procesando ${files.length} imagen(es) con Claude...</div>`;
+
+  let procesados = 0, errores = 0;
+
+  for (const file of files) {
+    try {
+      const b64 = await toBase64(file);
+      const mediaType = file.type || 'image/jpeg';
+      const data = await claudeAPI([{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
+          { type: 'text', text: 'Extrae de esta orden de compra: empresa, rut, direccion, detalle (lista de productos con cantidades en una sola línea). Solo JSON sin markdown: {"empresa":"","rut":"","direccion":"","detalle":""}' }
+        ]
+      }]);
+      const txt = data.content?.find(b => b.type === 'text')?.text || '';
+      const obj = JSON.parse(txt.replace(/```json|```/g, '').trim());
+
+      // Guardar directamente en Supabase
+      await supabase('POST', '/pedidos', {
+        emp: obj.empresa || '',
+        rut: obj.rut || '',
+        dir: obj.direccion || '',
+        zona: 'pendiente-zona',
+        detalle: obj.detalle || '',
+        estado: 'pendiente',
+        factura_num: '',
+        factura_nombre: '',
+        fecha: new Date().toLocaleDateString('es-CL')
+      });
+      procesados++;
+    } catch (e) { errores++; console.error(e); }
+  }
+
+  await loadPedidos();
+  statusEl.innerHTML = `<div class="alert alert-success">✅ ${procesados} pedido(s) cargado(s)${errores ? ` — ${errores} con error` : ''}. Edita cada uno para asignar la zona correcta.</div>`;
+  input.value = '';
 }
 
-function renderChecks(){
-  const pend=pedidos.filter(p=>p.estado==='pendiente');
-  const el=document.getElementById('pedidos-checks');
-  if(!pend.length){el.innerHTML='<p style="color:#a0aec0;font-size:13px;padding:8px">No hay pedidos pendientes.</p>';return;}
-  el.innerHTML=pend.map(p=>`
+function toBase64(file) {
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(file); });
+}
+
+// ── AGREGAR MANUAL ───────────────────────────────────────
+async function agregarPedido() {
+  const emp = document.getElementById('n-emp').value.trim();
+  const rut = document.getElementById('n-rut').value.trim();
+  const dir = document.getElementById('n-dir').value.trim();
+  const zona = document.getElementById('n-zona').value;
+  const detalle = document.getElementById('n-detalle').value.trim();
+  const factura_num = document.getElementById('n-factura').value.trim();
+  if (!emp || !rut || !dir || !zona || !detalle) return showAlert('alert-nuevo', 'Completa todos los campos obligatorios.', 'error');
+  const btn = document.getElementById('btn-agregar');
+  btn.textContent = 'Guardando...'; btn.disabled = true;
+  try {
+    await supabase('POST', '/pedidos', { emp, rut, dir, zona, detalle, factura_num, factura_nombre: '', estado: 'pendiente', fecha: new Date().toLocaleDateString('es-CL') });
+    await loadPedidos();
+    showAlert('alert-nuevo', '✅ Pedido agregado.', 'success');
+    ['n-emp', 'n-rut', 'n-dir', 'n-detalle', 'n-factura'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('n-zona').value = '';
+  } catch (e) { showAlert('alert-nuevo', 'Error al guardar.', 'error'); }
+  btn.textContent = 'Agregar Pedido'; btn.disabled = false;
+}
+
+// ── MODAL ────────────────────────────────────────────────
+function openModal(id) {
+  editId = id;
+  const p = pedidos.find(x => x.id === id);
+  document.getElementById('m-zona').value = p.zona === 'pendiente-zona' ? 'santiago' : p.zona;
+  document.getElementById('m-estado').value = p.estado;
+  document.getElementById('m-emp').value = p.emp;
+  document.getElementById('m-rut').value = p.rut;
+  document.getElementById('m-dir').value = p.dir;
+  document.getElementById('m-detalle').value = p.detalle;
+  document.getElementById('m-factura-num').value = p.factura_num || '';
+  document.getElementById('m-factura-actual').textContent = p.factura_nombre ? `Actual: ${p.factura_nombre}` : '';
+  document.getElementById('m-factura-file').value = '';
+  document.getElementById('modal-bg').classList.add('open');
+}
+function closeModal() { document.getElementById('modal-bg').classList.remove('open'); }
+
+async function guardarModal() {
+  const btn = document.getElementById('btn-guardar');
+  btn.textContent = 'Guardando...'; btn.disabled = true;
+  try {
+    const file = document.getElementById('m-factura-file').files[0];
+    let factura_nombre = pedidos.find(x => x.id === editId)?.factura_nombre || '';
+    if (file) factura_nombre = file.name;
+
+    await supabase('PATCH', `/pedidos?id=eq.${editId}`, {
+      zona: document.getElementById('m-zona').value,
+      estado: document.getElementById('m-estado').value,
+      emp: document.getElementById('m-emp').value,
+      rut: document.getElementById('m-rut').value,
+      dir: document.getElementById('m-dir').value,
+      detalle: document.getElementById('m-detalle').value,
+      factura_num: document.getElementById('m-factura-num').value,
+      factura_nombre
+    });
+    await loadPedidos();
+    closeModal();
+  } catch (e) { alert('Error al guardar.'); }
+  btn.textContent = 'Guardar'; btn.disabled = false;
+}
+
+async function eliminarPedido() {
+  if (!confirm('¿Eliminar este pedido?')) return;
+  await supabase('DELETE', `/pedidos?id=eq.${editId}`);
+  await loadPedidos();
+  closeModal();
+}
+
+// ── RUTAS ────────────────────────────────────────────────
+function renderChecks() {
+  const fact = pedidos.filter(p => p.estado === 'facturado');
+  const el = document.getElementById('pedidos-checks');
+  if (!fact.length) { el.innerHTML = '<p style="color:#a0aec0;font-size:13px;padding:8px">No hay pedidos facturados.</p>'; return; }
+  el.innerHTML = fact.map(p => `
     <div class="pedido-check" id="chk-${p.id}" onclick="toggleCheck(${p.id})">
       <input type="checkbox" id="cb-${p.id}" onclick="event.stopPropagation();toggleCheck(${p.id})">
       <div class="pedido-check-info">
         <div class="pedido-check-name">${p.emp} <span class="badge badge-${p.zona}" style="font-size:10px;vertical-align:middle">${p.zona}</span></div>
         <div class="pedido-check-sub">📍 ${p.dir}</div>
-        <div class="pedido-check-sub">📦 ${p.detalle.slice(0,90)}${p.detalle.length>90?'…':''}</div>
+        <div class="pedido-check-sub">📦 ${p.detalle.slice(0, 90)}${p.detalle.length > 90 ? '…' : ''}</div>
+        ${p.factura_num ? `<div class="pedido-check-sub">Factura N° ${p.factura_num}</div>` : ''}
       </div>
     </div>`).join('');
 }
-function toggleCheck(id){
-  const cb=document.getElementById('cb-'+id);
-  const card=document.getElementById('chk-'+id);
-  cb.checked=!cb.checked;
-  card.classList.toggle('selected',cb.checked);
+
+function toggleCheck(id) {
+  const cb = document.getElementById('cb-' + id);
+  const card = document.getElementById('chk-' + id);
+  cb.checked = !cb.checked;
+  card.classList.toggle('selected', cb.checked);
 }
-function deselectAll(){
-  document.querySelectorAll('#pedidos-checks input[type=checkbox]').forEach(cb=>{
-    cb.checked=false;
-    document.getElementById('chk-'+cb.id.replace('cb-','')).classList.remove('selected');
+function deselectAll() {
+  document.querySelectorAll('#pedidos-checks input[type=checkbox]').forEach(cb => {
+    cb.checked = false;
+    document.getElementById('chk-' + cb.id.replace('cb-', '')).classList.remove('selected');
   });
 }
 
-async function generarRuta(){
-  const selIds=[...document.querySelectorAll('#pedidos-checks input[type=checkbox]:checked')].map(cb=>parseInt(cb.id.replace('cb-','')));
-  if(!selIds.length) return alert('Selecciona al menos un pedido.');
-  const sel=pedidos.filter(p=>selIds.includes(p.id));
-  const resDiv=document.getElementById('ruta-result');
-  const outDiv=document.getElementById('ruta-output');
-  resDiv.style.display='block';
-  outDiv.textContent='🤖 Claude está calculando la ruta más eficiente...';
-  const lista=sel.map((p,i)=>`${i+1}. Empresa: ${p.emp} | Zona: ${p.zona} | Dirección: ${p.dir} | Detalle: ${p.detalle}${p.factura?' | Factura: '+p.factura:''}`).join('\n');
-  const hoy=new Date().toLocaleDateString('es-CL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  try{
-    const data = await claudeAPI({
-      model:'claude-haiku-4-5-20251001',
-      max_tokens:1500,
-      messages:[{role:'user',content:`Eres experto en logística de Santiago de Chile. Organiza estos pedidos en la ruta más eficiente considerando la geografía real de Santiago.
+async function generarRuta() {
+  const selIds = [...document.querySelectorAll('#pedidos-checks input[type=checkbox]:checked')].map(cb => parseInt(cb.id.replace('cb-', '')));
+  if (!selIds.length) return alert('Selecciona al menos un pedido.');
+  const sel = pedidos.filter(p => selIds.includes(p.id));
+  const btn = document.getElementById('btn-ruta');
+  btn.textContent = '⏳ Calculando...'; btn.disabled = true;
+  const resDiv = document.getElementById('ruta-result');
+  const outDiv = document.getElementById('ruta-output');
+  resDiv.style.display = 'block';
+  outDiv.textContent = '🤖 Claude está calculando la ruta más eficiente...';
+  const lista = sel.map((p, i) => `${i + 1}. Empresa: ${p.emp} | RUT: ${p.rut} | Zona: ${p.zona} | Dirección: ${p.dir} | Detalle: ${p.detalle}${p.factura_num ? ' | Factura: ' + p.factura_num : ''}`).join('\n');
+  const hoy = new Date().toLocaleDateString('es-CL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  try {
+    const data = await claudeAPI([{ role: 'user', content: `Eres experto en logística de Santiago de Chile. Organiza estos pedidos en la ruta más eficiente minimizando tiempo y combustible.\n\nPedidos:\n${lista}\n\nResponde SOLO con texto para copiar al repartidor:\n\n🚚 RUTA DEL DÍA — ${hoy}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n📍 PARADA 1 — [Empresa]\nCliente: [Empresa] | RUT: [RUT]\nDirección: [Dirección]\nPedido: [Detalle]\nFactura: [N° si existe]\nWaze: https://waze.com/ul?q=[dirección codificada]&navigate=yes\n\n[repetir por cada parada]\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📊 RESUMEN\nNorte: X | Sur: X | Santiago: X | Litoral: X | Total: X\n\n💡 [Nota del orden elegido]` }], 'claude-haiku-4-5-20251001', 1500);
+    outDiv.textContent = data.content?.find(b => b.type === 'text')?.text || 'Error generando ruta.';
 
-Pedidos:
-${lista}
-
-Responde SOLO con el texto listo para copiar al repartidor:
-
-🚚 RUTA DEL DÍA — ${hoy}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-📍 PARADA 1 — [Empresa]
-Cliente: [Empresa]
-Dirección: [Dirección]
-Pedido: [Detalle]
-Waze: https://waze.com/ul?q=[dirección codificada]&navigate=yes
-
-[repetir por cada parada]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📊 RESUMEN
-Norte: X | Sur: X | Santiago: X | Litoral: X | Total: X
-
-💡 [Breve nota del orden elegido]`}]
-    });
-    outDiv.textContent=data.content.find(b=>b.type==='text')?.text||'Error generando ruta.';
-  } catch(e){
-    outDiv.textContent='Error conectando. Intenta de nuevo.';
-    console.error(e);
-  }
+    // Facturas descargables
+    const conFactura = sel.filter(p => p.factura_nombre);
+    document.getElementById('facturas-ruta').innerHTML = conFactura.length
+      ? `<div style="border-top:1px solid #e2e8f0;padding-top:12px"><strong style="font-size:13px">📄 Facturas de esta ruta:</strong><div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px">${conFactura.map(p => `<span style="background:#ebf8ff;color:#2b6cb0;border:1px solid #bee3f8;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600">📄 ${p.emp} — ${p.factura_nombre}</span>`).join('')}</div></div>`
+      : '';
+  } catch (e) { outDiv.textContent = 'Error conectando. Intenta de nuevo.'; }
+  btn.textContent = '🤖 Generar ruta con Claude'; btn.disabled = false;
 }
 
-function copiarRuta(){
-  const txt=document.getElementById('ruta-output').textContent;
-  navigator.clipboard.writeText(txt).then(()=>{
-    const btn=document.querySelector('.btn-copy');
-    btn.textContent='✅ ¡Copiado!';
-    setTimeout(()=>btn.textContent='📋 Copiar texto',2500);
+function copiarRuta() {
+  navigator.clipboard.writeText(document.getElementById('ruta-output').textContent).then(() => {
+    const btn = document.querySelector('.btn-copy');
+    btn.textContent = '✅ ¡Copiado!';
+    setTimeout(() => btn.textContent = '📋 Copiar texto', 2500);
   });
 }
 
-function showAlert(id,msg,type){
-  const el=document.getElementById(id);
-  el.innerHTML=`<div class="alert alert-${type}">${msg}</div>`;
-  setTimeout(()=>el.innerHTML='',4000);
+function showAlert(id, msg, type) {
+  const el = document.getElementById(id);
+  el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+  setTimeout(() => el.innerHTML = '', 4000);
 }
 </script>
 </body>
