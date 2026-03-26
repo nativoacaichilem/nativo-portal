@@ -131,6 +131,10 @@ main{max-width:960px;margin:0 auto;padding:24px 16px}
     <button class="btn-back" onclick="volverCatalogo()">← Volver</button>
     <span style="flex:1;font-weight:700;font-size:15px">Orden de Compra</span>
     <button onclick="descargarImagen()" id="btn-img">📸 Guardar como imagen</button>
+    <div id="img-preview" style="display:none;margin-top:16px;text-align:center">
+      <p style="font-size:13px;color:#4a5568;margin-bottom:10px;font-weight:600">📱 iPhone: mantén presionada la imagen y elige "Añadir a Fotos"</p>
+      <img id="oc-img" style="width:100%;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.15)">
+    </div>
   </div>
   <div class="oc-body" id="oc-body"></div>
 </div>
@@ -301,12 +305,23 @@ async function descargarImagen(){
   try {
     const el=document.getElementById('oc-body');
     const canvas=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true});
-    const link=document.createElement('a');
-    link.download=`OrdenCompra-${sess.emp.replace(/\s+/g,'-')}-${sess.fecha.replace(/\//g,'-')}.png`;
-    link.href=canvas.toDataURL('image/png');
-    link.click();
-  } catch(e){ alert('Error generando imagen. Intenta de nuevo.'); }
-  btn.textContent='📸 Guardar como imagen';
+    const imgData=canvas.toDataURL('image/jpeg',0.95);
+    // iPhone: mostrar imagen para guardar con press largo
+    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+    if(isIOS){
+      document.getElementById('oc-img').src=imgData;
+      document.getElementById('img-preview').style.display='block';
+      btn.textContent='✅ ¡Lista! Mantén presionada la imagen';
+    } else {
+      // Android / Desktop: descarga directa
+      const link=document.createElement('a');
+      link.download=`OrdenCompra-${sess.emp.replace(/\s+/g,'-')}.jpg`;
+      link.href=imgData;
+      link.click();
+      btn.textContent='✅ ¡Descargada!';
+      setTimeout(()=>btn.textContent='📸 Guardar como imagen',2500);
+    }
+  } catch(e){ alert('Error generando imagen. Intenta de nuevo.'); btn.textContent='📸 Guardar como imagen'; }
   btn.disabled=false;
 }
 </script>
