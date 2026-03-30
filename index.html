@@ -3,180 +3,233 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Nativo – Orden de Compra</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<title>nativo – Orden de Compra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
+:root{
+  --mora:#6b35b8;
+  --mora-d:#4a1f7a;
+  --mora-l:#9b6fd4;
+  --mora-xl:#ede0ff;
+  --amarillo:#f5c842;
+  --amarillo-l:#fef3c7;
+  --crema:#fdf8f0;
+  --crema-d:#ede3d0;
+  --text:#1e1226;
+  --textl:#8b7a9e;
+  --white:#ffffff;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',sans-serif;background:#f7f9fc;color:#1a202c;min-height:100vh}
+body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);min-height:100vh}
 
 /* LOGIN */
-#screen-login{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#1e3a5f,#2b6cb0);padding:20px}
-.login-logo{color:white;font-size:32px;font-weight:800;margin-bottom:6px}
-.login-sub{color:#bee3f8;font-size:14px;margin-bottom:32px}
-.login-box{background:white;border-radius:16px;padding:32px;width:100%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
-.login-box h3{font-size:17px;font-weight:700;color:#1e3a5f;margin-bottom:6px}
-.login-box p{font-size:13px;color:#718096;margin-bottom:20px}
-.inp{width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;outline:none;font-family:inherit;transition:border .2s;margin-bottom:12px}
-.inp:focus{border-color:#4299e1}
-.btn-full{width:100%;padding:12px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;background:#2b6cb0;color:white}
-.btn-full:hover{background:#2c5282}
-.alert{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:12px}
-.alert-error{background:#fed7d7;color:#742a2a}
-.alert-success{background:#c6f6d5;color:#1c4532}
+#screen-login{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,var(--mora-d) 0%,var(--mora) 100%);padding:24px;position:relative;overflow:hidden}
+#screen-login::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 300'%3E%3Cg fill='%23ffffff' opacity='0.04'%3E%3Cellipse cx='60' cy='285' rx='20' ry='65'/%3E%3Cellipse cx='60' cy='220' rx='45' ry='13'/%3E%3Cellipse cx='38' cy='210' rx='38' ry='11'/%3E%3Cellipse cx='82' cy='213' rx='40' ry='12'/%3E%3Cellipse cx='440' cy='290' rx='18' ry='60'/%3E%3Cellipse cx='440' cy='230' rx='42' ry='12'/%3E%3Cellipse cx='418' cy='220' rx='36' ry='11'/%3E%3Cellipse cx='462' cy='223' rx='38' ry='11'/%3E%3Cellipse cx='250' cy='295' rx='16' ry='55'/%3E%3Cellipse cx='250' cy='240' rx='40' ry='12'/%3E%3C/g%3E%3C/svg%3E") center bottom/cover no-repeat;pointer-events:none}
+.brand{text-align:center;margin-bottom:32px;position:relative}
+.brand-logo{font-family:'DM Serif Display',serif;font-size:54px;color:var(--amarillo);letter-spacing:2px;line-height:1}
+.brand-sub{color:rgba(255,255,255,.5);font-size:12px;letter-spacing:3px;text-transform:uppercase;margin-top:6px;font-weight:700}
+.login-card{background:var(--white);border-radius:20px;padding:32px 28px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.25);position:relative}
+.login-card h3{font-family:'DM Serif Display',serif;font-size:22px;color:var(--mora-d);margin-bottom:4px}
+.login-card p{font-size:13px;color:var(--textl);margin-bottom:22px;font-weight:600}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mora);margin-bottom:5px}
+.field input{width:100%;padding:12px 14px;border:1.5px solid var(--crema-d);border-radius:10px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;color:var(--text);transition:border .2s;background:var(--crema)}
+.field input:focus{border-color:var(--mora);background:var(--white)}
+.btn-primary{width:100%;padding:13px;border:none;border-radius:10px;background:var(--amarillo);color:var(--mora-d);font-size:15px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;transition:opacity .2s;margin-top:4px}
+.btn-primary:hover{opacity:.88}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed}
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:700;margin-bottom:12px}
+.alert-error{background:#fee2e2;color:#7f1d1d}
+.alert-success{background:#d1fae5;color:#064e3b}
 
-/* CATÁLOGO */
-#screen-catalogo{display:none}
-header{background:#1e3a5f;color:white;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
-.header-logo{font-size:20px;font-weight:800}
-.header-user{font-size:13px;color:#bee3f8;display:flex;align-items:center;gap:12px}
-.btn-logout{background:#c53030;border:none;color:white;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700}
-main{max-width:960px;margin:0 auto;padding:24px 16px}
-.sec-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#4299e1;margin:24px 0 10px;border-bottom:2px solid #ebf4ff;padding-bottom:6px}
-.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
-.product-card{background:white;border-radius:10px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.07);display:flex;flex-direction:column;gap:8px;border:2px solid transparent;transition:all .2s}
-.product-card.selected{border-color:#4299e1;background:#ebf8ff}
-.product-name{font-size:13px;font-weight:600;color:#2d3748;line-height:1.3;flex:1}
-.product-format{font-size:11px;color:#a0aec0;font-weight:500}
-.qty-control{display:flex;align-items:center;gap:6px}
-.qty-btn{width:30px;height:30px;border:none;border-radius:6px;background:#e2e8f0;color:#2d3748;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
-.qty-btn:hover{background:#cbd5e0}
-.qty-inp{width:44px;text-align:center;padding:4px;border:1.5px solid #e2e8f0;border-radius:6px;font-size:13px;font-weight:700;outline:none}
-.qty-inp:focus{border-color:#4299e1}
-.cart{background:white;border-radius:12px;padding:24px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-top:24px}
-.cart h3{font-size:16px;font-weight:700;color:#1e3a5f;margin-bottom:16px}
-.cart-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f4f8;font-size:13px}
-.cart-item:last-child{border-bottom:none}
-.cart-item-qty{color:#2b6cb0;font-weight:700;background:#ebf8ff;padding:2px 10px;border-radius:12px;font-size:12px}
-.cart-empty{text-align:center;color:#a0aec0;padding:20px;font-size:13px}
-.btn-oc{width:100%;padding:14px;border:none;border-radius:10px;background:#276749;color:white;font-size:15px;font-weight:700;cursor:pointer;margin-top:16px}
-.btn-oc:hover{background:#22543d}
+/* APP */
+#screen-catalogo{display:none;min-height:100vh}
+.app-header{background:var(--mora);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 2px 12px rgba(74,31,122,.2)}
+.app-logo{font-family:'DM Serif Display',serif;font-size:24px;color:var(--amarillo);letter-spacing:1px}
+.app-user{font-size:12px;color:rgba(255,255,255,.6);display:flex;align-items:center;gap:10px;font-weight:700}
+.btn-logout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--white);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:800;font-family:'Nunito',sans-serif}
+
+.info-bar{background:var(--white);border-bottom:1px solid var(--crema-d);padding:10px 20px;display:flex;gap:20px;flex-wrap:wrap}
+.info-item{display:flex;flex-direction:column;gap:1px}
+.info-item span:first-child{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mora)}
+.info-item span:last-child{font-size:13px;font-weight:700;color:var(--text)}
+
+.catalogo-wrap{max-width:820px;margin:0 auto;padding:18px 14px 130px}
+
+/* SECCIONES DESPLEGABLES */
+.seccion{background:var(--white);border-radius:14px;margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px rgba(107,53,184,.07);border:1.5px solid var(--crema-d);transition:border .2s}
+.seccion.open{border-color:var(--mora-l)}
+.sec-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;user-select:none;transition:background .2s}
+.sec-header:hover{background:var(--crema)}
+.sec-header-left{display:flex;align-items:center;gap:12px}
+.sec-icon{font-size:22px}
+.sec-title{font-size:15px;font-weight:800;color:var(--mora-d)}
+.sec-count{font-size:11px;color:var(--textl);font-weight:600;margin-top:1px}
+.sec-arrow{font-size:16px;color:var(--mora);transition:transform .3s;font-weight:900}
+.sec-arrow.open{transform:rotate(180deg)}
+.sec-body{display:none;padding:0 14px 14px;border-top:1px solid var(--crema-d)}
+.sec-body.open{display:block}
+
+/* PRODUCTOS */
+.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:9px;padding-top:12px}
+.prod-card{border:1.5px solid var(--crema-d);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--crema);transition:all .2s}
+.prod-card.sel{border-color:var(--mora);background:#f5eeff}
+.prod-name{font-size:12px;font-weight:700;color:var(--text);line-height:1.3;flex:1}
+.prod-format{font-size:10px;color:var(--textl);font-weight:600}
+.qty-row{display:flex;align-items:center;gap:6px}
+.qty-btn{width:28px;height:28px;border:none;border-radius:7px;background:var(--mora);color:var(--white);font-size:17px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;transition:background .2s;font-family:'Nunito',sans-serif}
+.qty-btn:hover{background:var(--mora-d)}
+.qty-inp{width:36px;text-align:center;padding:4px 2px;border:1.5px solid var(--crema-d);border-radius:6px;font-size:13px;font-weight:800;outline:none;font-family:'Nunito',sans-serif;color:var(--text)}
+.qty-inp:focus{border-color:var(--mora)}
+
+/* CARRITO FLOTANTE */
+.cart-float{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:2px solid var(--crema-d);padding:10px 16px;z-index:10;box-shadow:0 -4px 20px rgba(107,53,184,.1)}
+.cart-inner{max-width:820px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.cart-info{flex:1;min-width:0}
+.cart-count{font-size:13px;font-weight:800;color:var(--mora)}
+.cart-preview{font-size:11px;color:var(--textl);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.cart-btn{padding:11px 22px;border:none;border-radius:10px;background:var(--amarillo);color:var(--mora-d);font-size:14px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;flex-shrink:0}
+.cart-btn:disabled{opacity:.4;cursor:not-allowed}
 
 /* OC SCREEN */
-#screen-oc{display:none;background:white;min-height:100vh}
-.oc-topbar{background:#1e3a5f;color:white;padding:12px 20px;display:flex;align-items:center;gap:14px}
-.oc-topbar button{background:#4299e1;border:none;color:white;padding:8px 18px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:700}
-.oc-topbar .btn-back{background:transparent;border:1px solid rgba(255,255,255,.3)}
-.oc-body{max-width:720px;margin:0 auto;padding:32px 24px}
-.oc-header-doc{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #1e3a5f}
-.oc-logo{font-size:26px;font-weight:900;color:#1e3a5f;letter-spacing:1px}
-.oc-logo span{color:#4299e1}
-.oc-titulo{text-align:right}
-.oc-titulo h1{font-size:20px;font-weight:800;color:#1e3a5f}
-.oc-titulo p{font-size:12px;color:#718096;margin-top:3px}
-.oc-datos{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;background:#f7fafc;padding:16px;border-radius:8px}
-.oc-dato label{font-size:11px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px}
-.oc-dato p{font-size:14px;font-weight:600;color:#1a202c}
-.oc-table{width:100%;border-collapse:collapse;margin-bottom:24px}
-.oc-table th{background:#1e3a5f;color:white;padding:10px 14px;text-align:left;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
-.oc-table td{padding:10px 14px;border-bottom:1px solid #e2e8f0;font-size:13px}
-.oc-table tr:nth-child(even) td{background:#f7fafc}
-.oc-cat-row td{background:#edf2f7!important;font-weight:700;color:#4a5568;font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:7px 14px!important}
-.oc-footer-doc{border-top:2px solid #e2e8f0;padding-top:16px;display:flex;justify-content:space-between;align-items:center}
-.oc-footer-doc p{font-size:12px;color:#a0aec0}
-.oc-num{font-size:13px;font-weight:700;color:#718096}
+#screen-oc{display:none;min-height:100vh;background:var(--crema)}
+.oc-topbar{background:var(--mora);padding:14px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;box-shadow:0 2px 12px rgba(74,31,122,.2)}
+.btn-back{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:var(--white);padding:8px 16px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:800;font-family:'Nunito',sans-serif}
+.oc-topbar-title{color:var(--white);font-weight:800;font-size:15px;flex:1}
+.btn-print{background:var(--amarillo);color:var(--mora-d);border:none;padding:9px 18px;border-radius:20px;font-size:13px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif}
+
+.oc-wrap{max-width:720px;margin:0 auto;padding:24px 16px 40px}
+#oc-doc{background:var(--white);border-radius:16px;padding:32px;box-shadow:0 4px 20px rgba(107,53,184,.09)}
+
+/* DOCUMENTO OC */
+.doc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:20px;border-bottom:3px solid var(--mora)}
+.doc-logo{font-family:'DM Serif Display',serif;font-size:30px;color:var(--mora);letter-spacing:1px}
+.doc-logo small{display:block;font-family:'Nunito',sans-serif;font-size:11px;color:var(--textl);font-weight:600;margin-top:2px;letter-spacing:0}
+.doc-titulo{text-align:right}
+.doc-titulo h1{font-family:'DM Serif Display',serif;font-size:20px;color:var(--mora-d)}
+.doc-titulo p{font-size:12px;color:var(--textl);font-weight:600;margin-top:3px}
+.doc-datos{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;background:var(--crema);padding:16px;border-radius:10px}
+.doc-dato label{display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--mora);margin-bottom:3px}
+.doc-dato p{font-size:13px;font-weight:700;color:var(--text)}
+.doc-table{width:100%;border-collapse:collapse;margin-bottom:24px}
+.doc-table th{background:var(--mora);color:var(--white);padding:10px 12px;text-align:left;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.doc-table th:last-child{text-align:center}
+.doc-table td{padding:9px 12px;border-bottom:1px solid var(--crema-d);font-size:13px;font-weight:600}
+.doc-table td:last-child{text-align:center;font-weight:900;color:var(--mora)}
+.doc-table tr:nth-child(even) td{background:var(--crema)}
+.doc-cat td{background:#f0e6ff!important;font-weight:800;color:var(--mora);font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:6px 12px!important}
+.doc-footer{border-top:2px solid var(--crema-d);padding-top:14px;display:flex;justify-content:space-between;align-items:center}
+.doc-footer p{font-size:11px;color:var(--textl);font-weight:600}
+.doc-num{font-size:12px;font-weight:800;color:var(--mora)}
 
 @media print{
-  #screen-login,#screen-catalogo{display:none!important}
+  #screen-login,#screen-catalogo,.oc-topbar{display:none!important}
   #screen-oc{display:block!important}
-  .oc-topbar{display:none!important}
-  .oc-body{padding:20px}
+  body{background:white}
+  .oc-wrap{padding:0}
+  #oc-doc{box-shadow:none;border-radius:0;padding:20px}
+}
+@media(max-width:480px){
+  .prod-grid{grid-template-columns:repeat(2,1fr)}
+  .doc-datos{grid-template-columns:1fr}
+  #oc-doc{padding:20px 14px}
+  .doc-header{flex-direction:column;gap:12px}
+  .doc-titulo{text-align:left}
 }
 </style>
 </head>
 <body>
 
-<!-- PANTALLA 1: LOGIN -->
+<!-- LOGIN -->
 <div id="screen-login">
-  <div class="login-logo">🏢 Nativo</div>
-  <div class="login-sub">Portal de Órdenes de Compra B2B</div>
-  <div class="login-box">
+  <div class="brand">
+    <div class="brand-logo">nativo</div>
+    <div class="brand-sub">Portal de Órdenes de Compra</div>
+  </div>
+  <div class="login-card">
     <h3>Bienvenido</h3>
     <p>Ingresa tus datos para acceder al catálogo</p>
     <div id="login-alert"></div>
-    <input class="inp" type="text" id="rut-inp" placeholder="RUT empresa (Ej: 76.123.456-7)" oninput="fmtR(this)">
-    <input class="inp" type="text" id="emp-inp" placeholder="Nombre de la empresa">
-    <input class="inp" type="text" id="dir-inp" placeholder="Dirección de despacho">
-    <button class="btn-full" onclick="login()">Ver catálogo →</button>
+    <div class="field"><label>RUT Empresa</label><input type="text" id="rut-inp" placeholder="76.123.456-7" oninput="fmtR(this)"></div>
+    <div class="field"><label>Nombre Empresa</label><input type="text" id="emp-inp" placeholder="Nombre de tu empresa"></div>
+    <div class="field"><label>Dirección de Despacho</label><input type="text" id="dir-inp" placeholder="Av. Ejemplo 1234, Santiago"></div>
+    <button class="btn-primary" onclick="login()">Ver catálogo →</button>
   </div>
 </div>
 
-<!-- PANTALLA 2: CATÁLOGO -->
+<!-- CATÁLOGO -->
 <div id="screen-catalogo">
-  <header>
-    <div class="header-logo">🏢 Nativo</div>
-    <div class="header-user"><span id="hdr-info"></span><button class="btn-logout" onclick="logout()">Salir</button></div>
-  </header>
-  <main>
-    <div class="sec-title">🧊 Congelados</div>
-    <div class="product-grid" id="g-congelados"></div>
-    <div class="sec-title">🌰 Frutos Secos & Toppings</div>
-    <div class="product-grid" id="g-toppings"></div>
-    <div class="sec-title">🍯 Salsas & Otros</div>
-    <div class="product-grid" id="g-salsas"></div>
-    <div class="sec-title">🥣 Granolas & Crumbles</div>
-    <div class="product-grid" id="g-granolas"></div>
-    <div class="sec-title">🥤 Vasos & Tapas</div>
-    <div class="product-grid" id="g-vasos"></div>
-    <div class="cart">
-      <h3>🛒 Resumen de tu Orden</h3>
-      <div id="cart-body"><div class="cart-empty">Agrega productos usando los controles de cantidad</div></div>
-      <button class="btn-oc" onclick="irAOC()">Ver Orden de Compra →</button>
+  <div class="app-header">
+    <div class="app-logo">nativo</div>
+    <div class="app-user"><span id="hdr-emp"></span><button class="btn-logout" onclick="logout()">Salir</button></div>
+  </div>
+  <div class="info-bar">
+    <div class="info-item"><span>Empresa</span><span id="d-emp"></span></div>
+    <div class="info-item"><span>RUT</span><span id="d-rut"></span></div>
+    <div class="info-item"><span>Dirección</span><span id="d-dir"></span></div>
+    <div class="info-item"><span>Fecha</span><span id="d-fecha"></span></div>
+  </div>
+  <div class="catalogo-wrap" id="catalogo-wrap"></div>
+  <div class="cart-float">
+    <div class="cart-inner">
+      <div class="cart-info">
+        <div class="cart-count" id="cart-count">0 productos seleccionados</div>
+        <div class="cart-preview" id="cart-preview">Selecciona productos del catálogo</div>
+      </div>
+      <button class="cart-btn" id="btn-oc" onclick="irAOC()" disabled>Ver Orden →</button>
     </div>
-  </main>
+  </div>
 </div>
 
-<!-- PANTALLA 3: ORDEN DE COMPRA -->
+<!-- OC -->
 <div id="screen-oc">
   <div class="oc-topbar">
     <button class="btn-back" onclick="volverCatalogo()">← Volver</button>
-    <span style="flex:1;font-weight:700;font-size:15px">Orden de Compra</span>
-    <button onclick="descargarImagen()" id="btn-img">📸 Guardar como imagen</button>
-    <div id="img-preview" style="display:none;margin-top:16px;text-align:center">
-      <p style="font-size:13px;color:#4a5568;margin-bottom:10px;font-weight:600">📱 iPhone: mantén presionada la imagen y elige "Añadir a Fotos"</p>
-      <img id="oc-img" style="width:100%;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.15)">
-    </div>
+    <span class="oc-topbar-title">Orden de Compra</span>
+    <button class="btn-print" onclick="window.print()">🖨️ Guardar / Imprimir</button>
   </div>
-  <div class="oc-body" id="oc-body"></div>
+  <div class="oc-wrap">
+    <div id="oc-doc"></div>
+  </div>
 </div>
 
 <script>
-const CATS = {
-  congelados:{label:'Congelados',items:[
-    {n:'Balde Acai Nativo',f:'3,6 L'},
-    {n:'Balde Pitaya',f:'3,6 L'},
-    {n:'Balde Acai Blue Monkey',f:'3,6 L'},
-    {n:'Balde Pistacho Soft Blue Monkey',f:'5 L'},
+const PROXY='https://nativo-proxy.mkitzing.workers.dev';
+const CATS=[
+  {id:'baldes',icon:'🧊',label:'Baldes Congelados',items:[
+    {n:'Balde Acai Nativo',f:'3,6 L'},{n:'Balde Pitaya',f:'3,6 L'},
+    {n:'Balde Acai Blue Monkey',f:'3,6 L'},{n:'Balde Pistacho Soft Blue Monkey',f:'5 L'},
     {n:'Balde Yoghurt Griego Soft Blue Monkey',f:'5 L'}
   ]},
-  toppings:{label:'Frutos Secos & Toppings',items:[
+  {id:'toppings',icon:'🌰',label:'Frutos Secos & Toppings',items:[
     {n:'Cacao Nibs',f:'0,1 kg'},{n:'Mantequilla de almendra',f:'1 kg'},
     {n:'Mantequilla de mani',f:'1 kg'},{n:'Mantequilla de pistachos',f:'1 kg'},
     {n:'Castañas de caju',f:'2 kg'},{n:'Avellana europea tostada',f:'2 kg'},
     {n:'Nueces cuarto',f:'2 kg'},{n:'Almendra Laminada',f:'2 kg'},
     {n:'Oreo molidas',f:'4 kg'},{n:'Avena integral',f:'2 kg'},
-    {n:'Chia',f:'2 kg'},{n:'Coco laminado',f:'2 kg'},
-    {n:'Coco rallado',f:'2 kg'},{n:'Colageno hidrolizado puro',f:'1 kg'},
-    {n:'Proteina vegana (arveja)',f:'1 kg'},{n:'Proteina normal (sin sabor)',f:'0,66 kg'},
-    {n:'Chip de chocolate 60%',f:'0,25 kg'}
+    {n:'Chia',f:'2 kg'},{n:'Coco laminado',f:'2 kg'},{n:'Coco rallado',f:'2 kg'},
+    {n:'Colageno hidrolizado puro',f:'1 kg'},{n:'Proteina vegana (arveja)',f:'1 kg'},
+    {n:'Proteina normal (sin sabor)',f:'0,66 kg'},{n:'Chip de chocolate 60%',f:'0,25 kg'}
   ]},
-  salsas:{label:'Salsas & Otros',items:[
+  {id:'salsas',icon:'🍯',label:'Salsas & Otros',items:[
     {n:'Nutella',f:'3 kg'},{n:'Miel',f:'3 kg'},{n:'Leche condensada',f:'6 kg'},
     {n:'Leche nido entera',f:'1,1 kg'},{n:'Maní',f:'2 kg'},
     {n:'Pacuquita',f:'100 un'},{n:'Crema Oreo Zero',f:'3 kg'}
   ]},
-  granolas:{label:'Granolas & Crumbles',items:[
+  {id:'granolas',icon:'🥣',label:'Granolas & Crumbles',items:[
     {n:'Crumbole Clásico',f:'3,5 kg'},{n:'Granola Avena Miel',f:'2 kg'},
     {n:'Granola Cacao Dulce',f:'2 kg'},{n:'Granola Zero',f:'1 kg'}
   ]},
-  vasos:{label:'Vasos & Tapas',items:[
+  {id:'vasos',icon:'🥤',label:'Vasos & Tapas',items:[
     {n:'Vaso GD Nativo',f:'1 un'},{n:'Vaso Classic Nativo',f:'1 un'},
     {n:'Vaso Power Nativo',f:'1 un'},{n:'Vaso Full Nativo',f:'1 un'},
     {n:'Vaso GD Blue Monkey',f:'1 un'},{n:'Vaso Classic Blue Monkey',f:'1 un'},
     {n:'Vaso Power Blue Monkey',f:'1 un'},{n:'Vaso Full Blue Monkey',f:'1 un'}
   ]}
-};
+];
 
-let sess={}, qtys={};
+let sess={},qtys={};
 
 function fmtR(el){
   let v=el.value.replace(/[^0-9kK]/g,'');
@@ -188,7 +241,8 @@ function fmtR(el){
 
 function showScreen(id){
   ['screen-login','screen-catalogo','screen-oc'].forEach(s=>{
-    document.getElementById(s).style.display = s===id ? (id==='screen-login'?'flex':'block') : 'none';
+    const el=document.getElementById(s);
+    el.style.display=s===id?(id==='screen-login'?'flex':'block'):'none';
   });
 }
 
@@ -201,13 +255,17 @@ function login(){
     return;
   }
   sess={rut,emp,dir,fecha:new Date().toLocaleDateString('es-CL')};
-  document.getElementById('hdr-info').textContent=`${emp} | ${rut}`;
-  buildGrids();
+  document.getElementById('hdr-emp').textContent=emp;
+  document.getElementById('d-emp').textContent=emp;
+  document.getElementById('d-rut').textContent=rut;
+  document.getElementById('d-dir').textContent=dir;
+  document.getElementById('d-fecha').textContent=sess.fecha;
+  buildCatalogo();
   showScreen('screen-catalogo');
 }
 
 function logout(){
-  sess={}; qtys={};
+  sess={};qtys={};
   ['rut-inp','emp-inp','dir-inp'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('login-alert').innerHTML='';
   showScreen('screen-login');
@@ -215,115 +273,111 @@ function logout(){
 
 function slug(s){return s.replace(/[^a-zA-Z0-9]/g,'_');}
 
-function buildGrids(){
-  Object.entries(CATS).forEach(([cat,{items}])=>{
-    document.getElementById('g-'+cat).innerHTML=items.map(({n,f})=>`
-      <div class="product-card" id="pc-${slug(n)}">
-        <div>
-          <div class="product-name">${n}</div>
-          <div class="product-format">${f}</div>
+function buildCatalogo(){
+  document.getElementById('catalogo-wrap').innerHTML=CATS.map(cat=>`
+    <div class="seccion" id="sec-${cat.id}">
+      <div class="sec-header" onclick="toggleSec('${cat.id}')">
+        <div class="sec-header-left">
+          <span class="sec-icon">${cat.icon}</span>
+          <div><div class="sec-title">${cat.label}</div><div class="sec-count">${cat.items.length} productos</div></div>
         </div>
-        <div class="qty-control">
-          <button class="qty-btn" onclick="chg('${slug(n)}','${n}',-1)">−</button>
-          <input class="qty-inp" type="number" min="0" id="qi-${slug(n)}" value="0" onchange="setQ('${slug(n)}','${n}',this.value)">
-          <button class="qty-btn" onclick="chg('${slug(n)}','${n}',1)">+</button>
+        <span class="sec-arrow" id="arr-${cat.id}">▼</span>
+      </div>
+      <div class="sec-body" id="body-${cat.id}">
+        <div class="prod-grid">
+          ${cat.items.map(({n,f})=>`
+            <div class="prod-card" id="pc-${slug(n)}">
+              <div><div class="prod-name">${n}</div><div class="prod-format">${f}</div></div>
+              <div class="qty-row">
+                <button class="qty-btn" onclick="chg('${slug(n)}','${n}',-1)">−</button>
+                <input class="qty-inp" type="number" min="0" id="qi-${slug(n)}" value="0" onchange="setQ('${slug(n)}','${n}',this.value)">
+                <button class="qty-btn" onclick="chg('${slug(n)}','${n}',1)">+</button>
+              </div>
+            </div>`).join('')}
         </div>
-      </div>`).join('');
-  });
+      </div>
+    </div>`).join('');
+}
+
+function toggleSec(id){
+  document.getElementById('body-'+id).classList.toggle('open');
+  document.getElementById('arr-'+id).classList.toggle('open');
+  document.getElementById('sec-'+id).classList.toggle('open');
 }
 
 function chg(id,name,d){
   const el=document.getElementById('qi-'+id);
   const v=Math.max(0,(parseInt(el.value)||0)+d);
-  el.value=v; upd(id,name,v);
+  el.value=v;upd(id,name,v);
 }
 function setQ(id,name,v){
   const val=Math.max(0,parseInt(v)||0);
-  document.getElementById('qi-'+id).value=val; upd(id,name,val);
+  document.getElementById('qi-'+id).value=val;upd(id,name,val);
 }
 function upd(id,name,v){
-  if(v>0) qtys[name]=v; else delete qtys[name];
-  document.getElementById('pc-'+id).classList.toggle('selected',v>0);
-  renderCart();
+  if(v>0)qtys[name]=v;else delete qtys[name];
+  document.getElementById('pc-'+id).classList.toggle('sel',v>0);
+  updateCart();
 }
-function renderCart(){
+function updateCart(){
   const items=Object.entries(qtys);
-  document.getElementById('cart-body').innerHTML=items.length
-    ? items.map(([n,q])=>`<div class="cart-item"><span>${n}</span><span class="cart-item-qty">× ${q}</span></div>`).join('')
-    : '<div class="cart-empty">Agrega productos usando los controles de cantidad</div>';
+  const n=items.length;
+  document.getElementById('cart-count').textContent=n>0?`${n} producto${n>1?'s':''} seleccionado${n>1?'s':''}`:'0 productos seleccionados';
+  document.getElementById('cart-preview').textContent=n>0?items.map(([k,q])=>`${k} ×${q}`).join(', '):'Selecciona productos del catálogo';
+  document.getElementById('btn-oc').disabled=n===0;
 }
 
-function irAOC(){
-  if(!Object.keys(qtys).length) return alert('Agrega al menos un producto.');
-  const num='OC-'+Date.now().toString().slice(-6);
+function ocNum(){return 'NTV-'+Math.random().toString(36).slice(2,6).toUpperCase();}
+
+async function irAOC(){
+  if(!Object.keys(qtys).length)return;
+  const num=ocNum();
   let rows='';
-  Object.entries(CATS).forEach(([,{label,items}])=>{
+  CATS.forEach(({label,items})=>{
     const sel=items.filter(({n})=>qtys[n]);
-    if(!sel.length) return;
-    rows+=`<tr class="oc-cat-row"><td colspan="3">${label}</td></tr>`;
+    if(!sel.length)return;
+    rows+=`<tr class="doc-cat"><td colspan="3">${label}</td></tr>`;
     sel.forEach(({n,f})=>{
-      rows+=`<tr><td>${n}</td><td style="color:#718096;font-size:12px">${f}</td><td style="text-align:center;font-weight:700;color:#2b6cb0">${qtys[n]}</td></tr>`;
+      rows+=`<tr><td>${n}</td><td style="color:var(--textl);font-size:12px">${f}</td><td>${qtys[n]}</td></tr>`;
     });
   });
-  document.getElementById('oc-body').innerHTML=`
-    <div class="oc-header-doc">
-      <div>
-        <div class="oc-logo">NA<span>TI</span>VO</div>
-        <div style="font-size:12px;color:#718096;margin-top:4px">nativoacai.cl</div>
-      </div>
-      <div class="oc-titulo">
-        <h1>ORDEN DE COMPRA</h1>
-        <p class="oc-num">${num}</p>
-        <p style="font-size:12px;color:#718096;margin-top:4px">${sess.fecha}</p>
-      </div>
+  document.getElementById('oc-doc').innerHTML=`
+    <div class="doc-header">
+      <div><div class="doc-logo">nativo<small>nativoacaichile.cl</small></div></div>
+      <div class="doc-titulo"><h1>Orden de Compra</h1><p class="doc-num">${num}</p><p style="font-size:11px;color:var(--textl);font-weight:600;margin-top:3px">${sess.fecha}</p></div>
     </div>
-    <div class="oc-datos">
-      <div class="oc-dato"><label>Empresa</label><p>${sess.emp}</p></div>
-      <div class="oc-dato"><label>RUT</label><p>${sess.rut}</p></div>
-      <div class="oc-dato"><label>Dirección de Despacho</label><p>${sess.dir}</p></div>
-      <div class="oc-dato"><label>Fecha</label><p>${sess.fecha}</p></div>
+    <div class="doc-datos">
+      <div class="doc-dato"><label>Empresa</label><p>${sess.emp}</p></div>
+      <div class="doc-dato"><label>RUT</label><p>${sess.rut}</p></div>
+      <div class="doc-dato"><label>Dirección de Despacho</label><p>${sess.dir}</p></div>
+      <div class="doc-dato"><label>Fecha del Pedido</label><p>${sess.fecha}</p></div>
     </div>
-    <table class="oc-table">
-      <thead><tr><th style="width:60%">Producto</th><th>Formato</th><th style="text-align:center">Cant.</th></tr></thead>
+    <table class="doc-table">
+      <thead><tr><th style="width:55%">Producto</th><th>Formato</th><th>Cant.</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    <div class="oc-footer-doc">
-      <p>Nativo — Documento generado electrónicamente</p>
-      <p class="oc-num">${num}</p>
+    <div class="doc-footer">
+      <p>nativo — Documento generado electrónicamente</p>
+      <p class="doc-num">${num}</p>
     </div>`;
+
+  // Guardar en Supabase
+  const detalle=CATS.flatMap(({items})=>
+    items.filter(({n})=>qtys[n]).map(({n,f})=>`${n} (${f}) x${qtys[n]}`)
+  ).join(', ');
+  try{
+    await fetch(`${PROXY}/supabase/pedidos`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({emp:sess.emp,rut:sess.rut,dir:sess.dir,zona:'',detalle,estado:'pendiente',factura_num:'',factura_nombre:'',fecha:sess.fecha})
+    });
+  }catch(e){console.error('Error guardando pedido:',e);}
+
   showScreen('screen-oc');
 }
 
-function volverCatalogo(){
-  showScreen('screen-catalogo');
-}
-
-async function descargarImagen(){
-  const btn=document.getElementById('btn-img');
-  btn.textContent='⏳ Generando imagen...';
-  btn.disabled=true;
-  try {
-    const el=document.getElementById('oc-body');
-    const canvas=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true});
-    const imgData=canvas.toDataURL('image/jpeg',0.95);
-    // iPhone: mostrar imagen para guardar con press largo
-    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
-    if(isIOS){
-      document.getElementById('oc-img').src=imgData;
-      document.getElementById('img-preview').style.display='block';
-      btn.textContent='✅ ¡Lista! Mantén presionada la imagen';
-    } else {
-      // Android / Desktop: descarga directa
-      const link=document.createElement('a');
-      link.download=`OrdenCompra-${sess.emp.replace(/\s+/g,'-')}.jpg`;
-      link.href=imgData;
-      link.click();
-      btn.textContent='✅ ¡Descargada!';
-      setTimeout(()=>btn.textContent='📸 Guardar como imagen',2500);
-    }
-  } catch(e){ alert('Error generando imagen. Intenta de nuevo.'); btn.textContent='📸 Guardar como imagen'; }
-  btn.disabled=false;
-}
+function volverCatalogo(){showScreen('screen-catalogo');}
+showScreen('screen-login');
 </script>
 </body>
 </html>
