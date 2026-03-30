@@ -280,7 +280,8 @@ tr:hover td{background:#faf6ff}
       <div><label>N° Factura</label><input id="m-factura" type="text"></div>
       <div><label>Fecha</label><input id="m-fecha" type="text"></div>
     </div>
-    <div><label>Detalle del Pedido</label><textarea id="m-detalle"></textarea></div>
+    <div style="margin-bottom:12px"><label>Detalle del Pedido</label><textarea id="m-detalle"></textarea></div>
+    <div><label>Comentario interno 🔒</label><textarea id="m-comentario" placeholder="Notas internas del equipo nativo..."></textarea></div>
     <div class="modal-actions">
       <button class="btn btn-gray btn-sm" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-danger btn-sm" onclick="eliminarPedido()">Eliminar</button>
@@ -413,7 +414,7 @@ function openModal(id){
   document.getElementById('m-dir').value=p.dir;
   document.getElementById('m-factura').value=p.factura_num||'';
   document.getElementById('m-fecha').value=p.fecha||'';
-  document.getElementById('m-detalle').value=p.detalle;
+  document.getElementById('m-comentario').value=p.comentario||'';
   document.getElementById('modal-bg').classList.add('open');
 }
 function closeModal(){document.getElementById('modal-bg').classList.remove('open');}
@@ -428,7 +429,8 @@ async function guardarModal(){
     dir:document.getElementById('m-dir').value,
     factura_num:document.getElementById('m-factura').value,
     fecha:document.getElementById('m-fecha').value,
-    detalle:document.getElementById('m-detalle').value
+    detalle:document.getElementById('m-detalle').value,
+    comentario:document.getElementById('m-comentario').value
   };
   try{await sbUpdate(editId,row);await cargarPedidos();closeModal();}
   catch(e){alert('Error guardando.');}
