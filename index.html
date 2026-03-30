@@ -123,13 +123,7 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
 .doc-footer p{font-size:11px;color:var(--textl);font-weight:600}
 .doc-num{font-size:12px;font-weight:800;color:var(--mora)}
 
-@media print{
-  #screen-login,#screen-catalogo,.oc-topbar{display:none!important}
-  #screen-oc{display:block!important}
-  body{background:white}
-  .oc-wrap{padding:0}
-  #oc-doc{box-shadow:none;border-radius:0;padding:20px}
-}
+
 @media(max-width:480px){
   .prod-grid{grid-template-columns:repeat(2,1fr)}
   .doc-datos{grid-template-columns:1fr}
@@ -187,7 +181,7 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
   <div class="oc-topbar">
     <button class="btn-back" onclick="volverCatalogo()">← Volver</button>
     <span class="oc-topbar-title">Orden de Compra</span>
-    <button class="btn-print" onclick="window.print()">🖨️ Guardar / Imprimir</button>
+    <button class="btn-print" id="btn-enviar" onclick="enviarPedido()">Enviar Pedido</button>
   </div>
   <div class="oc-wrap">
     <div id="oc-doc"></div>
@@ -377,6 +371,58 @@ async function irAOC(){
 }
 
 function volverCatalogo(){showScreen('screen-catalogo');}
+
+function enviarPedido(){
+  if(!confirm('¿Estás seguro que deseas enviar este pedido?'))return;
+  const btn=document.getElementById('btn-enviar');
+  btn.textContent='Enviando...';btn.disabled=true;
+
+  const items=Object.entries(qtys);
+  const resumenRows=items.map(([n,q])=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--crema-d)">
+      <span style="font-size:13px;font-weight:700;color:var(--text)">${n}</span>
+      <span style="font-size:13px;font-weight:900;color:var(--mora);background:var(--mora-xl);padding:2px 10px;border-radius:20px">×${q}</span>
+    </div>`).join('');
+
+  setTimeout(()=>{
+    document.getElementById('oc-doc').innerHTML=`
+      <div style="text-align:center;padding:32px 24px 20px">
+        <div style="font-size:56px;margin-bottom:12px">🎉</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--mora-d);margin-bottom:8px">¡Listo!</div>
+        <div style="font-size:14px;font-weight:700;color:var(--textl);margin-bottom:24px">Tu pedido ha sido enviado correctamente.<br>Nos contactaremos pronto para confirmar.</div>
+      </div>
+      <div style="background:var(--crema);border-radius:12px;padding:16px 20px;margin-bottom:20px">
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mora);margin-bottom:12px">Resumen del pedido</div>
+        <div style="margin-bottom:8px">
+          <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--textl)">Empresa</span>
+          <div style="font-size:14px;font-weight:800;color:var(--text);margin-top:2px">${sess.emp}</div>
+        </div>
+        <div style="margin-bottom:8px">
+          <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--textl)">Dirección de despacho</span>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px">${sess.dir}</div>
+        </div>
+        <div style="margin-bottom:4px">
+          <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--textl)">Fecha</span>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px">${sess.fecha}</div>
+        </div>
+      </div>
+      <div style="background:white;border-radius:12px;padding:16px 20px;margin-bottom:24px;border:1.5px solid var(--crema-d)">
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mora);margin-bottom:4px">Productos pedidos</div>
+        ${resumenRows}
+      </div>
+      <div style="text-align:center">
+        <button onclick="nuevosPedido()" style="background:var(--amarillo);color:var(--mora-d);border:none;border-radius:10px;padding:13px 28px;font-size:15px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif">Hacer otro pedido</button>
+      </div>`;
+  },600);
+}
+
+function nuevosPedido(){
+  qtys={};
+  document.querySelectorAll('.qty-inp').forEach(i=>i.value=0);
+  document.querySelectorAll('.prod-card').forEach(c=>c.classList.remove('sel'));
+  updateCart();
+  showScreen('screen-catalogo');
+}
 showScreen('screen-login');
 </script>
 </body>
