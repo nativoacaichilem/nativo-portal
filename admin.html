@@ -473,12 +473,6 @@ function openModal(id) {
   document.getElementById('m-fecha').value = p.fecha || '';
   document.getElementById('m-comentario').value = p.comentario || '';
 
-  const items = splitDetalle(p.detalle);
-  const display = document.getElementById('m-detalle-display');
-  display.innerHTML = items.length
-    ? items.map(d => `· ${d}`).join('<br>')
-    : '<span style="color:var(--textl);font-weight:600">Sin detalle registrado</span>';
-
   document.getElementById('modal-bg').classList.add('open');
 }
 
