@@ -420,10 +420,12 @@ function openModal(id){
   document.getElementById('m-factura').value=p.factura_num||'';
   document.getElementById('m-fecha').value=p.fecha||'';
   const detalleDisplay=document.getElementById('m-detalle-display');
-  if(p.detalle&&p.detalle.trim()){
-    detalleDisplay.innerHTML=p.detalle.split(/,\s*(?=[A-ZÁÉÍÓÚÑ])/).map(d=>`· ${d.trim()}`).join('<br>');
-  } else {
-    detalleDisplay.innerHTML='<span style="color:var(--textl);font-weight:600">Sin detalle registrado</span>';
+  if(detalleDisplay){
+    if(p.detalle&&p.detalle.trim()){
+      detalleDisplay.innerHTML=p.detalle.split(/,\s*(?=[A-ZÁÉÍÓÚÑ])/).map(d=>`· ${d.trim()}`).join('<br>');
+    } else {
+      detalleDisplay.innerHTML='<span style="color:var(--textl);font-weight:600">Sin detalle registrado</span>';
+    }
   }
   document.getElementById('m-comentario').value=p.comentario||'';
   document.getElementById('modal-bg').classList.add('open');
