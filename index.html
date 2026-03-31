@@ -370,21 +370,48 @@ async function enviarPedido(){
   const btn=document.getElementById('btn-enviar');
   btn.textContent='Enviando...';btn.disabled=true;
 
-  // Guardar en Supabase al confirmar
-  const detalle=CATS.flatMap(({items})=>
-    items.filter(({n})=>qtys[n]).map(({n,f})=>`${n} (${f}) x${qtys[n]}`)
-  ).join(', ');
+  // Construir detalle desde qtys
+  const productosSeleccionados=[];
+  CATS.forEach(({items})=>{
+    items.forEach(({n,f})=>{
+      if(qtys[n] && qtys[n]>0){
+        productosSeleccionados.push(`${n} (${f}) x${qtys[n]}`);
+      }
+    });
+  });
+  const detalle=productosSeleccionados.join(', ');
+
+  if(!detalle){
+    btn.textContent='Enviar Pedido';btn.disabled=false;
+    alert('No hay productos seleccionados. Vuelve al catálogo y selecciona al menos uno.');
+    return;
+  }
+
+  const payload={
+    emp:sess.emp,
+    rut:sess.rut,
+    dir:sess.dir,
+    zona:'',
+    detalle:detalle,
+    estado:'pendiente',
+    factura_num:'',
+    factura_nombre:'',
+    fecha:sess.fecha
+  };
 
   try{
     const r=await fetch(`${PROXY}/supabase/pedidos`,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({emp:sess.emp,rut:sess.rut,dir:sess.dir,zona:'',detalle,estado:'pendiente',factura_num:'',factura_nombre:'',fecha:sess.fecha})
+      body:JSON.stringify(payload)
     });
-    if(!r.ok)throw new Error('Error del servidor');
+    if(!r.ok){
+      const errText=await r.text();
+      throw new Error(errText);
+    }
   }catch(e){
     btn.textContent='Enviar Pedido';btn.disabled=false;
-    alert('Error al enviar el pedido. Verifica tu conexión e intenta de nuevo.');
+    alert('Error al enviar el pedido. Intenta de nuevo.');
     return;
   }
 
