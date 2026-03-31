@@ -377,7 +377,7 @@ function renderPedidos(){
       <div style="font-weight:800;font-size:13px">${p.emp}</div>
       <div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:1px">${p.rut}</div>
       ${p.detalle
-        ? `<div style="margin-top:6px;background:var(--mora-xl);border-radius:7px;padding:6px 8px">${p.detalle.split(',').map(d=>d.trim()).filter(Boolean).map(d=>`<div style="font-size:11px;color:var(--mora-d);font-weight:700;line-height:1.6">· ${d}</div>`).join('')}</div>`
+        ? `<div style="margin-top:6px;background:var(--mora-xl);border-radius:7px;padding:6px 8px">${p.detalle.split(/,\s*(?=[A-ZÁÉÍÓÚÑ])/).map(d=>d.trim()).filter(Boolean).map(d=>`<div style="font-size:11px;color:var(--mora-d);font-weight:700;line-height:1.6">· ${d}</div>`).join('')}</div>`
         : '<div style="font-size:11px;color:#d1d5db;margin-top:4px">Sin detalle</div>'}
     </td>
     <td style="font-size:12px;font-weight:600;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.dir}</td>
@@ -419,6 +419,12 @@ function openModal(id){
   document.getElementById('m-dir').value=p.dir;
   document.getElementById('m-factura').value=p.factura_num||'';
   document.getElementById('m-fecha').value=p.fecha||'';
+  const detalleDisplay=document.getElementById('m-detalle-display');
+  if(p.detalle&&p.detalle.trim()){
+    detalleDisplay.innerHTML=p.detalle.split(/,\s*(?=[A-ZÁÉÍÓÚÑ])/).map(d=>`· ${d.trim()}`).join('<br>');
+  } else {
+    detalleDisplay.innerHTML='<span style="color:var(--textl);font-weight:600">Sin detalle registrado</span>';
+  }
   document.getElementById('m-comentario').value=p.comentario||'';
   document.getElementById('modal-bg').classList.add('open');
 }
@@ -435,7 +441,7 @@ async function guardarModal(){
     dir:document.getElementById('m-dir').value,
     factura_num:document.getElementById('m-factura').value,
     fecha:document.getElementById('m-fecha').value,
-    detalle:document.getElementById('m-detalle').value||p.detalle||'',
+    detalle:p.detalle||'',
     comentario:document.getElementById('m-comentario').value||p.comentario||''
   };
   try{await sbUpdate(editId,row);await cargarPedidos();closeModal();}
