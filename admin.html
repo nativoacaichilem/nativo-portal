@@ -8,21 +8,12 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --mora:#6b35b8;
-  --mora-d:#4a1f7a;
-  --mora-l:#9b6fd4;
-  --mora-xl:#f0e6ff;
-  --amarillo:#f5c842;
-  --amarillo-l:#fef9c3;
-  --crema:#fdf8f0;
-  --crema-d:#ede3d0;
-  --text:#1e1226;
-  --textl:#8b7a9e;
-  --white:#ffffff;
-  --verde:#065f46;
-  --verde-l:#d1fae5;
-  --rojo:#7f1d1d;
-  --rojo-l:#fee2e2;
+  --mora:#6b35b8;--mora-d:#4a1f7a;--mora-l:#9b6fd4;--mora-xl:#f0e6ff;
+  --amarillo:#f5c842;--amarillo-l:#fef9c3;
+  --crema:#fdf8f0;--crema-d:#ede3d0;
+  --text:#1e1226;--textl:#8b7a9e;--white:#ffffff;
+  --verde-l:#d1fae5;--verde:#065f46;
+  --rojo-l:#fee2e2;--rojo:#7f1d1d;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Nunito',sans-serif;background:#f0eaf8;color:var(--text);min-height:100vh}
@@ -36,7 +27,6 @@ body{font-family:'Nunito',sans-serif;background:#f0eaf8;color:var(--text);min-he
 .inp{width:100%;padding:11px 14px;border:1.5px solid var(--crema-d);border-radius:10px;font-size:14px;outline:none;font-family:'Nunito',sans-serif;margin-bottom:12px;background:var(--crema);color:var(--text)}
 .inp:focus{border-color:var(--mora);background:var(--white)}
 .btn-amarillo{width:100%;padding:12px;border:none;border-radius:10px;background:var(--amarillo);color:var(--mora-d);font-size:14px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif}
-.btn-amarillo:hover{opacity:.88}
 .alert{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:700;margin-bottom:12px}
 .alert-error{background:var(--rojo-l);color:var(--rojo)}
 .alert-success{background:var(--verde-l);color:var(--verde)}
@@ -48,9 +38,8 @@ nav{background:var(--mora);display:flex;align-items:center;justify-content:space
 .nav-tabs{display:flex}
 .tab-btn{background:none;border:none;color:rgba(255,255,255,.5);padding:14px 14px;cursor:pointer;font-size:13px;font-weight:800;border-bottom:2px solid transparent;font-family:'Nunito',sans-serif;transition:all .2s;white-space:nowrap}
 .tab-btn.active{color:var(--amarillo);border-bottom-color:var(--amarillo);background:rgba(255,255,255,.06)}
-.tab-btn:hover:not(.active){color:var(--white);background:rgba(255,255,255,.05)}
+.tab-btn:hover:not(.active){color:var(--white)}
 .nav-right{display:flex;align-items:center;gap:10px}
-.nav-user{font-size:11px;color:rgba(255,255,255,.4);font-weight:700}
 .btn-logout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--white);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:800;font-family:'Nunito',sans-serif}
 
 /* PAGES */
@@ -86,7 +75,7 @@ textarea{resize:vertical;min-height:78px}
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{background:var(--crema);color:var(--mora);font-weight:800;padding:9px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid var(--crema-d)}
-td{padding:10px 12px;border-bottom:1px solid var(--crema-d);vertical-align:middle}
+td{padding:10px 12px;border-bottom:1px solid var(--crema-d);vertical-align:top}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:#faf6ff}
 
@@ -107,8 +96,6 @@ tr:hover td{background:#faf6ff}
 .check-item:hover{border-color:var(--mora-l)}
 .check-item.sel{border-color:var(--mora);background:var(--mora-xl)}
 .check-item input[type=checkbox]{margin-top:2px;width:16px;height:16px;flex-shrink:0;accent-color:var(--mora)}
-.check-name{font-weight:800;font-size:13px;color:var(--mora-d)}
-.check-sub{font-size:12px;color:var(--textl);margin-top:2px;font-weight:600}
 
 /* PROMPT */
 .prompt-box{background:var(--mora-d);color:#e9d8fd;border-radius:12px;padding:20px;font-family:monospace;font-size:12px;line-height:1.8;white-space:pre-wrap;margin-top:14px;max-height:480px;overflow-y:auto}
@@ -120,6 +107,7 @@ tr:hover td{background:#faf6ff}
 .modal{background:var(--white);border-radius:16px;padding:26px;max-width:480px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,.25);max-height:90vh;overflow-y:auto}
 .modal h3{font-family:'DM Serif Display',serif;font-size:20px;color:var(--mora-d);margin-bottom:16px}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.detalle-readonly{background:var(--mora-xl);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--mora-d);font-weight:700;line-height:1.8;min-height:44px}
 
 /* SPINNER */
 .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(107,53,184,.2);border-top-color:var(--mora);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
@@ -157,7 +145,6 @@ tr:hover td{background:#faf6ff}
     </div>
     <div class="nav-logo">nativo</div>
     <div class="nav-right">
-      <span class="nav-user">Equipo nativo</span>
       <button class="btn-logout" onclick="logout()">Salir</button>
     </div>
   </nav>
@@ -176,7 +163,6 @@ tr:hover td{background:#faf6ff}
         <input type="text" id="search" placeholder="🔍 Buscar empresa o RUT..." oninput="renderPedidos()">
         <select id="f-zona" onchange="renderPedidos()">
           <option value="">Todas las zonas</option>
-          <option value="">Sin zona asignada</option>
           <option value="norte">Norte</option>
           <option value="sur">Sur</option>
           <option value="santiago">Santiago</option>
@@ -193,7 +179,17 @@ tr:hover td{background:#faf6ff}
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Fecha</th><th>Empresa / Detalle</th><th>Dirección</th><th>Zona</th><th>Estado</th><th>Factura</th><th></th></tr></thead>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Empresa / Detalle</th>
+              <th>Dirección</th>
+              <th>Zona</th>
+              <th>Estado</th>
+              <th>Factura</th>
+              <th></th>
+            </tr>
+          </thead>
           <tbody id="pedidos-tbody"></tbody>
         </table>
       </div>
@@ -205,7 +201,7 @@ tr:hover td{background:#faf6ff}
     <div class="card" style="max-width:660px;margin:0 auto">
       <h2>➕ Agregar Pedido</h2>
       <div class="alert alert-info" style="margin-bottom:16px">
-        💡 Sube la imagen de la OC aquí en Claude y escribe <strong>"extrae los datos de esta OC"</strong>. Claude te dará los datos listos para copiar en este formulario.
+        💡 Sube la imagen de la OC aquí en Claude y escribe <strong>"extrae los datos de esta OC"</strong>. Claude te dará los datos listos para copiar aquí.
       </div>
       <div id="alert-nuevo"></div>
       <div class="form-grid">
@@ -224,7 +220,7 @@ tr:hover td{background:#faf6ff}
           </select>
         </div>
       </div>
-      <div style="margin-bottom:12px"><label>Detalle del Pedido *</label><textarea id="n-detalle" placeholder="Ej: Balde Acai Nativo x2, Granola Avena Miel x3..."></textarea></div>
+      <div style="margin-bottom:12px"><label>Detalle del Pedido *</label><textarea id="n-detalle" placeholder="Ej: Balde Acai Nativo (3,6 L) x2, Granola Avena Miel (2 kg) x3"></textarea></div>
       <div class="form-grid">
         <div><label>N° Factura</label><input id="n-factura" type="text" placeholder="Ej: 001234"></div>
         <div><label>Fecha del Pedido</label><input id="n-fecha" type="text" placeholder="DD/MM/AAAA"></div>
@@ -237,7 +233,7 @@ tr:hover td{background:#faf6ff}
   <div id="page-rutas" class="page">
     <div class="card">
       <h2>🚚 Armar Ruta</h2>
-      <p style="font-size:13px;color:var(--textl);margin-bottom:16px;font-weight:600">Selecciona los pedidos facturados. Se generará un prompt listo para pegar en Claude y obtener la ruta óptima.</p>
+      <p style="font-size:13px;color:var(--textl);margin-bottom:16px;font-weight:600">Selecciona los pedidos facturados. Se generará un prompt listo para pegar en Claude.</p>
       <div id="pedidos-checks"></div>
       <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn btn-am" onclick="generarPrompt()">✨ Generar Prompt para Claude</button>
@@ -255,8 +251,9 @@ tr:hover td{background:#faf6ff}
 <div class="modal-bg" id="modal-bg">
   <div class="modal">
     <h3>Editar Pedido</h3>
-    <div class="form-grid">
-      <div><label>Zona</label>
+    <div class="form-grid" style="margin-bottom:12px">
+      <div>
+        <label>Zona</label>
         <select id="m-zona">
           <option value="">— Asignar zona —</option>
           <option value="norte">Norte</option>
@@ -265,7 +262,8 @@ tr:hover td{background:#faf6ff}
           <option value="litoral">Litoral</option>
         </select>
       </div>
-      <div><label>Estado</label>
+      <div>
+        <label>Estado</label>
         <select id="m-estado">
           <option value="pendiente">Sin facturar</option>
           <option value="facturado">Facturado</option>
@@ -276,12 +274,18 @@ tr:hover td{background:#faf6ff}
     </div>
     <div style="margin-bottom:12px"><label>Empresa</label><input id="m-emp" type="text"></div>
     <div style="margin-bottom:12px"><label>Dirección</label><input id="m-dir" type="text"></div>
-    <div class="form-grid">
+    <div class="form-grid" style="margin-bottom:12px">
       <div><label>N° Factura</label><input id="m-factura" type="text"></div>
       <div><label>Fecha</label><input id="m-fecha" type="text"></div>
     </div>
-    <div style="margin-bottom:12px"><label>Detalle del Pedido</label><textarea id="m-detalle"></textarea></div>
-    <div><label>Comentario interno 🔒</label><textarea id="m-comentario" placeholder="Notas internas del equipo nativo..."></textarea></div>
+    <div style="margin-bottom:12px">
+      <label>Detalle del Pedido</label>
+      <div class="detalle-readonly" id="m-detalle-display"></div>
+    </div>
+    <div style="margin-bottom:4px">
+      <label>Comentario Interno 🔒</label>
+      <textarea id="m-comentario" placeholder="Notas internas del equipo nativo..."></textarea>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-gray btn-sm" onclick="closeModal()">Cancelar</button>
       <button class="btn btn-danger btn-sm" onclick="eliminarPedido()">Eliminar</button>
@@ -291,216 +295,278 @@ tr:hover td{background:#faf6ff}
 </div>
 
 <script>
-const PIN='1234';
-const PROXY='https://nativo-proxy.mkitzing.workers.dev';
-let pedidos=[],editId=null,seleccionados=[];
+const PIN = '1234';
+const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
+let pedidos = [], editId = null, seleccionados = [];
 
-function doLogin(){
-  if(document.getElementById('pin-inp').value!==PIN){
-    document.getElementById('login-alert').innerHTML='<div class="alert alert-error">PIN incorrecto.</div>';return;
+// ── AUTH ─────────────────────────────────────────────────
+function doLogin() {
+  if (document.getElementById('pin-inp').value !== PIN) {
+    document.getElementById('login-alert').innerHTML = '<div class="alert alert-error">PIN incorrecto.</div>';
+    return;
   }
-  document.getElementById('login-screen').style.display='none';
-  document.getElementById('app').style.display='block';
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
   cargarPedidos();
 }
-function logout(){
-  document.getElementById('login-screen').style.display='flex';
-  document.getElementById('app').style.display='none';
-  document.getElementById('pin-inp').value='';
-}
-function switchTab(id,btn){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
-  btn.classList.add('active');
-  if(id==='pedidos')cargarPedidos();
-  if(id==='rutas')renderChecks();
-  if(id==='nuevo')document.getElementById('n-fecha').value=new Date().toLocaleDateString('es-CL');
-}
-function fmtR(el){
-  let v=el.value.replace(/[^0-9kK]/g,'');
-  if(v.length<2){el.value=v;return;}
-  let b=v.slice(0,-1),d=v.slice(-1).toUpperCase();
-  b=b.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
-  el.value=b+'-'+d;
+
+function logout() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('pin-inp').value = '';
 }
 
-// SUPABASE
-async function sbGet(){
-  const r=await fetch(`${PROXY}/supabase/pedidos?order=created_at.desc`);
-  const data=await r.json();
-  if(!Array.isArray(data))throw new Error('Respuesta inválida');
+function switchTab(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'pedidos') cargarPedidos();
+  if (id === 'rutas') renderChecks();
+  if (id === 'nuevo') document.getElementById('n-fecha').value = new Date().toLocaleDateString('es-CL');
+}
+
+function fmtR(el) {
+  let v = el.value.replace(/[^0-9kK]/g, '');
+  if (v.length < 2) { el.value = v; return; }
+  let b = v.slice(0, -1), d = v.slice(-1).toUpperCase();
+  b = b.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  el.value = b + '-' + d;
+}
+
+// ── SUPABASE ──────────────────────────────────────────────
+async function sbGet() {
+  const r = await fetch(`${PROXY}/supabase/pedidos?order=created_at.desc`);
+  const data = await r.json();
+  if (!Array.isArray(data)) throw new Error('Respuesta inválida');
   return data;
 }
-async function sbInsert(row){
-  const r=await fetch(`${PROXY}/supabase/pedidos`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(row)});
+async function sbInsert(row) {
+  const r = await fetch(`${PROXY}/supabase/pedidos`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(row)
+  });
   return r.json();
 }
-async function sbUpdate(id,row){
-  const r=await fetch(`${PROXY}/supabase/pedidos?id=eq.${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(row)});
+async function sbUpdate(id, row) {
+  const r = await fetch(`${PROXY}/supabase/pedidos?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(row)
+  });
   return r.json();
 }
-async function sbDelete(id){
-  await fetch(`${PROXY}/supabase/pedidos?id=eq.${id}`,{method:'DELETE'});
+async function sbDelete(id) {
+  await fetch(`${PROXY}/supabase/pedidos?id=eq.${id}`, { method: 'DELETE' });
 }
 
-async function cargarPedidos(){
-  document.getElementById('pedidos-tbody').innerHTML='<tr><td colspan="8" style="text-align:center;padding:24px"><span class="spinner"></span>Cargando pedidos...</td></tr>';
-  try{pedidos=await sbGet();renderPedidos();renderChecks();}
-  catch(e){document.getElementById('pedidos-tbody').innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--rojo);padding:24px;font-weight:700">Error cargando pedidos. Verifica la conexión.</td></tr>';}
-}
-
-function zonaBadge(z){
-  if(!z)return'<span class="badge b-sinzona">⚠️ Sin zona</span>';
-  return`<span class="badge b-${z}">${z}</span>`;
-}
-function estadoLabel(e){return{pendiente:'Sin facturar',facturado:'Facturado','en-ruta':'En ruta',entregado:'Entregado'}[e]||e;}
-function estadoBadge(e){return{pendiente:'b-pendiente',facturado:'b-facturado','en-ruta':'b-en-ruta',entregado:'b-entregado'}[e]||'b-pendiente';}
-
-function renderPedidos(){
-  const q=(document.getElementById('search').value||'').toLowerCase();
-  const fZ=document.getElementById('f-zona').value;
-  const fE=document.getElementById('f-estado').value;
-  const filt=pedidos.filter(p=>
-    (!q||p.emp.toLowerCase().includes(q)||p.rut.includes(q))&&
-    (!fZ||p.zona===fZ)&&(!fE||p.estado===fE)
-  );
-  document.getElementById('s-total').textContent=pedidos.length;
-  document.getElementById('s-pendiente').textContent=pedidos.filter(p=>p.estado==='pendiente').length;
-  document.getElementById('s-ruta').textContent=pedidos.filter(p=>p.estado==='en-ruta').length;
-  document.getElementById('s-entregado').textContent=pedidos.filter(p=>p.estado==='entregado').length;
-  const tb=document.getElementById('pedidos-tbody');
-  if(!filt.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--textl);padding:24px;font-weight:700">Sin resultados</td></tr>';return;}
-  tb.innerHTML=filt.map(p=>`<tr>
-    <td style="font-size:12px;color:var(--textl);font-weight:600">${p.fecha||'—'}</td>
-    <td>
-      <div style="font-weight:800;font-size:13px">${p.emp}</div>
-      <div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:1px">${p.rut}</div>
-      ${p.detalle
-        ? `<div style="margin-top:6px;background:var(--mora-xl);border-radius:7px;padding:6px 8px">${p.detalle.split(/,\s*(?=[A-ZÁÉÍÓÚÑ])/).map(d=>d.trim()).filter(Boolean).map(d=>`<div style="font-size:11px;color:var(--mora-d);font-weight:700;line-height:1.6">· ${d}</div>`).join('')}</div>`
-        : '<div style="font-size:11px;color:#d1d5db;margin-top:4px">Sin detalle</div>'}
-    </td>
-    <td style="font-size:12px;font-weight:600;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.dir}</td>
-    <td>${zonaBadge(p.zona)}</td>
-    <td><span class="badge ${estadoBadge(p.estado)}">${estadoLabel(p.estado)}</span></td>
-    <td style="font-size:12px;color:var(--textl);font-weight:600">${p.factura_num||'—'}</td>
-    <td><button class="btn btn-outline btn-sm" onclick="openModal(${p.id})">Editar</button></td>
-  </tr>`).join('');
-}
-
-async function agregarPedido(){
-  const emp=document.getElementById('n-emp').value.trim();
-  const rut=document.getElementById('n-rut').value.trim();
-  const dir=document.getElementById('n-dir').value.trim();
-  const zona=document.getElementById('n-zona').value;
-  const detalle=document.getElementById('n-detalle').value.trim();
-  const factura_num=document.getElementById('n-factura').value.trim();
-  const fecha=document.getElementById('n-fecha').value.trim()||new Date().toLocaleDateString('es-CL');
-  if(!emp||!rut||!dir||!zona||!detalle)return showAlert('alert-nuevo','Completa todos los campos obligatorios (incluyendo zona).','error');
-  const btn=document.getElementById('btn-agregar');
-  btn.innerHTML='<span class="spinner"></span>Guardando...';btn.disabled=true;
-  try{
-    await sbInsert({emp,rut,dir,zona,detalle,factura_num,factura_nombre:'',estado:'pendiente',fecha});
-    showAlert('alert-nuevo','✅ Pedido guardado correctamente.','success');
-    ['n-emp','n-rut','n-dir','n-detalle','n-factura'].forEach(i=>document.getElementById(i).value='');
-    document.getElementById('n-zona').value='';
-    document.getElementById('n-fecha').value=new Date().toLocaleDateString('es-CL');
-    await cargarPedidos();
-  }catch(e){showAlert('alert-nuevo','Error guardando. Intenta de nuevo.','error');}
-  btn.innerHTML='Guardar Pedido';btn.disabled=false;
-}
-
-function openModal(id){
-  editId=id;
-  const p=pedidos.find(x=>x.id===id);
-  document.getElementById('m-zona').value=p.zona||'';
-  document.getElementById('m-estado').value=p.estado;
-  document.getElementById('m-emp').value=p.emp;
-  document.getElementById('m-dir').value=p.dir;
-  document.getElementById('m-factura').value=p.factura_num||'';
-  document.getElementById('m-fecha').value=p.fecha||'';
-  const detalleDisplay=document.getElementById('m-detalle-display');
-  if(detalleDisplay){
-    if(p.detalle&&p.detalle.trim()){
-      detalleDisplay.innerHTML=p.detalle.split(/,\s*(?=[A-ZÁÉÍÓÚÑ])/).map(d=>`· ${d.trim()}`).join('<br>');
-    } else {
-      detalleDisplay.innerHTML='<span style="color:var(--textl);font-weight:600">Sin detalle registrado</span>';
-    }
+// ── CARGAR ────────────────────────────────────────────────
+async function cargarPedidos() {
+  document.getElementById('pedidos-tbody').innerHTML =
+    '<tr><td colspan="7" style="text-align:center;padding:24px"><span class="spinner"></span>Cargando pedidos...</td></tr>';
+  try {
+    pedidos = await sbGet();
+    renderPedidos();
+    renderChecks();
+  } catch(e) {
+    document.getElementById('pedidos-tbody').innerHTML =
+      '<tr><td colspan="7" style="text-align:center;color:var(--rojo);padding:24px;font-weight:700">Error cargando pedidos.</td></tr>';
   }
-  document.getElementById('m-comentario').value=p.comentario||'';
+}
+
+// ── HELPERS ───────────────────────────────────────────────
+function splitDetalle(str) {
+  if (!str || !str.trim()) return [];
+  return str.split(/,\s*(?=[A-ZÁÉÍÓÚÑ])/).map(d => d.trim()).filter(Boolean);
+}
+
+function zonaBadge(z) {
+  if (!z) return '<span class="badge b-sinzona">⚠️ Sin zona</span>';
+  return `<span class="badge b-${z}">${z}</span>`;
+}
+
+function estadoLabel(e) {
+  return { pendiente: 'Sin facturar', facturado: 'Facturado', 'en-ruta': 'En ruta', entregado: 'Entregado' }[e] || e;
+}
+
+function estadoBadge(e) {
+  return { pendiente: 'b-pendiente', facturado: 'b-facturado', 'en-ruta': 'b-en-ruta', entregado: 'b-entregado' }[e] || 'b-pendiente';
+}
+
+// ── RENDER TABLA ──────────────────────────────────────────
+function renderPedidos() {
+  const q = (document.getElementById('search').value || '').toLowerCase();
+  const fZ = document.getElementById('f-zona').value;
+  const fE = document.getElementById('f-estado').value;
+  const filt = pedidos.filter(p =>
+    (!q || p.emp.toLowerCase().includes(q) || p.rut.includes(q)) &&
+    (!fZ || p.zona === fZ) &&
+    (!fE || p.estado === fE)
+  );
+  document.getElementById('s-total').textContent = pedidos.length;
+  document.getElementById('s-pendiente').textContent = pedidos.filter(p => p.estado === 'pendiente').length;
+  document.getElementById('s-ruta').textContent = pedidos.filter(p => p.estado === 'en-ruta').length;
+  document.getElementById('s-entregado').textContent = pedidos.filter(p => p.estado === 'entregado').length;
+
+  const tb = document.getElementById('pedidos-tbody');
+  if (!filt.length) {
+    tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--textl);padding:24px;font-weight:700">Sin resultados</td></tr>';
+    return;
+  }
+
+  tb.innerHTML = filt.map(p => {
+    const items = splitDetalle(p.detalle);
+    const detalleHTML = items.length
+      ? `<div style="margin-top:6px;background:var(--mora-xl);border-radius:7px;padding:6px 8px">
+           ${items.map(d => `<div style="font-size:11px;color:var(--mora-d);font-weight:700;line-height:1.6">· ${d}</div>`).join('')}
+         </div>`
+      : '<div style="font-size:11px;color:#d1d5db;margin-top:4px;font-weight:600">Sin detalle</div>';
+
+    return `<tr>
+      <td style="font-size:12px;color:var(--textl);font-weight:600;white-space:nowrap">${p.fecha || '—'}</td>
+      <td>
+        <div style="font-weight:800;font-size:13px">${p.emp}</div>
+        <div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:1px">${p.rut}</div>
+        ${detalleHTML}
+      </td>
+      <td style="font-size:12px;font-weight:600;max-width:140px">${p.dir}</td>
+      <td>${zonaBadge(p.zona)}</td>
+      <td><span class="badge ${estadoBadge(p.estado)}">${estadoLabel(p.estado)}</span></td>
+      <td style="font-size:12px;color:var(--textl);font-weight:600">${p.factura_num || '—'}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="openModal(${p.id})">Editar</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── AGREGAR ───────────────────────────────────────────────
+async function agregarPedido() {
+  const emp = document.getElementById('n-emp').value.trim();
+  const rut = document.getElementById('n-rut').value.trim();
+  const dir = document.getElementById('n-dir').value.trim();
+  const zona = document.getElementById('n-zona').value;
+  const detalle = document.getElementById('n-detalle').value.trim();
+  const factura_num = document.getElementById('n-factura').value.trim();
+  const fecha = document.getElementById('n-fecha').value.trim() || new Date().toLocaleDateString('es-CL');
+  if (!emp || !rut || !dir || !zona || !detalle)
+    return showAlert('alert-nuevo', 'Completa todos los campos obligatorios (incluyendo zona).', 'error');
+  const btn = document.getElementById('btn-agregar');
+  btn.innerHTML = '<span class="spinner"></span>Guardando...'; btn.disabled = true;
+  try {
+    await sbInsert({ emp, rut, dir, zona, detalle, factura_num, factura_nombre: '', estado: 'pendiente', fecha, comentario: '' });
+    showAlert('alert-nuevo', '✅ Pedido guardado correctamente.', 'success');
+    ['n-emp','n-rut','n-dir','n-detalle','n-factura'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('n-zona').value = '';
+    document.getElementById('n-fecha').value = new Date().toLocaleDateString('es-CL');
+    await cargarPedidos();
+  } catch(e) { showAlert('alert-nuevo', 'Error guardando. Intenta de nuevo.', 'error'); }
+  btn.innerHTML = 'Guardar Pedido'; btn.disabled = false;
+}
+
+// ── MODAL ─────────────────────────────────────────────────
+function openModal(id) {
+  editId = id;
+  const p = pedidos.find(x => x.id === id);
+  if (!p) return;
+
+  document.getElementById('m-zona').value = p.zona || '';
+  document.getElementById('m-estado').value = p.estado || 'pendiente';
+  document.getElementById('m-emp').value = p.emp || '';
+  document.getElementById('m-dir').value = p.dir || '';
+  document.getElementById('m-factura').value = p.factura_num || '';
+  document.getElementById('m-fecha').value = p.fecha || '';
+  document.getElementById('m-comentario').value = p.comentario || '';
+
+  const items = splitDetalle(p.detalle);
+  const display = document.getElementById('m-detalle-display');
+  display.innerHTML = items.length
+    ? items.map(d => `· ${d}`).join('<br>')
+    : '<span style="color:var(--textl);font-weight:600">Sin detalle registrado</span>';
+
   document.getElementById('modal-bg').classList.add('open');
 }
-function closeModal(){document.getElementById('modal-bg').classList.remove('open');}
 
-async function guardarModal(){
-  const btn=document.getElementById('btn-guardar');
-  btn.innerHTML='<span class="spinner"></span>';btn.disabled=true;
-  const p=pedidos.find(x=>x.id===editId);
-  const row={
-    zona:document.getElementById('m-zona').value,
-    estado:document.getElementById('m-estado').value,
-    emp:document.getElementById('m-emp').value,
-    dir:document.getElementById('m-dir').value,
-    factura_num:document.getElementById('m-factura').value,
-    fecha:document.getElementById('m-fecha').value,
-    detalle:p.detalle||'',
-    comentario:document.getElementById('m-comentario').value||p.comentario||''
-  };
-  try{await sbUpdate(editId,row);await cargarPedidos();closeModal();}
-  catch(e){alert('Error guardando.');}
-  btn.innerHTML='Guardar';btn.disabled=false;
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('open');
 }
 
-async function eliminarPedido(){
-  if(!confirm('¿Eliminar este pedido?'))return;
+async function guardarModal() {
+  const btn = document.getElementById('btn-guardar');
+  btn.innerHTML = '<span class="spinner"></span>'; btn.disabled = true;
+  const p = pedidos.find(x => x.id === editId);
+  const row = {
+    zona: document.getElementById('m-zona').value,
+    estado: document.getElementById('m-estado').value,
+    emp: document.getElementById('m-emp').value.trim(),
+    dir: document.getElementById('m-dir').value.trim(),
+    factura_num: document.getElementById('m-factura').value.trim(),
+    fecha: document.getElementById('m-fecha').value.trim(),
+    detalle: p ? (p.detalle || '') : '',
+    comentario: document.getElementById('m-comentario').value.trim()
+  };
+  try {
+    await sbUpdate(editId, row);
+    await cargarPedidos();
+    closeModal();
+  } catch(e) { alert('Error guardando.'); }
+  btn.innerHTML = 'Guardar'; btn.disabled = false;
+}
+
+async function eliminarPedido() {
+  if (!confirm('¿Eliminar este pedido?')) return;
   await sbDelete(editId);
   await cargarPedidos();
   closeModal();
 }
 
-function renderChecks(){
-  const facturados=pedidos.filter(p=>p.estado==='facturado');
-  const el=document.getElementById('pedidos-checks');
-  if(!facturados.length){el.innerHTML='<p style="color:var(--textl);font-size:13px;padding:8px;font-weight:700">No hay pedidos en estado "Facturado" disponibles.</p>';return;}
-  el.innerHTML=facturados.map(p=>`
-    <div class="check-item ${seleccionados.includes(p.id)?'sel':''}" id="chk-${p.id}" onclick="toggleCheck(${p.id})">
-      <input type="checkbox" id="cb-${p.id}" ${seleccionados.includes(p.id)?'checked':''} onclick="event.stopPropagation();toggleCheck(${p.id})">
+// ── RUTAS ─────────────────────────────────────────────────
+function renderChecks() {
+  const facturados = pedidos.filter(p => p.estado === 'facturado');
+  const el = document.getElementById('pedidos-checks');
+  if (!facturados.length) {
+    el.innerHTML = '<p style="color:var(--textl);font-size:13px;padding:8px;font-weight:700">No hay pedidos en estado "Facturado".</p>';
+    return;
+  }
+  el.innerHTML = facturados.map(p => `
+    <div class="check-item ${seleccionados.includes(p.id) ? 'sel' : ''}" id="chk-${p.id}" onclick="toggleCheck(${p.id})">
+      <input type="checkbox" id="cb-${p.id}" ${seleccionados.includes(p.id) ? 'checked' : ''} onclick="event.stopPropagation();toggleCheck(${p.id})">
       <div style="flex:1">
-        <div class="check-name">${p.emp} ${zonaBadge(p.zona)}</div>
-        <div class="check-sub">📍 ${p.dir}</div>
-        <div class="check-sub">📦 ${p.detalle.slice(0,100)}${p.detalle.length>100?'…':''}</div>
-        ${p.factura_num?`<div style="font-size:11px;color:var(--mora-l);margin-top:2px;font-weight:700">Factura N° ${p.factura_num}</div>`:''}
+        <div style="font-weight:800;font-size:13px;color:var(--mora-d)">${p.emp} ${zonaBadge(p.zona)}</div>
+        <div style="font-size:12px;color:var(--textl);margin-top:2px;font-weight:600">📍 ${p.dir}</div>
+        <div style="font-size:12px;color:var(--textl);margin-top:2px;font-weight:600">📦 ${(p.detalle||'').slice(0, 100)}${(p.detalle||'').length > 100 ? '…' : ''}</div>
+        ${p.factura_num ? `<div style="font-size:11px;color:var(--mora-l);margin-top:2px;font-weight:700">Factura N° ${p.factura_num}</div>` : ''}
       </div>
     </div>`).join('');
 }
 
-function toggleCheck(id){
-  if(seleccionados.includes(id))seleccionados=seleccionados.filter(x=>x!==id);
+function toggleCheck(id) {
+  if (seleccionados.includes(id)) seleccionados = seleccionados.filter(x => x !== id);
   else seleccionados.push(id);
-  const cb=document.getElementById('cb-'+id);
-  const card=document.getElementById('chk-'+id);
-  cb.checked=seleccionados.includes(id);
-  card.classList.toggle('sel',seleccionados.includes(id));
-}
-function deselectAll(){
-  seleccionados=[];
-  document.querySelectorAll('#pedidos-checks input[type=checkbox]').forEach(cb=>cb.checked=false);
-  document.querySelectorAll('#pedidos-checks .check-item').forEach(c=>c.classList.remove('sel'));
+  const cb = document.getElementById('cb-' + id);
+  const card = document.getElementById('chk-' + id);
+  cb.checked = seleccionados.includes(id);
+  card.classList.toggle('sel', seleccionados.includes(id));
 }
 
-function generarPrompt(){
-  if(!seleccionados.length)return alert('Selecciona al menos un pedido.');
-  const sel=pedidos.filter(p=>seleccionados.includes(p.id));
-  const hoy=new Date().toLocaleDateString('es-CL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  const lista=sel.map((p,i)=>`
-PEDIDO ${i+1}:
+function deselectAll() {
+  seleccionados = [];
+  document.querySelectorAll('#pedidos-checks input[type=checkbox]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('#pedidos-checks .check-item').forEach(c => c.classList.remove('sel'));
+}
+
+function generarPrompt() {
+  if (!seleccionados.length) return alert('Selecciona al menos un pedido.');
+  const sel = pedidos.filter(p => seleccionados.includes(p.id));
+  const hoy = new Date().toLocaleDateString('es-CL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const lista = sel.map((p, i) => `
+PEDIDO ${i + 1}:
 - Cliente: ${p.emp}
 - RUT: ${p.rut}
-- Dirección: ${p.dir}${p.zona?' ('+p.zona+')':''}
-- Productos: ${p.detalle}
-- Fecha pedido: ${p.fecha||'N/A'}${p.factura_num?'\n- Factura N°: '+p.factura_num:''}`).join('\n');
+- Dirección: ${p.dir}${p.zona ? ' (' + p.zona + ')' : ''}
+- Productos: ${p.detalle || 'Sin detalle'}
+- Fecha pedido: ${p.fecha || 'N/A'}${p.factura_num ? '\n- Factura N°: ' + p.factura_num : ''}`).join('\n');
 
-  const prompt=`Necesito que organices la ruta de despacho más eficiente para hoy ${hoy}.
+  const prompt = `Necesito que organices la ruta de despacho más eficiente para hoy ${hoy}.
 
 Punto de partida: Alejandro Serani Sur 9447, Santiago de Chile.
 
@@ -508,36 +574,36 @@ Pedidos a entregar:
 ${lista}
 
 Por favor:
-1. Ordena los pedidos de forma que se minimice el tiempo de viaje y el combustible, considerando la geografía real de Santiago de Chile y sus alrededores.
-2. Para cada parada incluye exactamente este formato:
+1. Ordena los pedidos minimizando tiempo de viaje y combustible, considerando la geografía real de Santiago de Chile.
+2. Para cada parada usa este formato:
 
 📍 PARADA [N] — [NOMBRE CLIENTE]
 Cliente: [Nombre]
 Dirección: [Dirección completa]
 Productos: [Detalle de productos]
-🗺 Google Maps: https://www.google.com/maps/dir/?api=1&destination=[DIRECCIÓN CODIFICADA EN URL]&travelmode=driving
+🗺 Google Maps: https://www.google.com/maps/dir/?api=1&destination=[DIRECCIÓN CODIFICADA]&travelmode=driving
 
-3. Al final agrega un resumen con:
+3. Al final agrega:
 - Total de paradas por zona
-- Estimación del recorrido total
+- Estimación del recorrido
 - Breve justificación del orden elegido`;
 
-  document.getElementById('prompt-result').style.display='block';
-  document.getElementById('prompt-output').textContent=prompt;
+  document.getElementById('prompt-result').style.display = 'block';
+  document.getElementById('prompt-output').textContent = prompt;
 }
 
-function copiarPrompt(){
-  navigator.clipboard.writeText(document.getElementById('prompt-output').textContent).then(()=>{
-    const btn=document.querySelector('.btn-copy');
-    btn.textContent='✅ ¡Copiado! Pégalo en Claude';
-    setTimeout(()=>btn.textContent='📋 Copiar y pegar en Claude',3000);
+function copiarPrompt() {
+  navigator.clipboard.writeText(document.getElementById('prompt-output').textContent).then(() => {
+    const btn = document.querySelector('.btn-copy');
+    btn.textContent = '✅ ¡Copiado! Pégalo en Claude';
+    setTimeout(() => btn.textContent = '📋 Copiar y pegar en Claude', 3000);
   });
 }
 
-function showAlert(id,msg,type){
-  const el=document.getElementById(id);
-  el.innerHTML=`<div class="alert alert-${type}">${msg}</div>`;
-  setTimeout(()=>el.innerHTML='',4000);
+function showAlert(id, msg, type) {
+  const el = document.getElementById(id);
+  el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+  setTimeout(() => el.innerHTML = '', 4000);
 }
 </script>
 </body>
