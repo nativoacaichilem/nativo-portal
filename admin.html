@@ -193,7 +193,7 @@ tr:hover td{background:#faf6ff}
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Fecha</th><th>Empresa</th><th>RUT</th><th>Dirección</th><th>Zona</th><th>Estado</th><th>Factura</th><th></th></tr></thead>
+          <thead><tr><th>Fecha</th><th>Empresa / Detalle</th><th>Dirección</th><th>Zona</th><th>Estado</th><th>Factura</th><th></th></tr></thead>
           <tbody id="pedidos-tbody"></tbody>
         </table>
       </div>
@@ -374,10 +374,12 @@ function renderPedidos(){
   tb.innerHTML=filt.map(p=>`<tr>
     <td style="font-size:12px;color:var(--textl);font-weight:600">${p.fecha||'—'}</td>
     <td>
-      <div style="font-weight:800">${p.emp}</div>
-      ${p.detalle ? `<div style="margin-top:4px">${p.detalle.split(',').map(d=>d.trim()).filter(Boolean).map(d=>`<div style="font-size:11px;color:var(--textl);font-weight:600;line-height:1.5">· ${d}</div>`).join('')}</div>` : '<div style="font-size:11px;color:#d1d5db;font-weight:600;margin-top:2px">Sin detalle</div>'}
+      <div style="font-weight:800;font-size:13px">${p.emp}</div>
+      <div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:1px">${p.rut}</div>
+      ${p.detalle
+        ? `<div style="margin-top:6px;background:var(--mora-xl);border-radius:7px;padding:6px 8px">${p.detalle.split(',').map(d=>d.trim()).filter(Boolean).map(d=>`<div style="font-size:11px;color:var(--mora-d);font-weight:700;line-height:1.6">· ${d}</div>`).join('')}</div>`
+        : '<div style="font-size:11px;color:#d1d5db;margin-top:4px">Sin detalle</div>'}
     </td>
-    <td style="font-size:12px;font-weight:600">${p.rut}</td>
     <td style="font-size:12px;font-weight:600;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.dir}</td>
     <td>${zonaBadge(p.zona)}</td>
     <td><span class="badge ${estadoBadge(p.estado)}">${estadoLabel(p.estado)}</span></td>
