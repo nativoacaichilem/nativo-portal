@@ -422,6 +422,7 @@ function closeModal(){document.getElementById('modal-bg').classList.remove('open
 async function guardarModal(){
   const btn=document.getElementById('btn-guardar');
   btn.innerHTML='<span class="spinner"></span>';btn.disabled=true;
+  const p=pedidos.find(x=>x.id===editId);
   const row={
     zona:document.getElementById('m-zona').value,
     estado:document.getElementById('m-estado').value,
@@ -429,8 +430,8 @@ async function guardarModal(){
     dir:document.getElementById('m-dir').value,
     factura_num:document.getElementById('m-factura').value,
     fecha:document.getElementById('m-fecha').value,
-    detalle:document.getElementById('m-detalle').value,
-    comentario:document.getElementById('m-comentario').value
+    detalle:document.getElementById('m-detalle').value||p.detalle||'',
+    comentario:document.getElementById('m-comentario').value||p.comentario||''
   };
   try{await sbUpdate(editId,row);await cargarPedidos();closeModal();}
   catch(e){alert('Error guardando.');}
