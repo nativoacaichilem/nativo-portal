@@ -600,13 +600,11 @@ function filtrados() {
 
 function render() {
   const f = filtrados();
-  // Stats (sobre todos los pedidos, no solo filtrados)
   document.getElementById('st').textContent = pedidos.length;
   document.getElementById('sp').textContent = pedidos.filter(p => p.estado === 'pendiente').length;
   document.getElementById('sr').textContent = pedidos.filter(p => p.estado === 'en-ruta').length;
   document.getElementById('se').textContent = pedidos.filter(p => p.estado === 'entregado').length;
 
-  // Reset select-all checkbox
   const chkAll = document.getElementById('chk-all');
   if (chkAll) chkAll.checked = false;
 
@@ -625,10 +623,9 @@ function render() {
         '</div>'
       : '<div style="font-size:11px;color:#d1d5db;margin-top:4px;font-weight:600">Sin detalle</div>';
 
-    const contactoHtml = (p.contacto || p.telefono || p.email)
+    const contactoHtml = (p.contacto || p.telefono)
       ? `<div style="margin-top:3px;display:flex;gap:8px;flex-wrap:wrap">
            ${p.contacto ? `<span style="font-size:11px;color:var(--textl);font-weight:700">👤 ${p.contacto}</span>` : ''}
-           ${p.email    ? `<span style="font-size:11px;color:var(--textl);font-weight:700">✉️ ${p.email}</span>`    : ''}
            ${p.telefono ? `<span style="font-size:11px;color:var(--textl);font-weight:700">📞 ${p.telefono}</span>` : ''}
          </div>` : '';
 
@@ -672,7 +669,6 @@ function toggleRow(id, isChecked) {
   } else {
     checked = checked.filter(x => x !== id);
   }
-  // Actualizar clase visual de la fila
   const rows = document.querySelectorAll('#tbody tr');
   rows.forEach(row => {
     const cb = row.querySelector('input[type=checkbox]');
@@ -758,11 +754,10 @@ async function agregar() {
       factura_num: fact, factura_nombre: '',
       estado: 'pendiente', fecha,
       contacto, telefono: tel,
-      email: document.getElementById('nemail').value.trim(),
       fecha_entrega: '', recibe: '', comentario: ''
     });
     alerta('anv', '✅ Pedido guardado correctamente.', 'as');
-    ['nemp','nrut','ndir','ndet','nfact','ncontacto','ntel','nemail'].forEach(id =>
+    ['nemp','nrut','ndir','ndet','nfact','ncontacto','ntel'].forEach(id =>
       document.getElementById(id).value = ''
     );
     document.getElementById('nzona').value = '';
@@ -781,18 +776,17 @@ function abrir(id) {
   const p = pedidos.find(x => x.id === id);
   if (!p) return;
   eid = id;
-  document.getElementById('mzona').value     = p.zona         || '';
-  document.getElementById('mestado').value   = p.estado       || 'pendiente';
-  document.getElementById('memp').value      = p.emp          || '';
-  document.getElementById('mdir').value      = p.dir          || '';
-  document.getElementById('mfact').value     = p.factura_num  || '';
-  document.getElementById('mfecha').value    = p.fecha        || '';
-  document.getElementById('mcontacto').value = p.contacto     || '';
-  document.getElementById('mtel').value      = p.telefono     || '';
-  document.getElementById('memail').value    = p.email        || '';
-  document.getElementById('mfentrega').value = p.fecha_entrega|| '';
-  document.getElementById('mrecibe').value   = p.recibe       || '';
-  document.getElementById('mcom').value      = p.comentario   || '';
+  document.getElementById('mzona').value     = p.zona          || '';
+  document.getElementById('mestado').value   = p.estado        || 'pendiente';
+  document.getElementById('memp').value      = p.emp           || '';
+  document.getElementById('mdir').value      = p.dir           || '';
+  document.getElementById('mfact').value     = p.factura_num   || '';
+  document.getElementById('mfecha').value    = p.fecha         || '';
+  document.getElementById('mcontacto').value = p.contacto      || '';
+  document.getElementById('mtel').value      = p.telefono      || '';
+  document.getElementById('mfentrega').value = p.fecha_entrega || '';
+  document.getElementById('mrecibe').value   = p.recibe        || '';
+  document.getElementById('mcom').value      = p.comentario    || '';
   document.getElementById('modal').classList.add('open');
 }
 
@@ -812,7 +806,6 @@ async function guardar() {
     fecha:         document.getElementById('mfecha').value.trim(),
     contacto:      document.getElementById('mcontacto').value.trim(),
     telefono:      document.getElementById('mtel').value.trim(),
-    email:         document.getElementById('memail').value.trim(),
     fecha_entrega: document.getElementById('mfentrega').value.trim(),
     recibe:        document.getElementById('mrecibe').value.trim(),
     comentario:    document.getElementById('mcom').value.trim(),
@@ -848,7 +841,7 @@ function exportCSV() {
   if (!data.length) { alert('No hay pedidos para exportar con los filtros actuales.'); return; }
 
   const headers = [
-    'ID','Fecha','Empresa','RUT','Email','Contacto','Teléfono',
+    'ID','Fecha','Empresa','RUT','Contacto','Teléfono',
     'Dirección','Zona','Detalle','Estado','Factura N°',
     'Fecha Entrega','Recibe','Comentario'
   ];
@@ -857,7 +850,7 @@ function exportCSV() {
 
   const rows = data.map(p => [
     p.id, p.fecha||'', p.emp, p.rut,
-    p.email||'', p.contacto||'', p.telefono||'',
+    p.contacto||'', p.telefono||'',
     p.dir, p.zona||'', p.detalle||'',
     estadoLabel(p.estado), p.factura_num||'',
     p.fecha_entrega||'', p.recibe||'', p.comentario||''
