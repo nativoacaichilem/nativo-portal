@@ -8,103 +8,174 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --mora:#6b35b8;
-  --mora-d:#4a1f7a;
-  --mora-l:#9b6fd4;
-  --mora-xl:#ede0ff;
-  --amarillo:#f5c842;
-  --amarillo-l:#fef3c7;
-  --crema:#fdf8f0;
-  --crema-d:#ede3d0;
-  --text:#1e1226;
-  --textl:#8b7a9e;
-  --white:#ffffff;
+  --mora:#6b35b8;--mora-d:#4a1f7a;--mora-l:#9b6fd4;--mora-xl:#f0e6ff;
+  --am:#f5c842;--am-l:#fef3c7;
+  --crema:#fdf8f0;--crema-d:#ede3d0;
+  --text:#1e1226;--textl:#8b7a9e;--white:#ffffff;
+  --vl:#d1fae5;--vd:#065f46;--rl:#fee2e2;--rd:#7f1d1d;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);min-height:100vh}
 
-/* LOGIN */
-#screen-login{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,var(--mora-d) 0%,var(--mora) 100%);padding:24px;position:relative;overflow:hidden}
-#screen-login::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 300'%3E%3Cg fill='%23ffffff' opacity='0.04'%3E%3Cellipse cx='60' cy='285' rx='20' ry='65'/%3E%3Cellipse cx='60' cy='220' rx='45' ry='13'/%3E%3Cellipse cx='38' cy='210' rx='38' ry='11'/%3E%3Cellipse cx='82' cy='213' rx='40' ry='12'/%3E%3Cellipse cx='440' cy='290' rx='18' ry='60'/%3E%3Cellipse cx='440' cy='230' rx='42' ry='12'/%3E%3Cellipse cx='418' cy='220' rx='36' ry='11'/%3E%3Cellipse cx='462' cy='223' rx='38' ry='11'/%3E%3Cellipse cx='250' cy='295' rx='16' ry='55'/%3E%3Cellipse cx='250' cy='240' rx='40' ry='12'/%3E%3C/g%3E%3C/svg%3E") center bottom/cover no-repeat;pointer-events:none}
-.brand{text-align:center;margin-bottom:32px;position:relative}
-.brand-logo{font-family:'DM Serif Display',serif;font-size:54px;color:var(--amarillo);letter-spacing:2px;line-height:1}
+/* ── LOGIN ── */
+#screen-login{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  background:linear-gradient(160deg,var(--mora-d) 0%,var(--mora) 100%);
+  padding:24px;position:relative;overflow:hidden;
+}
+#screen-login::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 300'%3E%3Cg fill='%23ffffff' opacity='0.04'%3E%3Cellipse cx='60' cy='285' rx='20' ry='65'/%3E%3Cellipse cx='60' cy='220' rx='45' ry='13'/%3E%3Cellipse cx='38' cy='210' rx='38' ry='11'/%3E%3Cellipse cx='82' cy='213' rx='40' ry='12'/%3E%3Cellipse cx='440' cy='290' rx='18' ry='60'/%3E%3Cellipse cx='440' cy='230' rx='42' ry='12'/%3E%3Cellipse cx='418' cy='220' rx='36' ry='11'/%3E%3Cellipse cx='462' cy='223' rx='38' ry='11'/%3E%3Cellipse cx='250' cy='295' rx='16' ry='55'/%3E%3Cellipse cx='250' cy='240' rx='40' ry='12'/%3E%3C/g%3E%3C/svg%3E") center bottom/cover no-repeat;
+  pointer-events:none;
+}
+.brand{text-align:center;margin-bottom:28px;position:relative}
+.brand-logo{font-family:'DM Serif Display',serif;font-size:52px;color:var(--am);letter-spacing:2px;line-height:1}
 .brand-sub{color:rgba(255,255,255,.5);font-size:12px;letter-spacing:3px;text-transform:uppercase;margin-top:6px;font-weight:700}
-.login-card{background:var(--white);border-radius:20px;padding:32px 28px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.25);position:relative}
+.login-card{
+  background:var(--white);border-radius:20px;padding:32px 28px;
+  width:100%;max-width:420px;
+  box-shadow:0 24px 64px rgba(0,0,0,.25);position:relative;
+}
 .login-card h3{font-family:'DM Serif Display',serif;font-size:22px;color:var(--mora-d);margin-bottom:4px}
 .login-card p{font-size:13px;color:var(--textl);margin-bottom:22px;font-weight:600}
-.field{margin-bottom:13px}
+.field{margin-bottom:14px}
 .field label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mora);margin-bottom:5px}
-.field input{width:100%;padding:12px 14px;border:1.5px solid var(--crema-d);border-radius:10px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;color:var(--text);transition:border .2s;background:var(--crema)}
+.field input{
+  width:100%;padding:12px 14px;border:1.5px solid var(--crema-d);border-radius:10px;
+  font-size:14px;font-family:'Nunito',sans-serif;outline:none;color:var(--text);
+  transition:border .2s;background:var(--crema);
+}
 .field input:focus{border-color:var(--mora);background:var(--white)}
-.btn-primary{width:100%;padding:13px;border:none;border-radius:10px;background:var(--amarillo);color:var(--mora-d);font-size:15px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;transition:opacity .2s;margin-top:4px}
+.field input.err{border-color:#f87171}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-primary{
+  width:100%;padding:13px;border:none;border-radius:10px;
+  background:var(--am);color:var(--mora-d);
+  font-size:15px;font-weight:900;cursor:pointer;
+  font-family:'Nunito',sans-serif;transition:opacity .2s;margin-top:4px;
+}
 .btn-primary:hover{opacity:.88}
 .btn-primary:disabled{opacity:.45;cursor:not-allowed}
 .alert{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:700;margin-bottom:12px}
-.alert-error{background:#fee2e2;color:#7f1d1d}
-.alert-success{background:#d1fae5;color:#064e3b}
+.alert-error{background:var(--rl);color:var(--rd)}
+.alert-success{background:var(--vl);color:var(--vd)}
 
-/* APP */
+/* ── CATÁLOGO ── */
 #screen-catalogo{display:none;min-height:100vh}
-.app-header{background:var(--mora);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 2px 12px rgba(74,31,122,.2)}
-.app-logo{font-family:'DM Serif Display',serif;font-size:24px;color:var(--amarillo);letter-spacing:1px}
-.app-user{font-size:12px;color:rgba(255,255,255,.6);display:flex;align-items:center;gap:10px;font-weight:700}
-.btn-logout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--white);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:800;font-family:'Nunito',sans-serif}
-
-.info-bar{background:var(--white);border-bottom:1px solid var(--crema-d);padding:10px 20px;display:flex;gap:20px;flex-wrap:wrap}
+.app-header{
+  background:var(--mora);padding:13px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:10;
+  box-shadow:0 2px 12px rgba(74,31,122,.2);
+}
+.app-logo{font-family:'DM Serif Display',serif;font-size:22px;color:var(--am);letter-spacing:1px}
+.app-user{font-size:12px;color:rgba(255,255,255,.65);display:flex;align-items:center;gap:10px;font-weight:700}
+.btn-logout{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);
+  color:var(--white);padding:6px 14px;border-radius:20px;
+  cursor:pointer;font-size:12px;font-weight:800;font-family:'Nunito',sans-serif;
+}
+.info-bar{
+  background:var(--white);border-bottom:1px solid var(--crema-d);
+  padding:10px 20px;display:flex;gap:16px;flex-wrap:wrap;
+}
 .info-item{display:flex;flex-direction:column;gap:1px}
 .info-item span:first-child{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mora)}
 .info-item span:last-child{font-size:13px;font-weight:700;color:var(--text)}
+.catalogo-wrap{max-width:860px;margin:0 auto;padding:18px 14px 130px}
 
-.catalogo-wrap{max-width:820px;margin:0 auto;padding:18px 14px 130px}
-
-/* SECCIONES DESPLEGABLES */
-.seccion{background:var(--white);border-radius:14px;margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px rgba(107,53,184,.07);border:1.5px solid var(--crema-d);transition:border .2s}
+/* ── SECCIONES ── */
+.seccion{
+  background:var(--white);border-radius:14px;margin-bottom:10px;
+  overflow:hidden;box-shadow:0 2px 8px rgba(107,53,184,.07);
+  border:1.5px solid var(--crema-d);transition:border .2s;
+}
 .seccion.open{border-color:var(--mora-l)}
-.sec-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;user-select:none;transition:background .2s}
+.sec-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;cursor:pointer;user-select:none;transition:background .2s;
+}
 .sec-header:hover{background:var(--crema)}
-.sec-header-left{display:flex;align-items:center;gap:12px}
-.sec-icon{font-size:22px}
+.sec-left{display:flex;align-items:center;gap:12px}
+.sec-icon{font-size:20px}
 .sec-title{font-size:15px;font-weight:800;color:var(--mora-d)}
 .sec-count{font-size:11px;color:var(--textl);font-weight:600;margin-top:1px}
-.sec-arrow{font-size:16px;color:var(--mora);transition:transform .3s;font-weight:900}
+.sec-arrow{font-size:14px;color:var(--mora);transition:transform .3s;font-weight:900}
 .sec-arrow.open{transform:rotate(180deg)}
 .sec-body{display:none;padding:0 14px 14px;border-top:1px solid var(--crema-d)}
 .sec-body.open{display:block}
 
-/* PRODUCTOS */
+/* ── PRODUCTOS ── */
 .prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:9px;padding-top:12px}
-.prod-card{border:1.5px solid var(--crema-d);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--crema);transition:all .2s}
+.prod-card{
+  border:1.5px solid var(--crema-d);border-radius:12px;padding:12px;
+  display:flex;flex-direction:column;gap:8px;background:var(--crema);transition:all .2s;
+}
 .prod-card.sel{border-color:var(--mora);background:#f5eeff}
 .prod-name{font-size:12px;font-weight:700;color:var(--text);line-height:1.3;flex:1}
 .prod-format{font-size:10px;color:var(--textl);font-weight:600}
 .qty-row{display:flex;align-items:center;gap:6px}
-.qty-btn{width:28px;height:28px;border:none;border-radius:7px;background:var(--mora);color:var(--white);font-size:17px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;transition:background .2s;font-family:'Nunito',sans-serif}
+.qty-btn{
+  width:28px;height:28px;border:none;border-radius:7px;
+  background:var(--mora);color:var(--white);
+  font-size:17px;font-weight:900;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  line-height:1;flex-shrink:0;font-family:'Nunito',sans-serif;
+}
 .qty-btn:hover{background:var(--mora-d)}
-.qty-inp{width:36px;text-align:center;padding:4px 2px;border:1.5px solid var(--crema-d);border-radius:6px;font-size:13px;font-weight:800;outline:none;font-family:'Nunito',sans-serif;color:var(--text)}
+.qty-inp{
+  width:36px;text-align:center;padding:4px 2px;
+  border:1.5px solid var(--crema-d);border-radius:6px;
+  font-size:13px;font-weight:800;outline:none;font-family:'Nunito',sans-serif;color:var(--text);
+}
 .qty-inp:focus{border-color:var(--mora)}
 
-/* CARRITO FLOTANTE */
-.cart-float{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:2px solid var(--crema-d);padding:10px 16px;z-index:10;box-shadow:0 -4px 20px rgba(107,53,184,.1)}
-.cart-inner{max-width:820px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+/* ── CARRITO FLOTANTE ── */
+.cart-float{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--white);border-top:2px solid var(--crema-d);
+  padding:10px 16px;z-index:10;
+  box-shadow:0 -4px 20px rgba(107,53,184,.1);
+}
+.cart-inner{max-width:860px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .cart-info{flex:1;min-width:0}
 .cart-count{font-size:13px;font-weight:800;color:var(--mora)}
 .cart-preview{font-size:11px;color:var(--textl);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
-.cart-btn{padding:11px 22px;border:none;border-radius:10px;background:var(--amarillo);color:var(--mora-d);font-size:14px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;flex-shrink:0}
+.cart-btn{
+  padding:11px 22px;border:none;border-radius:10px;
+  background:var(--am);color:var(--mora-d);
+  font-size:14px;font-weight:900;cursor:pointer;
+  font-family:'Nunito',sans-serif;white-space:nowrap;flex-shrink:0;
+}
 .cart-btn:disabled{opacity:.4;cursor:not-allowed}
 
-/* OC SCREEN */
+/* ── OC SCREEN ── */
 #screen-oc{display:none;min-height:100vh;background:var(--crema)}
-.oc-topbar{background:var(--mora);padding:14px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;box-shadow:0 2px 12px rgba(74,31,122,.2)}
-.btn-back{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:var(--white);padding:8px 16px;border-radius:20px;cursor:pointer;font-size:13px;font-weight:800;font-family:'Nunito',sans-serif}
+.oc-topbar{
+  background:var(--mora);padding:13px 20px;
+  display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:10;
+  box-shadow:0 2px 12px rgba(74,31,122,.2);
+}
+.btn-back{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);
+  color:var(--white);padding:8px 16px;border-radius:20px;
+  cursor:pointer;font-size:13px;font-weight:800;font-family:'Nunito',sans-serif;
+}
 .oc-topbar-title{color:var(--white);font-weight:800;font-size:15px;flex:1}
-.btn-print{background:var(--amarillo);color:var(--mora-d);border:none;padding:9px 18px;border-radius:20px;font-size:13px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif}
-
+.btn-enviar-top{
+  background:var(--am);color:var(--mora-d);border:none;
+  padding:9px 18px;border-radius:20px;font-size:13px;font-weight:900;
+  cursor:pointer;font-family:'Nunito',sans-serif;
+}
+.btn-enviar-top:disabled{opacity:.5;cursor:not-allowed}
 .oc-wrap{max-width:720px;margin:0 auto;padding:24px 16px 40px}
 #oc-doc{background:var(--white);border-radius:16px;padding:32px;box-shadow:0 4px 20px rgba(107,53,184,.09)}
 
-/* DOCUMENTO OC */
+/* ── DOCUMENTO OC ── */
 .doc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:20px;border-bottom:3px solid var(--mora)}
-.doc-logo{font-family:'DM Serif Display',serif;font-size:30px;color:var(--mora);letter-spacing:1px}
+.doc-logo{font-family:'DM Serif Display',serif;font-size:28px;color:var(--mora);letter-spacing:1px}
 .doc-logo small{display:block;font-family:'Nunito',sans-serif;font-size:11px;color:var(--textl);font-weight:600;margin-top:2px;letter-spacing:0}
 .doc-titulo{text-align:right}
 .doc-titulo h1{font-family:'DM Serif Display',serif;font-size:20px;color:var(--mora-d)}
@@ -123,6 +194,26 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
 .doc-footer p{font-size:11px;color:var(--textl);font-weight:600}
 .doc-num{font-size:12px;font-weight:800;color:var(--mora)}
 
+/* ── CONFIRMACIÓN ── */
+.confirm-wrap{text-align:center;padding:32px 24px 20px}
+.confirm-emoji{font-size:56px;margin-bottom:12px}
+.confirm-title{font-family:'DM Serif Display',serif;font-size:28px;color:var(--mora-d);margin-bottom:8px}
+.confirm-sub{font-size:14px;font-weight:700;color:var(--textl);margin-bottom:24px;line-height:1.5}
+.confirm-box{background:var(--crema);border-radius:12px;padding:16px 20px;margin-bottom:16px;text-align:left}
+.confirm-box-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mora);margin-bottom:12px}
+.confirm-row{margin-bottom:8px}
+.confirm-row span:first-child{display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--textl)}
+.confirm-row span:last-child{font-size:14px;font-weight:700;color:var(--text)}
+.confirm-products{background:var(--white);border-radius:12px;padding:16px 20px;margin-bottom:24px;border:1.5px solid var(--crema-d);text-align:left}
+.confirm-prod-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--crema-d)}
+.confirm-prod-item:last-child{border-bottom:none}
+.confirm-prod-name{font-size:13px;font-weight:700;color:var(--text)}
+.confirm-prod-qty{font-size:12px;font-weight:900;color:var(--mora);background:var(--mora-xl);padding:2px 10px;border-radius:12px}
+.btn-nuevo{
+  background:var(--am);color:var(--mora-d);border:none;
+  border-radius:10px;padding:13px 28px;
+  font-size:15px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;
+}
 
 @media(max-width:480px){
   .prod-grid{grid-template-columns:repeat(2,1fr)}
@@ -130,12 +221,14 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
   #oc-doc{padding:20px 14px}
   .doc-header{flex-direction:column;gap:12px}
   .doc-titulo{text-align:left}
+  .field-row{grid-template-columns:1fr}
+  .info-bar{gap:12px}
 }
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- ── PANTALLA 1: LOGIN ── -->
 <div id="screen-login">
   <div class="brand">
     <div class="brand-logo">nativo</div>
@@ -143,25 +236,34 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
   </div>
   <div class="login-card">
     <h3>Bienvenido</h3>
-    <p>Ingresa tus datos para acceder al catálogo</p>
+    <p>Ingresa los datos de tu empresa para acceder al catálogo</p>
     <div id="login-alert"></div>
-    <div class="field"><label>RUT Empresa</label><input type="text" id="rut-inp" placeholder="76.123.456-7" oninput="fmtR(this)"></div>
-    <div class="field"><label>Nombre Empresa</label><input type="text" id="emp-inp" placeholder="Nombre de tu empresa"></div>
-    <div class="field"><label>Dirección de Despacho</label><input type="text" id="dir-inp" placeholder="Av. Ejemplo 1234, Santiago"></div>
+    <div class="field"><label>RUT Empresa *</label><input type="text" id="rut-inp" placeholder="76.123.456-7" oninput="fmtR(this)"></div>
+    <div class="field"><label>Nombre Empresa *</label><input type="text" id="emp-inp" placeholder="Nombre de tu empresa"></div>
+    <div class="field"><label>Dirección de Despacho *</label><input type="text" id="dir-inp" placeholder="Av. Ejemplo 1234, Santiago"></div>
+    <div class="field-row">
+      <div class="field"><label>Nombre de Contacto *</label><input type="text" id="contacto-inp" placeholder="Nombre completo"></div>
+      <div class="field"><label>Teléfono de Contacto *</label><input type="text" id="tel-inp" placeholder="+56 9 1234 5678"></div>
+    </div>
     <button class="btn-primary" onclick="login()">Ver catálogo →</button>
   </div>
 </div>
 
-<!-- CATÁLOGO -->
+<!-- ── PANTALLA 2: CATÁLOGO ── -->
 <div id="screen-catalogo">
   <div class="app-header">
     <div class="app-logo">nativo</div>
-    <div class="app-user"><span id="hdr-emp"></span><button class="btn-logout" onclick="logout()">Salir</button></div>
+    <div class="app-user">
+      <span id="hdr-emp"></span>
+      <button class="btn-logout" onclick="logout()">Salir</button>
+    </div>
   </div>
   <div class="info-bar">
     <div class="info-item"><span>Empresa</span><span id="d-emp"></span></div>
     <div class="info-item"><span>RUT</span><span id="d-rut"></span></div>
     <div class="info-item"><span>Dirección</span><span id="d-dir"></span></div>
+    <div class="info-item"><span>Contacto</span><span id="d-contacto"></span></div>
+    <div class="info-item"><span>Teléfono</span><span id="d-tel"></span></div>
     <div class="info-item"><span>Fecha</span><span id="d-fecha"></span></div>
   </div>
   <div class="catalogo-wrap" id="catalogo-wrap"></div>
@@ -176,12 +278,12 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
   </div>
 </div>
 
-<!-- OC -->
+<!-- ── PANTALLA 3: OC ── -->
 <div id="screen-oc">
   <div class="oc-topbar">
     <button class="btn-back" onclick="volverCatalogo()">← Volver</button>
     <span class="oc-topbar-title">Orden de Compra</span>
-    <button class="btn-print" id="btn-enviar" onclick="enviarPedido()">Enviar Pedido</button>
+    <button class="btn-enviar-top" id="btn-enviar" onclick="enviarPedido()">Enviar Pedido</button>
   </div>
   <div class="oc-wrap">
     <div id="oc-doc"></div>
@@ -189,108 +291,154 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
 </div>
 
 <script>
-const PROXY='https://nativo-proxy.mkitzing.workers.dev';
-const CATS=[
-  {id:'baldes',icon:'🧊',label:'Baldes Congelados',items:[
-    {n:'Balde Acai Nativo',f:'3,6 L'},{n:'Balde Pitaya Blue Monkey',f:'3,6 L'},
-    {n:'Balde Acai Blue Monkey',f:'3,6 L'},{n:'Balde Pistacho Soft Blue Monkey',f:'5 L'},
-    {n:'Balde Yoghurt Griego Soft Blue Monkey',f:'5 L'}
+const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
+
+const CATS = [
+  {id:'baldes', icon:'🧊', label:'Baldes Congelados', items:[
+    {n:'Balde Acai Nativo', f:'3,6 L'},
+    {n:'Balde Pitaya Blue Monkey', f:'3,6 L'},
+    {n:'Balde Acai Blue Monkey', f:'3,6 L'},
+    {n:'Balde Pistacho Soft Blue Monkey', f:'5 L'},
+    {n:'Balde Yoghurt Griego Soft Blue Monkey', f:'5 L'}
   ]},
-  {id:'retail',icon:'🛒',label:'Congelados Retail',items:[
-    {n:'Scoopable Acai',f:'500 ml — caja 12 un'},
-    {n:'Acai Fused',f:'4×100 g — caja 15 un'},
-    {n:'Acai Puro',f:'4×100 g — caja 15 un'}
+  {id:'retail', icon:'🛒', label:'Congelados Retail', items:[
+    {n:'Scoopable Acai', f:'500 ml — caja 12 un'},
+    {n:'Acai Fused', f:'4×100 g — caja 15 un'},
+    {n:'Acai Puro', f:'4×100 g — caja 15 un'}
   ]},
-  {id:'toppings',icon:'🌰',label:'Frutos Secos & Toppings',items:[
-    {n:'Cacao Nibs',f:'0,1 kg'},{n:'Castañas de caju',f:'2 kg'},
-    {n:'Avellana europea tostada',f:'2 kg'},{n:'Nueces cuarto',f:'2 kg'},
-    {n:'Almendra Laminada',f:'2 kg'},{n:'Oreo molidas',f:'4 kg'},
-    {n:'Avena integral',f:'2 kg'},{n:'Chia',f:'2 kg'},
-    {n:'Coco laminado',f:'2 kg'},{n:'Coco rallado',f:'2 kg'},
-    {n:'Colageno hidrolizado puro',f:'1 kg'},{n:'Proteina vegana (arveja)',f:'1 kg'},
-    {n:'Proteina normal (sin sabor)',f:'0,66 kg'},{n:'Chip de chocolate 60%',f:'0,25 kg'},
-    {n:'Maní',f:'2 kg'},    {n:'Pacoquita',f:'100 un'},{n:'Leche nido entera',f:'1,1 kg'}
+  {id:'toppings', icon:'🌰', label:'Frutos Secos & Toppings', items:[
+    {n:'Cacao Nibs', f:'0,1 kg'},
+    {n:'Castañas de caju', f:'2 kg'},
+    {n:'Avellana europea tostada', f:'2 kg'},
+    {n:'Nueces cuarto', f:'2 kg'},
+    {n:'Almendra Laminada', f:'2 kg'},
+    {n:'Oreo molidas', f:'4 kg'},
+    {n:'Avena integral', f:'2 kg'},
+    {n:'Chia', f:'2 kg'},
+    {n:'Coco laminado', f:'2 kg'},
+    {n:'Coco rallado', f:'2 kg'},
+    {n:'Colageno hidrolizado puro', f:'1 kg'},
+    {n:'Proteina vegana (arveja)', f:'1 kg'},
+    {n:'Proteina normal (sin sabor)', f:'0,66 kg'},
+    {n:'Chip de chocolate 60%', f:'0,25 kg'},
+    {n:'Maní', f:'2 kg'},
+    {n:'Pacoquita', f:'100 un'},
+    {n:'Leche nido entera', f:'1,1 kg'}
   ]},
-  {id:'salsas',icon:'🍯',label:'Salsas & Otros',items:[
-    {n:'Mantequilla de almendra',f:'1 kg'},{n:'Mantequilla de mani',f:'1 kg'},
-    {n:'Mantequilla de pistachos',f:'1 kg'},{n:'Nutella',f:'3 kg'},
-    {n:'Miel',f:'3 kg'},{n:'Leche condensada',f:'6 kg'},
-    {n:'Crema Oreo Zero',f:'3 kg'}
+  {id:'salsas', icon:'🍯', label:'Salsas & Otros', items:[
+    {n:'Mantequilla de almendra', f:'1 kg'},
+    {n:'Mantequilla de mani', f:'1 kg'},
+    {n:'Mantequilla de pistachos', f:'1 kg'},
+    {n:'Nutella', f:'3 kg'},
+    {n:'Miel', f:'3 kg'},
+    {n:'Leche condensada', f:'6 kg'},
+    {n:'Crema Oreo Zero', f:'3 kg'}
   ]},
-  {id:'granolas',icon:'🥣',label:'Granolas & Crumbles',items:[
-    {n:'Crumbole Clásico',f:'3,5 kg'},{n:'Granola Avena Miel',f:'2 kg'},
-    {n:'Granola Cacao Dulce',f:'2 kg'},{n:'Granola Zero',f:'1 kg'}
+  {id:'granolas', icon:'🥣', label:'Granolas & Crumbles', items:[
+    {n:'Crumbole Clásico', f:'3,5 kg'},
+    {n:'Granola Avena Miel', f:'2 kg'},
+    {n:'Granola Cacao Dulce', f:'2 kg'},
+    {n:'Granola Zero', f:'1 kg'}
   ]},
-  {id:'vasos',icon:'🥤',label:'Vasos & Tapas',items:[
-    {n:'Vaso GD Nativo',f:'1 un'},{n:'Vaso Classic Nativo',f:'1 un'},
-    {n:'Vaso Power Nativo',f:'1 un'},{n:'Vaso Full Nativo',f:'1 un'},
-    {n:'Vaso GD Blue Monkey',f:'1 un'},{n:'Vaso Classic Blue Monkey',f:'1 un'},
-    {n:'Vaso Power Blue Monkey',f:'1 un'},{n:'Vaso Full Blue Monkey',f:'1 un'}
+  {id:'vasos', icon:'🥤', label:'Vasos & Tapas', items:[
+    {n:'Vaso GD Nativo', f:'1 un'},
+    {n:'Vaso Classic Nativo', f:'1 un'},
+    {n:'Vaso Power Nativo', f:'1 un'},
+    {n:'Vaso Full Nativo', f:'1 un'},
+    {n:'Vaso GD Blue Monkey', f:'1 un'},
+    {n:'Vaso Classic Blue Monkey', f:'1 un'},
+    {n:'Vaso Power Blue Monkey', f:'1 un'},
+    {n:'Vaso Full Blue Monkey', f:'1 un'}
   ]}
 ];
 
-let sess={},qtys={};
+let sess = {}, qtys = {};
 
-function fmtR(el){
-  let v=el.value.replace(/[^0-9kK]/g,'');
-  if(v.length<2){el.value=v;return;}
-  let b=v.slice(0,-1),d=v.slice(-1).toUpperCase();
-  b=b.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
-  el.value=b+'-'+d;
+// ── FORMATO RUT ──
+function fmtR(el) {
+  let v = el.value.replace(/[^0-9kK]/g, '');
+  if (v.length < 2) { el.value = v; return; }
+  let b = v.slice(0, -1), d = v.slice(-1).toUpperCase();
+  b = b.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  el.value = b + '-' + d;
 }
 
-function showScreen(id){
-  ['screen-login','screen-catalogo','screen-oc'].forEach(s=>{
-    const el=document.getElementById(s);
-    el.style.display=s===id?(id==='screen-login'?'flex':'block'):'none';
+// ── PANTALLAS ──
+function showScreen(id) {
+  ['screen-login', 'screen-catalogo', 'screen-oc'].forEach(s => {
+    const el = document.getElementById(s);
+    el.style.display = s === id ? (id === 'screen-login' ? 'flex' : 'block') : 'none';
   });
 }
 
-function login(){
-  const rut=document.getElementById('rut-inp').value.trim();
-  const emp=document.getElementById('emp-inp').value.trim();
-  const dir=document.getElementById('dir-inp').value.trim();
-  if(!rut||!emp||!dir){
-    document.getElementById('login-alert').innerHTML='<div class="alert alert-error">Completa todos los campos.</div>';
+// ── LOGIN ──
+function login() {
+  const rut      = document.getElementById('rut-inp').value.trim();
+  const emp      = document.getElementById('emp-inp').value.trim();
+  const dir      = document.getElementById('dir-inp').value.trim();
+  const contacto = document.getElementById('contacto-inp').value.trim();
+  const tel      = document.getElementById('tel-inp').value.trim();
+
+  if (!rut || !emp || !dir || !contacto || !tel) {
+    document.getElementById('login-alert').innerHTML =
+      '<div class="alert alert-error">Por favor completa todos los campos.</div>';
     return;
   }
-  sess={rut,emp,dir,fecha:new Date().toLocaleDateString('es-CL')};
-  document.getElementById('hdr-emp').textContent=emp;
-  document.getElementById('d-emp').textContent=emp;
-  document.getElementById('d-rut').textContent=rut;
-  document.getElementById('d-dir').textContent=dir;
-  document.getElementById('d-fecha').textContent=sess.fecha;
+
+  sess = {
+    rut, emp, dir, contacto, tel,
+    fecha: new Date().toLocaleDateString('es-CL')
+  };
+
+  document.getElementById('hdr-emp').textContent    = emp;
+  document.getElementById('d-emp').textContent      = emp;
+  document.getElementById('d-rut').textContent      = rut;
+  document.getElementById('d-dir').textContent      = dir;
+  document.getElementById('d-contacto').textContent = contacto;
+  document.getElementById('d-tel').textContent      = tel;
+  document.getElementById('d-fecha').textContent    = sess.fecha;
+
   buildCatalogo();
   showScreen('screen-catalogo');
 }
 
-function logout(){
-  sess={};qtys={};
-  ['rut-inp','emp-inp','dir-inp'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('login-alert').innerHTML='';
+function logout() {
+  sess = {}; qtys = {};
+  ['rut-inp','emp-inp','dir-inp','contacto-inp','tel-inp'].forEach(id =>
+    document.getElementById(id).value = ''
+  );
+  document.getElementById('login-alert').innerHTML = '';
   showScreen('screen-login');
 }
 
-function slug(s){return s.replace(/[^a-zA-Z0-9]/g,'_');}
+// ── CATÁLOGO ──
+function slug(s) { return s.replace(/[^a-zA-Z0-9]/g, '_'); }
 
-function buildCatalogo(){
-  document.getElementById('catalogo-wrap').innerHTML=CATS.map(cat=>`
+function buildCatalogo() {
+  document.getElementById('catalogo-wrap').innerHTML = CATS.map(cat => `
     <div class="seccion" id="sec-${cat.id}">
       <div class="sec-header" onclick="toggleSec('${cat.id}')">
-        <div class="sec-header-left">
+        <div class="sec-left">
           <span class="sec-icon">${cat.icon}</span>
-          <div><div class="sec-title">${cat.label}</div><div class="sec-count">${cat.items.length} productos</div></div>
+          <div>
+            <div class="sec-title">${cat.label}</div>
+            <div class="sec-count">${cat.items.length} productos</div>
+          </div>
         </div>
         <span class="sec-arrow" id="arr-${cat.id}">▼</span>
       </div>
       <div class="sec-body" id="body-${cat.id}">
         <div class="prod-grid">
-          ${cat.items.map(({n,f})=>`
+          ${cat.items.map(({n,f}) => `
             <div class="prod-card" id="pc-${slug(n)}">
-              <div><div class="prod-name">${n}</div><div class="prod-format">${f}</div></div>
+              <div>
+                <div class="prod-name">${n}</div>
+                <div class="prod-format">${f}</div>
+              </div>
               <div class="qty-row">
                 <button class="qty-btn" onclick="chg('${slug(n)}','${n}',-1)">−</button>
-                <input class="qty-inp" type="number" min="0" id="qi-${slug(n)}" value="0" onchange="setQ('${slug(n)}','${n}',this.value)">
+                <input class="qty-inp" type="number" min="0" id="qi-${slug(n)}" value="0"
+                  onchange="setQ('${slug(n)}','${n}',this.value)">
                 <button class="qty-btn" onclick="chg('${slug(n)}','${n}',1)">+</button>
               </div>
             </div>`).join('')}
@@ -299,58 +447,67 @@ function buildCatalogo(){
     </div>`).join('');
 }
 
-function toggleSec(id){
-  document.getElementById('body-'+id).classList.toggle('open');
-  document.getElementById('arr-'+id).classList.toggle('open');
-  document.getElementById('sec-'+id).classList.toggle('open');
+function toggleSec(id) {
+  document.getElementById('body-' + id).classList.toggle('open');
+  document.getElementById('arr-' + id).classList.toggle('open');
+  document.getElementById('sec-' + id).classList.toggle('open');
 }
 
-function chg(id,name,d){
-  const el=document.getElementById('qi-'+id);
-  const v=Math.max(0,(parseInt(el.value)||0)+d);
-  el.value=v;upd(id,name,v);
+function chg(id, name, d) {
+  const el = document.getElementById('qi-' + id);
+  const v = Math.max(0, (parseInt(el.value) || 0) + d);
+  el.value = v; upd(id, name, v);
 }
-function setQ(id,name,v){
-  const val=Math.max(0,parseInt(v)||0);
-  document.getElementById('qi-'+id).value=val;upd(id,name,val);
+function setQ(id, name, v) {
+  const val = Math.max(0, parseInt(v) || 0);
+  document.getElementById('qi-' + id).value = val; upd(id, name, val);
 }
-function upd(id,name,v){
-  if(v>0)qtys[name]=v;else delete qtys[name];
-  document.getElementById('pc-'+id).classList.toggle('sel',v>0);
+function upd(id, name, v) {
+  if (v > 0) qtys[name] = v; else delete qtys[name];
+  document.getElementById('pc-' + id).classList.toggle('sel', v > 0);
   updateCart();
 }
-function updateCart(){
-  const items=Object.entries(qtys);
-  const n=items.length;
-  document.getElementById('cart-count').textContent=n>0?`${n} producto${n>1?'s':''} seleccionado${n>1?'s':''}`:'0 productos seleccionados';
-  document.getElementById('cart-preview').textContent=n>0?items.map(([k,q])=>`${k} ×${q}`).join(', '):'Selecciona productos del catálogo';
-  document.getElementById('btn-oc').disabled=n===0;
+function updateCart() {
+  const items = Object.entries(qtys);
+  const n = items.length;
+  document.getElementById('cart-count').textContent =
+    n > 0 ? `${n} producto${n > 1 ? 's' : ''} seleccionado${n > 1 ? 's' : ''}` : '0 productos seleccionados';
+  document.getElementById('cart-preview').textContent =
+    n > 0 ? items.map(([k,q]) => `${k} ×${q}`).join(', ') : 'Selecciona productos del catálogo';
+  document.getElementById('btn-oc').disabled = n === 0;
 }
 
-function ocNum(){return 'NTV-'+Math.random().toString(36).slice(2,6).toUpperCase();}
+// ── VER ORDEN ──
+function ocNum() { return 'NTV-' + Math.random().toString(36).slice(2,6).toUpperCase(); }
 
-async function irAOC(){
-  if(!Object.keys(qtys).length)return;
-  const num=ocNum();
-  let rows='';
-  CATS.forEach(({label,items})=>{
-    const sel=items.filter(({n})=>qtys[n]);
-    if(!sel.length)return;
-    rows+=`<tr class="doc-cat"><td colspan="3">${label}</td></tr>`;
-    sel.forEach(({n,f})=>{
-      rows+=`<tr><td>${n}</td><td style="color:var(--textl);font-size:12px">${f}</td><td>${qtys[n]}</td></tr>`;
+function irAOC() {
+  if (!Object.keys(qtys).length) return;
+  const num = ocNum();
+  let rows = '';
+  CATS.forEach(({label, items}) => {
+    const sel = items.filter(({n}) => qtys[n]);
+    if (!sel.length) return;
+    rows += `<tr class="doc-cat"><td colspan="3">${label}</td></tr>`;
+    sel.forEach(({n,f}) => {
+      rows += `<tr><td>${n}</td><td style="color:var(--textl);font-size:12px">${f}</td><td>${qtys[n]}</td></tr>`;
     });
   });
-  document.getElementById('oc-doc').innerHTML=`
+  document.getElementById('oc-doc').innerHTML = `
     <div class="doc-header">
       <div><div class="doc-logo">nativo<small>nativoacaichile.cl</small></div></div>
-      <div class="doc-titulo"><h1>Orden de Compra</h1><p class="doc-num">${num}</p><p style="font-size:11px;color:var(--textl);font-weight:600;margin-top:3px">${sess.fecha}</p></div>
+      <div class="doc-titulo">
+        <h1>Orden de Compra</h1>
+        <p class="doc-num">${num}</p>
+        <p style="font-size:11px;color:var(--textl);font-weight:600;margin-top:3px">${sess.fecha}</p>
+      </div>
     </div>
     <div class="doc-datos">
       <div class="doc-dato"><label>Empresa</label><p>${sess.emp}</p></div>
       <div class="doc-dato"><label>RUT</label><p>${sess.rut}</p></div>
       <div class="doc-dato"><label>Dirección de Despacho</label><p>${sess.dir}</p></div>
       <div class="doc-dato"><label>Fecha del Pedido</label><p>${sess.fecha}</p></div>
+      <div class="doc-dato"><label>Nombre de Contacto</label><p>${sess.contacto}</p></div>
+      <div class="doc-dato"><label>Teléfono de Contacto</label><p>${sess.tel}</p></div>
     </div>
     <table class="doc-table">
       <thead><tr><th style="width:55%">Producto</th><th>Formato</th><th>Cant.</th></tr></thead>
@@ -363,102 +520,89 @@ async function irAOC(){
   showScreen('screen-oc');
 }
 
-function volverCatalogo(){showScreen('screen-catalogo');}
+function volverCatalogo() { showScreen('screen-catalogo'); }
 
-async function enviarPedido(){
-  if(!confirm('¿Estás seguro que deseas enviar este pedido?'))return;
-  const btn=document.getElementById('btn-enviar');
-  btn.textContent='Enviando...';btn.disabled=true;
+// ── ENVIAR PEDIDO ──
+async function enviarPedido() {
+  if (!confirm('¿Estás seguro que deseas enviar este pedido?')) return;
 
-  // Construir detalle desde qtys
-  const productosSeleccionados=[];
-  CATS.forEach(({items})=>{
-    items.forEach(({n,f})=>{
-      if(qtys[n] && qtys[n]>0){
-        productosSeleccionados.push(`${n} (${f}) x${qtys[n]}`);
-      }
-    });
-  });
-  const detalle=productosSeleccionados.join(', ');
+  const btn = document.getElementById('btn-enviar');
+  btn.textContent = 'Enviando...'; btn.disabled = true;
 
-  if(!detalle){
-    btn.textContent='Enviar Pedido';btn.disabled=false;
-    alert('No hay productos seleccionados. Vuelve al catálogo y selecciona al menos uno.');
+  const detalle = CATS.flatMap(({items}) =>
+    items.filter(({n}) => qtys[n]).map(({n,f}) => `${n} (${f}) x${qtys[n]}`)
+  ).join(', ');
+
+  if (!detalle) {
+    btn.textContent = 'Enviar Pedido'; btn.disabled = false;
+    alert('No hay productos seleccionados.');
     return;
   }
 
-  const payload={
-    emp:sess.emp,
-    rut:sess.rut,
-    dir:sess.dir,
-    zona:'',
-    detalle:detalle,
-    estado:'pendiente',
-    factura_num:'',
-    factura_nombre:'',
-    fecha:sess.fecha
-  };
-
-  try{
-    const r=await fetch(`${PROXY}/supabase/pedidos`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
+  try {
+    const r = await fetch(`${PROXY}/supabase/pedidos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        emp:          sess.emp,
+        rut:          sess.rut,
+        dir:          sess.dir,
+        contacto:     sess.contacto,
+        telefono:     sess.tel,
+        zona:         '',
+        detalle:      detalle,
+        estado:       'pendiente',
+        factura_num:  '',
+        factura_nombre: '',
+        fecha:        sess.fecha,
+        comentario:   ''
+      })
     });
-    if(!r.ok){
-      const errText=await r.text();
-      throw new Error(errText);
-    }
-  }catch(e){
-    btn.textContent='Enviar Pedido';btn.disabled=false;
-    alert('Error al enviar el pedido. Intenta de nuevo.');
+    if (!r.ok) throw new Error('Error del servidor');
+  } catch(e) {
+    btn.textContent = 'Enviar Pedido'; btn.disabled = false;
+    alert('Error al enviar el pedido. Verifica tu conexión e intenta de nuevo.');
     return;
   }
 
-  const items=Object.entries(qtys);
-  const resumenRows=items.map(([n,q])=>`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--crema-d)">
-      <span style="font-size:13px;font-weight:700;color:var(--text)">${n}</span>
-      <span style="font-size:13px;font-weight:900;color:var(--mora);background:var(--mora-xl);padding:2px 10px;border-radius:20px">×${q}</span>
-    </div>`).join('');
-
-  document.getElementById('oc-doc').innerHTML=`
-    <div style="text-align:center;padding:32px 24px 20px">
-      <div style="font-size:56px;margin-bottom:12px">🎉</div>
-      <div style="font-family:'DM Serif Display',serif;font-size:28px;color:var(--mora-d);margin-bottom:8px">¡Listo!</div>
-      <div style="font-size:14px;font-weight:700;color:var(--textl);margin-bottom:24px">Tu pedido ha sido enviado correctamente.<br>Nos contactaremos pronto para confirmar.</div>
+  // ── PANTALLA DE CONFIRMACIÓN ──
+  const items = Object.entries(qtys);
+  document.getElementById('oc-doc').innerHTML = `
+    <div class="confirm-wrap">
+      <div class="confirm-emoji">🎉</div>
+      <div class="confirm-title">¡Listo!</div>
+      <div class="confirm-sub">Tu pedido ha sido enviado correctamente.<br>Nos contactaremos pronto para confirmar.</div>
     </div>
-    <div style="background:var(--crema);border-radius:12px;padding:16px 20px;margin-bottom:16px">
-      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mora);margin-bottom:12px">Datos del pedido</div>
-      <div style="margin-bottom:8px">
-        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--textl)">Empresa</div>
-        <div style="font-size:14px;font-weight:800;color:var(--text);margin-top:2px">${sess.emp}</div>
-      </div>
-      <div style="margin-bottom:8px">
-        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--textl)">Dirección de despacho</div>
-        <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px">${sess.dir}</div>
-      </div>
-      <div>
-        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--textl)">Fecha</div>
-        <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px">${sess.fecha}</div>
-      </div>
+    <div class="confirm-box">
+      <div class="confirm-box-title">Datos del pedido</div>
+      <div class="confirm-row"><span>Empresa</span><span>${sess.emp}</span></div>
+      <div class="confirm-row"><span>Dirección de despacho</span><span>${sess.dir}</span></div>
+      <div class="confirm-row"><span>Contacto</span><span>${sess.contacto}</span></div>
+      <div class="confirm-row"><span>Teléfono</span><span>${sess.tel}</span></div>
+      <div class="confirm-row" style="margin-bottom:0"><span>Fecha</span><span>${sess.fecha}</span></div>
     </div>
-    <div style="background:white;border-radius:12px;padding:16px 20px;margin-bottom:24px;border:1.5px solid var(--crema-d)">
-      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mora);margin-bottom:4px">Productos pedidos</div>
-      ${resumenRows}
+    <div class="confirm-products">
+      <div class="confirm-box-title" style="margin-bottom:10px">Productos pedidos</div>
+      ${items.map(([n,q]) => `
+        <div class="confirm-prod-item">
+          <span class="confirm-prod-name">${n}</span>
+          <span class="confirm-prod-qty">×${q}</span>
+        </div>`).join('')}
     </div>
     <div style="text-align:center">
-      <button onclick="nuevosPedido()" style="background:var(--amarillo);color:var(--mora-d);border:none;border-radius:10px;padding:13px 28px;font-size:15px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif">Hacer otro pedido</button>
+      <button class="btn-nuevo" onclick="nuevosPedido()">Hacer otro pedido</button>
     </div>`;
 }
 
-function nuevosPedido(){
-  qtys={};
-  document.querySelectorAll('.qty-inp').forEach(i=>i.value=0);
-  document.querySelectorAll('.prod-card').forEach(c=>c.classList.remove('sel'));
+function nuevosPedido() {
+  qtys = {};
+  document.querySelectorAll('.qty-inp').forEach(i => i.value = 0);
+  document.querySelectorAll('.prod-card').forEach(c => c.classList.remove('sel'));
   updateCart();
   showScreen('screen-catalogo');
 }
+
+// ── INIT ──
 showScreen('screen-login');
 </script>
 </body>
