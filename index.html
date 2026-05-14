@@ -241,6 +241,7 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
     <div class="field"><label>RUT Empresa *</label><input type="text" id="rut-inp" placeholder="76.123.456-7" oninput="fmtR(this)"></div>
     <div class="field"><label>Nombre Empresa *</label><input type="text" id="emp-inp" placeholder="Nombre de tu empresa"></div>
     <div class="field"><label>Dirección de Despacho *</label><input type="text" id="dir-inp" placeholder="Av. Ejemplo 1234, Santiago"></div>
+    <div class="field"><label>Email *</label><input type="email" id="email-inp" placeholder="correo@empresa.cl"></div>
     <div class="field-row">
       <div class="field"><label>Nombre de Contacto *</label><input type="text" id="contacto-inp" placeholder="Nombre completo"></div>
       <div class="field"><label>Teléfono de Contacto *</label><input type="text" id="tel-inp" placeholder="+56 9 1234 5678"></div>
@@ -262,6 +263,7 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
     <div class="info-item"><span>Empresa</span><span id="d-emp"></span></div>
     <div class="info-item"><span>RUT</span><span id="d-rut"></span></div>
     <div class="info-item"><span>Dirección</span><span id="d-dir"></span></div>
+    <div class="info-item"><span>Email</span><span id="d-email"></span></div>
     <div class="info-item"><span>Contacto</span><span id="d-contacto"></span></div>
     <div class="info-item"><span>Teléfono</span><span id="d-tel"></span></div>
     <div class="info-item"><span>Fecha</span><span id="d-fecha"></span></div>
@@ -376,10 +378,11 @@ function login() {
   const rut      = document.getElementById('rut-inp').value.trim();
   const emp      = document.getElementById('emp-inp').value.trim();
   const dir      = document.getElementById('dir-inp').value.trim();
+  const email    = document.getElementById('email-inp').value.trim();
   const contacto = document.getElementById('contacto-inp').value.trim();
   const tel      = document.getElementById('tel-inp').value.trim();
 
-  if (!rut || !emp || !dir || !contacto || !tel) {
+  if (!rut || !emp || !dir || !email || !contacto || !tel) {
     document.getElementById('login-alert').innerHTML =
       '<div class="alert alert-error">Por favor completa todos los campos.</div>';
     return;
@@ -404,7 +407,7 @@ function login() {
 
 function logout() {
   sess = {}; qtys = {};
-  ['rut-inp','emp-inp','dir-inp','contacto-inp','tel-inp'].forEach(id =>
+  ['rut-inp','emp-inp','dir-inp','email-inp','contacto-inp','tel-inp'].forEach(id =>
     document.getElementById(id).value = ''
   );
   document.getElementById('login-alert').innerHTML = '';
@@ -506,6 +509,7 @@ function irAOC() {
       <div class="doc-dato"><label>RUT</label><p>${sess.rut}</p></div>
       <div class="doc-dato"><label>Dirección de Despacho</label><p>${sess.dir}</p></div>
       <div class="doc-dato"><label>Fecha del Pedido</label><p>${sess.fecha}</p></div>
+      <div class="doc-dato"><label>Email</label><p>${sess.email}</p></div>
       <div class="doc-dato"><label>Nombre de Contacto</label><p>${sess.contacto}</p></div>
       <div class="doc-dato"><label>Teléfono de Contacto</label><p>${sess.tel}</p></div>
     </div>
@@ -547,6 +551,7 @@ async function enviarPedido() {
         emp:          sess.emp,
         rut:          sess.rut,
         dir:          sess.dir,
+        email:        sess.email,
         contacto:     sess.contacto,
         telefono:     sess.tel,
         zona:         '',
@@ -577,6 +582,7 @@ async function enviarPedido() {
       <div class="confirm-box-title">Datos del pedido</div>
       <div class="confirm-row"><span>Empresa</span><span>${sess.emp}</span></div>
       <div class="confirm-row"><span>Dirección de despacho</span><span>${sess.dir}</span></div>
+      <div class="confirm-row"><span>Email</span><span>${sess.email}</span></div>
       <div class="confirm-row"><span>Contacto</span><span>${sess.contacto}</span></div>
       <div class="confirm-row"><span>Teléfono</span><span>${sess.tel}</span></div>
       <div class="confirm-row" style="margin-bottom:0"><span>Fecha</span><span>${sess.fecha}</span></div>
