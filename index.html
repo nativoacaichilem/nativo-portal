@@ -301,12 +301,13 @@ const CATS = [
     {n:'Balde Pitaya Blue Monkey', f:'3,6 L'},
     {n:'Balde Acai Blue Monkey', f:'3,6 L'},
     {n:'Balde Pistacho Soft Blue Monkey', f:'5 L'},
+    {n:'Balde Acai Riva', f:'3,6 L'},
     {n:'Balde Yoghurt Griego Soft Blue Monkey', f:'5 L'}
   ]},
   {id:'retail', icon:'🛒', label:'Congelados Retail', items:[
-    {n:'Scoopable Acai', f:'500 ml — caja 12 un'},
-    {n:'Acai Fused', f:'4×100 g — caja 15 un'},
-    {n:'Acai Puro', f:'4×100 g — caja 15 un'}
+    {n:'Scoopable Acai (caja)', f:'500 ml — caja 12 un'},
+    {n:'Acai Fused (caja)', f:'4×100 g — caja 15 un'},
+    {n:'Acai Puro (caja)', f:'4×100 g — caja 15 un'}
   ]},
   {id:'toppings', icon:'🌰', label:'Frutos Secos & Toppings', items:[
     {n:'Cacao Nibs', f:'0,1 kg'},
@@ -332,7 +333,7 @@ const CATS = [
     {n:'Mantequilla de mani', f:'1 kg'},
     {n:'Mantequilla de pistachos', f:'1 kg'},
     {n:'Nutella', f:'3 kg'},
-    {n:'Miel', f:'3 kg'},
+    {n:'Miel', f:'1 kg'},
     {n:'Leche condensada', f:'6 kg'},
     {n:'Crema Oreo Zero', f:'3 kg'}
   ]},
@@ -343,14 +344,48 @@ const CATS = [
     {n:'Granola Zero', f:'1 kg'}
   ]},
   {id:'vasos', icon:'🥤', label:'Vasos & Tapas', items:[
-    {n:'Vaso GD Nativo', f:'1 un'},
-    {n:'Vaso Classic Nativo', f:'1 un'},
-    {n:'Vaso Power Nativo', f:'1 un'},
-    {n:'Vaso Full Nativo', f:'1 un'},
-    {n:'Vaso GD Blue Monkey', f:'1 un'},
-    {n:'Vaso Classic Blue Monkey', f:'1 un'},
-    {n:'Vaso Power Blue Monkey', f:'1 un'},
-    {n:'Vaso Full Blue Monkey', f:'1 un'}
+    {n:'Pote blanco 8 oz con impresion 360° Modelo: Blue monkey', f:'50 un'},
+    {n:'Pote blanco 8 oz con impresion 360° Modelo: Nativo', f:'50 un'},
+    {n:'Vaso Go Nativo (9 oz)', f:'50 un'},
+    {n:'Vaso Classic Nativo (12 oz)', f:'50 un'},
+    {n:'Vaso Power Nativo (16 oz)', f:'50 un'},
+    {n:'Vaso Full Nativo (24 oz)', f:'50 un'},
+    {n:'Vaso Go Blue Monkey (9 oz)', f:'50 un'},
+    {n:'Vaso Classic Blue Monkey (12 oz)', f:'50 un'},
+    {n:'Vaso Power Blue Monkey (16 oz)', f:'50 un'},
+    {n:'Vaso Full Blue Monkey (24 oz)', f:'50 un'},
+    {n:'Vaso Compostable (8 oz del dia)', f:'100 un'},
+    {n:'Tapa Plana Vaso 9 oz', f:'100 un'},
+    {n:'Tapa Plana Vaso 12 oz', f:'100 un'},
+    {n:'Tapa Plana Vaso 16 oz', f:'100 un'},
+    {n:'Tapa Plana Vaso 24 oz', f:'100 un'},
+    {n:'Tapa Domo Vaso 9 oz', f:'100 un'},
+    {n:'Tapa Domo Vaso 12 oz', f:'100 un'},
+    {n:'Tapa Domo Vaso 16 oz', f:'100 un'},
+    {n:'Tapa Domo Vaso 24 oz', f:'100 un'},
+    {n:'Vaso Sellable 250 ml', f:'50 un'},
+    {n:'Vaso Sellable 330 ml', f:'50 un'},
+    {n:'Vaso Sellable 500 ml', f:'50 un'},
+    {n:'Vaso Sellable 650 ml', f:'50 un'},
+    {n:'Vaso Kraft Doble Capa Liso 8 oz', f:'25 un'},
+    {n:'Vaso Kraft Doble Capa Liso 12 oz', f:'25 un'},
+    {n:'Vaso Negro Ripple 8 oz', f:'25 un'},
+    {n:'Vaso Negro Ripple 12 oz', f:'25 un'},
+    {n:'Cuchara Plastica Desechable Te/Café', f:'100 un'},
+    {n:'Tapa PS 80 mm para vasos 8 oz (Te/Café)', f:'50 un'},
+    {n:'Tapa PS 90 mm para vasos 12 oz (Te/Café)', f:'50 un'}
+  ]},
+  {id:'barras', icon:'🍫', label:'Natural Bars', items:[
+    {n:'Barra Cereal Almendra (1 caja)', f:'16 un'},
+    {n:'Barra Cereal Arándano (1 caja)', f:'16 un'},
+    {n:'Barra Cereal Chocolate (1 caja)', f:'16 un'},
+    {n:'Barra Strong Chocolate (1 caja)', f:'12 un'},
+    {n:'Barra Strong Clasica (1 caja)', f:'12 un'},
+    {n:'Barra Best Caramelo (1 caja)', f:'10 un'},
+    {n:'Barra Best Frutos Rojos (1 caja)', f:'10 un'},
+    {n:'Alfajor Granola Blanco (1 caja)', f:'8 un'},
+    {n:'Alfajor Raw Blanco (1 caja)', f:'8 un'},
+    {n:'Alfajor Raw Negro (1 caja)', f:'8 un'}
   ]}
 ];
 
@@ -389,7 +424,7 @@ function login() {
   }
 
   sess = {
-    rut, emp, dir, contacto, tel,
+    rut, emp, dir, email, contacto, tel,
     fecha: new Date().toLocaleDateString('es-CL')
   };
 
