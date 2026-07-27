@@ -504,7 +504,9 @@ input[type=checkbox]{
         <input type="text" id="clq" placeholder="🔍 Buscar cliente, RUT o dirección..." oninput="renderClientes()">
         <button class="btn bam2 bsm" onclick="abrirCli(null,'list')">＋ Nuevo cliente</button>
         <button class="btn bol bsm" id="bsync" onclick="sincronizar()">🔄 Sincronizar desde pedidos</button>
+        <button class="btn bol bsm" id="bdups" onclick="renderDuplicados()">🔍 Revisar duplicados</button>
       </div>
+      <div id="cl-dups"></div>
       <div id="cl-list"></div>
     </div>
   </div>
@@ -605,6 +607,7 @@ input[type=checkbox]{
       <div><label>Teléfono</label><input id="mctel" type="text" placeholder="+56 9 1234 5678"></div>
     </div>
     <div style="margin-bottom:12px"><label>Email</label><input id="mcemail" type="text" placeholder="Opcional"></div>
+    <div style="margin-bottom:12px"><label>Nombres antiguos (para búsqueda)</label><input id="mcalias" type="text" placeholder="Separados por |"></div>
     <div style="margin-bottom:4px"><label>Notas</label><textarea id="mcnotas" placeholder="Condiciones, observaciones..." style="min-height:56px"></textarea></div>
     <div class="mact">
       <button class="btn bgray bsm" onclick="cerrarCli()">Cancelar</button>
@@ -1300,10 +1303,150 @@ const prodById = id => PRODS.find(p => p.id === id) || null;
 // ══════════════════════════════════════════════════════════════
 //  HELPERS DIRECTORIO
 // ══════════════════════════════════════════════════════════════
-const RUT_B2C = '111111111';   // placeholder B2C: no entra al directorio
-
+// Espejo exacto de las funciones nativo_* del script directorio-v2.sql
 const normRut = r => String(r == null ? '' : r).toUpperCase().replace(/[^0-9K]/g, '');
 const normTxt = s => String(s == null ? '' : s).trim().toLowerCase().replace(/\s+/g, ' ');
+const sinTilde = s => String(s == null ? '' : s).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+// RUT válido = pasa el dígito verificador y no es de relleno (11.111.111-1, etc.)
+function rutValido(r) {
+  const v = normRut(r);
+  if (v.length < 8 || v.length > 9) return false;
+  const cuerpo = v.slice(0, -1), d = v.slice(-1);
+  if (!/^[0-9]+$/.test(cuerpo)) return false;
+  if (new Set(cuerpo).size === 1) return false;
+  let s = 0, m = 2;
+  for (let i = cuerpo.length - 1; i >= 0; i--) {
+    s += parseInt(cuerpo[i], 10) * m;
+    m = (m === 7) ? 2 : m + 1;
+  }
+  const r2 = 11 - (s % 11);
+  return (r2 === 11 ? '0' : r2 === 10 ? 'K' : String(r2)) === d;
+}
+
+const LEGAL = /\b(spa|sa|ltda|limitada|eirl|ltd|cia|compania|sociedad|comercial|comercializadora|inversiones|servicios|alimentos|importadora|distribuidora)\b/g;
+const STOP  = /\b(de|del|la|el|los|las|y|e)\b/g;
+
+// Nombre comparable: sin tildes, sin puntuación, sin sufijos societarios
+function nombreNorm(s) {
+  let x = sinTilde(s).toLowerCase().replace(/[^a-z0-9 ]/g, ' ');
+  x = x.replace(LEGAL, ' ').replace(STOP, ' ');
+  return x.replace(/\s+/g, ' ').trim();
+}
+
+// Clave de dirección "calle|numero": ignora AV/AVENIDA, local, comuna, tildes
+function dirKey(d) {
+  let s = sinTilde(d).toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+  s = s.replace(/^(direccion de despacho|direccion|despacho|dir)\s+/, '');
+  s = s.replace(/^(av|avda|avenida|calle|psje|pasaje)\s+/, '');
+  const m = s.match(/^(.*?)\b(\d{2,6})\b/);
+  if (!m) return '';
+  const calle = m[1].trim();
+  return calle ? calle + '|' + m[2] : '';
+}
+const dirKeyF = d => dirKey(d) || ('x:' + normTxt(d));
+
+const COMUNAS = ['lo barnechea','las condes','vitacura','providencia','nunoa','la reina','penalolen','macul',
+ 'la florida','puente alto','san jose de maipo','pirque','la pintana','el bosque','la cisterna','san ramon',
+ 'la granja','san miguel','pedro aguirre cerda','lo espejo','san joaquin','estacion central','cerrillos','maipu',
+ 'padre hurtado','penaflor','talagante','el monte','isla de maipo','buin','paine','calera de tango','san bernardo',
+ 'quilicura','conchali','huechuraba','recoleta','independencia','renca','quinta normal','cerro navia','lo prado',
+ 'pudahuel','colina','lampa','tiltil','chamisero','santiago centro','santiago','vina del mar','renaca','concon',
+ 'valparaiso','quilpue','villa alemana','zapallar','maitencillo','cachagua','papudo','la serena','coquimbo',
+ 'iquique','antofagasta','concepcion','temuco','pucon','villarrica','valdivia','osorno','puerto varas',
+ 'puerto montt','rancagua','curico','talca','chillan','los angeles','san antonio','algarrobo','el quisco',
+ 'el tabo','cartagena','casablanca','curacavi','melipilla'];
+
+function comunaDe(d) {
+  const s = ' ' + sinTilde(d).toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+  for (const c of COMUNAS) if (s.includes(' ' + c + ' '))
+    return c.replace(/\b\w/g, m => m.toUpperCase());
+  return '';
+}
+
+// Distancia de edición, para detectar tipeos
+function leven(a, b) {
+  if (a === b) return 0;
+  const m = a.length, n = b.length;
+  if (!m || !n) return m || n;
+  let prev = Array.from({ length: n + 1 }, (_, i) => i);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++)
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[n];
+}
+const similar = (a, b) => {
+  if (!a || !b) return false;
+  const d = leven(a, b), L = Math.max(a.length, b.length);
+  return L >= 5 && d <= Math.max(1, Math.floor(L / 8)) ;
+};
+
+// Une direcciones con el mismo número y la calle con un tipeo
+// ("AV LAUTRO 2115" y "Av Lautaro 2115"). Mismo criterio que el SQL.
+function fusionarDirs(dirs) {
+  const ks = [...dirs.keys()].filter(k => k.includes('|') && !k.startsWith('x:'));
+  for (let i = 0; i < ks.length; i++) {
+    for (let j = i + 1; j < ks.length; j++) {
+      const a = ks[i], b = ks[j];
+      if (!dirs.has(a) || !dirs.has(b)) continue;
+      const [ca, na] = a.split('|'), [cb, nb] = b.split('|');
+      if (na !== nb || ca.length < 6) continue;
+      const dist = leven(ca, cb);
+      if (dist < 1 || dist > 2) continue;
+      const keep = dirs.get(a).dirs.length >= dirs.get(b).dirs.length ? a : b;
+      const dup  = keep === a ? b : a;
+      const K = dirs.get(keep), D = dirs.get(dup);
+      K.dirs = K.dirs.concat(D.dirs);
+      if (!K.zona && D.zona)         K.zona     = D.zona;
+      if (!K.contacto && D.contacto) K.contacto = D.contacto;
+      if (!K.telefono && D.telefono) K.telefono = D.telefono;
+      dirs.delete(dup);
+    }
+  }
+  return dirs;
+}
+
+// ── CLAVE DE AGRUPACIÓN ──
+// El RUT manda. Si no es válido, se usa el nombre normalizado; y si ese nombre
+// ya se usó alguna vez con un RUT válido, el pedido se engancha a ese cliente.
+function mapaNombreRut() {
+  const acc = new Map();
+  pedidos.forEach(p => {
+    if (!rutValido(p.rut)) return;
+    const n = nombreNorm(p.emp);
+    if (!n) return;
+    if (!acc.has(n)) acc.set(n, new Set());
+    acc.get(n).add(normRut(p.rut));
+  });
+  const m = new Map();
+  acc.forEach((v, k) => { if (v.size === 1) m.set(k, 'R:' + [...v][0]); });
+  return m;
+}
+function clavePedido(p, n2r) {
+  if (rutValido(p.rut)) return 'R:' + normRut(p.rut);
+  const n = nombreNorm(p.emp);
+  if (!n) return '';
+  return (n2r && n2r.get(n)) || ('N:' + n);
+}
+const claveCliente = c => c.clave ||
+  (rutValido(c.rut) ? 'R:' + normRut(c.rut) : 'N:' + nombreNorm(c.emp));
+
+// Grafía canónica: la más usada ignorando mayúsculas y tildes
+function nombreCanonico(nombres) {
+  const g = new Map();
+  nombres.forEach(n => {
+    const k = sinTilde(n).toLowerCase();
+    g.set(k, (g.get(k) || 0) + 1);
+  });
+  let win = '', top = -1;
+  g.forEach((v, k) => { if (v > top) { top = v; win = k; } });
+  const cand = nombres.filter(n => sinTilde(n).toLowerCase() === win);
+  const puntaje = n => (n !== n.toUpperCase() ? 1000 : 0) + (n !== sinTilde(n) ? 100 : 0) - n.length / 100;
+  return cand.sort((a, b) => puntaje(b) - puntaje(a))[0] || nombres[0] || '';
+}
 const hesc    = s => String(s == null ? '' : s).replace(/[&<>"']/g,
   c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
@@ -1311,15 +1454,17 @@ const findCli = id => clientes.find(c => String(c.id) === String(id)) || null;
 const findSuc = id => sucursales.find(s => String(s.id) === String(id)) || null;
 const sucsDe  = c  => c ? sucursales.filter(s => String(s.cliente_id) === String(c.id)) : [];
 
+let n2r = new Map();   // nombre normalizado -> clave de cliente con RUT válido
+
 function esDelCliente(p, c) {
   if (!c) return false;
-  if (!c._local && p.cliente_id != null && String(p.cliente_id) === String(c.id)) return true;
-  return normRut(p.rut) === normRut(c.rut) && normTxt(p.emp) === normTxt(c.emp);
+  if (!c._local && p.cliente_id != null) return String(p.cliente_id) === String(c.id);
+  return clavePedido(p, n2r) === claveCliente(c);
 }
 function esDeSuc(p, s) {
   if (!s) return false;
-  if (!s._local && p.sucursal_id != null && String(p.sucursal_id) === String(s.id)) return true;
-  return normTxt(p.dir) === normTxt(s.dir);
+  if (!s._local && p.sucursal_id != null) return String(p.sucursal_id) === String(s.id);
+  return dirKeyF(p.dir) === dirKeyF(s.dir);
 }
 // pedidos viene ordenado created_at.desc → find() devuelve el más reciente
 const ultPedidoCli = c    => pedidos.find(p => esDelCliente(p, c)) || null;
@@ -1330,6 +1475,17 @@ function nombreDesdeDir(d) {
   const parts = String(d || '').split(',').map(x => x.trim()).filter(Boolean);
   if (parts.length >= 2 && parts[1].length <= 28) return parts[1];
   return parts[0] || String(d || '');
+}
+
+// Busca por nombre actual, nombres antiguos (alias), contacto o RUT
+function coincide(c, q, qr) {
+  if (!q) return true;
+  const qs = sinTilde(q).toLowerCase();
+  if (sinTilde(normTxt(c.emp)).includes(qs))      return true;
+  if (sinTilde(normTxt(c.alias)).includes(qs))    return true;
+  if (sinTilde(normTxt(c.contacto)).includes(qs)) return true;
+  if (qr && normRut(c.rut).includes(qr.toUpperCase())) return true;
+  return false;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1353,39 +1509,82 @@ async function loadDirectorio() {
 function derivarDirectorio() {
   const tempC = clientes.filter(c => c._temp);     // clientes puntuales de la sesión
   const tempS = sucursales.filter(s => s._temp);
-  const cm = new Map(), sm = new Map();
+  n2r = mapaNombreRut();
+
+  const g = new Map();   // clave -> datos acumulados
   pedidos.forEach(p => {
-    const emp = (p.emp || '').trim();
-    if (!emp) return;
-    const ck = normRut(p.rut) + '|' + normTxt(emp);
-    if (!cm.has(ck)) cm.set(ck, {
-      id: 'C' + cm.size, emp, rut: (p.rut || '').trim(),
-      contacto: p.contacto || '', telefono: p.telefono || '', email: p.email || '',
-      notas: '', _local: true
-    });
-    const cli = cm.get(ck);
-    if (!cli.contacto && p.contacto) cli.contacto = p.contacto;
-    if (!cli.telefono && p.telefono) cli.telefono = p.telefono;
+    const k = clavePedido(p, n2r);
+    if (!k) return;
+    if (!g.has(k)) g.set(k, { clave:k, nombres:[], rut:'', contacto:'', telefono:'', email:'', dirs:new Map(), n:0 });
+    const c = g.get(k);
+    c.n++;
+    if (p.emp && p.emp.trim()) c.nombres.push(p.emp.trim());
+    if (!c.rut && rutValido(p.rut)) c.rut = (p.rut || '').trim();
+    if (!c.contacto && p.contacto) c.contacto = p.contacto;
+    if (!c.telefono && p.telefono) c.telefono = p.telefono;
+    if (!c.email && p.email)       c.email    = p.email;
 
     const dir = (p.dir || '').trim();
     if (!dir) return;
-    const sk = ck + '|' + normTxt(dir);
-    if (!sm.has(sk)) sm.set(sk, {
-      id: 'S' + sm.size, cliente_id: cli.id, nombre: nombreDesdeDir(dir), dir,
-      zona: p.zona || '', contacto: p.contacto || '', telefono: p.telefono || '',
-      horario: '', notas: '', _local: true
+    const dk = dirKeyF(dir);
+    if (!c.dirs.has(dk)) c.dirs.set(dk, { dirs:[], zona:'', contacto:'', telefono:'' });
+    const sc = c.dirs.get(dk);
+    sc.dirs.push(dir);
+    if (!sc.zona && p.zona)         sc.zona     = p.zona;
+    if (!sc.contacto && p.contacto) sc.contacto = p.contacto;
+    if (!sc.telefono && p.telefono) sc.telefono = p.telefono;
+  });
+
+  clientes = []; sucursales = [];
+  let ci = 0, si = 0;
+  // Los grupos sin RUT válido entran solo si tienen 2+ pedidos: así los
+  // clientes de mostrador de una sola compra no ensucian el directorio.
+  [...g.values()].filter(c => c.clave.startsWith('R:') || c.n >= 2).forEach(c => {
+    fusionarDirs(c.dirs);
+    const emp = nombreCanonico(c.nombres);
+    const otros = [...new Set(c.nombres.filter(x => nombreNorm(x) !== nombreNorm(emp)))];
+    const cli = {
+      id: 'C' + (ci++), clave: c.clave, emp, rut: c.rut,
+      contacto: c.contacto, telefono: c.telefono, email: c.email,
+      alias: otros.join('|'), notas: '', _local: true
+    };
+    clientes.push(cli);
+    const varias = c.dirs.size > 1;
+    c.dirs.forEach(sc => {
+      // se muestra la dirección mejor escrita del grupo
+      const dir = sc.dirs.slice().sort((a, b) =>
+        ((b !== b.toUpperCase()) - (a !== a.toUpperCase())) ||
+        (b.split(',').length - a.split(',').length) || (b.length - a.length))[0];
+      const com = comunaDe(dir);
+      sucursales.push({
+        id: 'S' + (si++), cliente_id: cli.id,
+        nombre: varias ? (com || nombreDesdeDir(dir)) : 'Casa Matriz',
+        dir, comuna: com, zona: sc.zona, contacto: sc.contacto, telefono: sc.telefono,
+        horario: '', notas: '', _local: true
+      });
     });
   });
-  clientes   = [...cm.values()];
-  sucursales = [...sm.values()];
-  // Reincorpora los puntuales que aún no tienen pedidos registrados
-  tempC.forEach(c => {
-    if (!clientes.some(x => normRut(x.rut) === normRut(c.rut) && normTxt(x.emp) === normTxt(c.emp)))
-      clientes.push(c);
+
+  // Numera las sucursales que quedaron con el mismo nombre
+  const cnt = new Map();
+  sucursales.forEach(x => {
+    const k = x.cliente_id + '|' + x.nombre;
+    cnt.set(k, (cnt.get(k) || 0) + 1);
   });
-  tempS.forEach(s => {
-    if (!sucursales.some(x => String(x.cliente_id) === String(s.cliente_id) && normTxt(x.dir) === normTxt(s.dir)))
-      sucursales.push(s);
+  const vis = new Map();
+  sucursales.forEach(x => {
+    const k = x.cliente_id + '|' + x.nombre;
+    if (cnt.get(k) > 1) {
+      const i = (vis.get(k) || 0) + 1; vis.set(k, i);
+      x.nombre = x.nombre + ' ' + i;
+    }
+  });
+
+  // Reincorpora los puntuales que aún no tienen pedidos registrados
+  tempC.forEach(c => { if (!clientes.some(x => claveCliente(x) === claveCliente(c))) clientes.push(c); });
+  tempS.forEach(x => {
+    if (!sucursales.some(y => String(y.cliente_id) === String(x.cliente_id) && dirKeyF(y.dir) === dirKeyF(x.dir)))
+      sucursales.push(x);
   });
   clientes.sort((a, b) => a.emp.localeCompare(b.emp, 'es'));
   resyncWz();
@@ -1394,12 +1593,11 @@ function derivarDirectorio() {
 // Vuelve a apuntar la selección del wizard a los objetos recién reconstruidos
 function resyncWz() {
   if (wz.cliente) {
-    const c = clientes.find(x =>
-      normRut(x.rut) === normRut(wz.cliente.rut) && normTxt(x.emp) === normTxt(wz.cliente.emp));
+    const c = clientes.find(x => claveCliente(x) === claveCliente(wz.cliente));
     if (c) wz.cliente = c;
   }
   if (wz.cliente && wz.sucursal) {
-    const s = sucsDe(wz.cliente).find(x => normTxt(x.dir) === normTxt(wz.sucursal.dir));
+    const s = sucsDe(wz.cliente).find(x => dirKeyF(x.dir) === dirKeyF(wz.sucursal.dir));
     if (s) wz.sucursal = s;
   }
 }
@@ -1468,11 +1666,7 @@ function renderPaso1() {
     return;
   }
 
-  const lista = clientes.filter(c => !q ||
-    normTxt(c.emp).includes(q) ||
-    normTxt(c.contacto).includes(q) ||
-    (qr && normRut(c.rut).includes(qr.toUpperCase()))
-  ).slice(0, 200);
+  const lista = clientes.filter(c => coincide(c, q, qr)).slice(0, 200);
 
   if (!lista.length) { el.innerHTML = bannerModo() + '<div class="empty">Sin coincidencias.</div>'; return; }
 
@@ -1484,6 +1678,7 @@ function renderPaso1() {
       <div style="flex:1;min-width:0">
         <div class="pick-t">${hesc(c.emp)}</div>
         <div class="pick-s">${hesc(c.rut || 'sin RUT')}${c.contacto ? ' · 👤 ' + hesc(c.contacto) : ''}</div>
+        ${c.alias && q ? `<div class="pick-s" style="opacity:.75">antes: ${hesc(c.alias.split('|').slice(0,3).join(' · '))}</div>` : ''}
       </div>
       <div class="pick-r">
         <span class="chip">${n} sucursal${n === 1 ? '' : 'es'}</span>
@@ -1728,24 +1923,25 @@ let cliOpen = [];
 
 function renderClientes() {
   document.getElementById('cl-banner').innerHTML = bannerModo();
+  const nd = buscarDuplicados().length;
+  const bd = document.getElementById('bdups');
+  bd.textContent = nd ? `⚠️ Revisar ${nd} duplicado${nd > 1 ? 's' : ''}` : '🔍 Revisar duplicados';
+  bd.className = 'btn bsm ' + (nd ? 'bam2' : 'bol');
   document.getElementById('bsync').style.display = dirOK ? '' : 'none';
 
   const q  = normTxt(document.getElementById('clq').value);
   const qr = q.replace(/[^0-9k]/g, '').toUpperCase();
   const el = document.getElementById('cl-list');
 
-  const lista = clientes.filter(c => !q ||
-    normTxt(c.emp).includes(q) ||
-    normTxt(c.contacto).includes(q) ||
-    (qr && normRut(c.rut).includes(qr)) ||
-    sucsDe(c).some(s => normTxt(s.dir).includes(q) || normTxt(s.nombre).includes(q))
-  );
+  const lista = clientes.filter(c => coincide(c, q, qr) ||
+    (q && sucsDe(c).some(s => normTxt(s.dir).includes(q) || normTxt(s.nombre).includes(q))));
 
   if (!lista.length) {
     el.innerHTML = '<div class="empty">' +
       (clientes.length ? 'Sin coincidencias.' : 'Todavía no hay clientes en el directorio.') + '</div>';
     return;
   }
+
 
   el.innerHTML = lista.map(c => {
     const sucs = sucsDe(c);
@@ -1756,6 +1952,7 @@ function renderClientes() {
         <div style="flex:1;min-width:0">
           <div class="pick-t">${hesc(c.emp)}</div>
           <div class="pick-s">${hesc(c.rut || 'sin RUT')}${c.contacto ? ' · 👤 ' + hesc(c.contacto) : ''}${c.telefono ? ' · 📞 ' + hesc(c.telefono) : ''}</div>
+          ${c.alias ? `<div class="pick-s" style="opacity:.8">también: ${hesc(c.alias.split('|').join(' · '))}</div>` : ''}
         </div>
         <div class="pick-r">
           <span class="chip">${sucs.length} sucursal${sucs.length === 1 ? '' : 'es'}</span>
@@ -1821,6 +2018,7 @@ function abrirCli(id, ctx) {
   document.getElementById('mccontacto').value = c ? (c.contacto||'') : '';
   document.getElementById('mctel').value      = c ? (c.telefono||'') : '';
   document.getElementById('mcemail').value    = c ? (c.email||'')    : '';
+  document.getElementById('mcalias').value    = c ? (c.alias||'')    : '';
   document.getElementById('mcnotas').value    = c ? (c.notas||'')    : '';
   document.getElementById('modal-cli').classList.add('open');
 }
@@ -1836,6 +2034,7 @@ async function guardarCliente() {
     contacto: document.getElementById('mccontacto').value.trim(),
     telefono: document.getElementById('mctel').value.trim(),
     email:    document.getElementById('mcemail').value.trim(),
+    alias:    document.getElementById('mcalias').value.trim(),
     notas:    document.getElementById('mcnotas').value.trim()
   };
 
@@ -1982,55 +2181,259 @@ async function borrarSuc(id) {
 //  SINCRONIZAR DIRECTORIO DESDE EL HISTORIAL DE PEDIDOS
 // ══════════════════════════════════════════════════════════════
 async function sincronizar() {
-  if (!dirOK) { alerta('cl-alert', 'Primero hay que crear las tablas en Supabase (directorio.sql).', 'ae'); return; }
+  if (!dirOK) { alerta('cl-alert', 'Primero hay que crear las tablas en Supabase.', 'ae'); return; }
 
   const btn = document.getElementById('bsync');
   btn.innerHTML = '<span class="sp"></span>Sincronizando...'; btn.disabled = true;
 
   try {
-    // 1) Clientes faltantes
-    const exist = new Set(clientes.map(c => normRut(c.rut) + '|' + normTxt(c.emp)));
-    const nuevosC = new Map();
-    pedidos.forEach(p => {
-      const emp = (p.emp || '').trim();
-      if (!emp || normRut(p.rut) === RUT_B2C) return;
-      const k = normRut(p.rut) + '|' + normTxt(emp);
-      if (exist.has(k) || nuevosC.has(k)) return;
-      nuevosC.set(k, {
-        emp, rut: (p.rut || '').trim(),
-        contacto: p.contacto || '', telefono: p.telefono || '', email: p.email || ''
-      });
-    });
-    for (const c of nuevosC.values()) await sbSend('clientes', 'POST', c);
-    if (nuevosC.size) await loadDirectorio();
+    n2r = mapaNombreRut();
 
-    // 2) Sucursales faltantes
-    const mapC = new Map(clientes.map(c => [normRut(c.rut) + '|' + normTxt(c.emp), c]));
-    const existS = new Set(sucursales.map(s => String(s.cliente_id) + '|' + normTxt(s.dir)));
-    const nuevosS = new Map();
+    // 1) Agrupar el historial por clave (RUT válido, o nombre)
+    const g = new Map();
     pedidos.forEach(p => {
-      const emp = (p.emp || '').trim(), dir = (p.dir || '').trim();
-      if (!emp || !dir || normRut(p.rut) === RUT_B2C) return;
-      const c = mapC.get(normRut(p.rut) + '|' + normTxt(emp));
-      if (!c) return;
-      const k = String(c.id) + '|' + normTxt(dir);
-      if (existS.has(k) || nuevosS.has(k)) return;
-      nuevosS.set(k, {
-        cliente_id: c.id, nombre: nombreDesdeDir(dir), dir,
-        zona: p.zona || '', contacto: p.contacto || '', telefono: p.telefono || ''
-      });
+      const k = clavePedido(p, n2r);
+      if (!k) return;
+      if (!g.has(k)) g.set(k, { nombres:[], rut:'', contacto:'', telefono:'', email:'', dirs:new Map(), n:0 });
+      const c = g.get(k);
+      c.n++;
+      if (p.emp && p.emp.trim()) c.nombres.push(p.emp.trim());
+      if (!c.rut && rutValido(p.rut)) c.rut = (p.rut || '').trim();
+      if (!c.contacto && p.contacto) c.contacto = p.contacto;
+      if (!c.telefono && p.telefono) c.telefono = p.telefono;
+      if (!c.email && p.email)       c.email    = p.email;
+      const dir = (p.dir || '').trim();
+      if (!dir) return;
+      const dk = dirKeyF(dir);
+      if (!c.dirs.has(dk)) c.dirs.set(dk, { dirs:[], zona:'', contacto:'', telefono:'' });
+      const sc = c.dirs.get(dk);
+      sc.dirs.push(dir);
+      if (!sc.zona && p.zona)         sc.zona     = p.zona;
+      if (!sc.contacto && p.contacto) sc.contacto = p.contacto;
+      if (!sc.telefono && p.telefono) sc.telefono = p.telefono;
     });
-    for (const s of nuevosS.values()) await sbSend('sucursales', 'POST', s);
+
+    g.forEach(c => fusionarDirs(c.dirs));
+
+    // 2) Crear los clientes que falten (los sin RUT solo si tienen 2+ pedidos)
+    const yaHay = new Set(clientes.map(claveCliente));
+    let nc = 0;
+    for (const [k, c] of g) {
+      if (yaHay.has(k)) continue;
+      if (!k.startsWith('R:') && c.n < 2) continue;
+      const emp = nombreCanonico(c.nombres);
+      const otros = [...new Set(c.nombres.filter(x => nombreNorm(x) !== nombreNorm(emp)))];
+      await sbSend('clientes', 'POST', {
+        emp, rut: c.rut, contacto: c.contacto, telefono: c.telefono,
+        email: c.email, alias: otros.join('|')
+      });
+      nc++;
+    }
+    if (nc) await loadDirectorio();
+
+    // 3) Crear las sucursales que falten
+    const porClave = new Map(clientes.map(c => [claveCliente(c), c]));
+    const yaSuc = new Set(sucursales.map(x => String(x.cliente_id) + '|' + dirKeyF(x.dir)));
+    let ns = 0;
+    for (const [k, c] of g) {
+      const cli = porClave.get(k);
+      if (!cli) continue;
+      const varias = c.dirs.size > 1;
+      for (const sc of c.dirs.values()) {
+        const dir = sc.dirs.slice().sort((a, b) =>
+          ((b !== b.toUpperCase()) - (a !== a.toUpperCase())) ||
+          (b.split(',').length - a.split(',').length) || (b.length - a.length))[0];
+        if (yaSuc.has(String(cli.id) + '|' + dirKeyF(dir))) continue;
+        const com = comunaDe(dir);
+        await sbSend('sucursales', 'POST', {
+          cliente_id: cli.id,
+          nombre: varias ? (com || nombreDesdeDir(dir)) : 'Casa Matriz',
+          dir, comuna: com, zona: sc.zona, contacto: sc.contacto, telefono: sc.telefono
+        });
+        ns++;
+      }
+    }
 
     await loadDirectorio();
     renderClientes();
-    alerta('cl-alert',
-      `✅ Sincronizado: ${nuevosC.size} cliente(s) y ${nuevosS.size} sucursal(es) agregadas al directorio.`, 'as');
+    alerta('cl-alert', `\u2705 Sincronizado: ${nc} cliente(s) y ${ns} sucursal(es) nuevas. ` +
+      'Los clientes de mostrador con un solo pedido no se agregan.', 'as');
   } catch (e) {
     alerta('cl-alert', 'Error sincronizando: ' + hesc(e.message), 'ae');
   }
-  btn.innerHTML = '🔄 Sincronizar desde pedidos'; btn.disabled = false;
+  btn.innerHTML = '\ud83d\udd04 Sincronizar desde pedidos'; btn.disabled = false;
 }
+
+// ══════════════════════════════════════════════════════════════
+//  REVISIÓN DE DUPLICADOS
+// ══════════════════════════════════════════════════════════════
+function buscarDuplicados() {
+  const pares = [];
+
+  // ── clientes ──
+  for (let i = 0; i < clientes.length; i++) {
+    for (let j = i + 1; j < clientes.length; j++) {
+      const a = clientes[i], b = clientes[j];
+      const ra = rutValido(a.rut), rb = rutValido(b.rut);
+      let motivo = '';
+      if (ra && rb && normRut(a.rut) === normRut(b.rut))        motivo = 'mismo RUT';
+      else if (nombreNorm(a.emp) && nombreNorm(a.emp) === nombreNorm(b.emp)) motivo = 'mismo nombre';
+      else if (!ra && !rb && similar(nombreNorm(a.emp), nombreNorm(b.emp)))  motivo = 'nombre casi igual';
+      else if ((ra !== rb) && similar(nombreNorm(a.emp), nombreNorm(b.emp))) motivo = 'nombre casi igual (uno sin RUT)';
+      if (!motivo) continue;
+      // el que tiene RUT válido y más pedidos se queda
+      const na = pedidos.filter(p => esDelCliente(p, a)).length;
+      const nb = pedidos.filter(p => esDelCliente(p, b)).length;
+      const aGana = (ra !== rb) ? ra : (na >= nb);
+      pares.push({ tipo:'cliente', motivo, keep: aGana ? a : b, dup: aGana ? b : a,
+                   nk: aGana ? na : nb, nd: aGana ? nb : na });
+    }
+  }
+
+  // ── sucursales del mismo cliente ──
+  clientes.forEach(c => {
+    const ss = sucsDe(c);
+    for (let i = 0; i < ss.length; i++) {
+      for (let j = i + 1; j < ss.length; j++) {
+        const a = ss[i], b = ss[j];
+        const ka = dirKey(a.dir), kb = dirKey(b.dir);
+        let motivo = '';
+        if (dirKeyF(a.dir) === dirKeyF(b.dir)) motivo = 'misma dirección';
+        else if (ka && kb && ka.split('|')[1] === kb.split('|')[1] &&
+                 similar(ka.split('|')[0], kb.split('|')[0])) motivo = 'misma calle con un tipeo';
+        else if ((!ka || !kb) && comunaDe(a.dir) && comunaDe(a.dir) === comunaDe(b.dir))
+                 motivo = 'misma comuna, dirección incompleta';
+        if (!motivo) continue;
+        const na = pedidos.filter(p => esDelCliente(p, c) && esDeSuc(p, a)).length;
+        const nb = pedidos.filter(p => esDelCliente(p, c) && esDeSuc(p, b)).length;
+        const punt = x => (x.dir !== x.dir.toUpperCase() ? 100 : 0) + x.dir.split(',').length * 10 + x.dir.length / 100;
+        const aGana = na !== nb ? na > nb : punt(a) >= punt(b);
+        pares.push({ tipo:'sucursal', motivo, cliente: c,
+                     keep: aGana ? a : b, dup: aGana ? b : a,
+                     nk: aGana ? na : nb, nd: aGana ? nb : na });
+      }
+    }
+  });
+  return pares;
+}
+
+let dups = [];
+
+function renderDuplicados() {
+  dups = buscarDuplicados();
+  const el = document.getElementById('cl-dups');
+  const seguro = dups.filter(d => d.motivo === 'mismo RUT' || d.motivo === 'misma dirección').length;
+
+  if (!dups.length) {
+    el.innerHTML = '<div class="alert as">\u2705 No se detectaron duplicados en el directorio.</div>';
+    return;
+  }
+
+  el.innerHTML =
+    `<div class="alert ai" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+       <span style="flex:1">\u26a0\ufe0f ${dups.length} posible(s) duplicado(s)${seguro ? ` \u00b7 ${seguro} son coincidencia exacta` : ''}.</span>
+       ${dirOK && seguro ? `<button class="btn bam2 bsm" onclick="fusionarSeguros()">Fusionar los ${seguro} exactos</button>` : ''}
+       <button class="btn bgray bsm" onclick="document.getElementById('cl-dups').innerHTML=''">Ocultar</button>
+     </div>` +
+    dups.map((d, i) => `
+      <div class="suc" style="align-items:flex-start">
+        <div style="flex:1;min-width:0">
+          <span class="chip">${d.tipo}</span><span class="chip">${hesc(d.motivo)}</span>
+          ${d.cliente ? `<span class="pick-s" style="display:inline">${hesc(d.cliente.emp)}</span>` : ''}
+          <div class="pick-s" style="margin-top:4px">
+            \u2705 <b>Se queda:</b> ${hesc(d.tipo === 'cliente' ? d.keep.emp + ' — ' + (d.keep.rut || 'sin RUT') : d.keep.dir)} (${d.nk} pedidos)
+          </div>
+          <div class="pick-s">
+            \u274c <b>Se absorbe:</b> ${hesc(d.tipo === 'cliente' ? d.dup.emp + ' — ' + (d.dup.rut || 'sin RUT') : d.dup.dir)} (${d.nd} pedidos)
+          </div>
+        </div>
+        <div class="suc-a">
+          ${dirOK ? `<button class="btn bam2 bsm" onclick="fusionar(${i})">Fusionar</button>` : ''}
+          <button class="btn bgray bsm" onclick="descartarDup(${i})">No son</button>
+        </div>
+      </div>`).join('');
+}
+
+function descartarDup(i) {
+  dups.splice(i, 1);
+  const el = document.getElementById('cl-dups');
+  const guardar = dups;
+  renderDuplicados();
+  dups = guardar;
+}
+
+async function fusionar(i, silencioso) {
+  const d = dups[i];
+  if (!d || !dirOK) return;
+  if (d.keep._local || d.dup._local) return;
+  if (!silencioso && !confirm(
+      `Se van a unir estos dos registros.\n\nSe queda: ${d.tipo === 'cliente' ? d.keep.emp : d.keep.dir}\n` +
+      `Se absorbe: ${d.tipo === 'cliente' ? d.dup.emp : d.dup.dir}\n\nLos pedidos no se borran, se reasignan.`)) return;
+
+  if (d.tipo === 'sucursal') {
+    await sbSend(`pedidos?sucursal_id=eq.${d.dup.id}`, 'PATCH', { sucursal_id: d.keep.id });
+    const parche = {};
+    ['zona','contacto','telefono','horario','notas'].forEach(k => {
+      if (!d.keep[k] && d.dup[k]) parche[k] = d.dup[k];
+    });
+    if (Object.keys(parche).length) await sbSend(`sucursales?id=eq.${d.keep.id}`, 'PATCH', parche);
+    await sbSend(`sucursales?id=eq.${d.dup.id}`, 'DELETE');
+  } else {
+    // Sucursales del duplicado: si la dirección ya existe en el que se queda,
+    // se reasignan sus pedidos; si no, se traspasa la sucursal.
+    const destino = sucsDe(d.keep);
+    for (const sd of sucsDe(d.dup)) {
+      const igual = destino.find(x => dirKeyF(x.dir) === dirKeyF(sd.dir));
+      if (igual) {
+        await sbSend(`pedidos?sucursal_id=eq.${sd.id}`, 'PATCH', { sucursal_id: igual.id });
+        await sbSend(`sucursales?id=eq.${sd.id}`, 'DELETE');
+      } else {
+        await sbSend(`sucursales?id=eq.${sd.id}`, 'PATCH', { cliente_id: d.keep.id });
+      }
+    }
+    await sbSend(`pedidos?cliente_id=eq.${d.dup.id}`, 'PATCH', { cliente_id: d.keep.id });
+
+    const alias = [...new Set(
+      (d.keep.alias || '').split('|').concat((d.dup.alias || '').split('|'), [d.dup.emp])
+        .map(x => x.trim()).filter(Boolean)
+        .filter(x => nombreNorm(x) !== nombreNorm(d.keep.emp))
+    )].join('|');
+    const parche = { alias };
+    ['rut','contacto','telefono','email','notas'].forEach(k => {
+      if (!d.keep[k] && d.dup[k]) parche[k] = d.dup[k];
+    });
+    await sbSend(`clientes?id=eq.${d.keep.id}`, 'PATCH', parche);
+    await sbSend(`clientes?id=eq.${d.dup.id}`, 'DELETE');
+  }
+
+  if (!silencioso) {
+    await cargarTodo();
+    alerta('cl-alert', '\u2705 Registros fusionados.', 'as');
+  }
+}
+
+async function fusionarSeguros() {
+  const idx = dups.map((d, i) => i)
+    .filter(i => dups[i].motivo === 'mismo RUT' || dups[i].motivo === 'misma dirección');
+  if (!idx.length) return;
+  if (!confirm(`Se van a fusionar ${idx.length} duplicado(s) exacto(s). Los pedidos se reasignan, no se borran.`)) return;
+  try {
+    // de atrás hacia adelante para no invalidar índices
+    for (const i of idx.slice().reverse()) await fusionar(i, true);
+    await cargarTodo();
+    alerta('cl-alert', `\u2705 ${idx.length} duplicado(s) fusionado(s).`, 'as');
+  } catch (e) {
+    await cargarTodo();
+    alerta('cl-alert', 'Se interrumpió la fusión: ' + hesc(e.message), 'ae');
+  }
+}
+
+async function cargarTodo() {
+  await cargar();
+  await loadDirectorio();
+  renderClientes();
+}
+
 </script>
 </body>
 </html>
