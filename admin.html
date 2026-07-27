@@ -208,6 +208,74 @@ input[type=checkbox]{
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ── WIZARD PEDIDO ── */
+.wz-steps{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.wz-pill{
+  flex:1;min-width:130px;display:flex;align-items:center;gap:9px;
+  padding:10px 12px;border-radius:11px;background:var(--white);
+  border:1.5px solid var(--crema-d);font-size:12px;font-weight:800;
+  color:var(--textl);cursor:pointer;font-family:'Nunito',sans-serif;text-align:left;
+}
+.wz-pill.on{border-color:var(--mora);background:var(--mora-xl);color:var(--mora-d)}
+.wz-pill.done{border-color:#6ee7b7;background:var(--vl);color:var(--vd)}
+.wz-pill:disabled{opacity:.5;cursor:not-allowed}
+.wz-num{
+  width:22px;height:22px;border-radius:50%;background:var(--crema-d);color:var(--textl);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex:0 0 22px;
+}
+.wz-pill.on   .wz-num{background:var(--mora);color:#fff}
+.wz-pill.done .wz-num{background:var(--vd);color:#fff}
+.wz-sub{display:block;font-size:10px;font-weight:700;opacity:.75;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+.wstep{display:none}
+
+/* ── LISTA SELECCIONABLE ── */
+.picks{max-height:440px;overflow-y:auto;padding-right:2px}
+.pick{
+  border:1.5px solid var(--crema-d);border-radius:10px;padding:10px 12px;
+  margin-bottom:8px;cursor:pointer;background:var(--white);display:flex;gap:10px;align-items:center;
+}
+.pick:hover{border-color:var(--mora-l);background:#faf6ff}
+.pick.sel{border-color:var(--mora);background:var(--mora-xl)}
+.pick-t{font-weight:800;font-size:13px;color:var(--mora-d)}
+.pick-s{font-size:11px;color:var(--textl);font-weight:700;margin-top:2px;line-height:1.55}
+.pick-r{margin-left:auto;flex:0 0 auto;text-align:right}
+.chip{display:inline-block;background:var(--crema);border:1px solid var(--crema-d);border-radius:20px;padding:2px 9px;font-size:10px;font-weight:800;color:var(--mora);margin:0 4px 2px 0}
+.empty{color:var(--textl);font-size:13px;font-weight:700;padding:18px 6px;text-align:center}
+
+/* ── CABECERA CONTEXTO ── */
+.wz-head{background:var(--mora-xl);border:1.5px solid #ddc9f5;border-radius:11px;padding:11px 13px;margin-bottom:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.wz-head .hb{font-size:13px;font-weight:900;color:var(--mora-d)}
+.wz-head .hs{font-size:11px;font-weight:700;color:var(--mora);margin-top:1px}
+
+/* ── CATÁLOGO ── */
+.cat{border:1.5px solid var(--crema-d);border-radius:10px;margin-bottom:8px;overflow:hidden}
+.cat-h{background:var(--crema);padding:9px 12px;font-size:12px;font-weight:800;color:var(--mora-d);cursor:pointer;display:flex;align-items:center;gap:8px}
+.cat-h .cn{margin-left:auto;font-size:10px;color:var(--textl);font-weight:800}
+.cat-b{display:none}
+.cat.open .cat-b{display:block}
+.prod{display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:1px solid var(--crema-d)}
+.prod.on{background:#faf6ff}
+.prod-n{flex:1;font-size:12px;font-weight:700;line-height:1.35}
+.prod-f{font-size:10px;color:var(--textl);font-weight:700}
+.stp{display:flex;align-items:center;gap:4px;flex:0 0 auto}
+.stp button{width:26px;height:26px;border-radius:6px;border:1.5px solid var(--crema-d);background:var(--white);font-weight:900;cursor:pointer;color:var(--mora);font-size:15px;line-height:1;padding:0;font-family:'Nunito',sans-serif}
+.stp button:hover{border-color:var(--mora);background:var(--mora-xl)}
+.stp input{width:48px;text-align:center;padding:4px 2px;font-weight:800;font-size:12px}
+
+/* ── BARRA RESUMEN ── */
+.wz-bar{position:sticky;bottom:0;background:var(--white);border-top:2px solid var(--crema-d);padding:12px 0 2px;margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.wz-bar-info{flex:1;min-width:170px;font-size:12px;font-weight:800;color:var(--mora)}
+.wz-prev{font-size:11px;color:var(--textl);font-weight:600;margin-top:4px;width:100%;line-height:1.5}
+
+/* ── DIRECTORIO CLIENTES ── */
+.cli{border:1.5px solid var(--crema-d);border-radius:11px;margin-bottom:10px;overflow:hidden}
+.cli-h{padding:11px 13px;display:flex;gap:10px;align-items:center;cursor:pointer;background:var(--white)}
+.cli-h:hover{background:#faf6ff}
+.cli-b{display:none;background:var(--crema);padding:10px 13px 12px;border-top:1px solid var(--crema-d)}
+.cli.open .cli-b{display:block}
+.suc{background:var(--white);border:1px solid var(--crema-d);border-radius:8px;padding:8px 11px;margin-bottom:6px;display:flex;gap:10px;align-items:center}
+.suc-a{margin-left:auto;display:flex;gap:6px;flex:0 0 auto}
+
 /* ── RESPONSIVE ── */
 @media(max-width:640px){
   .stats{grid-template-columns:repeat(2,1fr)}
@@ -215,6 +283,10 @@ input[type=checkbox]{
   .tb{padding:12px 10px;font-size:11px}
   .nlogo{display:none}
   .action-bar{gap:8px}
+  .wz-pill{min-width:0;flex:1 1 100%}
+  .wz-sub{max-width:100%}
+  .pick-r{margin-left:0;width:100%;text-align:left}
+  .pick{flex-wrap:wrap}
 }
 </style>
 </head>
@@ -239,6 +311,7 @@ input[type=checkbox]{
     <div class="ntabs">
       <button class="tb act" onclick="goTab('pedidos',this)">📋 Pedidos</button>
       <button class="tb"     onclick="goTab('nuevo',this)">➕ Agregar</button>
+      <button class="tb"     onclick="goTab('clientes',this)">👥 Clientes</button>
       <button class="tb"     onclick="goTab('rutas',this)">🚚 Ruta</button>
     </div>
     <div class="nlogo">nativo</div>
@@ -299,10 +372,84 @@ input[type=checkbox]{
     </div>
   </div>
 
-  <!-- ── AGREGAR ── -->
+  <!-- ── AGREGAR (WIZARD 3 PASOS) ── -->
   <div id="page-nuevo" class="page">
-    <div class="card" style="max-width:680px;margin:0 auto">
-      <h2>➕ Agregar Pedido</h2>
+    <div class="card" style="max-width:760px;margin:0 auto">
+      <h2>➕ Nuevo Pedido</h2>
+      <div class="wz-steps" id="wz-pills"></div>
+      <div id="wz-alert"></div>
+
+      <!-- PASO 1 · CLIENTE -->
+      <div class="wstep" id="wstep1" style="display:block">
+        <div class="fb">
+          <input type="text" id="wq" placeholder="🔍 Buscar cliente por nombre, RUT o contacto..." oninput="renderPaso1()">
+          <button class="btn bam2 bsm" onclick="abrirCli(null,'wz')">＋ Cliente nuevo</button>
+        </div>
+        <div class="picks" id="wz-clientes"></div>
+        <div style="margin-top:12px;border-top:1px solid var(--crema-d);padding-top:12px">
+          <button class="btn bol bsm" onclick="togManual()">✏️ Entrada manual (pedido puntual)</button>
+        </div>
+      </div>
+
+      <!-- PASO 2 · SUCURSAL -->
+      <div class="wstep" id="wstep2">
+        <div class="wz-head" id="wz-head2"></div>
+        <div class="fb">
+          <input type="text" id="wqs" placeholder="🔍 Buscar sucursal o dirección..." oninput="renderPaso2()">
+          <button class="btn bam2 bsm" onclick="abrirSuc(null,'wz')">＋ Nueva sucursal</button>
+        </div>
+        <div class="picks" id="wz-sucursales"></div>
+        <div style="margin-top:12px">
+          <button class="btn bgray bsm" onclick="wzGo(1)">← Cambiar cliente</button>
+        </div>
+      </div>
+
+      <!-- PASO 3 · PEDIDO -->
+      <div class="wstep" id="wstep3">
+        <div class="wz-head" id="wz-head3"></div>
+
+        <div class="fb">
+          <input type="text" id="pq" placeholder="🔍 Buscar producto..." oninput="renderCatalogo()">
+          <button class="btn bol bsm" id="brepetir" onclick="repetirUltimo()">🔁 Repetir último pedido</button>
+          <button class="btn bgray bsm" onclick="limpiarProds()">Limpiar</button>
+        </div>
+        <div id="cat-wrap"></div>
+
+        <div style="margin-top:14px">
+          <label>Otros productos / notas del pedido</label>
+          <textarea id="wextra" placeholder="Un ítem por línea. Solo para productos que no están en el catálogo." style="min-height:56px"></textarea>
+        </div>
+
+        <div class="modal-section">Despacho y facturación</div>
+        <div class="fg">
+          <div><label>Zona *</label>
+            <select id="wzona">
+              <option value="">— Asignar zona —</option>
+              <option value="norte">Norte</option>
+              <option value="sur">Sur</option>
+              <option value="santiago">Santiago</option>
+              <option value="litoral">Litoral</option>
+            </select>
+          </div>
+          <div><label>N° Factura</label><input id="wfact" type="text" placeholder="001234"></div>
+        </div>
+        <div class="fg">
+          <div><label>Fecha del Pedido</label><input id="wfecha" type="text" placeholder="DD/MM/AAAA"></div>
+          <div><label>Comentario interno 🔒</label><input id="wcom" type="text" placeholder="Opcional"></div>
+        </div>
+
+        <div class="wz-bar">
+          <div class="wz-bar-info" id="wz-bar-info">Sin productos seleccionados</div>
+          <button class="btn bgray bsm" onclick="wzGo(2)">← Sucursal</button>
+          <button class="btn bmora" id="bwzguardar" onclick="guardarWz()">Guardar Pedido</button>
+          <div class="wz-prev" id="wz-prev"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENTRADA MANUAL (clásica) -->
+    <div class="card" id="manual-box" style="max-width:760px;margin:16px auto 0;display:none">
+      <h2>✏️ Entrada manual</h2>
       <div class="alert ai" style="margin-bottom:16px">
         💡 Sube la imagen de la OC aquí en Claude y pídele que extraiga los datos.
       </div>
@@ -344,6 +491,21 @@ input[type=checkbox]{
       <button class="btn bmora" id="bagregar" onclick="agregar()" style="margin-top:4px">
         Guardar Pedido
       </button>
+    </div>
+  </div>
+
+  <!-- ── CLIENTES ── -->
+  <div id="page-clientes" class="page">
+    <div class="card">
+      <h2>👥 Directorio de Clientes</h2>
+      <div id="cl-alert"></div>
+      <div id="cl-banner"></div>
+      <div class="fb">
+        <input type="text" id="clq" placeholder="🔍 Buscar cliente, RUT o dirección..." oninput="renderClientes()">
+        <button class="btn bam2 bsm" onclick="abrirCli(null,'list')">＋ Nuevo cliente</button>
+        <button class="btn bol bsm" id="bsync" onclick="sincronizar()">🔄 Sincronizar desde pedidos</button>
+      </div>
+      <div id="cl-list"></div>
     </div>
   </div>
 
@@ -429,6 +591,59 @@ input[type=checkbox]{
   </div>
 </div>
 
+<!-- ══ MODAL CLIENTE ══ -->
+<div class="mbg" id="modal-cli">
+  <div class="modal">
+    <h3 id="mc-title">Nuevo Cliente</h3>
+    <div id="mc-alert"></div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Empresa *</label><input id="mcemp" type="text" placeholder="Nombre empresa"></div>
+      <div><label>RUT</label><input id="mcrut" type="text" placeholder="12.345.678-9" oninput="fmtR(this)"></div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Nombre de Contacto</label><input id="mccontacto" type="text" placeholder="Opcional"></div>
+      <div><label>Teléfono</label><input id="mctel" type="text" placeholder="+56 9 1234 5678"></div>
+    </div>
+    <div style="margin-bottom:12px"><label>Email</label><input id="mcemail" type="text" placeholder="Opcional"></div>
+    <div style="margin-bottom:4px"><label>Notas</label><textarea id="mcnotas" placeholder="Condiciones, observaciones..." style="min-height:56px"></textarea></div>
+    <div class="mact">
+      <button class="btn bgray bsm" onclick="cerrarCli()">Cancelar</button>
+      <button class="btn bmora bsm" id="bmc" onclick="guardarCliente()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL SUCURSAL ══ -->
+<div class="mbg" id="modal-suc">
+  <div class="modal">
+    <h3 id="ms-title">Nueva Sucursal</h3>
+    <div id="ms-alert"></div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Nombre de la sucursal *</label><input id="msnombre" type="text" placeholder="Ej: Casa Matriz, Local Providencia"></div>
+      <div><label>Zona</label>
+        <select id="mszona">
+          <option value="">— Asignar zona —</option>
+          <option value="norte">Norte</option>
+          <option value="sur">Sur</option>
+          <option value="santiago">Santiago</option>
+          <option value="litoral">Litoral</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:12px"><label>Dirección de despacho *</label><input id="msdir" type="text" placeholder="Calle 1234, Comuna, Ciudad"></div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Contacto en sucursal</label><input id="mscontacto" type="text" placeholder="Opcional"></div>
+      <div><label>Teléfono</label><input id="mstel" type="text" placeholder="Opcional"></div>
+    </div>
+    <div style="margin-bottom:12px"><label>Horario de recepción</label><input id="mshorario" type="text" placeholder="Ej: Lun a Vie 10:00–18:00"></div>
+    <div style="margin-bottom:4px"><label>Notas de despacho</label><textarea id="msnotas" placeholder="Ej: 3er piso, requiere tiempo extra de descarga" style="min-height:56px"></textarea></div>
+    <div class="mact">
+      <button class="btn bgray bsm" onclick="cerrarSuc()">Cancelar</button>
+      <button class="btn bmora bsm" id="bms" onclick="guardarSucursal()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ FLOATING ACTION BAR ══ -->
 <div class="action-bar" id="action-bar">
   <span class="action-bar-info" id="ab-count">0 seleccionados</span>
@@ -457,6 +672,15 @@ let pedidos  = [];   // todos los pedidos cargados
 let eid      = null; // id del pedido en edición
 let checked  = [];   // ids seleccionados via checkboxes de tabla
 let selRuta  = [];   // ids seleccionados para armar ruta
+
+// ── Directorio ──
+let clientes   = [];    // catálogo de clientes
+let sucursales = [];    // catálogo de sucursales
+let dirOK      = false; // true = tablas clientes/sucursales disponibles en Supabase
+let dirLoaded  = false;
+let wz         = { paso:1, cliente:null, sucursal:null, qtys:{} };
+let cliEdit    = null, cliCtx = 'list';
+let sucEdit    = null, sucCtx = 'list', sucCli = null;
 
 // ══════════════════════════════════════════
 //  AUTH
@@ -488,9 +712,15 @@ function goTab(id, btn) {
   document.querySelectorAll('.tb').forEach(b => b.classList.remove('act'));
   document.getElementById('page-' + id).classList.add('act');
   btn.classList.add('act');
-  if (id === 'pedidos') cargar();
-  if (id === 'rutas')   renderChecksRuta();
-  if (id === 'nuevo')   document.getElementById('nfecha').value = hoy();
+  if (id === 'pedidos')  cargar();
+  if (id === 'rutas')    renderChecksRuta();
+  if (id === 'clientes') renderClientes();
+  if (id === 'nuevo') {
+    document.getElementById('nfecha').value = hoy();
+    if (!document.getElementById('wfecha').value)
+      document.getElementById('wfecha').value = hoy();
+    wzGo(wz.cliente ? wz.paso : 1);
+  }
 }
 
 // ══════════════════════════════════════════
@@ -543,25 +773,30 @@ async function sbGet() {
   return d;
 }
 
-async function sbPost(row) {
-  return fetch(`${PROXY}/supabase/pedidos`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(row)
-  });
+// Envío genérico: lanza error si la respuesta no es OK (antes fallaba en silencio)
+async function sbSend(path, method, body) {
+  const o = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body !== undefined) o.body = JSON.stringify(body);
+  const r = await fetch(`${PROXY}/supabase/${path}`, o);
+  if (!r.ok) {
+    let d = '';
+    try { d = (await r.text()).slice(0, 180); } catch(_) {}
+    throw new Error(`HTTP ${r.status}${d ? ' · ' + d : ''}`);
+  }
+  return r;
 }
 
-async function sbPatch(id, row) {
-  return fetch(`${PROXY}/supabase/pedidos?id=eq.${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(row)
-  });
+async function sbJson(path) {
+  const r = await fetch(`${PROXY}/supabase/${path}`);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const d = await r.json();
+  if (!Array.isArray(d)) throw new Error('Respuesta inválida');
+  return d;
 }
 
-async function sbDelete(id) {
-  return fetch(`${PROXY}/supabase/pedidos?id=eq.${id}`, { method: 'DELETE' });
-}
+async function sbPost(row)      { return sbSend('pedidos', 'POST', row); }
+async function sbPatch(id, row) { return sbSend(`pedidos?id=eq.${id}`, 'PATCH', row); }
+async function sbDelete(id)     { return sbSend(`pedidos?id=eq.${id}`, 'DELETE'); }
 
 // ══════════════════════════════════════════
 //  CARGAR PEDIDOS
@@ -572,6 +807,8 @@ async function cargar() {
     '<span class="sp"></span>Cargando pedidos...</td></tr>';
   try {
     pedidos = await sbGet();
+    if (!dirLoaded)   await loadDirectorio();
+    else if (!dirOK)  derivarDirectorio();   // modo historial: se recalcula local
     checked = []; updateActionBar();
     render();
     renderChecksRuta();
@@ -952,6 +1189,847 @@ function copiar() {
     b.textContent = '✅ ¡Copiado! Pégalo en Claude';
     setTimeout(() => b.textContent = '📋 Copiar y pegar en Claude', 3000);
   });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CATÁLOGO DE PRODUCTOS (espejo de index.html)
+// ══════════════════════════════════════════════════════════════
+const CATS = [
+  {id:'baldes', icon:'🧊', label:'Baldes Congelados', items:[
+    {n:'Balde Acai Nativo', f:'3,6 L'},
+    {n:'Balde Pitaya Blue Monkey', f:'3,6 L'},
+    {n:'Balde Acai Blue Monkey', f:'3,6 L'},
+    {n:'Balde Pistacho Soft Blue Monkey', f:'5 L'},
+    {n:'Balde Acai Riva', f:'3,6 L'},
+    {n:'Balde Yoghurt Griego Soft Blue Monkey', f:'5 L'}
+  ]},
+  {id:'retail', icon:'🛒', label:'Congelados Retail', items:[
+    {n:'Scoopable Acai (caja)', f:'500 ml — caja 12 un'},
+    {n:'Acai Fused (caja)', f:'4×100 g — caja 15 un'},
+    {n:'Acai Puro (caja)', f:'4×100 g — caja 15 un'}
+  ]},
+  {id:'toppings', icon:'🌰', label:'Frutos Secos & Toppings', items:[
+    {n:'Cacao Nibs', f:'0,1 kg'},
+    {n:'Castañas de caju', f:'2 kg'},
+    {n:'Avellana europea tostada', f:'2 kg'},
+    {n:'Nueces cuarto', f:'2 kg'},
+    {n:'Almendra Laminada', f:'2 kg'},
+    {n:'Oreo molidas', f:'4 kg'},
+    {n:'Avena integral', f:'2 kg'},
+    {n:'Chia', f:'2 kg'},
+    {n:'Coco laminado', f:'2 kg'},
+    {n:'Coco rallado', f:'2 kg'},
+    {n:'Colageno hidrolizado puro', f:'1 kg'},
+    {n:'Proteina vegana (arveja)', f:'1 kg'},
+    {n:'Proteina normal (sin sabor)', f:'0,66 kg'},
+    {n:'Chip de chocolate 60%', f:'0,25 kg'},
+    {n:'Maní', f:'2 kg'},
+    {n:'Pacoquita', f:'100 un'},
+    {n:'Leche nido entera', f:'1,1 kg'}
+  ]},
+  {id:'salsas', icon:'🍯', label:'Salsas & Otros', items:[
+    {n:'Mantequilla de almendra', f:'1 kg'},
+    {n:'Mantequilla de mani', f:'1 kg'},
+    {n:'Mantequilla de pistachos', f:'1 kg'},
+    {n:'Nutella', f:'3 kg'},
+    {n:'Miel', f:'1 kg'},
+    {n:'Leche condensada', f:'6 kg'},
+    {n:'Crema Oreo Zero', f:'3 kg'}
+  ]},
+  {id:'granolas', icon:'🥣', label:'Granolas & Crumbles', items:[
+    {n:'Crumbole Clásico', f:'3,5 kg'},
+    {n:'Granola Avena Miel', f:'2 kg'},
+    {n:'Granola Cacao Dulce', f:'2 kg'},
+    {n:'Granola Zero', f:'1 kg'}
+  ]},
+  {id:'matcha', icon:'🍵', label:'Te Matcha', items:[
+    {n:'Te Matcha', f:'1 kg'}
+  ]},
+  {id:'vasos', icon:'🥤', label:'Vasos & Tapas', items:[
+    {n:'Pote blanco 8 oz con impresion 360° Modelo: Blue monkey', f:'50 un'},
+    {n:'Pote blanco 8 oz con impresion 360° Modelo: Nativo', f:'50 un'},
+    {n:'Vaso Go Nativo (9 oz)', f:'50 un'},
+    {n:'Vaso Classic Nativo (12 oz)', f:'50 un'},
+    {n:'Vaso Power Nativo (16 oz)', f:'50 un'},
+    {n:'Vaso Full Nativo (24 oz)', f:'50 un'},
+    {n:'Vaso Go Blue Monkey (9 oz)', f:'50 un'},
+    {n:'Vaso Classic Blue Monkey (12 oz)', f:'50 un'},
+    {n:'Vaso Power Blue Monkey (16 oz)', f:'50 un'},
+    {n:'Vaso Full Blue Monkey (24 oz)', f:'50 un'},
+    {n:'Vaso Compostable (8 oz del dia)', f:'100 un'},
+    {n:'Tapa Plana Vaso 9 oz', f:'100 un'},
+    {n:'Tapa Plana Vaso 12 oz', f:'100 un'},
+    {n:'Tapa Plana Vaso 16 oz', f:'100 un'},
+    {n:'Tapa Plana Vaso 24 oz', f:'100 un'},
+    {n:'Tapa Domo Vaso 9 oz', f:'100 un'},
+    {n:'Tapa Domo Vaso 12 oz', f:'100 un'},
+    {n:'Tapa Domo Vaso 16 oz', f:'100 un'},
+    {n:'Tapa Domo Vaso 24 oz', f:'100 un'},
+    {n:'Vaso Sellable 250 ml', f:'50 un'},
+    {n:'Vaso Sellable 330 ml', f:'50 un'},
+    {n:'Vaso Sellable 500 ml', f:'50 un'},
+    {n:'Vaso Sellable 650 ml', f:'50 un'},
+    {n:'Vaso Kraft Doble Capa Liso 8 oz', f:'25 un'},
+    {n:'Vaso Kraft Doble Capa Liso 12 oz', f:'25 un'},
+    {n:'Vaso Negro Ripple 8 oz', f:'25 un'},
+    {n:'Vaso Negro Ripple 12 oz', f:'25 un'},
+    {n:'Cuchara Plastica Desechable Te/Café', f:'100 un'},
+    {n:'Tapa PS 80 mm para vasos 8 oz (Te/Café)', f:'50 un'},
+    {n:'Tapa PS 90 mm para vasos 12 oz (Te/Café)', f:'50 un'}
+  ]},
+  {id:'barras', icon:'🍫', label:'Natural Bars', items:[
+    {n:'Barra Cereal Almendra (1 caja)', f:'16 un'},
+    {n:'Barra Cereal Arándano (1 caja)', f:'16 un'},
+    {n:'Barra Cereal Chocolate (1 caja)', f:'16 un'},
+    {n:'Barra Strong Chocolate (1 caja)', f:'12 un'},
+    {n:'Barra Strong Clasica (1 caja)', f:'12 un'},
+    {n:'Barra Best Caramelo (1 caja)', f:'10 un'},
+    {n:'Barra Best Frutos Rojos (1 caja)', f:'10 un'},
+    {n:'Alfajor Granola Blanco (1 caja)', f:'8 un'},
+    {n:'Alfajor Raw Blanco (1 caja)', f:'8 un'},
+    {n:'Alfajor Raw Negro (1 caja)', f:'8 un'}
+  ]}
+];
+
+const PRODS = [];
+CATS.forEach(c => c.items.forEach((it, i) =>
+  PRODS.push({ id: c.id + '-' + i, cat: c.id, n: it.n, f: it.f })
+));
+const prodById = id => PRODS.find(p => p.id === id) || null;
+
+// ══════════════════════════════════════════════════════════════
+//  HELPERS DIRECTORIO
+// ══════════════════════════════════════════════════════════════
+const RUT_B2C = '111111111';   // placeholder B2C: no entra al directorio
+
+const normRut = r => String(r == null ? '' : r).toUpperCase().replace(/[^0-9K]/g, '');
+const normTxt = s => String(s == null ? '' : s).trim().toLowerCase().replace(/\s+/g, ' ');
+const hesc    = s => String(s == null ? '' : s).replace(/[&<>"']/g,
+  c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+const findCli = id => clientes.find(c => String(c.id) === String(id)) || null;
+const findSuc = id => sucursales.find(s => String(s.id) === String(id)) || null;
+const sucsDe  = c  => c ? sucursales.filter(s => String(s.cliente_id) === String(c.id)) : [];
+
+function esDelCliente(p, c) {
+  if (!c) return false;
+  if (!c._local && p.cliente_id != null && String(p.cliente_id) === String(c.id)) return true;
+  return normRut(p.rut) === normRut(c.rut) && normTxt(p.emp) === normTxt(c.emp);
+}
+function esDeSuc(p, s) {
+  if (!s) return false;
+  if (!s._local && p.sucursal_id != null && String(p.sucursal_id) === String(s.id)) return true;
+  return normTxt(p.dir) === normTxt(s.dir);
+}
+// pedidos viene ordenado created_at.desc → find() devuelve el más reciente
+const ultPedidoCli = c    => pedidos.find(p => esDelCliente(p, c)) || null;
+const ultPedidoSuc = (c,s) => pedidos.find(p => esDelCliente(p, c) && esDeSuc(p, s)) || null;
+const nPedidosSuc  = (c,s) => pedidos.filter(p => esDelCliente(p, c) && esDeSuc(p, s)).length;
+
+function nombreDesdeDir(d) {
+  const parts = String(d || '').split(',').map(x => x.trim()).filter(Boolean);
+  if (parts.length >= 2 && parts[1].length <= 28) return parts[1];
+  return parts[0] || String(d || '');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CARGA DEL DIRECTORIO (Supabase, con respaldo desde historial)
+// ══════════════════════════════════════════════════════════════
+async function loadDirectorio() {
+  dirLoaded = true;
+  try {
+    const [c, s] = await Promise.all([
+      sbJson('clientes?select=*&order=emp.asc'),
+      sbJson('sucursales?select=*&order=nombre.asc')
+    ]);
+    clientes = c; sucursales = s; dirOK = true;
+  } catch (e) {
+    dirOK = false;
+    derivarDirectorio();
+  }
+}
+
+// Respaldo: arma el directorio a partir del historial de pedidos.
+function derivarDirectorio() {
+  const tempC = clientes.filter(c => c._temp);     // clientes puntuales de la sesión
+  const tempS = sucursales.filter(s => s._temp);
+  const cm = new Map(), sm = new Map();
+  pedidos.forEach(p => {
+    const emp = (p.emp || '').trim();
+    if (!emp) return;
+    const ck = normRut(p.rut) + '|' + normTxt(emp);
+    if (!cm.has(ck)) cm.set(ck, {
+      id: 'C' + cm.size, emp, rut: (p.rut || '').trim(),
+      contacto: p.contacto || '', telefono: p.telefono || '', email: p.email || '',
+      notas: '', _local: true
+    });
+    const cli = cm.get(ck);
+    if (!cli.contacto && p.contacto) cli.contacto = p.contacto;
+    if (!cli.telefono && p.telefono) cli.telefono = p.telefono;
+
+    const dir = (p.dir || '').trim();
+    if (!dir) return;
+    const sk = ck + '|' + normTxt(dir);
+    if (!sm.has(sk)) sm.set(sk, {
+      id: 'S' + sm.size, cliente_id: cli.id, nombre: nombreDesdeDir(dir), dir,
+      zona: p.zona || '', contacto: p.contacto || '', telefono: p.telefono || '',
+      horario: '', notas: '', _local: true
+    });
+  });
+  clientes   = [...cm.values()];
+  sucursales = [...sm.values()];
+  // Reincorpora los puntuales que aún no tienen pedidos registrados
+  tempC.forEach(c => {
+    if (!clientes.some(x => normRut(x.rut) === normRut(c.rut) && normTxt(x.emp) === normTxt(c.emp)))
+      clientes.push(c);
+  });
+  tempS.forEach(s => {
+    if (!sucursales.some(x => String(x.cliente_id) === String(s.cliente_id) && normTxt(x.dir) === normTxt(s.dir)))
+      sucursales.push(s);
+  });
+  clientes.sort((a, b) => a.emp.localeCompare(b.emp, 'es'));
+  resyncWz();
+}
+
+// Vuelve a apuntar la selección del wizard a los objetos recién reconstruidos
+function resyncWz() {
+  if (wz.cliente) {
+    const c = clientes.find(x =>
+      normRut(x.rut) === normRut(wz.cliente.rut) && normTxt(x.emp) === normTxt(wz.cliente.emp));
+    if (c) wz.cliente = c;
+  }
+  if (wz.cliente && wz.sucursal) {
+    const s = sucsDe(wz.cliente).find(x => normTxt(x.dir) === normTxt(wz.sucursal.dir));
+    if (s) wz.sucursal = s;
+  }
+}
+
+function bannerModo() {
+  if (dirOK) return '';
+  return '<div class="alert ai" style="margin-bottom:12px">' +
+    '📚 <b>Modo historial.</b> Los clientes y sucursales se están leyendo del historial de pedidos. ' +
+    'Puedes crear pedidos normalmente, pero para guardar clientes, sucursales, horarios y notas de despacho ' +
+    'hay que ejecutar una vez el script <b>directorio.sql</b> en Supabase.</div>';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  WIZARD — NAVEGACIÓN
+// ══════════════════════════════════════════════════════════════
+function wzGo(n) {
+  if (n >= 2 && !wz.cliente)  n = 1;
+  if (n >= 3 && !wz.sucursal) n = wz.cliente ? 2 : 1;
+  wz.paso = n;
+  [1, 2, 3].forEach(i => {
+    document.getElementById('wstep' + i).style.display = (i === n ? 'block' : 'none');
+  });
+  renderWzPills();
+  if (n === 1) renderPaso1();
+  if (n === 2) renderPaso2();
+  if (n === 3) renderPaso3();
+}
+
+function renderWzPills() {
+  const c = wz.cliente, s = wz.sucursal;
+  const nProd = Object.keys(wz.qtys).length;
+  const pills = [
+    { n:1, t:'Cliente',  sub: c ? c.emp : 'Selecciona un cliente',
+      ok: !!c, dis: false },
+    { n:2, t:'Sucursal', sub: s ? s.nombre : (c ? 'Selecciona el destino' : '—'),
+      ok: !!s, dis: !c },
+    { n:3, t:'Pedido',   sub: nProd ? nProd + ' producto' + (nProd > 1 ? 's' : '') : 'Arma el pedido',
+      ok: nProd > 0, dis: !s }
+  ];
+  document.getElementById('wz-pills').innerHTML = pills.map(p => {
+    const cls = wz.paso === p.n ? 'on' : (p.ok ? 'done' : '');
+    return `<button class="wz-pill ${cls}" ${p.dis ? 'disabled' : ''} onclick="wzGo(${p.n})">
+      <span class="wz-num">${p.ok && wz.paso !== p.n ? '✓' : p.n}</span>
+      <span>${p.t}<span class="wz-sub">${hesc(p.sub)}</span></span>
+    </button>`;
+  }).join('');
+}
+
+function togManual() {
+  const b = document.getElementById('manual-box');
+  b.style.display = b.style.display === 'none' ? 'block' : 'none';
+  if (b.style.display === 'block') b.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  PASO 1 — CLIENTE
+// ══════════════════════════════════════════════════════════════
+function renderPaso1() {
+  const el = document.getElementById('wz-clientes');
+  const q  = normTxt(document.getElementById('wq').value);
+  const qr = q.replace(/[^0-9k]/g, '');
+
+  if (!clientes.length) {
+    el.innerHTML = bannerModo() +
+      '<div class="empty">Todavía no hay clientes guardados.<br>Crea uno con “＋ Cliente nuevo”.</div>';
+    return;
+  }
+
+  const lista = clientes.filter(c => !q ||
+    normTxt(c.emp).includes(q) ||
+    normTxt(c.contacto).includes(q) ||
+    (qr && normRut(c.rut).includes(qr.toUpperCase()))
+  ).slice(0, 200);
+
+  if (!lista.length) { el.innerHTML = bannerModo() + '<div class="empty">Sin coincidencias.</div>'; return; }
+
+  el.innerHTML = bannerModo() + lista.map(c => {
+    const n  = sucsDe(c).length;
+    const up = ultPedidoCli(c);
+    return `<div class="pick ${wz.cliente && String(wz.cliente.id) === String(c.id) ? 'sel' : ''}"
+                 onclick="pickCliente('${c.id}')">
+      <div style="flex:1;min-width:0">
+        <div class="pick-t">${hesc(c.emp)}</div>
+        <div class="pick-s">${hesc(c.rut || 'sin RUT')}${c.contacto ? ' · 👤 ' + hesc(c.contacto) : ''}</div>
+      </div>
+      <div class="pick-r">
+        <span class="chip">${n} sucursal${n === 1 ? '' : 'es'}</span>
+        <div class="pick-s">${up ? 'Últ. pedido ' + hesc(up.fecha || '—') : 'Sin pedidos'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function pickCliente(id) {
+  const c = findCli(id);
+  if (!c) return;
+  if (!wz.cliente || String(wz.cliente.id) !== String(c.id)) {
+    wz.sucursal = null;
+    wz.qtys = {};
+  }
+  wz.cliente = c;
+  const s = sucsDe(c);
+  if (s.length === 1) { wz.sucursal = s[0]; wzGo(3); return; }   // atajo: una sola sucursal
+  wzGo(2);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  PASO 2 — SUCURSAL
+// ══════════════════════════════════════════════════════════════
+function renderPaso2() {
+  const c = wz.cliente;
+  if (!c) return wzGo(1);
+
+  document.getElementById('wz-head2').innerHTML =
+    `<div style="flex:1;min-width:0">
+       <div class="hb">${hesc(c.emp)}</div>
+       <div class="hs">${hesc(c.rut || 'sin RUT')}${c.contacto ? ' · ' + hesc(c.contacto) : ''}</div>
+     </div>
+     <button class="btn bol bsm" onclick="abrirCli('${c.id}','wz')">Editar cliente</button>`;
+
+  const q  = normTxt(document.getElementById('wqs').value);
+  const el = document.getElementById('wz-sucursales');
+  const lista = sucsDe(c).filter(s => !q || normTxt(s.nombre).includes(q) || normTxt(s.dir).includes(q));
+
+  if (!lista.length) {
+    el.innerHTML = '<div class="empty">Este cliente no tiene sucursales guardadas.<br>Agrega una con “＋ Nueva sucursal”.</div>';
+    return;
+  }
+
+  el.innerHTML = lista.map(s => {
+    const up = ultPedidoSuc(c, s);
+    const nq = nPedidosSuc(c, s);
+    return `<div class="pick ${wz.sucursal && String(wz.sucursal.id) === String(s.id) ? 'sel' : ''}"
+                 onclick="pickSucursal('${s.id}')">
+      <div style="flex:1;min-width:0">
+        <div class="pick-t">${hesc(s.nombre)} ${s.zona ? zbadge(s.zona) : ''}</div>
+        <div class="pick-s">📍 ${hesc(s.dir)}</div>
+        ${s.horario ? `<div class="pick-s">🕒 ${hesc(s.horario)}</div>` : ''}
+        ${s.notas   ? `<div class="pick-s">📝 ${hesc(s.notas)}</div>` : ''}
+      </div>
+      <div class="pick-r">
+        <span class="chip">${nq} pedido${nq === 1 ? '' : 's'}</span>
+        <div class="pick-s">${up ? 'Últ. ' + hesc(up.fecha || '—') : '—'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function pickSucursal(id) {
+  const s = findSuc(id);
+  if (!s) return;
+  wz.sucursal = s;
+  document.getElementById('wzona').value = s.zona || '';
+  wzGo(3);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  PASO 3 — PEDIDO
+// ══════════════════════════════════════════════════════════════
+function renderPaso3() {
+  const c = wz.cliente, s = wz.sucursal;
+  if (!c || !s) return wzGo(c ? 2 : 1);
+
+  document.getElementById('wz-head3').innerHTML =
+    `<div style="flex:1;min-width:0">
+       <div class="hb">${hesc(c.emp)} — ${hesc(s.nombre)}</div>
+       <div class="hs">📍 ${hesc(s.dir)}${s.notas ? ' · 📝 ' + hesc(s.notas) : ''}</div>
+     </div>
+     <button class="btn bol bsm" onclick="wzGo(2)">Cambiar sucursal</button>`;
+
+  if (!document.getElementById('wzona').value)
+    document.getElementById('wzona').value = s.zona || '';
+  if (!document.getElementById('wfecha').value)
+    document.getElementById('wfecha').value = hoy();
+
+  const up = ultPedidoSuc(c, s);
+  document.getElementById('brepetir').style.display = up ? '' : 'none';
+
+  renderCatalogo();
+  updWzBar();
+}
+
+function renderCatalogo() {
+  const q  = normTxt(document.getElementById('pq').value);
+  const el = document.getElementById('cat-wrap');
+  const html = CATS.map(cat => {
+    const items = PRODS.filter(p => p.cat === cat.id && (!q || normTxt(p.n).includes(q)));
+    if (!items.length) return '';
+    const sel  = items.filter(p => wz.qtys[p.n]).length;
+    const open = (q || sel) ? 'open' : '';
+    return `<div class="cat ${open}" id="cat-${cat.id}">
+      <div class="cat-h" onclick="document.getElementById('cat-${cat.id}').classList.toggle('open')">
+        <span>${cat.icon}</span><span>${hesc(cat.label)}</span>
+        <span class="cn">${sel ? sel + ' sel · ' : ''}${items.length} ítems</span>
+      </div>
+      <div class="cat-b">${items.map(prodRow).join('')}</div>
+    </div>`;
+  }).join('');
+  el.innerHTML = html || '<div class="empty">Sin coincidencias en el catálogo.</div>';
+}
+
+function prodRow(p) {
+  const q = wz.qtys[p.n] || 0;
+  return `<div class="prod ${q ? 'on' : ''}" id="pr-${p.id}">
+    <div class="prod-n">${hesc(p.n)}<div class="prod-f">${hesc(p.f)}</div></div>
+    <div class="stp">
+      <button type="button" onclick="qChg('${p.id}',-1)">−</button>
+      <input type="number" min="0" id="qi-${p.id}" value="${q}" oninput="qSet('${p.id}',this.value)">
+      <button type="button" onclick="qChg('${p.id}',1)">+</button>
+    </div>
+  </div>`;
+}
+
+function qChg(id, d) {
+  const p = prodById(id); if (!p) return;
+  qApply(p, Math.max(0, (wz.qtys[p.n] || 0) + d));
+}
+function qSet(id, val) {
+  const p = prodById(id); if (!p) return;
+  qApply(p, Math.max(0, parseInt(val, 10) || 0), true);
+}
+function qApply(p, v, skipInput) {
+  if (v > 0) wz.qtys[p.n] = v; else delete wz.qtys[p.n];
+  const inp = document.getElementById('qi-' + p.id);
+  if (inp && !skipInput) inp.value = v;
+  const row = document.getElementById('pr-' + p.id);
+  if (row) row.classList.toggle('on', v > 0);
+  updWzBar(); renderWzPills();
+}
+
+function limpiarProds() {
+  wz.qtys = {};
+  document.getElementById('wextra').value = '';
+  renderCatalogo(); updWzBar(); renderWzPills();
+}
+
+function updWzBar() {
+  const e  = Object.entries(wz.qtys);
+  const un = e.reduce((a, [, q]) => a + q, 0);
+  document.getElementById('wz-bar-info').textContent = e.length
+    ? `${e.length} producto${e.length > 1 ? 's' : ''} · ${un} unidad${un > 1 ? 'es' : ''}`
+    : 'Sin productos seleccionados';
+  document.getElementById('wz-prev').textContent =
+    e.length ? e.map(([k, q]) => `${k} ×${q}`).join(', ') : '';
+}
+
+function repetirUltimo() {
+  const p = ultPedidoSuc(wz.cliente, wz.sucursal);
+  if (!p) return;
+  wz.qtys = {};
+  const sobra = [];
+  splitDet(p.detalle).forEach(it => {
+    const m = it.match(/^(.*?)\s*\(([^)]*)\)\s*[x×]\s*(\d+)$/i);
+    if (m) {
+      const prod = PRODS.find(x => normTxt(x.n) === normTxt(m[1]));
+      if (prod) { wz.qtys[prod.n] = parseInt(m[3], 10) || 1; return; }
+    }
+    sobra.push(it);
+  });
+  document.getElementById('wextra').value = sobra.join('\n');
+  renderCatalogo(); updWzBar(); renderWzPills();
+  alerta('wz-alert',
+    `Cargado el último pedido (${hesc(p.fecha || 's/fecha')}).` +
+    (sobra.length ? ` ${sobra.length} ítem(s) fuera de catálogo quedaron en “otros”.` : ''), 'ai');
+}
+
+function buildDetalle() {
+  const cat = PRODS.filter(p => wz.qtys[p.n]).map(p => `${p.n} (${p.f}) x${wz.qtys[p.n]}`);
+  const extra = (document.getElementById('wextra').value || '')
+    .split('\n').map(s => s.trim().replace(/,$/, '')).filter(Boolean);
+  return [...cat, ...extra].join(', ');
+}
+
+async function guardarWz() {
+  const c = wz.cliente, s = wz.sucursal;
+  if (!c || !s) return wzGo(1);
+
+  const zona = document.getElementById('wzona').value;
+  const det  = buildDetalle();
+  if (!zona) return alerta('wz-alert', 'Asigna una zona antes de guardar.', 'ae');
+  if (!det)  return alerta('wz-alert', 'Selecciona al menos un producto.', 'ae');
+
+  const btn = document.getElementById('bwzguardar');
+  btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
+
+  const row = {
+    emp: c.emp, rut: c.rut || '', dir: s.dir, zona,
+    detalle: det,
+    contacto: s.contacto || c.contacto || '',
+    telefono: s.telefono || c.telefono || '',
+    factura_num: document.getElementById('wfact').value.trim(),
+    factura_nombre: '',
+    estado: 'pendiente',
+    fecha: document.getElementById('wfecha').value.trim() || hoy(),
+    fecha_entrega: '', recibe: '',
+    comentario: document.getElementById('wcom').value.trim()
+  };
+  if (dirOK && !c._local && !s._local) { row.cliente_id = c.id; row.sucursal_id = s.id; }
+
+  try {
+    try {
+      await sbPost(row);
+    } catch (e1) {
+      // Respaldo: si aún no existen las columnas de enlace en `pedidos`
+      if (row.cliente_id !== undefined) {
+        delete row.cliente_id; delete row.sucursal_id;
+        await sbPost(row);
+      } else throw e1;
+    }
+    wz.qtys = {};
+    ['wfact','wcom','wextra','pq'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('wfecha').value = hoy();
+    renderCatalogo(); updWzBar(); renderWzPills();
+    alerta('wz-alert', `✅ Pedido guardado para ${hesc(c.emp)} — ${hesc(s.nombre)}.`, 'as');
+    await cargar();
+  } catch (e) {
+    alerta('wz-alert', 'Error guardando el pedido: ' + hesc(e.message), 'ae');
+  }
+  btn.innerHTML = 'Guardar Pedido'; btn.disabled = false;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  DIRECTORIO — LISTADO
+// ══════════════════════════════════════════════════════════════
+let cliOpen = [];
+
+function renderClientes() {
+  document.getElementById('cl-banner').innerHTML = bannerModo();
+  document.getElementById('bsync').style.display = dirOK ? '' : 'none';
+
+  const q  = normTxt(document.getElementById('clq').value);
+  const qr = q.replace(/[^0-9k]/g, '').toUpperCase();
+  const el = document.getElementById('cl-list');
+
+  const lista = clientes.filter(c => !q ||
+    normTxt(c.emp).includes(q) ||
+    normTxt(c.contacto).includes(q) ||
+    (qr && normRut(c.rut).includes(qr)) ||
+    sucsDe(c).some(s => normTxt(s.dir).includes(q) || normTxt(s.nombre).includes(q))
+  );
+
+  if (!lista.length) {
+    el.innerHTML = '<div class="empty">' +
+      (clientes.length ? 'Sin coincidencias.' : 'Todavía no hay clientes en el directorio.') + '</div>';
+    return;
+  }
+
+  el.innerHTML = lista.map(c => {
+    const sucs = sucsDe(c);
+    const up   = ultPedidoCli(c);
+    const open = cliOpen.includes(String(c.id)) ? 'open' : '';
+    return `<div class="cli ${open}" id="cli-${c.id}">
+      <div class="cli-h" onclick="togCli('${c.id}')">
+        <div style="flex:1;min-width:0">
+          <div class="pick-t">${hesc(c.emp)}</div>
+          <div class="pick-s">${hesc(c.rut || 'sin RUT')}${c.contacto ? ' · 👤 ' + hesc(c.contacto) : ''}${c.telefono ? ' · 📞 ' + hesc(c.telefono) : ''}</div>
+        </div>
+        <div class="pick-r">
+          <span class="chip">${sucs.length} sucursal${sucs.length === 1 ? '' : 'es'}</span>
+          <div class="pick-s">${up ? 'Últ. pedido ' + hesc(up.fecha || '—') : 'Sin pedidos'}</div>
+        </div>
+      </div>
+      <div class="cli-b">
+        ${sucs.length ? sucs.map(s => `
+          <div class="suc">
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:800;font-size:12px;color:var(--mora-d)">${hesc(s.nombre)} ${s.zona ? zbadge(s.zona) : ''}</div>
+              <div class="pick-s">📍 ${hesc(s.dir)}</div>
+              ${s.horario ? `<div class="pick-s">🕒 ${hesc(s.horario)}</div>` : ''}
+              ${s.notas   ? `<div class="pick-s">📝 ${hesc(s.notas)}</div>` : ''}
+            </div>
+            <div class="suc-a">
+              <button class="btn bam2 bsm" onclick="pedirDesde('${c.id}','${s.id}')">Pedido</button>
+              <button class="btn bol bsm"  onclick="abrirSuc('${s.id}','list','${c.id}')">Editar</button>
+              ${dirOK ? `<button class="btn bdng bsm" onclick="borrarSuc('${s.id}')">✕</button>` : ''}
+            </div>
+          </div>`).join('')
+          : '<div class="pick-s" style="padding:4px 2px 8px">Sin sucursales registradas.</div>'}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+          <button class="btn bol bsm"  onclick="abrirSuc(null,'list','${c.id}')">＋ Sucursal</button>
+          <button class="btn bgray bsm" onclick="abrirCli('${c.id}','list')">Editar cliente</button>
+          ${dirOK ? `<button class="btn bdng bsm" onclick="borrarCli('${c.id}')">Eliminar cliente</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function togCli(id) {
+  const k = String(id);
+  cliOpen = cliOpen.includes(k) ? cliOpen.filter(x => x !== k) : [...cliOpen, k];
+  const el = document.getElementById('cli-' + id);
+  if (el) el.classList.toggle('open', cliOpen.includes(k));
+}
+
+function pedirDesde(cid, sid) {
+  const c = findCli(cid), s = findSuc(sid);
+  if (!c || !s) return;
+  wz.cliente = c; wz.sucursal = s; wz.qtys = {};
+  ['wfact','wcom','wextra','pq'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('wzona').value  = s.zona || '';
+  document.getElementById('wfecha').value = hoy();
+  const btn = [...document.querySelectorAll('.tb')].find(b => b.textContent.includes('Agregar'));
+  goTab('nuevo', btn);
+  wzGo(3);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  DIRECTORIO — MODAL CLIENTE
+// ══════════════════════════════════════════════════════════════
+function abrirCli(id, ctx) {
+  cliEdit = id ? String(id) : null;
+  cliCtx  = ctx || 'list';
+  const c = id ? findCli(id) : null;
+  document.getElementById('mc-title').textContent = c ? 'Editar Cliente' : 'Nuevo Cliente';
+  document.getElementById('mc-alert').innerHTML   = '';
+  document.getElementById('mcemp').value      = c ? c.emp      : '';
+  document.getElementById('mcrut').value      = c ? (c.rut||'')      : '';
+  document.getElementById('mccontacto').value = c ? (c.contacto||'') : '';
+  document.getElementById('mctel').value      = c ? (c.telefono||'') : '';
+  document.getElementById('mcemail').value    = c ? (c.email||'')    : '';
+  document.getElementById('mcnotas').value    = c ? (c.notas||'')    : '';
+  document.getElementById('modal-cli').classList.add('open');
+}
+function cerrarCli() { document.getElementById('modal-cli').classList.remove('open'); }
+
+async function guardarCliente() {
+  const emp = document.getElementById('mcemp').value.trim();
+  if (!emp) return alerta('mc-alert', 'Ingresa el nombre de la empresa.', 'ae');
+
+  const row = {
+    emp,
+    rut:      document.getElementById('mcrut').value.trim(),
+    contacto: document.getElementById('mccontacto').value.trim(),
+    telefono: document.getElementById('mctel').value.trim(),
+    email:    document.getElementById('mcemail').value.trim(),
+    notas:    document.getElementById('mcnotas').value.trim()
+  };
+
+  const btn = document.getElementById('bmc');
+  btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true;
+
+  try {
+    if (!dirOK) {
+      // Modo historial: cliente puntual, vive solo en esta sesión
+      if (cliEdit) {
+        Object.assign(findCli(cliEdit) || {}, row);
+      } else {
+        const nc = { id: 'L' + Date.now(), ...row, _local: true, _temp: true };
+        clientes.push(nc);
+        clientes.sort((a, b) => a.emp.localeCompare(b.emp, 'es'));
+        if (cliCtx === 'wz') { wz.cliente = nc; wz.sucursal = null; wz.qtys = {}; }
+      }
+    } else {
+      if (cliEdit) await sbSend(`clientes?id=eq.${cliEdit}`, 'PATCH', row);
+      else         await sbSend('clientes', 'POST', row);
+      await loadDirectorio();
+      if (!cliEdit) {
+        const nuevo = clientes.find(c =>
+          normTxt(c.emp) === normTxt(row.emp) && normRut(c.rut) === normRut(row.rut));
+        if (nuevo && cliCtx === 'wz') { wz.cliente = nuevo; wz.sucursal = null; wz.qtys = {}; }
+      } else if (wz.cliente && String(wz.cliente.id) === cliEdit) {
+        wz.cliente = findCli(cliEdit);
+      }
+    }
+
+    cerrarCli();
+    renderClientes();
+    if (cliCtx === 'wz') {
+      wzGo(2);
+      if (wz.cliente && !sucsDe(wz.cliente).length) abrirSuc(null, 'wz', wz.cliente.id);
+    }
+  } catch (e) {
+    alerta('mc-alert', 'Error guardando: ' + hesc(e.message), 'ae');
+  }
+  btn.innerHTML = 'Guardar'; btn.disabled = false;
+}
+
+async function borrarCli(id) {
+  const c = findCli(id); if (!c) return;
+  if (!confirm(`¿Eliminar "${c.emp}" y todas sus sucursales del directorio?\nLos pedidos ya registrados no se borran.`)) return;
+  try {
+    await sbSend(`clientes?id=eq.${id}`, 'DELETE');
+    if (wz.cliente && String(wz.cliente.id) === String(id)) { wz.cliente = null; wz.sucursal = null; }
+    await loadDirectorio();
+    renderClientes();
+    alerta('cl-alert', 'Cliente eliminado del directorio.', 'as');
+  } catch (e) {
+    alerta('cl-alert', 'Error eliminando: ' + hesc(e.message), 'ae');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  DIRECTORIO — MODAL SUCURSAL
+// ══════════════════════════════════════════════════════════════
+function abrirSuc(id, ctx, cliId) {
+  const s = id ? findSuc(id) : null;
+  sucEdit = id ? String(id) : null;
+  sucCtx  = ctx || 'list';
+  sucCli  = s ? findCli(s.cliente_id) : (cliId ? findCli(cliId) : wz.cliente);
+  if (!sucCli) { alert('Selecciona primero un cliente.'); return; }
+
+  document.getElementById('ms-title').textContent = (s ? 'Editar Sucursal' : 'Nueva Sucursal') + ' — ' + sucCli.emp;
+  document.getElementById('ms-alert').innerHTML   = '';
+  document.getElementById('msnombre').value   = s ? s.nombre : '';
+  document.getElementById('msdir').value      = s ? s.dir    : '';
+  document.getElementById('mszona').value     = s ? (s.zona||'')     : '';
+  document.getElementById('mscontacto').value = s ? (s.contacto||'') : (sucCli.contacto || '');
+  document.getElementById('mstel').value      = s ? (s.telefono||'') : (sucCli.telefono || '');
+  document.getElementById('mshorario').value  = s ? (s.horario||'')  : '';
+  document.getElementById('msnotas').value    = s ? (s.notas||'')    : '';
+  document.getElementById('modal-suc').classList.add('open');
+}
+function cerrarSuc() { document.getElementById('modal-suc').classList.remove('open'); }
+
+async function guardarSucursal() {
+  const dir = document.getElementById('msdir').value.trim();
+  let nombre = document.getElementById('msnombre').value.trim();
+  if (!dir) return alerta('ms-alert', 'Ingresa la dirección de despacho.', 'ae');
+  if (!nombre) nombre = nombreDesdeDir(dir);
+
+  const row = {
+    cliente_id: sucCli.id,
+    nombre, dir,
+    zona:     document.getElementById('mszona').value,
+    contacto: document.getElementById('mscontacto').value.trim(),
+    telefono: document.getElementById('mstel').value.trim(),
+    horario:  document.getElementById('mshorario').value.trim(),
+    notas:    document.getElementById('msnotas').value.trim()
+  };
+
+  const btn = document.getElementById('bms');
+  btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true;
+
+  try {
+    if (!dirOK || sucCli._local) {
+      if (sucEdit) {
+        Object.assign(findSuc(sucEdit) || {}, row);
+        if (wz.sucursal && String(wz.sucursal.id) === sucEdit) wz.sucursal = findSuc(sucEdit);
+      } else {
+        const ns = { id: 'LS' + Date.now(), ...row, _local: true, _temp: true };
+        sucursales.push(ns);
+        if (sucCtx === 'wz') wz.sucursal = ns;
+      }
+    } else {
+      if (sucEdit) await sbSend(`sucursales?id=eq.${sucEdit}`, 'PATCH', row);
+      else         await sbSend('sucursales', 'POST', row);
+      await loadDirectorio();
+      if (wz.cliente) wz.cliente = findCli(wz.cliente.id) || wz.cliente;
+      const ref = sucursales.find(s =>
+        String(s.cliente_id) === String(row.cliente_id) && normTxt(s.dir) === normTxt(row.dir));
+      if (ref && (sucCtx === 'wz' || (wz.sucursal && String(wz.sucursal.id) === sucEdit))) wz.sucursal = ref;
+    }
+
+    cerrarSuc();
+    renderClientes();
+    if (sucCtx === 'wz' && wz.sucursal) { wzGo(3); }
+    else if (sucCtx === 'wz')           { wzGo(2); }
+  } catch (e) {
+    alerta('ms-alert', 'Error guardando: ' + hesc(e.message), 'ae');
+  }
+  btn.innerHTML = 'Guardar'; btn.disabled = false;
+}
+
+async function borrarSuc(id) {
+  const s = findSuc(id); if (!s) return;
+  if (!confirm(`¿Eliminar la sucursal "${s.nombre}" (${s.dir})?`)) return;
+  try {
+    await sbSend(`sucursales?id=eq.${id}`, 'DELETE');
+    if (wz.sucursal && String(wz.sucursal.id) === String(id)) wz.sucursal = null;
+    await loadDirectorio();
+    renderClientes();
+    alerta('cl-alert', 'Sucursal eliminada.', 'as');
+  } catch (e) {
+    alerta('cl-alert', 'Error eliminando: ' + hesc(e.message), 'ae');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  SINCRONIZAR DIRECTORIO DESDE EL HISTORIAL DE PEDIDOS
+// ══════════════════════════════════════════════════════════════
+async function sincronizar() {
+  if (!dirOK) { alerta('cl-alert', 'Primero hay que crear las tablas en Supabase (directorio.sql).', 'ae'); return; }
+
+  const btn = document.getElementById('bsync');
+  btn.innerHTML = '<span class="sp"></span>Sincronizando...'; btn.disabled = true;
+
+  try {
+    // 1) Clientes faltantes
+    const exist = new Set(clientes.map(c => normRut(c.rut) + '|' + normTxt(c.emp)));
+    const nuevosC = new Map();
+    pedidos.forEach(p => {
+      const emp = (p.emp || '').trim();
+      if (!emp || normRut(p.rut) === RUT_B2C) return;
+      const k = normRut(p.rut) + '|' + normTxt(emp);
+      if (exist.has(k) || nuevosC.has(k)) return;
+      nuevosC.set(k, {
+        emp, rut: (p.rut || '').trim(),
+        contacto: p.contacto || '', telefono: p.telefono || '', email: p.email || ''
+      });
+    });
+    for (const c of nuevosC.values()) await sbSend('clientes', 'POST', c);
+    if (nuevosC.size) await loadDirectorio();
+
+    // 2) Sucursales faltantes
+    const mapC = new Map(clientes.map(c => [normRut(c.rut) + '|' + normTxt(c.emp), c]));
+    const existS = new Set(sucursales.map(s => String(s.cliente_id) + '|' + normTxt(s.dir)));
+    const nuevosS = new Map();
+    pedidos.forEach(p => {
+      const emp = (p.emp || '').trim(), dir = (p.dir || '').trim();
+      if (!emp || !dir || normRut(p.rut) === RUT_B2C) return;
+      const c = mapC.get(normRut(p.rut) + '|' + normTxt(emp));
+      if (!c) return;
+      const k = String(c.id) + '|' + normTxt(dir);
+      if (existS.has(k) || nuevosS.has(k)) return;
+      nuevosS.set(k, {
+        cliente_id: c.id, nombre: nombreDesdeDir(dir), dir,
+        zona: p.zona || '', contacto: p.contacto || '', telefono: p.telefono || ''
+      });
+    });
+    for (const s of nuevosS.values()) await sbSend('sucursales', 'POST', s);
+
+    await loadDirectorio();
+    renderClientes();
+    alerta('cl-alert',
+      `✅ Sincronizado: ${nuevosC.size} cliente(s) y ${nuevosS.size} sucursal(es) agregadas al directorio.`, 'as');
+  } catch (e) {
+    alerta('cl-alert', 'Error sincronizando: ' + hesc(e.message), 'ae');
+  }
+  btn.innerHTML = '🔄 Sincronizar desde pedidos'; btn.disabled = false;
 }
 </script>
 </body>
