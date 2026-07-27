@@ -238,7 +238,9 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
     <h3>Bienvenido</h3>
     <p>Ingresa los datos de tu empresa para acceder al catálogo</p>
     <div id="login-alert"></div>
-    <div class="field"><label>RUT Empresa *</label><input type="text" id="rut-inp" placeholder="76.123.456-7" oninput="fmtR(this)"></div>
+    <div class="field"><label>RUT Empresa *</label><input type="text" id="rut-inp" placeholder="76.123.456-7" oninput="fmtR(this); avisoRut()">
+      <div id="rut-aviso" style="display:none;font-size:12px;font-weight:700;color:#b45309;margin-top:5px;line-height:1.4"></div>
+    </div>
     <div class="field"><label>Nombre Empresa *</label><input type="text" id="emp-inp" placeholder="Nombre de tu empresa"></div>
     <div class="field"><label>Dirección de Despacho *</label><input type="text" id="dir-inp" placeholder="Av. Ejemplo 1234, Santiago"></div>
     <div class="field"><label>Email *</label><input type="email" id="email-inp" placeholder="correo@empresa.cl"></div>
@@ -395,6 +397,40 @@ const CATS = [
 let sess = {}, qtys = {};
 
 // ── FORMATO RUT ──
+// Verifica el dígito verificador del RUT. Solo sirve para avisar:
+// nunca impide enviar el pedido.
+function rutOk(r) {
+  const v = String(r || '').toUpperCase().replace(/[^0-9K]/g, '');
+  if (v.length < 8 || v.length > 9) return false;
+  const cuerpo = v.slice(0, -1), d = v.slice(-1);
+  if (!/^[0-9]+$/.test(cuerpo)) return false;
+  if (new Set(cuerpo).size === 1) return true;   // 11.111.111-1 es placeholder válido
+  let s = 0, m = 2;
+  for (let i = cuerpo.length - 1; i >= 0; i--) {
+    s += parseInt(cuerpo[i], 10) * m;
+    m = (m === 7) ? 2 : m + 1;
+  }
+  const r2 = 11 - (s % 11);
+  return (r2 === 11 ? '0' : r2 === 10 ? 'K' : String(r2)) === d;
+}
+
+function avisoRut() {
+  const el = document.getElementById('rut-inp');
+  const av = document.getElementById('rut-aviso');
+  const v  = el.value.replace(/[^0-9kK]/g, '');
+  if (v.length < 8) { av.style.display = 'none'; el.style.borderColor = ''; return; }
+  if (rutOk(el.value)) {
+    av.style.display = 'none';
+    el.style.borderColor = '';
+  } else {
+    av.style.display = 'block';
+    av.textContent = v.length > 9
+      ? '⚠️ Ese RUT tiene demasiados dígitos. ¿Escribiste el teléfono por error?'
+      : '⚠️ Revisa el RUT, parece que hay un dígito cambiado. Puedes continuar igual.';
+    el.style.borderColor = '#f59e0b';
+  }
+}
+
 function fmtR(el) {
   let v = el.value.replace(/[^0-9kK]/g, '');
   if (v.length < 2) { el.value = v; return; }
@@ -445,6 +481,10 @@ function login() {
 
 function logout() {
   sess = {}; qtys = {};
+  const av = document.getElementById('rut-aviso');
+  if (av) { av.style.display = 'none'; }
+  const ri = document.getElementById('rut-inp');
+  if (ri) { ri.style.borderColor = ''; }
   ['rut-inp','emp-inp','dir-inp','email-inp','contacto-inp','tel-inp'].forEach(id =>
     document.getElementById(id).value = ''
   );
