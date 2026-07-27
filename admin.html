@@ -299,9 +299,10 @@ input[type=checkbox]{
   <div class="lcard">
     <h3>Equipo nativo</h3>
     <div id="lerr"></div>
-    <input class="inp" type="password" id="pin" placeholder="PIN de acceso"
+    <input class="inp" type="password" id="pin" placeholder="Clave de acceso"
+      autocomplete="current-password"
       onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="bam-full" onclick="doLogin()">Ingresar →</button>
+    <button class="bam-full" id="bentrar" onclick="doLogin()">Ingresar →</button>
   </div>
 </div>
 
@@ -665,8 +666,12 @@ input[type=checkbox]{
 // ══════════════════════════════════════════
 //  CONFIGURACIÓN
 // ══════════════════════════════════════════
-const PIN   = '1234';
 const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
+
+// La clave NO se guarda aquí. Se escribe al entrar, se manda al Worker en
+// cada petición y es el Worker quien la verifica. Este archivo es público:
+// cualquier clave escrita en él sería visible para todo el mundo.
+let TOKEN = '';
 
 // ══════════════════════════════════════════
 //  ESTADO GLOBAL
@@ -688,18 +693,58 @@ let sucEdit    = null, sucCtx = 'list', sucCli = null;
 // ══════════════════════════════════════════
 //  AUTH
 // ══════════════════════════════════════════
-function doLogin() {
-  if (document.getElementById('pin').value !== PIN) {
+async function doLogin() {
+  const clave = document.getElementById('pin').value;
+  const btn   = document.getElementById('bentrar');
+  if (!clave) return;
+
+  btn.innerHTML = '<span class="sp"></span>Verificando...'; btn.disabled = true;
+  document.getElementById('lerr').innerHTML = '';
+
+  try {
+    // El Worker es quien decide. Se prueba con una lectura mínima.
+    const r = await fetch(`${PROXY}/supabase/pedidos?select=id&limit=1`, {
+      headers: { 'X-Admin-Token': clave }
+    });
+    if (r.status === 401) {
+      document.getElementById('lerr').innerHTML =
+        '<div class="alert ae">Clave incorrecta.</div>';
+      btn.innerHTML = 'Ingresar →'; btn.disabled = false;
+      return;
+    }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+  } catch (e) {
     document.getElementById('lerr').innerHTML =
-      '<div class="alert ae">PIN incorrecto.</div>';
+      '<div class="alert ae">No se pudo conectar. Revisa tu conexión e intenta de nuevo.</div>';
+    btn.innerHTML = 'Ingresar →'; btn.disabled = false;
     return;
   }
+
+  TOKEN = clave;
+  try { sessionStorage.setItem('nativo_token', clave); } catch (_) {}
+  document.getElementById('pin').value = '';
   document.getElementById('login').style.display = 'none';
   document.getElementById('app').style.display   = 'block';
+  btn.innerHTML = 'Ingresar →'; btn.disabled = false;
   cargar();
 }
 
+// Si recargas la página, no hay que escribir la clave de nuevo.
+// Se guarda solo en la pestaña actual: al cerrarla desaparece.
+(function reanudar() {
+  try {
+    const g = sessionStorage.getItem('nativo_token');
+    if (!g) return;
+    TOKEN = g;
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display   = 'block';
+    cargar();
+  } catch (_) {}
+})();
+
 function salir() {
+  TOKEN = '';
+  try { sessionStorage.removeItem('nativo_token'); } catch (_) {}
   document.getElementById('login').style.display = 'flex';
   document.getElementById('app').style.display   = 'none';
   document.getElementById('pin').value = '';
@@ -731,6 +776,13 @@ function goTab(id, btn) {
 // ══════════════════════════════════════════
 function hoy() { return new Date().toLocaleDateString('es-CL'); }
 
+// Escapa HTML. Todo dato que venga de la base pasa por aquí antes de
+// insertarse en la página: los pedidos del portal los escribe cualquiera.
+function hesc(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g,
+    c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
 function fmtR(el) {
   let v = el.value.replace(/[^0-9kK]/g, '');
   if (v.length < 2) { el.value = v; return; }
@@ -744,16 +796,21 @@ function splitDet(s) {
   return s.split(/,\s*(?=[A-ZÁÉÍÓÚÑ])/).map(d => d.trim()).filter(Boolean);
 }
 
+// Ambas insertan HTML, así que solo aceptan valores de la lista conocida.
+// hasOwnProperty evita que un valor como "toString" cuele por el prototipo.
+const tiene = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+
 function zbadge(z) {
   const m = { norte:'bnorte', sur:'bsur', santiago:'bstgo', litoral:'blito' };
-  if (!z || !m[z]) return '<span class="badge bsinz">⚠️ Sin zona</span>';
-  return `<span class="badge ${m[z]}">${z}</span>`;
+  if (!z || !tiene(m, z)) return '<span class="badge bsinz">⚠️ Sin zona</span>';
+  return `<span class="badge ${m[z]}">${hesc(z)}</span>`;
 }
 
 function ebadge(e) {
   const m = { pendiente:'bpend', facturado:'bfact', 'en-ruta':'bruta', entregado:'bentr' };
   const l = { pendiente:'Sin facturar', facturado:'Facturado', 'en-ruta':'En ruta', entregado:'Entregado' };
-  return `<span class="badge ${m[e]||'bpend'}">${l[e]||e}</span>`;
+  if (!e || !tiene(m, e)) return `<span class="badge bpend">${hesc(e) || 'Sin estado'}</span>`;
+  return `<span class="badge ${m[e]}">${hesc(l[e])}</span>`;
 }
 
 function estadoLabel(e) {
@@ -770,17 +827,40 @@ function alerta(id, msg, cls) {
 //  SUPABASE API
 // ══════════════════════════════════════════
 async function sbGet() {
-  const r = await fetch(`${PROXY}/supabase/pedidos?order=created_at.desc`);
+  const r = revisarAuth(await fetch(`${PROXY}/supabase/pedidos?order=created_at.desc`,
+    { headers: cabeceras(false) }));
+  if (!r.ok) throw new Error('HTTP ' + r.status);
   const d = await r.json();
   if (!Array.isArray(d)) throw new Error('Respuesta inválida');
   return d;
 }
 
 // Envío genérico: lanza error si la respuesta no es OK (antes fallaba en silencio)
+function cabeceras(conCuerpo) {
+  const h = { 'X-Admin-Token': TOKEN };
+  if (conCuerpo) h['Content-Type'] = 'application/json';
+  return h;
+}
+
+// Si el Worker responde 401, la clave dejó de servir: se vuelve al login
+// en vez de dejar el panel a medias.
+function revisarAuth(r) {
+  if (r.status === 401) {
+    TOKEN = '';
+    try { sessionStorage.removeItem('nativo_token'); } catch (_) {}
+    document.getElementById('app').style.display   = 'none';
+    document.getElementById('login').style.display = 'flex';
+    document.getElementById('lerr').innerHTML =
+      '<div class="alert ae">La sesión expiró o la clave cambió. Ingresa de nuevo.</div>';
+    throw new Error('Sesión no autorizada');
+  }
+  return r;
+}
+
 async function sbSend(path, method, body) {
-  const o = { method, headers: { 'Content-Type': 'application/json' } };
+  const o = { method, headers: cabeceras(true) };
   if (body !== undefined) o.body = JSON.stringify(body);
-  const r = await fetch(`${PROXY}/supabase/${path}`, o);
+  const r = revisarAuth(await fetch(`${PROXY}/supabase/${path}`, o));
   if (!r.ok) {
     let d = '';
     try { d = (await r.text()).slice(0, 180); } catch(_) {}
@@ -790,7 +870,7 @@ async function sbSend(path, method, body) {
 }
 
 async function sbJson(path) {
-  const r = await fetch(`${PROXY}/supabase/${path}`);
+  const r = revisarAuth(await fetch(`${PROXY}/supabase/${path}`, { headers: cabeceras(false) }));
   if (!r.ok) throw new Error('HTTP ' + r.status);
   const d = await r.json();
   if (!Array.isArray(d)) throw new Error('Respuesta inválida');
@@ -859,42 +939,42 @@ function render() {
     const items = splitDet(p.detalle);
     const dhtml = items.length
       ? '<div style="margin-top:6px;background:var(--mora-xl);border-radius:7px;padding:6px 8px">' +
-        items.map(d => `<div style="font-size:11px;color:var(--mora-d);font-weight:700;line-height:1.6">· ${d}</div>`).join('') +
+        items.map(d => `<div style="font-size:11px;color:var(--mora-d);font-weight:700;line-height:1.6">· ${hesc(d)}</div>`).join('') +
         '</div>'
       : '<div style="font-size:11px;color:#d1d5db;margin-top:4px;font-weight:600">Sin detalle</div>';
 
     const contactoHtml = (p.contacto || p.telefono)
       ? `<div style="margin-top:3px;display:flex;gap:8px;flex-wrap:wrap">
-           ${p.contacto ? `<span style="font-size:11px;color:var(--textl);font-weight:700">👤 ${p.contacto}</span>` : ''}
-           ${p.telefono ? `<span style="font-size:11px;color:var(--textl);font-weight:700">📞 ${p.telefono}</span>` : ''}
+           ${p.contacto ? `<span style="font-size:11px;color:var(--textl);font-weight:700">👤 ${hesc(p.contacto)}</span>` : ''}
+           ${p.telefono ? `<span style="font-size:11px;color:var(--textl);font-weight:700">📞 ${hesc(p.telefono)}</span>` : ''}
          </div>` : '';
 
     const recibeHtml = p.recibe
-      ? `<div style="font-size:11px;color:var(--vd);font-weight:700;margin-top:3px">✔ Recibe: ${p.recibe}</div>` : '';
+      ? `<div style="font-size:11px;color:var(--vd);font-weight:700;margin-top:3px">✔ Recibe: ${hesc(p.recibe)}</div>` : '';
 
     const entregaHtml = p.fecha_entrega
-      ? `<div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:2px">📅 Entrega: ${p.fecha_entrega}</div>` : '';
+      ? `<div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:2px">📅 Entrega: ${hesc(p.fecha_entrega)}</div>` : '';
 
     return `<tr class="${isChecked ? 'row-sel' : ''}">
       <td class="td-check">
         <input type="checkbox" ${isChecked ? 'checked' : ''}
           onchange="toggleRow(${p.id}, this.checked)">
       </td>
-      <td style="font-size:12px;color:var(--textl);font-weight:600;white-space:nowrap">${p.fecha||'—'}</td>
+      <td style="font-size:12px;color:var(--textl);font-weight:600;white-space:nowrap">${hesc(p.fecha)||'—'}</td>
       <td>
-        <div style="font-weight:800;font-size:13px">${p.emp}</div>
-        <div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:1px">${p.rut}</div>
+        <div style="font-weight:800;font-size:13px">${hesc(p.emp)}</div>
+        <div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:1px">${hesc(p.rut)}</div>
         ${contactoHtml}
         ${dhtml}
       </td>
-      <td style="font-size:12px;font-weight:600;max-width:150px">${p.dir}</td>
+      <td style="font-size:12px;font-weight:600;max-width:150px">${hesc(p.dir)}</td>
       <td>${zbadge(p.zona)}</td>
       <td>
         ${ebadge(p.estado)}
         ${recibeHtml}
         ${entregaHtml}
       </td>
-      <td style="font-size:12px;color:var(--textl);font-weight:600">${p.factura_num||'—'}</td>
+      <td style="font-size:12px;color:var(--textl);font-weight:600">${hesc(p.factura_num)||'—'}</td>
       <td><button class="btn bol bsm" onclick="abrir(${p.id})">Editar</button></td>
     </tr>`;
   }).join('');
@@ -1086,7 +1166,12 @@ function exportCSV() {
     'Fecha Entrega','Recibe','Comentario'
   ];
 
-  const esc = v => `"${String(v||'').replace(/"/g,'""')}"`;
+  // El prefijo ' evita que Excel ejecute un campo que empiece con = + - @
+  const esc = v => {
+    let t = String(v == null ? '' : v);
+    if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;
+    return `"${t.replace(/"/g,'""')}"`;
+  };
 
   const rows = data.map(p => [
     p.id, p.fecha||'', p.emp, p.rut,
@@ -1124,14 +1209,14 @@ function renderChecksRuta() {
         onclick="event.stopPropagation(); togRuta(${p.id})">
       <div style="flex:1">
         <div style="font-weight:800;font-size:13px;color:var(--mora-d)">
-          ${p.emp} ${zbadge(p.zona)}
+          ${hesc(p.emp)} ${zbadge(p.zona)}
         </div>
-        <div style="font-size:12px;color:var(--textl);margin-top:2px;font-weight:600">📍 ${p.dir}</div>
-        ${p.telefono ? `<div style="font-size:12px;color:var(--textl);font-weight:600">📞 ${p.telefono}</div>` : ''}
+        <div style="font-size:12px;color:var(--textl);margin-top:2px;font-weight:600">📍 ${hesc(p.dir)}</div>
+        ${p.telefono ? `<div style="font-size:12px;color:var(--textl);font-weight:600">📞 ${hesc(p.telefono)}</div>` : ''}
         <div style="font-size:12px;color:var(--textl);margin-top:2px;font-weight:600">
-          📦 ${(p.detalle||'').slice(0,100)}${(p.detalle||'').length > 100 ? '…' : ''}
+          📦 ${hesc((p.detalle||'').slice(0,100))}${(p.detalle||'').length > 100 ? '…' : ''}
         </div>
-        ${p.factura_num ? `<div style="font-size:11px;color:var(--mora-l);margin-top:2px;font-weight:700">Factura N° ${p.factura_num}</div>` : ''}
+        ${p.factura_num ? `<div style="font-size:11px;color:var(--mora-l);margin-top:2px;font-weight:700">Factura N° ${hesc(p.factura_num)}</div>` : ''}
       </div>
     </div>`).join('');
 }
@@ -1447,8 +1532,6 @@ function nombreCanonico(nombres) {
   const puntaje = n => (n !== n.toUpperCase() ? 1000 : 0) + (n !== sinTilde(n) ? 100 : 0) - n.length / 100;
   return cand.sort((a, b) => puntaje(b) - puntaje(a))[0] || nombres[0] || '';
 }
-const hesc    = s => String(s == null ? '' : s).replace(/[&<>"']/g,
-  c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
 const findCli = id => clientes.find(c => String(c.id) === String(id)) || null;
 const findSuc = id => sucursales.find(s => String(s.id) === String(id)) || null;
