@@ -1,0 +1,1870 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>nativo – Planificador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --mora:#6b35b8;--mora-d:#4a1f7a;--mora-l:#9b6fd4;--mora-xl:#f0e6ff;
+  --am:#f5c842;--am-l:#fef9c3;
+  --crema:#fdf8f0;--crema-d:#ede3d0;
+  --text:#1e1226;--textl:#8b7a9e;--white:#fff;
+  --vl:#d1fae5;--vd:#065f46;--rl:#fee2e2;--rd:#7f1d1d;
+  --shadow:0 2px 8px rgba(107,53,184,.07);
+  --linea:rgba(107,53,184,.14);--linea2:rgba(107,53,184,.07);
+  --ok:#2E8B6E;--medio:#D89A1E;--alto:#C0392B;
+  --pxh:56px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:#f0eaf8;color:var(--text);min-height:100vh}
+
+/* ══ LOGIN (idéntico al panel) ══ */
+#login{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,var(--mora-d),var(--mora));padding:20px}
+.login-logo{font-family:'DM Serif Display',serif;font-size:52px;color:var(--am);letter-spacing:2px;text-align:center;margin-bottom:6px}
+.login-sub{color:rgba(255,255,255,.45);font-size:12px;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-bottom:32px;font-weight:700}
+.lcard{background:var(--white);border-radius:20px;padding:28px;width:100%;max-width:340px;box-shadow:0 24px 64px rgba(0,0,0,.25)}
+.lcard h3{font-family:'DM Serif Display',serif;font-size:22px;color:var(--mora-d);margin-bottom:16px}
+.inp{width:100%;padding:11px 14px;border:1.5px solid var(--crema-d);border-radius:10px;font-size:14px;outline:none;font-family:'Nunito',sans-serif;margin-bottom:12px;background:var(--crema);color:var(--text)}
+.inp:focus{border-color:var(--mora);background:var(--white)}
+.bam-full{width:100%;padding:12px;border:none;border-radius:10px;background:var(--am);color:var(--mora-d);font-size:14px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif}
+
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:700;margin-bottom:12px}
+.ae{background:var(--rl);color:var(--rd)}
+.as{background:var(--vl);color:var(--vd)}
+.ai{background:var(--mora-xl);color:var(--mora-d)}
+
+/* ══ NAV (idéntico al panel) ══ */
+nav{background:var(--mora);display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;position:sticky;top:0;z-index:40;box-shadow:0 2px 12px rgba(74,31,122,.25)}
+.nlogo{font-family:'DM Serif Display',serif;font-size:20px;color:var(--am);letter-spacing:1px}
+.ntabs{display:flex}
+.tb{background:none;border:none;color:rgba(255,255,255,.5);padding:14px 15px;cursor:pointer;
+  font-size:13px;font-weight:800;border-bottom:2px solid transparent;font-family:'Nunito',sans-serif;white-space:nowrap}
+.tb.act{color:var(--am);border-bottom-color:var(--am);background:rgba(255,255,255,.06)}
+.tb:hover:not(.act){color:var(--white)}
+.nright{display:flex;align-items:center;gap:10px}
+.bout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--white);
+  padding:6px 14px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:800;font-family:'Nunito',sans-serif}
+
+/* ══ ESTRUCTURA ══ */
+.wrap{padding:20px;max-width:1220px;margin:0 auto}
+.card{background:var(--white);border-radius:14px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px;border:1px solid rgba(107,53,184,.08)}
+.card h2{font-family:'DM Serif Display',serif;font-size:20px;color:var(--mora-d);margin-bottom:14px}
+.pl-head{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.pl-head h2{margin:0;white-space:nowrap}
+.pl-head select{width:auto;min-width:180px;font-weight:800;color:var(--mora-d)}
+.pl-sep{width:1px;height:24px;background:var(--crema-d);margin:0 3px}
+
+.btn{padding:9px 18px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:800;font-family:'Nunito',sans-serif;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.bmora{background:var(--mora);color:var(--white)}
+.bam2{background:var(--am);color:var(--mora-d)}
+.bsm{padding:5px 12px;font-size:12px;border-radius:6px}
+.bol{background:var(--white);color:var(--mora);border:1.5px solid var(--mora)}
+.bdng{background:var(--rl);color:var(--rd);border:1px solid #fca5a5}
+.bgray{background:var(--crema-d);color:var(--textl)}
+label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--mora);margin-bottom:4px}
+input,textarea,select{width:100%;padding:9px 12px;border:1.5px solid var(--crema-d);border-radius:8px;
+  font-size:13px;outline:none;font-family:'Nunito',sans-serif;color:var(--text);background:var(--crema)}
+input:focus,textarea:focus,select:focus{border-color:var(--mora);background:var(--white)}
+textarea{resize:vertical;min-height:60px}
+.fb{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.fb select,.fb input{width:auto;flex:0 1 auto;min-width:150px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.chip{display:inline-block;background:var(--crema);border:1px solid var(--crema-d);border-radius:20px;
+  padding:2px 9px;font-size:10px;font-weight:800;color:var(--mora)}
+.empty{color:var(--textl);font-size:13px;font-weight:700;padding:26px 6px;text-align:center}
+.sp{display:inline-block;width:14px;height:14px;border:2px solid rgba(107,53,184,.2);border-top-color:var(--mora);
+  border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ BARRA DEL PLANIFICADOR ══ */
+.pl-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;
+  padding-bottom:12px;border-bottom:1px solid var(--crema-d)}
+.pl-vistas{display:flex;gap:3px;background:var(--crema);padding:3px;border-radius:10px}
+.pl-vistas button{border:0;background:transparent;padding:7px 16px;border-radius:8px;font-weight:800;
+  font-size:13px;color:var(--textl);cursor:pointer;font-family:'Nunito',sans-serif}
+.pl-vistas button[aria-pressed=true]{background:var(--white);color:var(--mora-d);box-shadow:0 1px 3px rgba(107,53,184,.18)}
+.pl-pieinfo{margin-top:10px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;
+  font-size:11.5px;font-weight:700;color:var(--textl)}
+.pl-pieinfo .pl-vistas button{padding:5px 11px;font-size:12px}
+.pl-nav{display:flex;align-items:center;gap:6px}
+.pl-lbl{font-weight:900;min-width:180px;text-align:center;font-size:14px;color:var(--mora-d);text-transform:capitalize}
+.pl-ico{border:1.5px solid var(--crema-d);background:var(--white);width:32px;height:32px;border-radius:8px;
+  display:grid;place-items:center;color:var(--mora);font-weight:900;cursor:pointer;font-size:15px}
+.pl-ico:hover{border-color:var(--mora)}
+.crece{flex:1 1 auto}
+.pl-quien{font-size:12px;font-weight:800;color:var(--textl)}
+
+/* ══ SEMANA ══ */
+.pl-scroll{overflow:auto;max-height:max(320px,calc(100vh - 300px));overscroll-behavior:contain;
+  border:1px solid var(--crema-d);border-radius:10px}
+.pl-wk{min-width:820px}
+.pl-fila{display:grid;grid-template-columns:56px repeat(7,minmax(0,1fr))}
+.pl-fijo{position:sticky;top:0;z-index:30;background:var(--white);box-shadow:0 1px 0 var(--crema-d)}
+.pl-cab{border-bottom:1px solid var(--crema-d)}
+.pl-cab .cel{padding:8px 6px;text-align:center;border-left:1px solid var(--linea2)}
+.pl-cab .cel:first-child{position:sticky;left:0;z-index:2;background:var(--white);border-left:0}
+.pl-cab .dsem{font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--textl)}
+.pl-cab .dnum{font-family:'DM Serif Display',serif;font-size:21px;color:var(--mora-d);line-height:1.15}
+.pl-cab .hoy{background:var(--am-l)}
+.pl-cab .hoy .dnum{color:var(--mora)}
+.pl-cab .nolab .dnum,.pl-cab .nolab .dsem{opacity:.45}
+.pl-rot{font-size:10px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--textl);
+  display:flex;align-items:center;justify-content:flex-end;padding-right:6px;
+  position:sticky;left:0;z-index:2;background:var(--white)}
+.pl-todo{border-bottom:1px solid var(--crema-d)}
+.pl-lane{border-left:1px solid var(--linea2);padding:4px;min-height:26px;display:flex;flex-direction:column;gap:3px}
+.pl-tchip{border-radius:6px;padding:3px 8px;font-size:11.5px;font-weight:800;text-align:left;border:0;
+  border-left:3px solid;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.pl-gut{position:sticky;left:0;z-index:9;background:var(--white)}
+.pl-gut .h{position:absolute;right:7px;transform:translateY(-50%);font-size:11px;font-weight:800;color:var(--textl)}
+.pl-gut .h.tope{transform:translateY(1px)}
+.pl-gut .h.base{transform:translateY(calc(-100% - 1px))}
+.pl-col{position:relative;border-left:1px solid var(--linea2);
+  background-image:repeating-linear-gradient(to bottom,var(--linea2) 0 1px,transparent 1px calc(var(--pxh)))}
+.pl-col.hoy{background-color:rgba(245,200,66,.10)}
+.pl-fuera{position:absolute;left:0;right:0;pointer-events:none;
+  background:repeating-linear-gradient(135deg,rgba(107,53,184,.05) 0 6px,transparent 6px 12px)}
+.pl-ahora{position:absolute;left:0;right:0;height:2px;background:var(--alto);z-index:6;pointer-events:none}
+.pl-ahora::before{content:"";position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:var(--alto)}
+.pl-blk{position:absolute;border-radius:8px;padding:4px 6px;border:1px solid;border-left-width:4px;
+  overflow:hidden;text-align:left;font-size:12px;line-height:1.25;z-index:3;background:#fff;
+  box-shadow:0 1px 2px rgba(107,53,184,.08);touch-action:none;cursor:pointer;
+  /* display:block y no flex: un <button> centra su contenido y la hora de inicio
+     va arriba. Además, dentro de un flex el -webkit-box del título se convierte
+     en flow-root y se pierden los puntos suspensivos al recortar. */
+  display:block;container-type:size}
+.pl-blk:hover{z-index:8;box-shadow:0 3px 12px rgba(107,53,184,.2)}
+.pl-blk>span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-blk .t{font-weight:800}
+.pl-blk .h{font-size:11px;opacity:.85;font-weight:700}
+.pl-blk .q{font-size:10.5px;opacity:.8}
+/* Con alto de sobra el título se reparte en dos o tres líneas en vez de
+   cortarse: "Carga de camión en bodega" entra completo en un bloque de una hora. */
+@container (min-height:54px){
+  .pl-blk .t{white-space:normal;word-break:break-word;line-height:1.2;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+}
+@container (min-height:104px){.pl-blk .t{-webkit-line-clamp:3}}
+@container (max-height:74px){.pl-blk .q{display:none}}
+@container (max-height:40px){.pl-blk .h{display:none}}
+@container (max-height:25px){.pl-blk{padding:1px 6px;border-radius:5px}.pl-blk .t{font-size:10.5px}}
+@container (max-height:13px){.pl-blk .t{display:none}}
+@container (max-width:120px){.pl-blk .q{display:none}}
+@container (max-width:78px){.pl-blk .h{display:none}}
+@container (max-width:44px){.pl-blk .t{display:none}}
+.pl-blk .warn{position:absolute;top:1px;right:3px;font-size:10px}
+.pl-blk .grip{position:absolute;left:0;right:0;bottom:0;height:8px;cursor:ns-resize}
+.pl-blk.arr{opacity:.75;z-index:20}
+.pl-fant{position:absolute;border:2px dashed var(--mora);background:rgba(107,53,184,.12);border-radius:8px;
+  z-index:15;pointer-events:none;font-size:11px;font-weight:800;color:var(--mora);padding:2px 6px}
+.pl-editable .pl-col{cursor:copy}
+.pl-pie{position:sticky;bottom:0;z-index:25;border-top:1px solid var(--crema-d);background:var(--crema)}
+.pl-pie .cel{border-left:1px solid var(--linea2);padding:7px 8px}
+.pl-carga{display:flex;justify-content:space-between;gap:6px;font-size:11px;font-weight:800;margin-bottom:4px}
+.pl-carga .lib{font-weight:700;color:var(--textl)}
+.pl-barra{height:7px;border-radius:99px;background:rgba(107,53,184,.10);overflow:hidden}
+.pl-barra>i{display:block;height:100%;border-radius:99px}
+
+/* ══ MES (pantalla) ══ */
+.pl-mes{border:1px solid var(--crema-d);border-radius:10px;overflow:hidden}
+.pl-mcab{display:grid;background:var(--mora)}
+.pl-mcab div{padding:7px 8px;font-size:10.5px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;
+  color:#fff;text-align:center;border-left:1px solid rgba(255,255,255,.18)}
+.pl-mcab div:first-child{border-left:0}
+.pl-msem{display:grid;border-top:1px solid var(--crema-d)}
+.pl-dia{border-left:1px solid var(--linea2);padding:5px 6px 7px;min-height:104px;display:flex;flex-direction:column;
+  gap:2px;background:var(--white);cursor:copy}
+.pl-dia:first-child{border-left:0}
+.pl-dia{position:relative}
+.pl-dia[data-nuevo]:hover{background:#faf6ff}
+.pl-dia[data-nuevo]:hover::after{content:'＋ tarea';position:absolute;right:6px;bottom:5px;
+  font-size:10px;font-weight:800;color:var(--mora);background:var(--mora-xl);
+  border-radius:20px;padding:1px 8px;pointer-events:none}
+.pl-dia.finde{background:rgba(107,53,184,.03)}
+.pl-dia.otro{background:rgba(107,53,184,.05);cursor:default}
+.pl-dia.otro .pl-dnum{opacity:.4}
+.pl-dia.hoyc{box-shadow:inset 0 0 0 2px var(--am)}
+.pl-dnum{font-family:'DM Serif Display',serif;font-size:16px;color:var(--mora-d);line-height:1;margin-bottom:2px;flex:0 0 auto}
+.pl-lineas{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow:hidden;position:relative}
+.pl-lin{flex:0 0 auto;font-size:11.5px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  cursor:pointer;border-radius:4px;padding:0 3px}
+.pl-lin:hover{background:var(--mora-xl)}
+.pl-lin b{font-weight:800}
+.pl-mas{flex:0 0 auto;font-size:10.5px;font-weight:800;color:var(--mora);cursor:pointer;padding:0 3px}
+
+/* ══ MODALES ══ */
+.mbg{display:none;position:fixed;inset:0;background:rgba(74,31,122,.5);z-index:100;
+  justify-content:center;align-items:flex-start;padding:20px;overflow:auto}
+.mbg.open{display:flex}
+.modal{background:var(--white);border-radius:16px;padding:24px;max-width:540px;width:100%;
+  box-shadow:0 24px 64px rgba(0,0,0,.25);margin:auto}
+.modal h3{font-family:'DM Serif Display',serif;font-size:20px;color:var(--mora-d);margin-bottom:14px}
+.msec{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mora-l);
+  margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--crema-d)}
+.mact{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.pl-cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px}
+.pl-catb{border:1.5px solid var(--crema-d);border-radius:8px;padding:7px 9px;background:var(--white);
+  display:flex;align-items:center;gap:7px;font-weight:700;font-size:12px;text-align:left;cursor:pointer;font-family:'Nunito',sans-serif}
+.pl-catb i{width:10px;height:10px;border-radius:3px;flex:none}
+.pl-catb[aria-pressed=true]{border-color:var(--mora);box-shadow:0 0 0 2.5px rgba(107,53,184,.15)}
+.pl-dias{display:flex;gap:5px;flex-wrap:wrap}
+.pl-dias button{border:1.5px solid var(--crema-d);background:var(--white);width:40px;height:34px;border-radius:8px;
+  font-weight:800;font-size:12px;color:var(--textl);cursor:pointer;font-family:'Nunito',sans-serif}
+.pl-dias button[aria-pressed=true]{background:var(--mora);border-color:var(--mora);color:#fff}
+.pl-cols{display:flex;gap:6px;flex-wrap:wrap}
+.pl-cols button{width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer}
+.pl-cols button[aria-pressed=true]{border-color:var(--mora-d);box-shadow:0 0 0 2px #fff inset}
+.chk{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px}
+.chk input{width:17px;height:17px;accent-color:var(--mora)}
+.item{display:flex;align-items:center;gap:10px;border:1px solid var(--crema-d);border-radius:10px;padding:9px 11px;margin-bottom:7px}
+.item b{display:block;font-size:13.5px}
+.item small{color:var(--textl);font-weight:700;font-size:11.5px}
+.pt{width:12px;height:12px;border-radius:50%;flex:none}
+
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,14px);z-index:200;background:var(--mora-d);
+  color:#fff;padding:11px 18px;border-radius:10px;font-weight:800;font-size:13.5px;opacity:0;pointer-events:none;
+  transition:.2s;box-shadow:0 10px 30px rgba(74,31,122,.35)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ══ IMPRESIÓN ══ */
+/* La hoja se arma fuera de la pantalla, no con display:none. Oculta mide cero
+   de alto y el reparto de "+N más" no tendría contra qué medir: los días
+   cargados se cortarían en silencio al imprimir. */
+#pl-print{position:absolute;left:-10000px;top:0;width:297mm;pointer-events:none}
+@media print{
+  @page{size:A4 landscape;margin:0}
+  body{background:#fff}
+  nav,.wrap,.mbg,#toast,#login{display:none !important}
+  #pl-print{position:static;left:auto;width:auto;pointer-events:auto}
+  .p-wk .pl-rot,.p-wk .pl-cab .cel:first-child{position:static}
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+}
+.hoja{width:297mm;height:209mm;background:#fff;padding:8mm 9mm;display:flex;flex-direction:column;overflow:hidden}
+/* La semana crece si el detalle no cabe: pasa a una segunda hoja en vez de
+   perder filas sin avisar. */
+.hoja-sem{height:auto;min-height:209mm;overflow:visible}
+.p-cab{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;
+  border-bottom:2.5px solid var(--mora-d);padding-bottom:6px;margin-bottom:8px;flex:0 0 auto}
+.p-rot{font-size:9.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--textl)}
+.p-cab h1{font-family:'DM Serif Display',serif;font-weight:400;font-size:26px;color:var(--mora-d);line-height:1.1}
+.p-quien{font-size:13px;font-weight:900;color:var(--mora)}
+.p-der{text-align:right;font-size:9.5px;color:var(--textl);font-weight:700}
+
+/* calendario impreso */
+.p-cal{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;border:1px solid var(--linea);border-radius:3px;overflow:hidden}
+.p-ccab{display:grid;background:var(--mora-d);flex:0 0 auto}
+.p-ccab div{padding:4px 6px;font-size:9px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;
+  color:#fff;text-align:center;border-left:1px solid rgba(255,255,255,.18)}
+.p-ccab div:first-child{border-left:0}
+.p-sem{display:grid;flex:1 1 0;min-height:0;border-top:1px solid var(--linea)}
+.p-sem:first-of-type{border-top:0}
+.p-dia{border-left:1px solid var(--linea2);padding:3px 5px 4px;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+.p-dia:first-child{border-left:0}
+.p-dia.finde{background:rgba(107,53,184,.035)}
+.p-dia.otro{background:rgba(107,53,184,.06)}
+.p-dia.otro .p-num{color:#b6adbd}
+.p-num{flex:0 0 auto;font-family:'DM Serif Display',serif;font-size:14px;color:var(--mora-d);line-height:1;margin-bottom:2px}
+.p-lineas{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow:hidden;position:relative}
+.p-t{flex:0 0 auto;font-size:8.6px;line-height:1.32;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-t b{font-weight:800}
+.p-mas{flex:0 0 auto;font-size:8.4px;font-weight:800;color:var(--alto);margin-top:1px}
+.p-vacio{flex:0 0 auto;font-size:8.4px;color:#c9c2d0;font-style:italic}
+.p-pie{margin-top:6px;border-top:1px solid var(--linea);padding-top:4px;flex:0 0 auto;max-height:26mm;overflow:hidden}
+.p-pie h2{font-size:8.6px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--textl);margin-bottom:3px}
+.p-pie .fila{font-size:9px;line-height:1.45}
+.p-pie .fila b{color:var(--mora-d)}
+.p-pie .fila span{color:var(--textl)}
+
+/* semana impresa */
+.p-wk{flex:0 0 auto;--pxh:30px}
+.p-wk .pl-fila{display:grid}
+.p-wk .pl-col{background-image:repeating-linear-gradient(to bottom,var(--linea2) 0 1px,transparent 1px calc(var(--pxh)))}
+.p-wk .pl-blk{font-size:8.6px;padding:1px 4px;border-radius:4px;box-shadow:none}
+.p-wk .pl-blk .h{font-size:8px}
+.p-wk .pl-blk .grip{display:none}
+.p-wk .pl-gut .h{font-size:8.5px}
+.p-wk .pl-cab .dnum{font-size:15px}
+.p-wk .pl-cab .dsem{font-size:8.5px}
+.p-det{margin-top:6px;flex:0 0 auto}
+.p-det thead{display:table-header-group}
+.p-det tr{break-inside:avoid}
+.p-det table{width:100%;border-collapse:collapse;font-size:9px}
+.p-det th{text-align:left;font-size:8px;text-transform:uppercase;letter-spacing:.7px;color:var(--textl);
+  border-bottom:1px solid var(--linea);padding:2px 5px}
+.p-det td{padding:2px 5px;border-bottom:1px solid var(--linea2);vertical-align:top}
+.p-det .dd{font-weight:800;white-space:nowrap;width:74px;color:var(--mora-d)}
+.p-det .hh{font-weight:800;white-space:nowrap;width:80px}
+.p-det .cc{white-space:nowrap;width:100px;color:var(--textl);font-weight:700}
+
+@media(max-width:640px){
+  .wrap{padding:12px 10px}
+  .fg{grid-template-columns:1fr}
+  .pl-lbl{min-width:130px;font-size:13px}
+  .nlogo{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login">
+  <div class="login-logo">nativo</div>
+  <div class="login-sub">Planificador</div>
+  <div class="lcard">
+    <h3>Equipo nativo</h3>
+    <div id="lerr"></div>
+    <input class="inp" type="password" id="pin" placeholder="Clave de acceso"
+      autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="bam-full" id="bentrar" onclick="doLogin()">Ingresar →</button>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app" style="display:none">
+  <nav>
+    <div class="ntabs">
+      <button class="tb" onclick="location.href='admin.html#pedidos'">📋 Pedidos</button>
+      <button class="tb" onclick="location.href='admin.html#nuevo'">➕ Agregar</button>
+      <button class="tb" onclick="location.href='admin.html#clientes'">👥 Clientes</button>
+      <button class="tb" onclick="location.href='admin.html#rutas'">🚚 Ruta</button>
+      <button class="tb act">📅 Planner</button>
+    </div>
+    <div class="nlogo">nativo</div>
+    <div class="nright"><button class="bout" onclick="salir()">Salir</button></div>
+  </nav>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="pl-head">
+        <h2>📅 Planificador</h2>
+        <span class="pl-sep"></span>
+        <select id="pl-persona" onchange="plCambiarPersona(this.value)"></select>
+        <button class="btn bam2 bsm" onclick="plAbrirPerfil(null)">＋ Nueva persona</button>
+        <button class="btn bol bsm"  id="pl-beditar" title="Editar los datos y la jornada de esta persona" onclick="plAbrirPerfil(plActual())">Editar</button>
+        <button class="btn bdng bsm" id="pl-bborrar" title="Elimina esta persona y todas sus tareas" onclick="plBorrarPerfil()">Eliminar planner</button>
+        <div class="crece"></div>
+        <button class="btn bol bsm" onclick="plCargar()">🔄 Actualizar</button>
+      </div>
+      <div id="pl-alert"></div>
+      <div id="pl-cuerpo"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HOJA DE IMPRESIÓN ══ -->
+<div id="pl-print"></div>
+
+<!-- ══ MODAL TAREA ══ -->
+<div class="mbg" id="m-tarea">
+  <div class="modal">
+    <h3 id="mt-title">Nueva tarea</h3>
+    <div id="mt-alert"></div>
+
+    <div class="fg">
+      <div><label>Qué hace *</label><input id="mt-titulo" type="text" placeholder="Ej: Ruta litoral norte"></div>
+      <div><label id="mt-flabel">Fecha</label><input id="mt-fecha" type="date"></div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label>Tipo</label>
+      <div class="pl-cats" id="mt-cats"></div>
+    </div>
+
+    <label class="chk" style="margin-bottom:10px">
+      <input type="checkbox" id="mt-todo"> Ocupa todo el día (viaje largo, licencia, vacaciones)
+    </label>
+
+    <div class="fg" id="mt-horas">
+      <div><label>Desde</label><input id="mt-ini" type="time" step="900"></div>
+      <div><label>Hasta</label><input id="mt-fin" type="time" step="900"></div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label>Repetición</label>
+      <select id="mt-rep" onchange="plRepCambio()">
+        <option value="no">Solo ese día</option>
+        <option value="sem">Cada semana, en los días que marque</option>
+      </select>
+    </div>
+    <div id="mt-repbox" style="display:none">
+      <div style="margin-bottom:12px">
+        <label>Días</label>
+        <div class="pl-dias" id="mt-dias"></div>
+      </div>
+      <div style="margin-bottom:12px">
+        <label>Repetir hasta (opcional)</label><input id="mt-hasta" type="date">
+      </div>
+    </div>
+
+    <div class="msec">Detalle</div>
+    <div style="margin-bottom:12px"><label>Lugar</label><input id="mt-lugar" type="text" placeholder="Dirección o zona"></div>
+    <div style="margin-bottom:4px"><label>Notas</label><textarea id="mt-nota" placeholder="Pedidos, contactos, ventana de recepción..."></textarea></div>
+
+    <div class="mact">
+      <button class="btn bgray bsm" onclick="plCerrar('m-tarea')">Cancelar</button>
+      <button class="btn bdng bsm"  id="mt-borrar" onclick="plBorrarTarea()">Eliminar</button>
+      <button class="btn bmora bsm" id="mt-guardar" onclick="plGuardarTarea()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL PERSONA ══ -->
+<div class="mbg" id="m-perfil">
+  <div class="modal">
+    <h3 id="mp-title">Nueva persona</h3>
+    <div id="mp-alert"></div>
+    <div class="fg">
+      <div><label>Nombre *</label><input id="mp-nombre" type="text" placeholder="Álvaro"></div>
+      <div><label>Rol</label><input id="mp-rol" type="text" placeholder="Chofer"></div>
+    </div>
+    <div class="fg">
+      <div><label>Entra</label><input id="mp-ini" type="time" step="900" value="08:00"></div>
+      <div><label>Sale</label><input id="mp-fin" type="time" step="900" value="18:00"></div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label>Días que trabaja</label>
+      <div class="pl-dias" id="mp-dias"></div>
+    </div>
+    <div style="margin-bottom:4px">
+      <label>Color</label>
+      <div class="pl-cols" id="mp-cols"></div>
+    </div>
+    <div class="mact">
+      <button class="btn bgray bsm" onclick="plCerrar('m-perfil')">Cancelar</button>
+      <button class="btn bmora bsm" id="mp-guardar" onclick="plGuardarPerfil()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL DÍA ══ -->
+<div class="mbg" id="m-dia">
+  <div class="modal">
+    <h3 id="md-title">Día</h3>
+    <div id="md-body"></div>
+    <div class="mact">
+      <button class="btn bgray bsm" onclick="plCerrar('m-dia')">Cerrar</button>
+      <button class="btn bmora bsm" id="md-nueva">＋ Agregar tarea</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONFIRMAR ══ -->
+<div class="mbg" id="m-conf">
+  <div class="modal" style="max-width:420px">
+    <h3>¿Seguro?</h3>
+    <p id="mc-msg" style="color:var(--textl);font-size:13.5px;font-weight:600;line-height:1.5"></p>
+    <div class="mact">
+      <button class="btn bgray bsm" onclick="plCerrar('m-conf')">Cancelar</button>
+      <button class="btn bdng bsm" id="mc-ok">Sí</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ALCANCE DE SERIE ══ -->
+<div class="mbg" id="m-alc">
+  <div class="modal" style="max-width:430px">
+    <h3 id="ma-title">Guardar</h3>
+    <p style="color:var(--textl);font-size:13.5px;font-weight:600;line-height:1.5">
+      Esta tarea se repite cada semana. ¿A qué se aplica el cambio?
+    </p>
+    <div class="mact">
+      <button class="btn bgray bsm" onclick="plCerrar('m-alc')">Volver</button>
+      <button class="btn bol bsm"   id="ma-serie">Toda la serie</button>
+      <button class="btn bmora bsm" id="ma-dia">Solo ese día</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  CONEXIÓN — igual que el panel de pedidos
+//  La clave no está en el archivo: se escribe al entrar, viaja en cada
+//  petición y la verifica el Worker. Si ya entraste al panel en esta
+//  pestaña, la sesión se comparte y no vuelve a pedirla.
+// ══════════════════════════════════════════════════════════════
+const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
+let TOKEN = '';
+
+const T_PER = 'planner_perfiles';
+const T_TAR = 'planner_tareas';
+const T_CFG = 'planner_config';
+
+// ══════════════════════════════════════════════════════════════
+//  AUTH (idéntico al panel, para que se comporte igual)
+// ══════════════════════════════════════════════════════════════
+async function doLogin() {
+  const clave = document.getElementById('pin').value;
+  const btn   = document.getElementById('bentrar');
+  if (!clave) return;
+  btn.innerHTML = '<span class="sp"></span>Verificando...'; btn.disabled = true;
+  document.getElementById('lerr').innerHTML = '';
+  try {
+    const r = await fetch(`${PROXY}/supabase/${T_PER}?select=id&limit=1`, {
+      headers: { 'X-Admin-Token': clave }
+    });
+    if (r.status === 401) {
+      document.getElementById('lerr').innerHTML = '<div class="alert ae">Clave incorrecta.</div>';
+      btn.innerHTML = 'Ingresar →'; btn.disabled = false; return;
+    }
+    if (r.status === 403) {
+      document.getElementById('lerr').innerHTML =
+        '<div class="alert ae">El Worker todavía no permite las tablas del planificador. ' +
+        'Falta agregarlas a la lista blanca.</div>';
+      btn.innerHTML = 'Ingresar →'; btn.disabled = false; return;
+    }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+  } catch (e) {
+    document.getElementById('lerr').innerHTML =
+      '<div class="alert ae">No se pudo conectar. Revisa tu conexión e intenta de nuevo.</div>';
+    btn.innerHTML = 'Ingresar →'; btn.disabled = false; return;
+  }
+  TOKEN = clave;
+  try { sessionStorage.setItem('nativo_token', clave); } catch (_) {}
+  document.getElementById('pin').value = '';
+  entrar();
+  btn.innerHTML = 'Ingresar →'; btn.disabled = false;
+}
+
+function entrar() {
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display   = 'block';
+  plCargar();
+}
+
+(function reanudar() {
+  try {
+    const g = sessionStorage.getItem('nativo_token');
+    if (!g) return;
+    TOKEN = g;
+    entrar();
+  } catch (_) {}
+})();
+
+function salir() {
+  TOKEN = '';
+  try { sessionStorage.removeItem('nativo_token'); } catch (_) {}
+  document.getElementById('app').style.display   = 'none';
+  document.getElementById('login').style.display = 'flex';
+  document.getElementById('pin').value = '';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  API (mismas funciones que el panel)
+// ══════════════════════════════════════════════════════════════
+function cabeceras(conCuerpo) {
+  const h = { 'X-Admin-Token': TOKEN };
+  if (conCuerpo) h['Content-Type'] = 'application/json';
+  return h;
+}
+
+function revisarAuth(r) {
+  if (r.status === 401) {
+    TOKEN = '';
+    try { sessionStorage.removeItem('nativo_token'); } catch (_) {}
+    document.getElementById('app').style.display   = 'none';
+    document.getElementById('login').style.display = 'flex';
+    document.getElementById('lerr').innerHTML =
+      '<div class="alert ae">La sesión expiró o la clave cambió. Ingresa de nuevo.</div>';
+    throw new Error('Sesión no autorizada');
+  }
+  return r;
+}
+
+async function sbSend(path, method, body) {
+  const o = { method, headers: cabeceras(true) };
+  if (body !== undefined) o.body = JSON.stringify(body);
+  const r = revisarAuth(await fetch(`${PROXY}/supabase/${path}`, o));
+  if (!r.ok) {
+    let d = '';
+    try { d = (await r.text()).slice(0, 180); } catch (_) {}
+    throw new Error(`HTTP ${r.status}${d ? ' · ' + d : ''}`);
+  }
+  return r;
+}
+
+async function sbJson(path) {
+  const r = revisarAuth(await fetch(`${PROXY}/supabase/${path}`, { headers: cabeceras(false) }));
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const d = await r.json();
+  if (!Array.isArray(d)) throw new Error('Respuesta inválida');
+  return d;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CONSTANTES
+// ══════════════════════════════════════════════════════════════
+const plCATS = {
+  ruta:     { lbl:'Ruta / reparto',     c:'#6b35b8' },
+  carga:    { lbl:'Carga y descarga',   c:'#D89A1E' },
+  manten:   { lbl:'Mantención',         c:'#C25E3A' },
+  admin:    { lbl:'Administrativo',     c:'#3B6FB6' },
+  reunion:  { lbl:'Reunión',            c:'#2E8B6E' },
+  colacion: { lbl:'Colación',           c:'#8A8494' },
+  permiso:  { lbl:'Permiso / ausencia', c:'#B5427A' },
+  otro:     { lbl:'Otro',               c:'#5A6B7B' }
+};
+const plPALETA = ['#6b35b8','#2E8B6E','#D89A1E','#3B6FB6','#C25E3A','#B5427A','#4a1f7a','#5A6B7B'];
+const plDC = ['Do','Lu','Ma','Mi','Ju','Vi','Sá'];
+const plDL = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const plME = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto',
+              'septiembre','octubre','noviembre','diciembre'];
+const FIN_DIA = 24 * 60 - 1;   // 23:59 · no existe el 24:00 en un campo de hora
+
+// ══════════════════════════════════════════════════════════════
+//  ESTADO
+// ══════════════════════════════════════════════════════════════
+let plPerfiles = [];
+let plTareas   = [];
+let plCfg      = { desde:7, hasta:19, densidad:56 };
+let plVista    = 'semana';
+let plCursor   = new Date();
+let plPersona  = null;      // id de la persona mostrada
+let plEncuadrar = true;
+let plScrollTop = 0;      // dónde estaba mirando la grilla antes de re-dibujar
+let plTareaEd  = null;      // tarea en edición
+let plFechaEd  = null;      // día concreto de la instancia editada
+let plPerfilEd = null;
+
+// ══════════════════════════════════════════════════════════════
+//  UTILIDADES
+// ══════════════════════════════════════════════════════════════
+function hesc(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g,
+    c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+function plUid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function plClamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function plHexA(hex, a) {
+  let h = String(hex || '#6b35b8').replace('#', '');
+  if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  const n = parseInt(h, 16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+function plYmd(d) {
+  const m = d.getMonth()+1, dd = d.getDate();
+  return `${d.getFullYear()}-${m<10?'0':''}${m}-${dd<10?'0':''}${dd}`;
+}
+function plDeYmd(s) { const p = String(s).split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }
+function plSuma(d, n) { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate()+n); return x; }
+function plIniSem(d) { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay()+6)%7)); return x; }
+function plMismo(a, b) { return plYmd(a) === plYmd(b); }
+function plMin2(s) { const p = String(s||'0:00').split(':'); return (+p[0])*60 + (+(p[1]||0)); }
+function plHhmm(m) { m = Math.max(0, Math.round(m)); const h = Math.floor(m/60)%24, x = m%60;
+  return `${h<10?'0':''}${h}:${x<10?'0':''}${x}`; }
+function plHhmmTope(m) { return m >= 24*60 ? '24:00' : plHhmm(m); }
+function plHrs(m) { return (Math.round(m/6)/10).toString().replace('.', ',') + ' h'; }
+function plNsem(d) {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x.setDate(x.getDate() + 3 - ((x.getDay()+6)%7));
+  const s1 = new Date(x.getFullYear(), 0, 4);
+  return 1 + Math.round(((x - s1)/86400000 - 3 + ((s1.getDay()+6)%7))/7);
+}
+function plCap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+function plHoy() { return new Date(); }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('on'), 2400);
+}
+function plAlerta(msg, cls) {
+  const el = document.getElementById('pl-alert');
+  el.innerHTML = `<div class="alert ${cls}">${msg}</div>`;
+  setTimeout(() => { if (el.firstChild) el.innerHTML = ''; }, 6000);
+}
+function plCerrar(id) { document.getElementById(id).classList.remove('open'); }
+function plAbrir(id)  { document.getElementById(id).classList.add('open'); }
+
+function plConfirmar(msg, cb) {
+  document.getElementById('mc-msg').textContent = msg;
+  const b = document.getElementById('mc-ok');
+  b.onclick = () => { plCerrar('m-conf'); cb(); };
+  plAbrir('m-conf');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  TRADUCCIÓN CON LA TABLA
+//  La columna es todo_dia; en la página se usa todoDia. La conversión
+//  vive solo aquí para que no se escape a ningún otro lado.
+// ══════════════════════════════════════════════════════════════
+function plDesdeFila(f) {
+  return {
+    id:f.id, perfil:f.perfil, titulo:f.titulo || 'Sin título', cat: plCATS[f.cat] ? f.cat : 'otro',
+    fecha:f.fecha, ini:f.ini || '09:00', fin:f.fin || '10:00',
+    lugar:f.lugar || '', nota:f.nota || '', todoDia: !!f.todo_dia,
+    rep: (f.rep && f.rep.tipo === 'sem')
+      ? { tipo:'sem', dias:Array.isArray(f.rep.dias) ? f.rep.dias.map(Number) : [], hasta:f.rep.hasta || '' }
+      : { tipo:'no', dias:[], hasta:'' },
+    ex: Array.isArray(f.ex) ? f.ex : []
+  };
+}
+// el id va en el filtro de la URL, no en el cuerpo del PATCH
+function plFilaPatch(t) { const f = plHaciaFila(t); delete f.id; return f; }
+function plHaciaFila(t) {
+  return {
+    id:t.id, perfil:t.perfil, titulo:t.titulo, cat:t.cat, fecha:t.fecha,
+    ini:t.ini, fin:t.fin, lugar:t.lugar || '', nota:t.nota || '',
+    todo_dia: !!t.todoDia, rep:t.rep, ex:t.ex || []
+  };
+}
+function plPerfilDesde(p) {
+  return {
+    id:p.id, nombre:p.nombre, rol:p.rol || '', color:p.color || '#6b35b8',
+    ini:p.ini || '09:00', fin:p.fin || '18:00',
+    dias: Array.isArray(p.dias) ? p.dias.map(Number).filter(n => n>=0 && n<=6) : [1,2,3,4,5],
+    activo: p.activo !== false
+  };
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CARGA
+// ══════════════════════════════════════════════════════════════
+async function plCargar() {
+  document.getElementById('pl-cuerpo').innerHTML =
+    '<div class="empty"><span class="sp"></span>Cargando planificador...</div>';
+  try {
+    const [per, tar, cfg] = await Promise.all([
+      sbJson(`${T_PER}?select=*&order=nombre.asc`),
+      sbJson(`${T_TAR}?select=*&order=fecha.asc`),
+      sbJson(`${T_CFG}?select=*&id=eq.global&limit=1`)
+    ]);
+    plPerfiles = per.map(plPerfilDesde);
+    plTareas   = tar.map(plDesdeFila);
+    if (cfg && cfg[0]) {
+      plCfg.desde    = plClamp(+cfg[0].desde || 7, 0, 22);
+      plCfg.hasta    = plClamp(+cfg[0].hasta || 19, plCfg.desde+1, 24);
+      plCfg.densidad = [36,56,80].includes(+cfg[0].densidad) ? +cfg[0].densidad : 56;
+    }
+    if (!plPersona || !plPerfiles.some(p => p.id === plPersona))
+      plPersona = plPerfiles.length ? plPerfiles[0].id : null;
+    plRender();
+  } catch (e) {
+    const msg = String(e.message || e);
+    document.getElementById('pl-cuerpo').innerHTML =
+      `<div class="alert ae" style="margin:0">No se pudo cargar el planificador.<br>` +
+      `<span style="font-weight:600">${hesc(msg)}</span></div>` +
+      (msg.includes('403')
+        ? '<div class="alert ai" style="margin-top:10px">Falta agregar <b>planner_perfiles</b>, ' +
+          '<b>planner_tareas</b> y <b>planner_config</b> a la lista <code>TABLAS</code> del Worker.</div>'
+        : (msg.includes('404') || msg.toLowerCase().includes('exist'))
+          ? '<div class="alert ai" style="margin-top:10px">Parece que todavía no se ejecutó ' +
+            '<b>planner-tablas.sql</b> en Supabase.</div>'
+          : '');
+  }
+}
+
+const plActual = () => plPerfiles.find(p => p.id === plPersona) || null;
+
+function plCambiarPersona(id) {
+  plPersona = id || null;
+  plEncuadrar = true;
+  plRender();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CÁLCULO
+// ══════════════════════════════════════════════════════════════
+function plOcurre(t, fecha) {
+  const f = plYmd(fecha);
+  if (t.rep && t.rep.tipo === 'sem') {
+    if (t.ex.includes(f)) return false;
+    if (!t.rep.dias.includes(fecha.getDay())) return false;
+    if (t.fecha && f < t.fecha) return false;
+    if (t.rep.hasta && f > t.rep.hasta) return false;
+    return true;
+  }
+  return t.fecha === f;
+}
+
+function plDelDia(fecha) {
+  if (!plPersona) return [];
+  const out = [];
+  plTareas.forEach(t => {
+    if (t.perfil !== plPersona) return;
+    if (!plOcurre(t, fecha)) return;
+    out.push({ t, fecha:plYmd(fecha), ini:plMin2(t.ini),
+               fin:Math.max(plMin2(t.ini)+15, plMin2(t.fin)), todoDia:t.todoDia });
+  });
+  out.sort((a,b) => (a.todoDia === b.todoDia ? (a.ini-b.ini || a.fin-b.fin) : (a.todoDia ? -1 : 1)));
+  return out;
+}
+
+function plUnir(list) {
+  const s = list.slice().sort((a,b) => a.ini-b.ini);
+  let tot = 0, fin = -1;
+  s.forEach(x => { if (x.fin <= fin) return; tot += x.fin - Math.max(x.ini, fin); fin = x.fin; });
+  return tot;
+}
+
+function plJornada(p, fecha) {
+  return { lab: p.dias.includes(fecha.getDay()), ini:plMin2(p.ini), fin:plMin2(p.fin),
+           total: Math.max(0, plMin2(p.fin) - plMin2(p.ini)) };
+}
+
+function plHuecos(p, fecha) {
+  const j = plJornada(p, fecha);
+  if (!j.lab) return [];
+  const bs = plDelDia(fecha).filter(x => !x.todoDia)
+    .map(x => ({ ini:plClamp(x.ini,j.ini,j.fin), fin:plClamp(x.fin,j.ini,j.fin) }))
+    .filter(x => x.fin > x.ini).sort((a,b) => a.ini-b.ini);
+  const g = []; let cur = j.ini;
+  bs.forEach(b => { if (b.ini > cur) g.push({ ini:cur, fin:b.ini }); cur = Math.max(cur, b.fin); });
+  if (cur < j.fin) g.push({ ini:cur, fin:j.fin });
+  return g.filter(x => x.fin - x.ini >= 15);
+}
+
+function plCarga(p, fecha) {
+  const j = plJornada(p, fecha), ts = plDelDia(fecha);
+  const ausente = ts.some(x => x.todoDia && x.t.cat === 'permiso');
+  const dentro = ts.filter(x => !x.todoDia)
+    .map(x => ({ ini:plClamp(x.ini,j.ini,j.fin), fin:plClamp(x.fin,j.ini,j.fin) }))
+    .filter(x => x.fin > x.ini);
+  const ocup = plUnir(dentro);
+  const g = plHuecos(p, fecha);
+  return {
+    lab:j.lab, jorn:j, ocup, ausente, nTareas:ts.length,
+    pct: j.total ? plClamp(Math.round(ocup/j.total*100), 0, 100) : (ocup ? 100 : 0),
+    huecos:g, primero: g.length ? g[0] : null,
+    mayor: g.reduce((m,x) => Math.max(m, x.fin-x.ini), 0)
+  };
+}
+const plColorCarga = pct => pct >= 88 ? 'var(--alto)' : pct >= 62 ? 'var(--medio)' : 'var(--ok)';
+
+function plRango(fechas) {
+  const p = plActual();
+  let a = plCfg.desde*60, b = plCfg.hasta*60;
+  fechas.forEach(f => {
+    if (p) {
+      const j = plJornada(p, f);
+      if (j.lab) { a = Math.min(a, j.ini); b = Math.max(b, j.fin); }
+    }
+    plDelDia(f).forEach(x => { if (x.todoDia) return; a = Math.min(a, x.ini); b = Math.max(b, x.fin); });
+  });
+  a = Math.floor(a/60)*60; b = Math.ceil(b/60)*60;
+  if (b - a < 240) b = a + 240;
+  return { a, b, h:(b-a)/60 };
+}
+
+// Sábado y domingo aparecen si la persona trabaja o tiene algo ese día
+function plNumCols(fechas) {
+  const p = plActual();
+  let n = 5;
+  fechas.forEach(f => {
+    const w = f.getDay();
+    if (w !== 6 && w !== 0) return;
+    const usado = (p && plJornada(p, f).lab) || plDelDia(f).length > 0;
+    if (usado) n = Math.max(n, w === 6 ? 6 : 7);
+  });
+  return n;
+}
+
+function plDiasSem() {
+  const L = plIniSem(plCursor), todos = [];
+  for (let i = 0; i < 7; i++) todos.push(plSuma(L, i));
+  return todos.slice(0, plNumCols(todos));
+}
+
+// reparto lateral cuando la misma persona tiene cruces
+function plAcomodar(list) {
+  const s = list.slice().sort((a,b) => a.ini-b.ini || a.fin-b.fin);
+  let grupo = [], fin = -1;
+  const cerrar = g => {
+    const cols = [];
+    g.forEach(b => {
+      for (let i = 0; i < cols.length; i++) {
+        if (cols[i][cols[i].length-1].fin <= b.ini) { cols[i].push(b); b._c = i; return; }
+      }
+      b._c = cols.length; cols.push([b]);
+    });
+    g.forEach(b => b._n = cols.length);
+  };
+  s.forEach(b => {
+    if (grupo.length && b.ini >= fin) { cerrar(grupo); grupo = []; fin = -1; }
+    grupo.push(b); fin = Math.max(fin, b.fin);
+  });
+  if (grupo.length) cerrar(grupo);
+}
+const plCruce = (x, todas) => todas.some(y =>
+  y !== x && !y.todoDia && !x.todoDia && y.ini < x.fin && x.ini < y.fin);
+
+// ══════════════════════════════════════════════════════════════
+//  RENDER PRINCIPAL
+// ══════════════════════════════════════════════════════════════
+function plRender() {
+  // se guarda antes de reemplazar el contenido; si no, cada vez que se guarda
+  // una tarea la grilla salta al tope
+  const scPrev = document.querySelector('.pl-scroll');
+  if (scPrev) plScrollTop = scPrev.scrollTop;
+
+  // selector de persona
+  const sel = document.getElementById('pl-persona');
+  sel.innerHTML = plPerfiles.length
+    ? plPerfiles.map(p => `<option value="${hesc(p.id)}"${p.id===plPersona?' selected':''}>${hesc(p.nombre)}${p.rol?' — '+hesc(p.rol):''}</option>`).join('')
+    : '<option value="">— sin personas —</option>';
+  const hay = !!plActual();
+  document.getElementById('pl-beditar').disabled = !hay;
+  document.getElementById('pl-bborrar').disabled = !hay;
+
+  const cuerpo = document.getElementById('pl-cuerpo');
+  if (!plPerfiles.length) {
+    cuerpo.innerHTML =
+      `<div class="empty">
+         <div style="font-family:'DM Serif Display',serif;font-size:19px;color:var(--mora-d);margin-bottom:6px">
+           Todavía no hay ningún planner</div>
+         Crea la primera persona (nombre, rol y jornada) y ya puedes ponerle tareas.
+         <div style="margin-top:16px"><button class="btn bam2" onclick="plAbrirPerfil(null)">＋ Crear el primer planner</button></div>
+       </div>`;
+    return;
+  }
+
+  cuerpo.innerHTML =
+    `<div class="pl-bar">
+       <div class="pl-vistas">
+         <button data-v="semana" aria-pressed="${plVista==='semana'}" onclick="plIrVista('semana')">Semana</button>
+         <button data-v="mes"    aria-pressed="${plVista==='mes'}"    onclick="plIrVista('mes')">Mes</button>
+       </div>
+       <div class="pl-nav">
+         <button class="pl-ico" onclick="plNav(-1)" title="Anterior">‹</button>
+         <span class="pl-lbl" id="pl-lbl"></span>
+         <button class="pl-ico" onclick="plNav(1)" title="Siguiente">›</button>
+         <button class="btn bol bsm" onclick="plNav(0)">Hoy</button>
+       </div>
+       <div class="crece"></div>
+       <span class="pl-quien" id="pl-quien"></span>
+       <button class="btn bmora bsm" onclick="plNuevaTarea()">＋ Tarea</button>
+       <button class="btn bol bsm" onclick="plImprimir('semana')">🖨 Semana</button>
+       <button class="btn bol bsm" onclick="plImprimir('mes')">🖨 Mes</button>
+     </div>
+     <div id="pl-vista"></div>`;
+
+  plRenderNav();
+  if (plVista === 'semana') plRenderSemana();
+  else                      plRenderMes();
+}
+
+function plIrVista(v) { plVista = v; plEncuadrar = true; plRender(); }
+
+function plNav(d) {
+  if (d === 0) plCursor = new Date();
+  else if (plVista === 'mes')
+    plCursor = new Date(plCursor.getFullYear(), plCursor.getMonth() + d, 1);
+  else plCursor = plSuma(plCursor, 7*d);
+  plEncuadrar = true;
+  plRender();
+}
+
+function plRenderNav() {
+  const lbl = document.getElementById('pl-lbl');
+  if (!lbl) return;
+  if (plVista === 'mes') {
+    lbl.textContent = `${plME[plCursor.getMonth()]} ${plCursor.getFullYear()}`;
+  } else {
+    const ds = plDiasSem(), a = ds[0], b = ds[ds.length-1];
+    const mm = a.getMonth() === b.getMonth()
+      ? plME[a.getMonth()].slice(0,3)
+      : plME[a.getMonth()].slice(0,3) + '–' + plME[b.getMonth()].slice(0,3);
+    lbl.textContent = `sem ${plNsem(a)} · ${a.getDate()}–${b.getDate()} ${mm}`;
+  }
+  const p = plActual();
+  const q = document.getElementById('pl-quien');
+  if (q && p) q.textContent = `${p.nombre} · jornada ${p.ini}–${p.fin}`;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  VISTA SEMANA
+// ══════════════════════════════════════════════════════════════
+function plRenderSemana() {
+  const p = plActual();
+  const ds = plDiasSem(), R = plRango(ds), hoy = plHoy();
+  const pxh = plCfg.densidad;
+  const GC = `style="grid-template-columns:56px repeat(${ds.length},minmax(0,1fr))"`;
+
+  let h = `<div class="pl-scroll"><div class="pl-wk" style="--pxh:${pxh}px">`;
+
+  // cabecera fija
+  h += '<div class="pl-fijo">';
+  h += `<div class="pl-fila pl-cab" ${GC}><div class="cel"></div>`;
+  ds.forEach(f => {
+    const esHoy = plMismo(f, hoy), nolab = p && !plJornada(p, f).lab;
+    h += `<div class="cel${esHoy?' hoy':''}${nolab?' nolab':''}">
+            <div class="dsem">${plDL[f.getDay()].slice(0,3)}</div>
+            <div class="dnum">${f.getDate()}</div></div>`;
+  });
+  h += '</div>';
+
+  const hayTodo = ds.some(f => plDelDia(f).some(x => x.todoDia));
+  if (hayTodo) {
+    h += `<div class="pl-fila pl-todo" ${GC}><div class="pl-rot">todo el día</div>`;
+    ds.forEach(f => {
+      h += '<div class="pl-lane">';
+      plDelDia(f).filter(x => x.todoDia).forEach(x => {
+        const c = plCATS[x.t.cat].c;
+        h += `<button class="pl-tchip" data-t="${hesc(x.t.id)}" data-f="${x.fecha}" title="${hesc(x.t.titulo)}"
+                style="background:${plHexA(c,.16)};border-left-color:${c};color:${c}">${hesc(x.t.titulo)}</button>`;
+      });
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+  h += '</div>';
+
+  // grilla
+  h += `<div class="pl-fila pl-cuerpo pl-editable" ${GC}>`;
+  h += `<div class="pl-gut" style="position:sticky;left:0;height:calc(var(--pxh) * ${R.h})">`;
+  for (let m = R.a; m <= R.b; m += 60) {
+    const cls = m === R.a ? ' tope' : (m === R.b ? ' base' : '');
+    h += `<div class="h${cls}" style="top:calc(var(--pxh) * ${(m-R.a)/60})">${plHhmmTope(m)}</div>`;
+  }
+  h += '</div>';
+
+  ds.forEach(f => {
+    const esHoy = plMismo(f, hoy);
+    h += `<div class="pl-col${esHoy?' hoy':''}" data-f="${plYmd(f)}" style="height:calc(var(--pxh) * ${R.h})">`;
+    if (p) {
+      const j = plJornada(p, f);
+      if (!j.lab) h += `<div class="pl-fuera" style="top:0;height:calc(var(--pxh) * ${R.h})"></div>`;
+      else {
+        if (j.ini > R.a) h += `<div class="pl-fuera" style="top:0;height:calc(var(--pxh) * ${(j.ini-R.a)/60})"></div>`;
+        if (j.fin < R.b) h += `<div class="pl-fuera" style="top:calc(var(--pxh) * ${(j.fin-R.a)/60});height:calc(var(--pxh) * ${(R.b-j.fin)/60})"></div>`;
+      }
+    }
+    if (esHoy) {
+      const ahora = hoy.getHours()*60 + hoy.getMinutes();
+      if (ahora >= R.a && ahora <= R.b)
+        h += `<div class="pl-ahora" style="top:calc(var(--pxh) * ${(ahora-R.a)/60})"></div>`;
+    }
+    const lista = plDelDia(f).filter(x => !x.todoDia);
+    plAcomodar(lista);
+    lista.forEach(x => {
+      const c = plCATS[x.t.cat].c, dur = x.fin - x.ini;
+      const w = 100/x._n, left = x._c*w;
+      const rot = `${x.t.titulo} · ${plHhmm(x.ini)}–${plHhmm(x.fin)} · ${plCATS[x.t.cat].lbl}` +
+                  (x.t.lugar ? ' · ' + x.t.lugar : '');
+      h += `<button class="pl-blk" data-t="${hesc(x.t.id)}" data-f="${x.fecha}" title="${hesc(rot)}"
+              style="top:calc(var(--pxh) * ${(x.ini-R.a)/60});height:calc(var(--pxh) * ${dur/60} - 2px);
+                     left:calc(${left}% + 2px);width:calc(${w}% - 4px);
+                     background:${plHexA(c,.13)};border-color:${plHexA(c,.35)};border-left-color:${c};color:${c}">
+              ${plCruce(x, lista) ? '<span class="warn" title="Se cruza con otra tarea">⚠</span>' : ''}
+              <span class="t">${hesc(x.t.titulo)}</span>
+              <span class="h">${plHhmm(x.ini)}–${plHhmm(x.fin)}</span>
+              ${x.t.lugar ? `<span class="q">${hesc(x.t.lugar)}</span>` : ''}
+              <span class="grip"></span></button>`;
+    });
+    h += '</div>';
+  });
+  h += '</div>';
+
+  // pie de carga
+  h += `<div class="pl-fila pl-pie" ${GC}><div class="pl-rot">carga</div>`;
+  ds.forEach(f => {
+    const c = plCarga(p, f);
+    const txt = !c.lab ? 'no trabaja' : c.ausente ? 'ausente' : `${c.pct}%`;
+    const lib = c.lab && !c.ausente && c.primero ? `libre ${plHhmm(c.primero.ini)}` : '';
+    h += `<div class="cel">
+            <div class="pl-carga">
+              <span style="color:${c.lab?plColorCarga(c.pct):'var(--textl)'}">${txt}</span>
+              <span class="lib">${lib}</span></div>
+            <div class="pl-barra"><i style="width:${c.lab?c.pct:0}%;background:${c.ausente?plHexA(plCATS.permiso.c,.7):plColorCarga(c.pct)}"></i></div>
+          </div>`;
+  });
+  h += '</div></div></div>';
+
+  h += `<div class="pl-pieinfo">
+          <span>Arrastra en la grilla para crear una tarea; mueve o estira los bloques.</span>
+          <div class="crece"></div>
+          <span>Alto de las filas</span>
+          <div class="pl-vistas">
+            ${[[36,'Compacta'],[56,'Normal'],[80,'Amplia']].map(([v,l]) =>
+              `<button aria-pressed="${plCfg.densidad===v}" onclick="plDensidad(${v})">${l}</button>`).join('')}
+          </div>
+        </div>`;
+
+  document.getElementById('pl-vista').innerHTML = h;
+
+  // encuadre y arrastre
+  const sc = document.querySelector('.pl-scroll');
+  if (sc) {
+    if (plEncuadrar) {
+      let primero = null;
+      ds.forEach(f => plDelDia(f).forEach(x => {
+        if (x.todoDia) return;
+        if (primero === null || x.ini < primero) primero = x.ini;
+      }));
+      sc.scrollTop = primero === null ? 0 : Math.max(0, (primero - R.a - 30)/60*pxh);
+      plEncuadrar = false;
+    } else {
+      sc.scrollTop = plScrollTop;
+    }
+    /* Se anota mientras se desplaza, no al re-dibujar: al guardar una tarea
+       la grilla se borra antes y para entonces ya no hay de dónde leerla. */
+    sc.addEventListener('scroll', () => { plScrollTop = sc.scrollTop; }, { passive:true });
+  }
+  plEnganchar(R);
+}
+
+async function plDensidad(v) {
+  plCfg.densidad = v;
+  plRender();
+  try { await sbSend(`${T_CFG}?id=eq.global`, 'PATCH', { densidad:v }); } catch (_) {}
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ARRASTRE
+// ══════════════════════════════════════════════════════════════
+function plEnganchar(R) {
+  const wrap = document.getElementById('pl-vista');
+  wrap.querySelectorAll('.pl-tchip').forEach(b =>
+    b.onclick = () => plEditarTarea(b.dataset.t, b.dataset.f));
+
+  const cols = [...wrap.querySelectorAll('.pl-col')];
+  if (!cols.length) return;
+  const PASO = 15;
+  const TOPE = Math.min(R.b, FIN_DIA);
+  const pxHora = () => cols[0].getBoundingClientRect().height / R.h;
+  const minDe = (y, col) => {
+    const r = col.getBoundingClientRect();
+    return plClamp(Math.round((R.a + (y - r.top)/pxHora()*60)/PASO)*PASO, R.a, R.b);
+  };
+  const colDe = x => cols.find(c => {
+    const r = c.getBoundingClientRect();
+    return x >= r.left && x <= r.right;
+  }) || null;
+
+  // crear arrastrando sobre el vacío
+  cols.forEach(col => {
+    col.addEventListener('pointerdown', ev => {
+      if (ev.target !== col || ev.button) return;
+      ev.preventDefault();
+      col.setPointerCapture(ev.pointerId);
+      let m0 = minDe(ev.clientY, col), m1 = m0;
+      const g = document.createElement('div');
+      g.className = 'pl-fant';
+      col.appendChild(g);
+      const pinta = () => {
+        const a = Math.min(m0,m1); let b = Math.max(m0,m1);
+        if (b - a < PASO) b = a + PASO;
+        g.style.top = `calc(var(--pxh) * ${(a-R.a)/60})`;
+        g.style.height = `calc(var(--pxh) * ${(b-a)/60})`;
+        g.style.left = '2px'; g.style.right = '2px';
+        g.textContent = `${plHhmm(a)}–${plHhmm(b)}`;
+      };
+      pinta();
+      const mover = e => { m1 = minDe(e.clientY, col); pinta(); };
+      const soltar = () => {
+        col.removeEventListener('pointermove', mover);
+        col.removeEventListener('pointerup', soltar);
+        col.removeEventListener('pointercancel', soltar);
+        g.remove();
+        const a = Math.min(m0,m1); let b = Math.max(m0,m1);
+        if (b - a < 30) b = a + 60;
+        plNuevaTarea(col.dataset.f, plHhmm(a), plHhmm(Math.min(b, TOPE)));
+      };
+      col.addEventListener('pointermove', mover);
+      col.addEventListener('pointerup', soltar);
+      col.addEventListener('pointercancel', soltar);
+    });
+  });
+
+  // mover y estirar
+  wrap.querySelectorAll('.pl-blk').forEach(blk => {
+    blk.addEventListener('pointerdown', ev => {
+      const t = plTareas.find(x => x.id === blk.dataset.t);
+      if (!t || ev.button) return;
+      ev.preventDefault();
+      const esGrip = ev.target.classList.contains('grip');
+      const col0 = blk.parentNode, i0 = cols.indexOf(col0);
+      const offset = ev.clientY - blk.getBoundingClientRect().top;
+      const mIni = plMin2(t.ini), mFin = plMin2(t.fin), dur = Math.max(PASO, mFin - mIni);
+      let nIni = mIni, nFin = mFin, iDst = i0, movio = false, intentoDia = false;
+      const serie = t.rep.tipo === 'sem';
+      try { blk.setPointerCapture(ev.pointerId); } catch (_) {}
+
+      const mover = e => {
+        if (!movio && Math.abs(e.clientY-ev.clientY) < 4 && Math.abs(e.clientX-ev.clientX) < 4) return;
+        movio = true;
+        blk.classList.add('arr');
+        if (esGrip) {
+          nFin = plClamp(minDe(e.clientY, col0), nIni + PASO, TOPE);
+        } else {
+          const c = colDe(e.clientX);
+          let i = c ? cols.indexOf(c) : i0;
+          if (serie) { if (i !== i0) intentoDia = true; i = i0; }
+          iDst = i;
+          nIni = plClamp(minDe(e.clientY - offset, col0), R.a, Math.max(R.a, TOPE - dur));
+          nFin = nIni + dur;
+          const dx = cols[iDst].getBoundingClientRect().left - col0.getBoundingClientRect().left;
+          blk.style.transform = `translateX(${dx}px)`;
+        }
+        blk.style.top = `calc(var(--pxh) * ${(nIni-R.a)/60})`;
+        blk.style.height = `calc(var(--pxh) * ${(nFin-nIni)/60} - 2px)`;
+        blk.style.left = '2px'; blk.style.width = 'calc(100% - 4px)';
+      };
+      const soltar = async () => {
+        blk.removeEventListener('pointermove', mover);
+        blk.removeEventListener('pointerup', soltar);
+        blk.removeEventListener('pointercancel', soltar);
+        blk.classList.remove('arr');
+        blk.style.transform = '';
+        if (!movio) { plEditarTarea(blk.dataset.t, blk.dataset.f); return; }
+        const antes = { ini:t.ini, fin:t.fin, fecha:t.fecha };
+        t.ini = plHhmm(nIni); t.fin = plHhmm(nFin);
+        let cambioDia = false;
+        if (!serie && cols[iDst] && cols[iDst].dataset.f !== blk.dataset.f) {
+          t.fecha = cols[iDst].dataset.f; cambioDia = true;
+        }
+        plRender();
+        try {
+          await sbSend(`${T_TAR}?id=eq.${encodeURIComponent(t.id)}`, 'PATCH',
+                       { ini:t.ini, fin:t.fin, fecha:t.fecha });
+          if (intentoDia) toast('Se repite cada semana: para cambiar de día edita los días de la tarea.');
+          else toast(`${t.titulo} → ${t.ini}–${t.fin}${serie ? ' en toda la serie' : (cambioDia ? ' el ' + t.fecha : '')}`);
+        } catch (e) {
+          Object.assign(t, antes);   // se deshace en pantalla si no llegó a la base
+          plRender();
+          plAlerta('No se pudo guardar el cambio: ' + hesc(e.message), 'ae');
+        }
+      };
+      blk.addEventListener('pointermove', mover);
+      blk.addEventListener('pointerup', soltar);
+      blk.addEventListener('pointercancel', soltar);
+    });
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  VISTA MES
+// ══════════════════════════════════════════════════════════════
+function plSemanasMes(nCols) {
+  const y = plCursor.getFullYear(), m = plCursor.getMonth();
+  const L = plIniSem(new Date(y, m, 1)), finMes = new Date(y, m+1, 0);
+  const out = []; let cur = L, guard = 0;
+  while (guard++ < 8) {
+    const f = [];
+    for (let i = 0; i < nCols; i++) f.push(plSuma(cur, i));
+    out.push(f);
+    cur = plSuma(cur, 7);
+    if (cur.getMonth() !== m && cur > finMes) break;
+  }
+  return out;
+}
+
+function plRenderMes() {
+  const y = plCursor.getFullYear(), m = plCursor.getMonth();
+  const barrido = [];
+  const L = plIniSem(new Date(y, m, 1));
+  for (let k = 0; k < 42; k++) barrido.push(plSuma(L, k));
+  const nCols = plNumCols(barrido);
+  const semanas = plSemanasMes(nCols);
+  const hoy = plHoy();
+  const cols = `grid-template-columns:repeat(${nCols},1fr)`;
+
+  let h = `<div class="pl-mes"><div class="pl-mcab" style="${cols}">`;
+  for (let d = 0; d < nCols; d++) h += `<div>${plDL[(d+1)%7]}</div>`;
+  h += '</div>';
+
+  semanas.forEach(f7 => {
+    h += `<div class="pl-msem" style="${cols}">`;
+    f7.forEach(f => {
+      const otro = f.getMonth() !== m;
+      const fin = f.getDay() === 0 || f.getDay() === 6;
+      const lista = otro ? [] : plDelDia(f);
+      h += `<div class="pl-dia${otro?' otro':''}${fin?' finde':''}${plMismo(f,hoy)?' hoyc':''}"
+                 data-f="${plYmd(f)}"${otro?'':' data-nuevo="1"'}>`;
+      h += `<div class="pl-dnum"${otro ? '' : ` data-detalle="${plYmd(f)}" title="Ver el detalle del día"`}>${f.getDate()}</div>`;
+      if (!otro) {
+        h += '<div class="pl-lineas">';
+        lista.forEach((x, i) => {
+          const c = plCATS[x.t.cat].c;
+          h += `<span class="pl-lin" data-t="${hesc(x.t.id)}" data-f="${x.fecha}" data-i="${i}"
+                  title="${hesc(x.t.titulo)}"><b style="color:${c}">${x.todoDia ? 'Todo el día' : plHhmm(x.ini)}</b> ${hesc(x.t.titulo)}</span>`;
+        });
+        h += '</div>';
+      }
+      h += '</div>';
+    });
+    h += '</div>';
+  });
+  h += '</div>';
+  h += `<div style="margin-top:10px;font-size:11.5px;font-weight:700;color:var(--textl)">
+          Pincha el día para agregar una tarea, una línea para editarla, o el número para ver el detalle.</div>`;
+
+  document.getElementById('pl-vista').innerHTML = h;
+  /* En pantalla la casilla crece con su contenido, así que se ve todo sin
+     cortes. El reparto con "+N al pie" es cosa del papel, donde el alto manda. */
+
+  // clics
+  document.querySelectorAll('#pl-vista .pl-lin').forEach(el => {
+    el.onclick = e => { e.stopPropagation(); plEditarTarea(el.dataset.t, el.dataset.f); };
+  });
+  document.querySelectorAll('#pl-vista .pl-dia[data-nuevo]').forEach(cel => {
+    cel.onclick = () => plNuevaTarea(cel.dataset.f);
+  });
+  // el número del día muestra el detalle: ocupación, tareas y huecos libres
+  document.querySelectorAll('#pl-vista .pl-dnum[data-detalle]').forEach(n => {
+    n.onclick = e => { e.stopPropagation(); plModalDia(n.dataset.detalle); };
+  });
+}
+
+/* Esconde las líneas que no caben y agrega el aviso. Se repite hasta que
+   deja de moverse, porque el aviso ocupa una línea y puede sacar otra. */
+function plAjustarMes(raiz, selCel, selCont, selLin, claseMas, hacerAviso) {
+  for (let vuelta = 0; vuelta < 3; vuelta++) {
+    let cambios = 0;
+    raiz.querySelectorAll(selCel).forEach(cel => {
+      const cont = cel.querySelector(selCont);
+      if (!cont) return;
+      const items = [...cont.querySelectorAll(selLin)];
+      items.forEach(i => i.style.display = '');
+      const previo = cont.querySelector('.' + claseMas);
+      if (previo) previo.remove();
+      if (!items.length) return;
+      const disp = cont.clientHeight;
+      const ult = items[items.length-1];
+      const cabenTodos = ult.offsetTop + ult.offsetHeight <= disp;
+      const tope = cabenTodos ? disp : disp - 13;
+      const fuera = [];
+      items.forEach((el, i) => {
+        if (el.offsetTop + el.offsetHeight > tope) { el.style.display = 'none'; fuera.push(i); }
+      });
+      if (!fuera.length) return;
+      cambios++;
+      cont.appendChild(hacerAviso(cel, fuera.length, fuera));
+    });
+    if (!cambios) break;
+  }
+}
+
+function plModalDia(fstr) {
+  const f = plDeYmd(fstr), p = plActual();
+  const ts = plDelDia(f), c = plCarga(p, f);
+  document.getElementById('md-title').textContent =
+    `${plCap(plDL[f.getDay()])} ${f.getDate()} de ${plME[f.getMonth()]}`;
+  let h = `<div style="font-size:12px;font-weight:800;color:${c.lab?plColorCarga(c.pct):'var(--textl)'};margin-bottom:10px">
+             ${!c.lab ? 'No trabaja este día' : c.ausente ? 'Ausente' : `${c.pct}% ocupado · ${plHrs(c.ocup)}`}</div>`;
+  h += ts.length ? ts.map(x => {
+    const col = plCATS[x.t.cat].c;
+    return `<div class="item" style="border-left:4px solid ${col}">
+      <div style="flex:1;min-width:0">
+        <b>${hesc(x.t.titulo)}</b>
+        <small>${x.todoDia ? 'todo el día' : plHhmm(x.ini)+'–'+plHhmm(x.fin)} · ${plCATS[x.t.cat].lbl}${x.t.lugar?' · '+hesc(x.t.lugar):''}${x.t.rep.tipo==='sem'?' · se repite':''}</small>
+        ${x.t.nota ? `<small style="display:block;margin-top:2px">${hesc(x.t.nota)}</small>` : ''}
+      </div>
+      <button class="btn bol bsm" data-editar="${hesc(x.t.id)}">Editar</button>
+    </div>`;
+  }).join('') : '<div class="empty" style="padding:14px">Sin tareas ese día.</div>';
+  if (c.lab && c.huecos.length)
+    h += `<div style="font-size:11.5px;color:var(--textl);font-weight:700;margin-top:8px">
+            Huecos: ${c.huecos.map(g => plHhmm(g.ini)+'–'+plHhmm(g.fin)).join(' · ')}</div>`;
+  const cuerpo = document.getElementById('md-body');
+  cuerpo.innerHTML = h;
+  // los manejadores se enganchan aquí, no dentro del HTML: así un id raro
+  // guardado en la base no puede colarse dentro de un atributo
+  cuerpo.querySelectorAll('[data-editar]').forEach(b =>
+    b.onclick = () => { plCerrar('m-dia'); plEditarTarea(b.dataset.editar, fstr); });
+  document.getElementById('md-nueva').onclick = () => { plCerrar('m-dia'); plNuevaTarea(fstr); };
+  plAbrir('m-dia');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MODAL TAREA
+// ══════════════════════════════════════════════════════════════
+function plPintarCats(sel) {
+  document.getElementById('mt-cats').innerHTML = Object.keys(plCATS).map(k =>
+    `<button type="button" class="pl-catb" data-k="${k}" aria-pressed="${k===sel}" onclick="plPickCat('${k}')">
+       <i style="background:${plCATS[k].c}"></i>${plCATS[k].lbl}</button>`).join('');
+}
+function plPickCat(k) {
+  document.querySelectorAll('#mt-cats .pl-catb').forEach(b =>
+    b.setAttribute('aria-pressed', b.dataset.k === k ? 'true' : 'false'));
+}
+const plCatSel = () => {
+  const b = document.querySelector('#mt-cats .pl-catb[aria-pressed="true"]');
+  return b ? b.dataset.k : 'otro';
+};
+
+function plPintarDias(cont, dias) {
+  document.getElementById(cont).innerHTML = [1,2,3,4,5,6,0].map(w =>
+    `<button type="button" data-w="${w}" aria-pressed="${dias.includes(w)}"
+       onclick="this.setAttribute('aria-pressed', this.getAttribute('aria-pressed')==='true'?'false':'true')">${plDC[w]}</button>`).join('');
+}
+const plDiasSel = cont =>
+  [...document.querySelectorAll('#'+cont+' button[aria-pressed="true"]')].map(b => +b.dataset.w).sort();
+
+function plRepCambio() {
+  const sem = document.getElementById('mt-rep').value === 'sem';
+  document.getElementById('mt-repbox').style.display = sem ? 'block' : 'none';
+  document.getElementById('mt-flabel').textContent = sem ? 'Desde la semana del' : 'Fecha';
+  if (sem && !plDiasSel('mt-dias').length) {
+    const f = document.getElementById('mt-fecha').value;
+    const w = f ? plDeYmd(f).getDay() : 1;
+    document.querySelectorAll('#mt-dias button').forEach(b =>
+      b.setAttribute('aria-pressed', +b.dataset.w === w ? 'true' : 'false'));
+  }
+}
+
+function plNuevaTarea(fecha, ini, fin) {
+  if (!plActual()) { toast('Primero crea una persona.'); return; }
+  plTareaEd = null; plFechaEd = null;
+  const hoy = plHoy();
+  let porDefecto;
+  if (plVista === 'mes') {
+    // en el mes, hoy si el mes mostrado es el actual; si no, el día 1
+    porDefecto = (hoy.getMonth() === plCursor.getMonth() && hoy.getFullYear() === plCursor.getFullYear())
+      ? plYmd(hoy) : plYmd(new Date(plCursor.getFullYear(), plCursor.getMonth(), 1));
+  } else {
+    const ds = plDiasSem();
+    porDefecto = ds.some(d => plMismo(d, hoy)) ? plYmd(hoy) : plYmd(ds[0]);
+  }
+  document.getElementById('mt-title').textContent = 'Nueva tarea';
+  document.getElementById('mt-alert').innerHTML = '';
+  document.getElementById('mt-titulo').value = '';
+  document.getElementById('mt-fecha').value  = fecha || porDefecto;
+  document.getElementById('mt-ini').value    = ini || '09:00';
+  document.getElementById('mt-fin').value    = fin || '10:00';
+  document.getElementById('mt-lugar').value  = '';
+  document.getElementById('mt-nota').value   = '';
+  document.getElementById('mt-todo').checked = false;
+  document.getElementById('mt-horas').style.display = '';
+  document.getElementById('mt-rep').value = 'no';
+  document.getElementById('mt-hasta').value = '';
+  plPintarCats('ruta');
+  plPintarDias('mt-dias', []);
+  plRepCambio();
+  document.getElementById('mt-borrar').style.display = 'none';
+  plAbrir('m-tarea');
+  setTimeout(() => document.getElementById('mt-titulo').focus(), 40);
+}
+
+function plEditarTarea(id, fecha) {
+  const t = plTareas.find(x => x.id === id);
+  if (!t) return;
+  plTareaEd = t; plFechaEd = fecha || t.fecha;
+  const serie = t.rep.tipo === 'sem';
+  document.getElementById('mt-title').textContent = 'Editar tarea';
+  document.getElementById('mt-alert').innerHTML = serie
+    ? `<div class="alert ai">Esta tarea se repite cada semana. Al guardar te pregunto si el cambio va a toda la serie o solo al ${hesc(plFechaEd)}.</div>`
+    : '';
+  document.getElementById('mt-titulo').value = t.titulo;
+  document.getElementById('mt-fecha').value  = serie ? t.fecha : plFechaEd;
+  document.getElementById('mt-ini').value    = t.ini;
+  document.getElementById('mt-fin').value    = t.fin;
+  document.getElementById('mt-lugar').value  = t.lugar || '';
+  document.getElementById('mt-nota').value   = t.nota || '';
+  document.getElementById('mt-todo').checked = t.todoDia;
+  document.getElementById('mt-horas').style.display = t.todoDia ? 'none' : '';
+  document.getElementById('mt-rep').value   = serie ? 'sem' : 'no';
+  document.getElementById('mt-hasta').value = t.rep.hasta || '';
+  plPintarCats(t.cat);
+  plPintarDias('mt-dias', t.rep.dias || []);
+  plRepCambio();
+  document.getElementById('mt-borrar').style.display = '';
+  plAbrir('m-tarea');
+}
+
+document.getElementById('mt-todo').addEventListener('change', function () {
+  document.getElementById('mt-horas').style.display = this.checked ? 'none' : '';
+});
+
+function plLeerFormulario() {
+  const todo = document.getElementById('mt-todo').checked;
+  const rep  = document.getElementById('mt-rep').value === 'sem';
+  let dias = plDiasSel('mt-dias');
+  let fecha = document.getElementById('mt-fecha').value || plYmd(plHoy());
+  if (rep && !dias.length) dias = [plDeYmd(fecha).getDay()];
+  // Una serie semanal arranca al principio de su semana. Si se guardara la
+  // fecha tal cual, al crearla un miércoles los lunes y martes de esa misma
+  // semana quedarían fuera y parecería que la tarea no se guardó completa.
+  if (rep) fecha = plYmd(plIniSem(plDeYmd(fecha)));
+  const o = {
+    perfil: plPersona,
+    titulo: (document.getElementById('mt-titulo').value || '').trim() || 'Sin título',
+    cat: plCatSel(),
+    fecha,
+    todoDia: todo,
+    ini: todo ? '00:00' : (document.getElementById('mt-ini').value || '09:00'),
+    fin: todo ? '23:59' : (document.getElementById('mt-fin').value || '10:00'),
+    lugar: document.getElementById('mt-lugar').value.trim(),
+    nota:  document.getElementById('mt-nota').value.trim(),
+    rep: rep ? { tipo:'sem', dias, hasta:document.getElementById('mt-hasta').value || '' }
+             : { tipo:'no', dias:[], hasta:'' },
+    ex: []
+  };
+  if (!o.todoDia && plMin2(o.fin) <= plMin2(o.ini)) o.fin = plHhmm(Math.min(plMin2(o.ini)+60, FIN_DIA));
+  return o;
+}
+
+function plPreguntarAlcance(accion, cb) {
+  document.getElementById('ma-title').textContent = accion;
+  document.getElementById('ma-serie').onclick = () => { plCerrar('m-alc'); cb('serie'); };
+  document.getElementById('ma-dia').onclick   = () => { plCerrar('m-alc'); cb('dia'); };
+  plAbrir('m-alc');
+}
+
+async function plGuardarTarea() {
+  const btn = document.getElementById('mt-guardar');
+  const nuevo = plLeerFormulario();
+  const t = plTareaEd;
+
+  const correr = async fn => {
+    btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true;
+    try {
+      await fn();
+      plCerrar('m-tarea');
+      await plCargar();
+    } catch (e) {
+      document.getElementById('mt-alert').innerHTML =
+        `<div class="alert ae">No se pudo guardar: ${hesc(e.message)}</div>`;
+    }
+    btn.innerHTML = 'Guardar'; btn.disabled = false;
+  };
+
+  if (!t) {
+    nuevo.id = plUid();
+    return correr(async () => {
+      await sbSend(T_TAR, 'POST', plHaciaFila(nuevo));
+      toast('Tarea agregada.');
+    });
+  }
+
+  if (t.rep.tipo === 'sem') {
+    return plPreguntarAlcance('Guardar cambios', alcance => correr(async () => {
+      if (alcance === 'serie') {
+        nuevo.ex = t.ex;
+        await sbSend(`${T_TAR}?id=eq.${encodeURIComponent(t.id)}`, 'PATCH', plFilaPatch(nuevo));
+        toast('Serie actualizada.');
+      } else {
+        // el día se saca de la serie y se crea una tarea suelta con los cambios
+        const suelta = { ...nuevo, id:plUid(), fecha:plFechaEd, rep:{ tipo:'no', dias:[], hasta:'' }, ex:[] };
+        await sbSend(T_TAR, 'POST', plHaciaFila(suelta));
+        await sbSend(`${T_TAR}?id=eq.${encodeURIComponent(t.id)}`, 'PATCH',
+                     { ex: [...t.ex, plFechaEd] });
+        toast('Cambio aplicado solo a ese día.');
+      }
+    }));
+  }
+
+  nuevo.ex = t.ex;
+  return correr(async () => {
+    await sbSend(`${T_TAR}?id=eq.${encodeURIComponent(t.id)}`, 'PATCH', plFilaPatch(nuevo));
+    toast('Tarea guardada.');
+  });
+}
+
+function plBorrarTarea() {
+  const t = plTareaEd;
+  if (!t) return;
+  const quitar = async fn => {
+    try { await fn(); plCerrar('m-tarea'); await plCargar(); }
+    catch (e) {
+      document.getElementById('mt-alert').innerHTML =
+        `<div class="alert ae">No se pudo eliminar: ${hesc(e.message)}</div>`;
+    }
+  };
+  if (t.rep.tipo === 'sem') {
+    return plPreguntarAlcance('Eliminar', alcance => quitar(async () => {
+      if (alcance === 'serie') {
+        await sbSend(`${T_TAR}?id=eq.${encodeURIComponent(t.id)}`, 'DELETE');
+        toast('Serie eliminada.');
+      } else {
+        await sbSend(`${T_TAR}?id=eq.${encodeURIComponent(t.id)}`, 'PATCH',
+                     { ex: [...t.ex, plFechaEd] });
+        toast('Se quitó solo ese día.');
+      }
+    }));
+  }
+  plConfirmar(`Se elimina la tarea "${t.titulo}".`, () => quitar(async () => {
+    await sbSend(`${T_TAR}?id=eq.${encodeURIComponent(t.id)}`, 'DELETE');
+    toast('Tarea eliminada.');
+  }));
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MODAL PERSONA
+// ══════════════════════════════════════════════════════════════
+function plAbrirPerfil(p) {
+  plPerfilEd = p || null;
+  document.getElementById('mp-title').textContent = p ? 'Editar persona' : 'Nueva persona';
+  document.getElementById('mp-alert').innerHTML = '';
+  document.getElementById('mp-nombre').value = p ? p.nombre : '';
+  document.getElementById('mp-rol').value    = p ? p.rol : '';
+  document.getElementById('mp-ini').value    = p ? p.ini : '08:00';
+  document.getElementById('mp-fin').value    = p ? p.fin : '18:00';
+  plPintarDias('mp-dias', p ? p.dias : [1,2,3,4,5]);
+  const color = p ? p.color : plPALETA[plPerfiles.length % plPALETA.length];
+  document.getElementById('mp-cols').innerHTML = plPALETA.map(c =>
+    `<button type="button" data-c="${c}" aria-pressed="${c===color}" style="background:${c}"
+       onclick="document.querySelectorAll('#mp-cols button').forEach(b=>b.setAttribute('aria-pressed','false'));this.setAttribute('aria-pressed','true')"></button>`).join('');
+  plAbrir('m-perfil');
+  setTimeout(() => document.getElementById('mp-nombre').focus(), 40);
+}
+
+async function plGuardarPerfil() {
+  const nombre = document.getElementById('mp-nombre').value.trim();
+  if (!nombre) {
+    document.getElementById('mp-alert').innerHTML = '<div class="alert ae">Ponle un nombre.</div>';
+    return;
+  }
+  let dias = plDiasSel('mp-dias');
+  if (!dias.length) dias = [1,2,3,4,5];
+  const colBtn = document.querySelector('#mp-cols button[aria-pressed="true"]');
+  let ini = document.getElementById('mp-ini').value || '08:00';
+  let fin = document.getElementById('mp-fin').value || '18:00';
+  if (plMin2(fin) <= plMin2(ini)) fin = plHhmm(Math.min(plMin2(ini)+480, FIN_DIA));
+
+  const fila = {
+    nombre, rol: document.getElementById('mp-rol').value.trim(),
+    color: colBtn ? colBtn.dataset.c : '#6b35b8',
+    ini, fin, dias, activo: true
+  };
+
+  const btn = document.getElementById('mp-guardar');
+  btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true;
+  try {
+    if (plPerfilEd) {
+      await sbSend(`${T_PER}?id=eq.${encodeURIComponent(plPerfilEd.id)}`, 'PATCH', fila);
+      toast('Persona actualizada.');
+    } else {
+      fila.id = plUid();
+      await sbSend(T_PER, 'POST', fila);
+      plPersona = fila.id;
+      toast('Planner creado.');
+    }
+    plCerrar('m-perfil');
+    plEncuadrar = true;
+    await plCargar();
+  } catch (e) {
+    document.getElementById('mp-alert').innerHTML =
+      `<div class="alert ae">No se pudo guardar: ${hesc(e.message)}</div>`;
+  }
+  btn.innerHTML = 'Guardar'; btn.disabled = false;
+}
+
+function plBorrarPerfil() {
+  const p = plActual();
+  if (!p) return;
+  const n = plTareas.filter(t => t.perfil === p.id).length;
+  plConfirmar(
+    `Se elimina el planner de ${p.nombre}` + (n ? ` junto con sus ${n} tarea(s).` : '.') +
+    ' Los pedidos y despachos no se tocan.',
+    async () => {
+      try {
+        await sbSend(`${T_PER}?id=eq.${encodeURIComponent(p.id)}`, 'DELETE');
+        plPersona = null;
+        await plCargar();
+        toast('Planner eliminado.');
+      } catch (e) {
+        plAlerta('No se pudo eliminar: ' + hesc(e.message), 'ae');
+      }
+    });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  IMPRESIÓN
+// ══════════════════════════════════════════════════════════════
+function plCabImpresa(sub, titulo) {
+  const p = plActual();
+  return `<div class="p-cab">
+      <div><div class="p-rot">planificador nativo · ${hesc(sub)}</div><h1>${hesc(titulo)}</h1></div>
+      <div class="p-der"><div class="p-quien">${hesc(p ? p.nombre + (p.rol ? ' · ' + p.rol : '') : '')}</div>
+      <div>impreso ${plYmd(plHoy())}</div></div></div>`;
+}
+
+function plImprimir(modo) {
+  if (!plActual()) { toast('Primero elige una persona.'); return; }
+  const cont = document.getElementById('pl-print');
+  cont.innerHTML = modo === 'mes' ? plHojaMes() : plHojaSemana();
+  if (modo === 'mes') {
+    // se mide con la hoja ya en pantalla, si no las casillas no tienen alto real
+    plAjustarMes(cont, '.p-dia', '.p-lineas', '.p-t', 'p-mas', (cel, n, fuera) => {
+      const s = document.createElement('span');
+      s.className = 'p-mas';
+      s.textContent = `+${n} más, al pie`;
+      return s;
+    });
+    plPieMes(cont);
+  }
+  const limpiar = () => {
+    cont.innerHTML = '';
+    window.removeEventListener('afterprint', limpiar);
+  };
+  window.addEventListener('afterprint', limpiar);
+  setTimeout(() => { window.print(); setTimeout(limpiar, 20000); }, 120);
+}
+
+// ── semana impresa ──
+function plHojaSemana() {
+  const p = plActual();
+  const ds = plDiasSem(), R = plRango(ds);
+  const titulo = `Semana ${plNsem(ds[0])} · ${ds[0].getDate()} al ${ds[ds.length-1].getDate()} de ` +
+                 `${plME[ds[ds.length-1].getMonth()]} ${ds[0].getFullYear()}`;
+  const GC = `style="grid-template-columns:52px repeat(${ds.length},minmax(0,1fr))"`;
+
+  let h = `<div class="hoja hoja-sem">${plCabImpresa('plan semanal', titulo)}<div class="p-wk">`;
+  h += `<div class="pl-fila pl-cab" ${GC}><div class="cel"></div>`;
+  ds.forEach(f => {
+    h += `<div class="cel"><div class="dsem">${plDL[f.getDay()].slice(0,3)}</div>
+          <div class="dnum">${f.getDate()}</div></div>`;
+  });
+  h += '</div>';
+
+  const hayTodo = ds.some(f => plDelDia(f).some(x => x.todoDia));
+  if (hayTodo) {
+    h += `<div class="pl-fila pl-todo" ${GC}><div class="pl-rot">todo el día</div>`;
+    ds.forEach(f => {
+      h += '<div class="pl-lane">';
+      plDelDia(f).filter(x => x.todoDia).forEach(x => {
+        const c = plCATS[x.t.cat].c;
+        h += `<span class="pl-tchip" style="background:${plHexA(c,.16)};border-left-color:${c};color:${c}">${hesc(x.t.titulo)}</span>`;
+      });
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+
+  h += `<div class="pl-fila" ${GC}>`;
+  h += `<div class="pl-gut" style="position:relative;height:calc(var(--pxh) * ${R.h})">`;
+  for (let m = R.a; m <= R.b; m += 60) {
+    const cls = m === R.a ? ' tope' : (m === R.b ? ' base' : '');
+    h += `<div class="h${cls}" style="top:calc(var(--pxh) * ${(m-R.a)/60})">${plHhmmTope(m)}</div>`;
+  }
+  h += '</div>';
+  ds.forEach(f => {
+    h += `<div class="pl-col" style="height:calc(var(--pxh) * ${R.h})">`;
+    if (p) {
+      const j = plJornada(p, f);
+      if (!j.lab) h += `<div class="pl-fuera" style="top:0;height:calc(var(--pxh) * ${R.h})"></div>`;
+      else {
+        if (j.ini > R.a) h += `<div class="pl-fuera" style="top:0;height:calc(var(--pxh) * ${(j.ini-R.a)/60})"></div>`;
+        if (j.fin < R.b) h += `<div class="pl-fuera" style="top:calc(var(--pxh) * ${(j.fin-R.a)/60});height:calc(var(--pxh) * ${(R.b-j.fin)/60})"></div>`;
+      }
+    }
+    const lista = plDelDia(f).filter(x => !x.todoDia);
+    plAcomodar(lista);
+    lista.forEach(x => {
+      const c = plCATS[x.t.cat].c, dur = x.fin - x.ini;
+      const w = 100/x._n, left = x._c*w;
+      h += `<div class="pl-blk" style="top:calc(var(--pxh) * ${(x.ini-R.a)/60});
+              height:calc(var(--pxh) * ${dur/60} - 2px);left:calc(${left}% + 1px);width:calc(${w}% - 2px);
+              background:${plHexA(c,.13)};border-color:${plHexA(c,.35)};border-left-color:${c};color:${c}">
+              <span class="t">${hesc(x.t.titulo)}</span>
+              <span class="h">${plHhmm(x.ini)}–${plHhmm(x.fin)}</span></div>`;
+    });
+    h += '</div>';
+  });
+  h += '</div></div>';
+
+  // detalle escrito
+  h += '<div class="p-det"><table><thead><tr><th>Día</th><th>Hora</th><th>Tarea</th><th>Tipo</th><th>Lugar y notas</th></tr></thead><tbody>';
+  ds.forEach(f => {
+    const ts = plDelDia(f);
+    if (!ts.length) return;
+    ts.forEach((x, i) => {
+      h += `<tr>
+        <td class="dd">${i === 0 ? plDC[f.getDay()] + ' ' + f.getDate() : ''}</td>
+        <td class="hh">${x.todoDia ? 'todo el día' : plHhmm(x.ini)+'–'+plHhmm(x.fin)}</td>
+        <td>${hesc(x.t.titulo)}</td>
+        <td class="cc">${plCATS[x.t.cat].lbl}</td>
+        <td>${hesc([x.t.lugar, x.t.nota].filter(Boolean).join(' — '))}</td></tr>`;
+    });
+  });
+  h += '</tbody></table></div></div>';
+  return h;
+}
+
+// ── mes impreso, estilo calendario ──
+let plSobrantes = [];
+
+function plHojaMes() {
+  const y = plCursor.getFullYear(), m = plCursor.getMonth();
+  const barrido = [];
+  const L = plIniSem(new Date(y, m, 1));
+  for (let k = 0; k < 42; k++) barrido.push(plSuma(L, k));
+  const nCols = plNumCols(barrido);
+  const semanas = plSemanasMes(nCols);
+  const cols = `grid-template-columns:repeat(${nCols},1fr)`;
+  plSobrantes = [];
+
+  let h = `<div class="hoja">${plCabImpresa('plan mensual', `${plCap(plME[m])} ${y}`)}`;
+  h += `<div class="p-cal"><div class="p-ccab" style="${cols}">`;
+  for (let d = 0; d < nCols; d++) h += `<div>${plDL[(d+1)%7]}</div>`;
+  h += '</div>';
+
+  semanas.forEach(f7 => {
+    h += `<div class="p-sem" style="${cols}">`;
+    f7.forEach(f => {
+      const otro = f.getMonth() !== m;
+      const fin = f.getDay() === 0 || f.getDay() === 6;
+      const lista = otro ? [] : plDelDia(f);
+      h += `<div class="p-dia${otro?' otro':''}${fin?' finde':''}" data-f="${plYmd(f)}">
+              <div class="p-num">${f.getDate()}</div>`;
+      if (!otro) {
+        h += '<div class="p-lineas">';
+        if (!lista.length) h += '<span class="p-vacio">—</span>';
+        else lista.forEach((x, i) => {
+          const c = plCATS[x.t.cat].c;
+          h += `<span class="p-t" data-i="${i}"><b style="color:${c}">${x.todoDia ? 'Todo el día' : plHhmm(x.ini)}</b> ${hesc(x.t.titulo)}</span>`;
+        });
+        h += '</div>';
+      }
+      h += '</div>';
+    });
+    h += '</div>';
+  });
+  h += '</div><div class="p-pie" id="p-pie" hidden><h2>Lo que no alcanzó a caber</h2><div id="p-pie-filas"></div></div></div>';
+  return h;
+}
+
+function plPieMes(cont) {
+  const pie = cont.querySelector('#p-pie');
+  const filas = cont.querySelector('#p-pie-filas');
+  if (!pie || !filas) return;
+  filas.innerHTML = '';
+  let hubo = false;
+  cont.querySelectorAll('.p-dia').forEach(cel => {
+    const ocultas = [...cel.querySelectorAll('.p-t')].filter(e => e.style.display === 'none');
+    if (!ocultas.length) return;
+    hubo = true;
+    const f = plDeYmd(cel.dataset.f);
+    const lista = plDelDia(f);
+    const fila = document.createElement('div');
+    fila.className = 'fila';
+    fila.innerHTML = `<b>${plCap(plDL[f.getDay()])} ${f.getDate()}</b> · <span>` +
+      ocultas.map(el => {
+        const x = lista[+el.dataset.i];
+        if (!x) return '';
+        return (x.todoDia ? 'todo el día' : plHhmm(x.ini)+'–'+plHhmm(x.fin)) + ' ' + hesc(x.t.titulo) +
+               (x.t.lugar ? ' (' + hesc(x.t.lugar) + ')' : '');
+      }).filter(Boolean).join(' · ') + '</span>';
+    filas.appendChild(fila);
+  });
+  pie.hidden = !hubo;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ATAJOS
+// ══════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (document.querySelector('.mbg.open')) {
+    if (e.key === 'Escape') document.querySelectorAll('.mbg.open').forEach(m => m.classList.remove('open'));
+    return;
+  }
+  if (e.target.matches && e.target.matches('input,textarea,select')) return;
+  if (document.getElementById('app').style.display === 'none') return;
+  if (e.key === 'ArrowLeft')  plNav(-1);
+  if (e.key === 'ArrowRight') plNav(1);
+  if (e.key === 't' || e.key === 'T') plNav(0);
+  if (e.key === '1') plIrVista('semana');
+  if (e.key === '2') plIrVista('mes');
+});
+</script>
+</body>
+</html>
