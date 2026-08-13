@@ -146,8 +146,19 @@ input[type=checkbox]{
    entregado sin facturar va ámbar con el visto puesto: salió, falta cobrar. */
 .bentrsf{background:var(--am-l);color:#78350f;border:1px solid #fbbf24}
 .coord{font-size:11px;font-weight:800;color:var(--nd);margin-top:3px}
+/* Dos recuadros deliberadamente distintos. El azul lo escribió el cliente; el
+   morado con candado lo escribiste tú. Que nunca haya que preguntarse quién
+   dijo qué es más importante que ahorrar un color. */
 .msg-cli{margin-top:6px;background:#eff6ff;border-left:3px solid #60a5fa;border-radius:0 7px 7px 0;
   padding:5px 9px;font-size:11px;color:#1e3a5f;font-weight:700;line-height:1.5}
+.nota-wrap{margin-top:6px}
+/* Fondo blanco y borde discontinuo, igual que el botón de "+ nota": lo
+   discontinuo marca lo que escribes tú, y así no se confunde con el bloque
+   lleno de los productos, que es del mismo morado. */
+.nota-int{cursor:pointer;background:var(--white);border:1px dashed var(--mora-l);
+  border-radius:7px;padding:5px 9px;font-size:11px;color:var(--mora-d);
+  font-weight:700;line-height:1.5}
+.nota-int:hover{background:var(--mora-xl);border-style:solid}
 .folio{font-family:monospace;font-size:11px;font-weight:800;color:var(--mora-l);letter-spacing:.3px}
 
 /* ── FLOATING ACTION BAR ── */
@@ -1107,10 +1118,11 @@ function render() {
     const folioHtml = p.folio
       ? `<div class="folio">${hesc(p.folio)}</div>` : '';
 
-    // El mensaje lo escribió el cliente. Va con marca propia y color distinto
-    // del comentario interno, para que nunca se confunda quién lo escribió.
+    // El mensaje lo escribió el cliente; la nota, tú. Cada uno con su marca y su
+    // color, para que nunca se confunda quién lo escribió.
     const msgHtml = String(p.mensaje || '').trim()
       ? `<div class="msg-cli">💬 <b>Dice el cliente:</b> ${hesc(p.mensaje)}</div>` : '';
+    const notaHtml = notaCelda(p);
 
     const recibeHtml = p.recibe
       ? `<div style="font-size:11px;color:var(--vd);font-weight:700;margin-top:3px">✔ ${esRetiro(p) ? 'Retira' : 'Recibe'}: ${hesc(p.recibe)}</div>` : '';
@@ -1131,8 +1143,9 @@ function render() {
         ${contactoHtml}
         ${dhtml}
         ${msgHtml}
+        ${notaHtml}
       </td>
-      <td style="font-size:12px;font-weight:600;max-width:150px">${hesc(p.dir)}</td>
+      <td style="font-size:12px;font-weight:600;max-width:210px">${hesc(p.dir)}</td>
       <td>${entregaBadge(p)}</td>
       <td>
         ${ebadge(p.estado)}
@@ -1143,6 +1156,74 @@ function render() {
       <td><button class="btn bol bsm" onclick="abrir(${p.id})">Editar</button></td>
     </tr>`;
   }).join('');
+}
+
+// ══════════════════════════════════════════
+//  NOTA INTERNA EDITABLE EN LA MISMA FILA
+// ══════════════════════════════════════════
+// Antes había que abrir el pedido, bajar hasta el final del modal y guardar.
+// En un día de despacho eso son cuatro clics por pedido. Ahora se escribe
+// donde se lee.
+function notaCelda(p) {
+  const t = String(p.comentario || '').trim();
+  const cuerpo = t
+    ? `<div class="nota-int" onclick="editarNota(${p.id})" title="Pinchar para editar">
+         🔒 <b>Nota interna:</b> ${hesc(t)}</div>`
+    : `<button class="nota-add" onclick="editarNota(${p.id})">🔒 + nota interna</button>`;
+  return `<div class="nota-wrap" id="nota-${p.id}">${cuerpo}</div>`;
+}
+
+function pintarNota(id) {
+  const p = pedidos.find(x => x.id === id);
+  const w = document.getElementById('nota-' + id);
+  if (p && w) w.outerHTML = notaCelda(p);
+}
+
+function editarNota(id) {
+  const p = pedidos.find(x => x.id === id);
+  const w = document.getElementById('nota-' + id);
+  if (!p || !w) return;
+  w.innerHTML = `<div class="nota-edit">
+      <textarea id="nota-ta-${id}" placeholder="Notas internas del equipo nativo...">${hesc(p.comentario || '')}</textarea>
+      <div class="nota-acts">
+        <button class="btn bmora bsm" id="nota-ok-${id}" onclick="guardarNota(${id})">Guardar nota</button>
+        <button class="btn bgray bsm" onclick="pintarNota(${id})">Cancelar</button>
+        <span class="nota-hint">Ctrl+Enter guarda · Esc cancela</span>
+      </div>
+    </div>`;
+  const ta = document.getElementById('nota-ta-' + id);
+  ta.focus();
+  ta.setSelectionRange(ta.value.length, ta.value.length);
+  ta.onkeydown = e => {
+    if (e.key === 'Escape') { e.preventDefault(); pintarNota(id); }
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); guardarNota(id); }
+  };
+}
+
+async function guardarNota(id) {
+  const p = pedidos.find(x => x.id === id);
+  const ta = document.getElementById('nota-ta-' + id);
+  if (!p || !ta) return;
+  const texto = ta.value.trim();
+  const btn = document.getElementById('nota-ok-' + id);
+  if (btn) { btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true; }
+  try {
+    // Solo se manda el comentario: nada más del pedido se toca
+    await sbPatch(id, { comentario: texto });
+    p.comentario = texto;
+    pintarNota(id);
+  } catch (e) {
+    // Si no se guardó, se deja el texto escrito para no perderlo
+    if (btn) { btn.innerHTML = 'Reintentar'; btn.disabled = false; }
+    const acts = ta.parentNode.querySelector('.nota-acts');
+    if (acts && !acts.querySelector('.nota-err')) {
+      const sp = document.createElement('span');
+      sp.className = 'nota-hint nota-err';
+      sp.style.color = 'var(--rd)';
+      sp.textContent = 'No se pudo guardar: ' + e.message;
+      acts.appendChild(sp);
+    }
+  }
 }
 
 // ══════════════════════════════════════════
@@ -1494,7 +1575,8 @@ function renderChecksRuta() {
         <div style="font-size:12px;color:var(--textl);margin-top:2px;font-weight:600">
           📦 ${hesc((p.detalle||'').slice(0,100))}${(p.detalle||'').length > 100 ? '…' : ''}
         </div>
-        ${String(p.mensaje||'').trim() ? `<div class="msg-cli">💬 ${hesc(p.mensaje)}</div>` : ''}
+        ${String(p.mensaje||'').trim() ? `<div class="msg-cli">💬 <b>Cliente:</b> ${hesc(p.mensaje)}</div>` : ''}
+        ${String(p.comentario||'').trim() ? `<div class="nota-int">🔒 <b>Nota:</b> ${hesc(p.comentario)}</div>` : ''}
         ${p.factura_num ? `<div style="font-size:11px;color:var(--mora-l);margin-top:2px;font-weight:700">Factura N° ${hesc(p.factura_num)}</div>` : ''}
       </div>
     </div>`).join('');
