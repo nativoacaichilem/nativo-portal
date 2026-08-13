@@ -142,6 +142,9 @@ input[type=checkbox]{
 .bfact{background:var(--mora-xl);color:var(--mora-d)}
 .bruta{background:#dbeafe;color:#1e40af}
 .bentr{background:var(--vl);color:var(--vd)}
+/* Ámbar ya significa "falta facturar" en el resto del panel, así que un
+   entregado sin facturar va ámbar con el visto puesto: salió, falta cobrar. */
+.bentrsf{background:var(--am-l);color:#78350f;border:1px solid #fbbf24}
 .coord{font-size:11px;font-weight:800;color:var(--nd);margin-top:3px}
 .msg-cli{margin-top:6px;background:#eff6ff;border-left:3px solid #60a5fa;border-radius:0 7px 7px 0;
   padding:5px 9px;font-size:11px;color:#1e3a5f;font-weight:700;line-height:1.5}
@@ -340,9 +343,13 @@ input[type=checkbox]{
   <div id="page-pedidos" class="page act">
     <div class="stats">
       <div class="stat"><div class="sn" id="st">0</div><div class="sl">Total</div></div>
-      <div class="stat"><div class="sn" id="sp">0</div><div class="sl">Sin facturar</div></div>
+      <div class="stat pulsa" id="stat-sf" onclick="verSinFacturar()" title="Todo lo que no se ha facturado">
+        <div class="sn" id="sp">0</div><div class="sl">Sin facturar</div></div>
       <div class="stat"><div class="sn" id="sr">0</div><div class="sl">En ruta</div></div>
       <div class="stat"><div class="sn" id="se">0</div><div class="sl">Entregados</div></div>
+      <div class="stat pulsa" id="stat-esf" onclick="verEntregadoSinFacturar()"
+           title="Ya se entregó pero todavía no se factura">
+        <div class="sn" id="sesf">0</div><div class="sl">Entregado sin facturar</div></div>
       <div class="stat pulsa" id="stat-ret" onclick="verRetirosPendientes()" title="Retiros sin fecha acordada">
         <div class="sn" id="sret">0</div><div class="sl">Retiros por coordinar</div>
       </div>
@@ -365,9 +372,11 @@ input[type=checkbox]{
         </select>
         <select id="festado" onchange="render()">
           <option value="">Todos los estados</option>
+          <option value="sf">▸ Todo lo que falta facturar</option>
           <option value="pendiente">Sin facturar</option>
           <option value="facturado">Facturado</option>
           <option value="en-ruta">En ruta</option>
+          <option value="entregado-sin-facturar">Entregado · sin facturar</option>
           <option value="entregado">Entregado</option>
         </select>
         <button class="btn bol bsm" onclick="cargar()">🔄 Actualizar</button>
@@ -594,6 +603,7 @@ input[type=checkbox]{
           <option value="pendiente">Sin facturar</option>
           <option value="facturado">Facturado</option>
           <option value="en-ruta">En ruta</option>
+          <option value="entregado-sin-facturar">Entregado · sin facturar</option>
           <option value="entregado">Entregado</option>
         </select>
       </div>
@@ -724,6 +734,7 @@ input[type=checkbox]{
     <option value="pendiente">Sin facturar</option>
     <option value="facturado">Facturado</option>
     <option value="en-ruta">En ruta</option>
+    <option value="entregado-sin-facturar">Entregado · sin facturar</option>
     <option value="entregado">Entregado</option>
   </select>
   <button class="btn bsm ab-apply" id="ab-btn" onclick="aplicarMasivo()">Aplicar</button>
@@ -881,20 +892,35 @@ function zbadge(z) {
 // hay que llamar al cliente — porque el portal no le dice dónde retirar.
 function entregaBadge(p) {
   if (!esRetiro(p)) return zbadge(p.zona);
-  const falta = !String(p.fecha_entrega || '').trim() && p.estado !== 'entregado';
+  // un retiro ya entregado no hay que coordinarlo, esté facturado o no
+  const falta = !String(p.fecha_entrega || '').trim() && !yaEntregado(p.estado);
   return '<span class="badge bret">🏢 Retiro</span>' +
     (falta ? '<div class="coord">⏳ coordinar horario</div>' : '');
 }
 
+// Los estados mezclan dos cosas: si está facturado y si está despachado.
+// "Entregado sin facturar" es la combinación que faltaba: la mercadería salió
+// pero la plata todavía no se cobró, y eso hay que poder verlo.
+const ESTADOS = {
+  'pendiente':               { cls:'bpend',   lbl:'Sin facturar' },
+  'facturado':               { cls:'bfact',   lbl:'Facturado' },
+  'en-ruta':                 { cls:'bruta',   lbl:'En ruta' },
+  'entregado-sin-facturar':  { cls:'bentrsf', lbl:'Entregado · sin facturar' },
+  'entregado':               { cls:'bentr',   lbl:'Entregado' }
+};
+
+// Ya salió de la bodega, esté facturado o no
+const yaEntregado = e => e === 'entregado' || e === 'entregado-sin-facturar';
+// Todavía no se cobró
+const sinFacturar = e => e === 'pendiente' || e === 'entregado-sin-facturar';
+
 function ebadge(e) {
-  const m = { pendiente:'bpend', facturado:'bfact', 'en-ruta':'bruta', entregado:'bentr' };
-  const l = { pendiente:'Sin facturar', facturado:'Facturado', 'en-ruta':'En ruta', entregado:'Entregado' };
-  if (!e || !tiene(m, e)) return `<span class="badge bpend">${hesc(e) || 'Sin estado'}</span>`;
-  return `<span class="badge ${m[e]}">${hesc(l[e])}</span>`;
+  if (!e || !tiene(ESTADOS, e)) return `<span class="badge bpend">${hesc(e) || 'Sin estado'}</span>`;
+  return `<span class="badge ${ESTADOS[e].cls}">${hesc(ESTADOS[e].lbl)}</span>`;
 }
 
 function estadoLabel(e) {
-  return { pendiente:'Sin facturar', facturado:'Facturado', 'en-ruta':'En ruta', entregado:'Entregado' }[e] || e;
+  return tiene(ESTADOS, e) ? ESTADOS[e].lbl : e;
 }
 
 function alerta(id, msg, cls) {
@@ -997,7 +1023,8 @@ function filtrados() {
              (p.contacto||'').toLowerCase().includes(q) ||
              (p.folio||'').toLowerCase().includes(q)) &&
     (!fz || p.zona === fz) &&
-    (!fe || p.estado === fe) &&
+    // 'sf' no es un estado: es "falta facturar", que son dos estados distintos
+    (!fe || (fe === 'sf' ? sinFacturar(p.estado) : p.estado === fe)) &&
     (!fn || (p.entrega || 'despacho') === fn)
   );
 }
@@ -1006,7 +1033,25 @@ function filtrados() {
 // así que sale de la cuenta: el contador se apaga con el trabajo hecho, no
 // con un tilde.
 const retirosPendientes = () => pedidos.filter(p =>
-  esRetiro(p) && !String(p.fecha_entrega || '').trim() && p.estado !== 'entregado');
+  esRetiro(p) && !String(p.fecha_entrega || '').trim() && !yaEntregado(p.estado));
+
+// Los contadores pinchables llevan la tabla a lo que representan
+function verSinFacturar() {
+  // el contador cuenta dos estados, así que el filtro tiene que cubrir los dos
+  document.getElementById('festado').value = 'sf';
+  document.getElementById('fentrega').value = '';
+  document.getElementById('buscar').value = '';
+  render();
+  document.getElementById('tbody').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function verEntregadoSinFacturar() {
+  document.getElementById('festado').value = 'entregado-sin-facturar';
+  document.getElementById('fentrega').value = '';
+  document.getElementById('buscar').value = '';
+  render();
+  document.getElementById('tbody').scrollIntoView({ behavior:'smooth', block:'center' });
+}
 
 function verRetirosPendientes() {
   document.getElementById('fentrega').value = 'retiro';
@@ -1019,10 +1064,17 @@ function verRetirosPendientes() {
 
 function render() {
   const f = filtrados();
-  document.getElementById('st').textContent = pedidos.length;
-  document.getElementById('sp').textContent = pedidos.filter(p => p.estado === 'pendiente').length;
-  document.getElementById('sr').textContent = pedidos.filter(p => p.estado === 'en-ruta').length;
-  document.getElementById('se').textContent = pedidos.filter(p => p.estado === 'entregado').length;
+  // "Sin facturar" y "Entregados" cuentan las dos dimensiones por separado, así
+  // que un entregado sin facturar aparece en ambas: salió de la bodega Y falta
+  // cobrarlo. El contador propio destaca justamente ese cruce, que es el
+  // accionable: mercadería entregada que todavía no se factura.
+  const nEsf = pedidos.filter(p => p.estado === 'entregado-sin-facturar').length;
+  document.getElementById('st').textContent   = pedidos.length;
+  document.getElementById('sp').textContent   = pedidos.filter(p => sinFacturar(p.estado)).length;
+  document.getElementById('sr').textContent   = pedidos.filter(p => p.estado === 'en-ruta').length;
+  document.getElementById('se').textContent   = pedidos.filter(p => yaEntregado(p.estado)).length;
+  document.getElementById('sesf').textContent = nEsf;
+  document.getElementById('stat-esf').classList.toggle('aviso', nEsf > 0);
 
   const nret = retirosPendientes().length;
   document.getElementById('sret').textContent = nret;
