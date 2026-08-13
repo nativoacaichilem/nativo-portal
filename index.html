@@ -179,6 +179,33 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
   display:inline-block;background:#25D366;color:#fff;text-decoration:none;
   padding:11px 20px;border-radius:10px;font-weight:900;font-size:14px;margin-top:10px;
 }
+
+/* ── ELECCIÓN DE ENTREGA ── */
+.entrega-card{background:var(--white);border-radius:16px;padding:20px;margin-bottom:16px;
+  box-shadow:0 4px 20px rgba(107,53,184,.09)}
+.entrega-card > label{margin-bottom:10px}
+.eopts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.eopt{display:flex;gap:11px;align-items:flex-start;cursor:pointer;
+  border:2px solid var(--crema-d);border-radius:12px;padding:13px;background:var(--crema);transition:.15s}
+.eopt:hover{border-color:var(--mora-l)}
+.eopt.sel{border-color:var(--mora);background:#f5eeff}
+.eopt input{margin-top:2px;width:18px;height:18px;accent-color:var(--mora);flex:none;cursor:pointer}
+.eopt b{display:block;font-size:13.5px;font-weight:900;color:var(--mora-d);line-height:1.3}
+.eopt span{display:block;font-size:11.5px;color:var(--textl);font-weight:700;margin-top:3px;line-height:1.45}
+.aviso-retiro{background:var(--mora-xl);border:1.5px solid #ddc9f5;border-radius:11px;
+  padding:12px 14px;margin-top:12px;font-size:12.5px;font-weight:700;color:var(--mora-d);line-height:1.6}
+.msg-box{margin-top:16px}
+.msg-box textarea{width:100%;padding:11px 13px;border:1.5px solid var(--crema-d);border-radius:10px;
+  font-size:13.5px;font-family:'Nunito',sans-serif;outline:none;background:var(--crema);
+  color:var(--text);min-height:74px;resize:vertical}
+.msg-box textarea:focus{border-color:var(--mora);background:var(--white)}
+.msg-cuenta{font-size:11px;font-weight:700;color:var(--textl);text-align:right;margin-top:4px}
+.doc-retiro{background:var(--mora-xl);border-radius:8px;padding:10px 12px}
+.doc-retiro b{display:block;font-size:13px;font-weight:900;color:var(--mora-d)}
+.doc-retiro span{display:block;font-size:11.5px;color:var(--mora);font-weight:700;margin-top:2px}
+.doc-msg{background:#eff6ff;border-left:3px solid #60a5fa;border-radius:0 8px 8px 0;
+  padding:9px 12px;margin-bottom:20px;font-size:12.5px;color:#1e3a5f;font-weight:700;line-height:1.55}
+@media(max-width:480px){ .eopts{grid-template-columns:1fr} }
 .err-detalle{font-size:11px;font-weight:700;opacity:.85;margin-top:8px;font-family:monospace}
 
 /* ── DOCUMENTO OC ── */
@@ -311,6 +338,34 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
   </div>
   <div class="oc-wrap">
     <div id="oc-alert"></div>
+
+    <div class="entrega-card" id="entrega-card">
+      <label>¿Cómo quieres recibirlo?</label>
+      <div class="eopts">
+        <label class="eopt sel" id="eopt-despacho">
+          <input type="radio" name="entrega" value="despacho" checked onchange="cambiarEntrega()">
+          <div><b>🚚 Despacho a domicilio</b>
+               <span>Lo llevamos a la dirección que registraste</span></div>
+        </label>
+        <label class="eopt" id="eopt-retiro">
+          <input type="radio" name="entrega" value="retiro" onchange="cambiarEntrega()">
+          <div><b>🏢 Retiro en nuestra oficina</b>
+               <span>Lo vienes a buscar tú</span></div>
+        </label>
+      </div>
+
+      <div class="aviso-retiro" id="aviso-retiro" style="display:none">
+        📞 <b>Nos contactamos contigo para coordinar el día y la hora de retiro</b>, y ahí te
+        indicamos la dirección exacta. Te escribimos al teléfono o email que registraste.
+      </div>
+
+      <div class="msg-box">
+        <label id="msg-label">Mensaje para nosotros (opcional)</label>
+        <textarea id="mensaje" maxlength="500" oninput="contarMensaje()"></textarea>
+        <div class="msg-cuenta" id="msg-cuenta">0 / 500</div>
+      </div>
+    </div>
+
     <div id="oc-doc"></div>
   </div>
 </div>
@@ -424,6 +479,10 @@ const CATS = [
 
 let sess = {}, qtys = {}, confirmando = false;
 
+// 'despacho' o 'retiro'. Vive junto al pedido, no en la sesión del cliente:
+// alguien puede pedir despacho hoy y retiro la próxima vez.
+let entrega = 'despacho';
+
 // ══════════════════════════════════════════════════════════════
 //  UTILIDADES
 // ══════════════════════════════════════════════════════════════
@@ -532,7 +591,9 @@ function login() {
 }
 
 function logout() {
-  sess = {}; qtys = {};
+  sess = {}; qtys = {}; entrega = 'despacho';
+  document.getElementById('mensaje').value = '';
+  contarMensaje();
   ['rut-aviso','email-aviso'].forEach(id => document.getElementById(id).style.display = 'none');
   ['rut-inp','emp-inp','dir-inp','email-inp','contacto-inp','tel-inp'].forEach(id => {
     const el = document.getElementById(id);
@@ -641,8 +702,49 @@ function lineasPedido() {
     items.filter(({n}) => qtys[n]).map(({n,f}) => `${n} (${f}) x${qtys[n]}`));
 }
 
+const esRetiro = () => entrega === 'retiro';
+
+function cambiarEntrega() {
+  const sel = document.querySelector('input[name=entrega]:checked');
+  const nueva = sel && sel.value === 'retiro' ? 'retiro' : 'despacho';
+  const cambio = nueva !== entrega;
+  entrega = nueva;
+  document.getElementById('eopt-despacho').classList.toggle('sel', !esRetiro());
+  document.getElementById('eopt-retiro').classList.toggle('sel', esRetiro());
+  document.getElementById('aviso-retiro').style.display = esRetiro() ? '' : 'none';
+
+  document.getElementById('msg-label').textContent = esRetiro()
+    ? 'Mensaje para nosotros (opcional)'
+    : 'Mensaje para el despacho (opcional)';
+  document.getElementById('mensaje').placeholder = esRetiro()
+    ? 'Cuéntanos si tienes preferencia de día u horario para pasar'
+    : 'Horario de recepción, cómo llegar, a quién avisar al llegar...';
+
+  // Solo si la entrega CAMBIÓ de verdad se renueva el folio: el anterior podría
+  // estar guardado como despacho y no queremos que la base confunda dos pedidos
+  // distintos. Esta función también se llama al entrar a la pantalla, y ahí
+  // renovar el folio rompería la protección contra envíos duplicados.
+  if (cambio) {
+    sess.folio = null;
+    cancelarConfirmacion();
+  }
+  pintarDocumento();
+}
+
+function contarMensaje() {
+  const v = document.getElementById('mensaje').value;
+  document.getElementById('msg-cuenta').textContent = `${v.length} / 500`;
+}
+
 function irAOC() {
   if (!Object.keys(qtys).length) return;
+  cambiarEntrega();
+  showScreen('screen-oc');
+}
+
+// Se separa del cambio de pantalla para poder redibujar el documento cuando
+// cambia la forma de entrega, sin salir de la pantalla.
+function pintarDocumento() {
   if (!sess.folio) sess.folio = nuevoFolio();
   cancelarConfirmacion();
   avisoOC('');
@@ -669,7 +771,13 @@ function irAOC() {
     <div class="doc-datos">
       <div class="doc-dato"><label>Empresa</label><p>${esc(sess.emp)}</p></div>
       <div class="doc-dato"><label>RUT</label><p>${esc(sess.rut)}</p></div>
-      <div class="doc-dato"><label>Dirección de Despacho</label><p>${esc(sess.dir)}</p></div>
+      <div class="doc-dato"><label>Forma de entrega</label>
+        ${esRetiro()
+          ? `<div class="doc-retiro"><b>🏢 Retiro en nuestra oficina</b>
+               <span>Te contactamos para coordinar día, hora y dirección</span></div>`
+          : `<p>🚚 Despacho a domicilio</p>`}
+      </div>
+      <div class="doc-dato"><label>${esRetiro() ? 'Dirección registrada' : 'Dirección de Despacho'}</label><p>${esc(sess.dir)}</p></div>
       <div class="doc-dato"><label>Fecha del Pedido</label><p>${esc(sess.fecha)}</p></div>
       <div class="doc-dato"><label>Email</label><p>${esc(sess.email)}</p></div>
       <div class="doc-dato"><label>Nombre de Contacto</label><p>${esc(sess.contacto)}</p></div>
@@ -683,7 +791,6 @@ function irAOC() {
       <p>nativo — Documento generado electrónicamente</p>
       <p class="doc-num">${esc(sess.folio)}</p>
     </div>`;
-  showScreen('screen-oc');
 }
 
 function volverCatalogo() { cancelarConfirmacion(); showScreen('screen-catalogo'); }
@@ -706,11 +813,14 @@ function cancelarConfirmacion() {
 }
 
 function textoWhatsapp(lineas) {
+  const msg = String(document.getElementById('mensaje').value || '').trim();
   return `*Pedido nativo* ${sess.folio || ''}\n\n` +
     `Empresa: ${sess.emp}\nRUT: ${sess.rut}\n` +
-    `Dirección de despacho: ${sess.dir}\nContacto: ${sess.contacto}\n` +
-    `Teléfono: ${sess.tel}\nEmail: ${sess.email}\nFecha: ${sess.fecha}\n\n` +
-    `*Productos*\n` + lineas.map(l => '• ' + l).join('\n');
+    `Entrega: ${esRetiro() ? 'RETIRO EN OFICINA' : 'Despacho a domicilio'}\n` +
+    `Dirección: ${sess.dir}\nContacto: ${sess.contacto}\n` +
+    `Teléfono: ${sess.tel}\nEmail: ${sess.email}\nFecha: ${sess.fecha}\n` +
+    (msg ? `\nMensaje: ${msg}\n` : '') +
+    `\n*Productos*\n` + lineas.map(l => '• ' + l).join('\n');
 }
 
 function falloEnvio(motivo, lineas) {
@@ -764,7 +874,9 @@ async function enviarPedido() {
   const cuerpo = {
     emp: sess.emp, rut: sess.rut, dir: sess.dir, email: sess.email,
     contacto: sess.contacto, telefono: sess.tel,
-    detalle: lineas.join(', '), fecha: sess.fecha, folio: sess.folio
+    detalle: lineas.join(', '), fecha: sess.fecha, folio: sess.folio,
+    entrega,
+    mensaje: document.getElementById('mensaje').value.trim().slice(0, 500)
   };
 
   let motivo = '';
@@ -808,8 +920,10 @@ function pantallaConfirmacion(lineas, yaEstaba) {
       <div class="confirm-emoji">🎉</div>
       <div class="confirm-title">¡Listo!</div>
       <div class="confirm-sub">${yaEstaba
-        ? 'Este pedido ya estaba registrado, no se duplicó.<br>Nos contactaremos pronto para confirmar.'
-        : 'Tu pedido ha sido enviado correctamente.<br>Nos contactaremos pronto para confirmar.'}</div>
+        ? 'Este pedido ya estaba registrado, no se duplicó.<br>'
+        : 'Tu pedido ha sido enviado correctamente.<br>'}${esRetiro()
+        ? 'Te contactamos para coordinar el día, la hora y la dirección de retiro.'
+        : 'Nos contactaremos pronto para confirmar el despacho.'}</div>
       <div class="confirm-folio">
         <span>Número de pedido</span>
         <b>${esc(folio)}</b>
@@ -818,12 +932,16 @@ function pantallaConfirmacion(lineas, yaEstaba) {
     <div class="confirm-box">
       <div class="confirm-box-title">Datos del pedido</div>
       <div class="confirm-row"><span>Empresa</span><span>${esc(sess.emp)}</span></div>
-      <div class="confirm-row"><span>Dirección de despacho</span><span>${esc(sess.dir)}</span></div>
+      <div class="confirm-row"><span>Forma de entrega</span><span>${esRetiro() ? '🏢 Retiro en nuestra oficina' : '🚚 Despacho a domicilio'}</span></div>
+      <div class="confirm-row"><span>${esRetiro() ? 'Dirección registrada' : 'Dirección de despacho'}</span><span>${esc(sess.dir)}</span></div>
       <div class="confirm-row"><span>Email</span><span>${esc(sess.email)}</span></div>
       <div class="confirm-row"><span>Contacto</span><span>${esc(sess.contacto)}</span></div>
       <div class="confirm-row"><span>Teléfono</span><span>${esc(sess.tel)}</span></div>
       <div class="confirm-row" style="margin-bottom:0"><span>Fecha</span><span>${esc(sess.fecha)}</span></div>
     </div>
+    ${String(document.getElementById('mensaje').value || '').trim()
+      ? `<div class="doc-msg" style="margin:0 0 16px">💬 <b>Tu mensaje:</b> ${esc(document.getElementById('mensaje').value.trim())}</div>`
+      : ''}
     <div class="confirm-products">
       <div class="confirm-box-title" style="margin-bottom:10px">Productos pedidos</div>
       ${items.map(([n,q]) => `
@@ -845,6 +963,10 @@ function pantallaConfirmacion(lineas, yaEstaba) {
 function nuevosPedido() {
   qtys = {};
   sess.folio = null;                       // pedido nuevo, folio nuevo
+  entrega = 'despacho';
+  document.querySelector('input[name=entrega][value=despacho]').checked = true;
+  document.getElementById('mensaje').value = '';
+  contarMensaje();
   document.querySelectorAll('.qty-inp').forEach(i => i.value = 0);
   document.querySelectorAll('.prod-card').forEach(c => c.classList.remove('sel'));
   cancelarConfirmacion();
