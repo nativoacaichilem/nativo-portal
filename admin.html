@@ -13,6 +13,7 @@
   --crema:#fdf8f0;--crema-d:#ede3d0;
   --text:#1e1226;--textl:#8b7a9e;--white:#fff;
   --vl:#d1fae5;--vd:#065f46;--rl:#fee2e2;--rd:#7f1d1d;
+  --nl:#ffedd5;--nd:#9a3412;
   --shadow:0 2px 8px rgba(107,53,184,.07);
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -37,6 +38,7 @@ body{font-family:'Nunito',sans-serif;background:#f0eaf8;color:var(--text);min-he
 .ae{background:var(--rl);color:var(--rd)}
 .as{background:var(--vl);color:var(--vd)}
 .ai{background:var(--mora-xl);color:var(--mora-d)}
+.an{background:var(--nl);color:var(--nd)}
 
 /* ── NAV ── */
 nav{
@@ -68,10 +70,14 @@ nav{
 .card h2{font-family:'DM Serif Display',serif;font-size:20px;color:var(--mora-d);margin-bottom:16px}
 
 /* ── STATS ── */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
 .stat{background:var(--white);border-radius:12px;padding:16px;text-align:center;box-shadow:var(--shadow);border:1px solid rgba(107,53,184,.08)}
+.stat.aviso{border-color:#fdba74;background:#fffbf5}
 .sn{font-size:30px;font-weight:900;color:var(--mora)}
+.stat.aviso .sn{color:var(--nd)}
 .sl{font-size:10px;color:var(--textl);margin-top:2px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.stat.pulsa{cursor:pointer}
+.stat.pulsa:hover{border-color:var(--mora-l)}
 
 /* ── FORM ── */
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
@@ -83,6 +89,9 @@ input,textarea,select{
 }
 input:focus,textarea:focus,select:focus{border-color:var(--mora);background:var(--white)}
 textarea{resize:vertical;min-height:78px}
+.nota-campo{font-size:11px;font-weight:700;color:var(--mora);margin-top:4px;display:none}
+.solo-lectura{background:var(--crema);border:1.5px dashed var(--crema-d);border-radius:8px;
+  padding:9px 12px;font-size:13px;font-weight:700;line-height:1.5;color:var(--text)}
 
 /* ── BUTTONS ── */
 .btn{padding:9px 18px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:800;font-family:'Nunito',sans-serif;transition:opacity .15s}
@@ -128,10 +137,15 @@ input[type=checkbox]{
 .bstgo{background:var(--am-l);color:#78350f}
 .blito{background:#fee2e2;color:#7f1d1d}
 .bsinz{background:#f3f4f6;color:#6b7280;border:1px dashed #d1d5db}
+.bret{background:var(--nl);color:var(--nd);border:1px solid #fdba74}
 .bpend{background:var(--am-l);color:#78350f}
 .bfact{background:var(--mora-xl);color:var(--mora-d)}
 .bruta{background:#dbeafe;color:#1e40af}
 .bentr{background:var(--vl);color:var(--vd)}
+.coord{font-size:11px;font-weight:800;color:var(--nd);margin-top:3px}
+.msg-cli{margin-top:6px;background:#eff6ff;border-left:3px solid #60a5fa;border-radius:0 7px 7px 0;
+  padding:5px 9px;font-size:11px;color:#1e3a5f;font-weight:700;line-height:1.5}
+.folio{font-family:monospace;font-size:11px;font-weight:800;color:var(--mora-l);letter-spacing:.3px}
 
 /* ── FLOATING ACTION BAR ── */
 .action-bar{
@@ -329,11 +343,19 @@ input[type=checkbox]{
       <div class="stat"><div class="sn" id="sp">0</div><div class="sl">Sin facturar</div></div>
       <div class="stat"><div class="sn" id="sr">0</div><div class="sl">En ruta</div></div>
       <div class="stat"><div class="sn" id="se">0</div><div class="sl">Entregados</div></div>
+      <div class="stat pulsa" id="stat-ret" onclick="verRetirosPendientes()" title="Retiros sin fecha acordada">
+        <div class="sn" id="sret">0</div><div class="sl">Retiros por coordinar</div>
+      </div>
     </div>
     <div class="card">
       <h2>📋 Pedidos</h2>
       <div class="fb">
-        <input type="text" id="buscar" placeholder="🔍 Buscar empresa, RUT o contacto..." oninput="render()">
+        <input type="text" id="buscar" placeholder="🔍 Buscar empresa, RUT, contacto o folio..." oninput="render()">
+        <select id="fentrega" onchange="render()">
+          <option value="">Despachos y retiros</option>
+          <option value="despacho">Solo despachos</option>
+          <option value="retiro">Solo retiros</option>
+        </select>
         <select id="fzona" onchange="render()">
           <option value="">Todas las zonas</option>
           <option value="norte">Norte</option>
@@ -362,7 +384,7 @@ input[type=checkbox]{
               <th>Fecha</th>
               <th>Empresa / Contacto</th>
               <th>Dirección</th>
-              <th>Zona</th>
+              <th>Zona / Entrega</th>
               <th>Estado / Recibe</th>
               <th>Factura</th>
               <th></th>
@@ -424,7 +446,13 @@ input[type=checkbox]{
 
         <div class="modal-section">Despacho y facturación</div>
         <div class="fg">
-          <div><label>Zona *</label>
+          <div><label>Tipo de entrega</label>
+            <select id="wentrega" onchange="wzEntregaCambio()">
+              <option value="despacho">Despacho a domicilio</option>
+              <option value="retiro">Retiro en oficina</option>
+            </select>
+          </div>
+          <div><label>Zona <span id="wzona-req">*</span></label>
             <select id="wzona">
               <option value="">— Asignar zona —</option>
               <option value="norte">Norte</option>
@@ -433,12 +461,12 @@ input[type=checkbox]{
               <option value="litoral">Litoral</option>
             </select>
           </div>
-          <div><label>N° Factura</label><input id="wfact" type="text" placeholder="001234"></div>
         </div>
         <div class="fg">
+          <div><label>N° Factura</label><input id="wfact" type="text" placeholder="001234"></div>
           <div><label>Fecha del Pedido</label><input id="wfecha" type="text" placeholder="DD/MM/AAAA"></div>
-          <div><label>Comentario interno 🔒</label><input id="wcom" type="text" placeholder="Opcional"></div>
         </div>
+        <div style="margin-bottom:12px"><label>Comentario interno 🔒</label><input id="wcom" type="text" placeholder="Opcional"></div>
 
         <div class="wz-bar">
           <div class="wz-bar-info" id="wz-bar-info">Sin productos seleccionados</div>
@@ -467,10 +495,15 @@ input[type=checkbox]{
         <div><label>Teléfono</label><input id="ntel" type="text" placeholder="+56 9 1234 5678"></div>
       </div>
 
-      <div class="modal-section">Despacho</div>
+      <div class="modal-section">Entrega</div>
       <div class="fg">
-        <div><label>Dirección *</label><input id="ndir" type="text" placeholder="Av. Ejemplo 1234, Santiago"></div>
-        <div><label>Zona *</label>
+        <div><label>Tipo de entrega</label>
+          <select id="nentrega" onchange="manualEntregaCambio()">
+            <option value="despacho">Despacho a domicilio</option>
+            <option value="retiro">Retiro en oficina</option>
+          </select>
+        </div>
+        <div><label>Zona <span id="nzona-req">*</span></label>
           <select id="nzona">
             <option value="">— Asignar zona —</option>
             <option value="norte">Norte</option>
@@ -478,7 +511,12 @@ input[type=checkbox]{
             <option value="santiago">Santiago</option>
             <option value="litoral">Litoral</option>
           </select>
+          <div class="nota-campo" id="nzona-nota"></div>
         </div>
+      </div>
+      <div style="margin-bottom:12px">
+        <label>Dirección <span id="ndir-req">*</span></label>
+        <input id="ndir" type="text" placeholder="Av. Ejemplo 1234, Santiago" onblur="proponerZonaManual()">
       </div>
       <div style="margin-bottom:12px">
         <label>Detalle del Pedido *</label>
@@ -519,7 +557,9 @@ input[type=checkbox]{
       <h2>🚚 Armar Ruta</h2>
       <p style="font-size:13px;color:var(--textl);margin-bottom:16px;font-weight:600">
         Selecciona pedidos facturados para generar el prompt de ruta.
+        Los retiros en oficina no aparecen: el cliente los viene a buscar.
       </p>
+      <div id="ruta-aviso"></div>
       <div id="checks"></div>
       <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn bam2" onclick="genPrompt()">✨ Generar Prompt para Claude</button>
@@ -537,17 +577,15 @@ input[type=checkbox]{
 <div class="mbg" id="modal">
   <div class="modal">
     <h3>Editar Pedido</h3>
+    <div id="m-folio"></div>
 
-    <div class="modal-section">Estado y Zona</div>
+    <div class="modal-section">Entrega, Zona y Estado</div>
     <div class="fg" style="margin-bottom:12px">
       <div>
-        <label>Zona</label>
-        <select id="mzona">
-          <option value="">— Asignar zona —</option>
-          <option value="norte">Norte</option>
-          <option value="sur">Sur</option>
-          <option value="santiago">Santiago</option>
-          <option value="litoral">Litoral</option>
+        <label>Tipo de entrega</label>
+        <select id="mentrega" onchange="modalEntregaCambio()">
+          <option value="despacho">Despacho a domicilio</option>
+          <option value="retiro">Retiro en oficina</option>
         </select>
       </div>
       <div>
@@ -560,6 +598,17 @@ input[type=checkbox]{
         </select>
       </div>
     </div>
+    <div style="margin-bottom:12px" id="mzona-box">
+      <label>Zona</label>
+      <select id="mzona">
+        <option value="">— Asignar zona —</option>
+        <option value="norte">Norte</option>
+        <option value="sur">Sur</option>
+        <option value="santiago">Santiago</option>
+        <option value="litoral">Litoral</option>
+      </select>
+      <div class="nota-campo" id="mzona-nota"></div>
+    </div>
 
     <div class="modal-section">Datos del Cliente</div>
     <div style="margin-bottom:12px"><label>Empresa</label><input id="memp" type="text"></div>
@@ -571,17 +620,34 @@ input[type=checkbox]{
     <div class="modal-section">Despacho</div>
     <div style="margin-bottom:12px"><label>Dirección</label><input id="mdir" type="text"></div>
 
+    <div class="modal-section">Productos del pedido</div>
+    <div style="margin-bottom:4px">
+      <textarea id="mdet" placeholder="Balde Acai Nativo (3,6 L) x2, Granola Avena Miel (2 kg) x3"></textarea>
+      <div style="font-size:11px;color:var(--textl);font-weight:700;margin-top:5px;line-height:1.5">
+        Separa los productos con coma. Mantener el formato
+        <b>Nombre (formato) xCantidad</b> permite que “Repetir último pedido” los reconozca.
+      </div>
+    </div>
+
+    <div id="m-mensaje-box" style="display:none">
+      <div class="modal-section">Mensaje del cliente</div>
+      <div class="solo-lectura" id="m-mensaje"></div>
+      <div style="font-size:11px;color:var(--textl);font-weight:700;margin-top:5px">
+        Lo escribió el cliente al hacer el pedido. No se puede editar.
+      </div>
+    </div>
+
     <div class="modal-section">Facturación y Entrega</div>
     <div class="fg" style="margin-bottom:12px">
       <div><label>N° Factura</label><input id="mfact" type="text"></div>
       <div><label>Fecha Pedido</label><input id="mfecha" type="text"></div>
     </div>
     <div class="fg" style="margin-bottom:12px">
-      <div><label>Fecha de Entrega</label><input id="mfentrega" type="text" placeholder="DD/MM/AAAA"></div>
-      <div><label>Recibe</label><input id="mrecibe" type="text" placeholder="Nombre de quien recibe"></div>
+      <div><label id="mfentrega-lbl">Fecha de Entrega</label><input id="mfentrega" type="text" placeholder="DD/MM/AAAA"></div>
+      <div><label id="mrecibe-lbl">Recibe</label><input id="mrecibe" type="text" placeholder="Nombre de quien recibe"></div>
     </div>
 
-    <div class="modal-section">Notas</div>
+    <div class="modal-section">Notas internas</div>
     <div style="margin-bottom:4px">
       <label>Comentario Interno 🔒</label>
       <textarea id="mcom" placeholder="Notas internas del equipo nativo..."></textarea>
@@ -633,9 +699,10 @@ input[type=checkbox]{
           <option value="santiago">Santiago</option>
           <option value="litoral">Litoral</option>
         </select>
+        <div class="nota-campo" id="mszona-nota"></div>
       </div>
     </div>
-    <div style="margin-bottom:12px"><label>Dirección de despacho *</label><input id="msdir" type="text" placeholder="Calle 1234, Comuna, Ciudad"></div>
+    <div style="margin-bottom:12px"><label>Dirección de despacho *</label><input id="msdir" type="text" placeholder="Calle 1234, Comuna, Ciudad" onblur="proponerZonaSuc()"></div>
     <div class="fg" style="margin-bottom:12px">
       <div><label>Contacto en sucursal</label><input id="mscontacto" type="text" placeholder="Opcional"></div>
       <div><label>Teléfono</label><input id="mstel" type="text" placeholder="Opcional"></div>
@@ -801,10 +868,22 @@ function splitDet(s) {
 // hasOwnProperty evita que un valor como "toString" cuele por el prototipo.
 const tiene = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
 
+const esRetiro = p => (p.entrega || 'despacho') === 'retiro';
+
 function zbadge(z) {
   const m = { norte:'bnorte', sur:'bsur', santiago:'bstgo', litoral:'blito' };
   if (!z || !tiene(m, z)) return '<span class="badge bsinz">⚠️ Sin zona</span>';
   return `<span class="badge ${m[z]}">${hesc(z)}</span>`;
+}
+
+// Un retiro no tiene zona que asignar, así que reclamarla no tiene sentido:
+// muestra su propio distintivo. Y mientras no tenga fecha acordada, avisa que
+// hay que llamar al cliente — porque el portal no le dice dónde retirar.
+function entregaBadge(p) {
+  if (!esRetiro(p)) return zbadge(p.zona);
+  const falta = !String(p.fecha_entrega || '').trim() && p.estado !== 'entregado';
+  return '<span class="badge bret">🏢 Retiro</span>' +
+    (falta ? '<div class="coord">⏳ coordinar horario</div>' : '');
 }
 
 function ebadge(e) {
@@ -893,6 +972,7 @@ async function cargar() {
     pedidos = await sbGet();
     if (!dirLoaded)   await loadDirectorio();
     else if (!dirOK)  derivarDirectorio();   // modo historial: se recalcula local
+    else              indexar();
     checked = []; updateActionBar();
     render();
     renderChecksRuta();
@@ -907,16 +987,34 @@ async function cargar() {
 //  RENDER TABLA
 // ══════════════════════════════════════════
 function filtrados() {
-  const q  = (document.getElementById('buscar').value || '').toLowerCase();
+  const q  = (document.getElementById('buscar').value || '').toLowerCase().trim();
   const fz = document.getElementById('fzona').value;
   const fe = document.getElementById('festado').value;
+  const fn = document.getElementById('fentrega').value;
   return pedidos.filter(p =>
-    (!q  || p.emp.toLowerCase().includes(q) ||
-             p.rut.includes(q) ||
-             (p.contacto||'').toLowerCase().includes(q)) &&
+    (!q  || (p.emp||'').toLowerCase().includes(q) ||
+             (p.rut||'').includes(q) ||
+             (p.contacto||'').toLowerCase().includes(q) ||
+             (p.folio||'').toLowerCase().includes(q)) &&
     (!fz || p.zona === fz) &&
-    (!fe || p.estado === fe)
+    (!fe || p.estado === fe) &&
+    (!fn || (p.entrega || 'despacho') === fn)
   );
+}
+
+// Retiros que todavía no tienen fecha acordada. Un retiro entregado ya pasó,
+// así que sale de la cuenta: el contador se apaga con el trabajo hecho, no
+// con un tilde.
+const retirosPendientes = () => pedidos.filter(p =>
+  esRetiro(p) && !String(p.fecha_entrega || '').trim() && p.estado !== 'entregado');
+
+function verRetirosPendientes() {
+  document.getElementById('fentrega').value = 'retiro';
+  document.getElementById('fzona').value = '';
+  document.getElementById('festado').value = '';
+  document.getElementById('buscar').value = '';
+  render();
+  document.getElementById('tbody').scrollIntoView({ behavior:'smooth', block:'center' });
 }
 
 function render() {
@@ -925,6 +1023,10 @@ function render() {
   document.getElementById('sp').textContent = pedidos.filter(p => p.estado === 'pendiente').length;
   document.getElementById('sr').textContent = pedidos.filter(p => p.estado === 'en-ruta').length;
   document.getElementById('se').textContent = pedidos.filter(p => p.estado === 'entregado').length;
+
+  const nret = retirosPendientes().length;
+  document.getElementById('sret').textContent = nret;
+  document.getElementById('stat-ret').classList.toggle('aviso', nret > 0);
 
   const chkAll = document.getElementById('chk-all');
   if (chkAll) chkAll.checked = false;
@@ -950,11 +1052,19 @@ function render() {
            ${p.telefono ? `<span style="font-size:11px;color:var(--textl);font-weight:700">📞 ${hesc(p.telefono)}</span>` : ''}
          </div>` : '';
 
+    const folioHtml = p.folio
+      ? `<div class="folio">${hesc(p.folio)}</div>` : '';
+
+    // El mensaje lo escribió el cliente. Va con marca propia y color distinto
+    // del comentario interno, para que nunca se confunda quién lo escribió.
+    const msgHtml = String(p.mensaje || '').trim()
+      ? `<div class="msg-cli">💬 <b>Dice el cliente:</b> ${hesc(p.mensaje)}</div>` : '';
+
     const recibeHtml = p.recibe
-      ? `<div style="font-size:11px;color:var(--vd);font-weight:700;margin-top:3px">✔ Recibe: ${hesc(p.recibe)}</div>` : '';
+      ? `<div style="font-size:11px;color:var(--vd);font-weight:700;margin-top:3px">✔ ${esRetiro(p) ? 'Retira' : 'Recibe'}: ${hesc(p.recibe)}</div>` : '';
 
     const entregaHtml = p.fecha_entrega
-      ? `<div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:2px">📅 Entrega: ${hesc(p.fecha_entrega)}</div>` : '';
+      ? `<div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:2px">📅 ${esRetiro(p) ? 'Retiro' : 'Entrega'}: ${hesc(p.fecha_entrega)}</div>` : '';
 
     return `<tr class="${isChecked ? 'row-sel' : ''}">
       <td class="td-check">
@@ -965,11 +1075,13 @@ function render() {
       <td>
         <div style="font-weight:800;font-size:13px">${hesc(p.emp)}</div>
         <div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:1px">${hesc(p.rut)}</div>
+        ${folioHtml}
         ${contactoHtml}
         ${dhtml}
+        ${msgHtml}
       </td>
       <td style="font-size:12px;font-weight:600;max-width:150px">${hesc(p.dir)}</td>
-      <td>${zbadge(p.zona)}</td>
+      <td>${entregaBadge(p)}</td>
       <td>
         ${ebadge(p.estado)}
         ${recibeHtml}
@@ -1039,19 +1151,83 @@ async function aplicarMasivo() {
   const btn = document.getElementById('ab-btn');
   btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true;
 
-  try {
-    await Promise.all(checked.map(id => sbPatch(id, { estado: nuevoEstado })));
-    await cargar();
-    document.getElementById('ab-estado').value = '';
-  } catch(e) {
-    alert('Error al actualizar. Intenta de nuevo.');
-  }
+  // Se informa cuántos alcanzaron a cambiar: antes, si uno fallaba, el aviso
+  // era genérico y no se sabía en qué estado quedó la tanda.
+  const r = await Promise.allSettled(checked.map(id => sbPatch(id, { estado: nuevoEstado })));
+  const malos = r.filter(x => x.status === 'rejected').length;
+  await cargar();
+  document.getElementById('ab-estado').value = '';
+  if (malos) alert(`${r.length - malos} de ${r.length} pedidos se actualizaron. ` +
+                   `${malos} falló(aron); vuelve a intentar con esos.`);
   btn.innerHTML = 'Aplicar'; btn.disabled = false;
 }
 
 // ══════════════════════════════════════════
-//  AGREGAR PEDIDO
+//  ZONA PROPUESTA DESDE LA COMUNA
 // ══════════════════════════════════════════
+// Correspondencia comuna → zona. Solo PROPONE: siempre puedes cambiarla antes
+// de guardar. Si alguna comuna quedó en la zona equivocada, corrígela aquí.
+const ZONA_DE_COMUNA = {
+  santiago: ['lo barnechea','las condes','vitacura','providencia','nunoa','la reina','penalolen','macul',
+    'la florida','puente alto','san jose de maipo','pirque','la pintana','el bosque','la cisterna','san ramon',
+    'la granja','san miguel','pedro aguirre cerda','lo espejo','san joaquin','estacion central','cerrillos',
+    'maipu','padre hurtado','penaflor','talagante','el monte','isla de maipo','buin','paine','calera de tango',
+    'san bernardo','quilicura','conchali','huechuraba','recoleta','independencia','renca','quinta normal',
+    'cerro navia','lo prado','pudahuel','colina','lampa','tiltil','chamisero','santiago centro','santiago',
+    'curacavi','melipilla'],
+  litoral: ['vina del mar','renaca','concon','valparaiso','quilpue','villa alemana','zapallar','maitencillo',
+    'cachagua','papudo','san antonio','algarrobo','el quisco','el tabo','cartagena','casablanca'],
+  norte: ['la serena','coquimbo','iquique','antofagasta'],
+  sur: ['concepcion','temuco','pucon','villarrica','valdivia','osorno','puerto varas','puerto montt',
+    'rancagua','curico','talca','chillan','los angeles']
+};
+
+const COMUNA_A_ZONA = (() => {
+  const m = new Map();
+  Object.entries(ZONA_DE_COMUNA).forEach(([z, l]) => l.forEach(c => m.set(c, z)));
+  return m;
+})();
+
+// Devuelve { zona, comuna } o null si la dirección no permite decidir
+function zonaDeDir(d) {
+  const com = comunaDe(d);
+  if (!com) return null;
+  const z = COMUNA_A_ZONA.get(sinTilde(com).toLowerCase());
+  return z ? { zona: z, comuna: com } : null;
+}
+
+// Propone la zona en un select, sin pisar una elección ya hecha
+function proponerZona(idSelect, idNota, dir) {
+  const sel = document.getElementById(idSelect);
+  const nota = document.getElementById(idNota);
+  if (!sel) return;
+  if (nota) { nota.style.display = 'none'; nota.textContent = ''; }
+  if (sel.value) return;                       // ya tiene zona: no se toca
+  const p = zonaDeDir(dir);
+  if (!p) return;
+  sel.value = p.zona;
+  if (nota) {
+    nota.textContent = `Propuesta a partir de “${p.comuna}”. Cámbiala si no corresponde.`;
+    nota.style.display = 'block';
+  }
+}
+
+const proponerZonaManual = () =>
+  proponerZona('nzona', 'nzona-nota', document.getElementById('ndir').value);
+const proponerZonaSuc = () =>
+  proponerZona('mszona', 'mszona-nota', document.getElementById('msdir').value);
+
+// ══════════════════════════════════════════
+//  AGREGAR PEDIDO (entrada manual)
+// ══════════════════════════════════════════
+// En un retiro, la dirección y la zona dejan de ser obligatorias: no hay a
+// dónde despachar. La dirección se guarda si está, porque es dato del cliente.
+function manualEntregaCambio() {
+  const ret = document.getElementById('nentrega').value === 'retiro';
+  document.getElementById('nzona-req').style.display = ret ? 'none' : '';
+  document.getElementById('ndir-req').style.display  = ret ? 'none' : '';
+}
+
 async function agregar() {
   const emp      = document.getElementById('nemp').value.trim();
   const rut      = document.getElementById('nrut').value.trim();
@@ -1062,18 +1238,22 @@ async function agregar() {
   const fecha    = document.getElementById('nfecha').value.trim() || hoy();
   const contacto = document.getElementById('ncontacto').value.trim();
   const tel      = document.getElementById('ntel').value.trim();
+  const entrega  = document.getElementById('nentrega').value === 'retiro' ? 'retiro' : 'despacho';
+  const ret      = entrega === 'retiro';
 
-  if (!emp || !rut || !dir || !zona || !det)
-    return alerta('anv', 'Completa los campos obligatorios (empresa, RUT, dirección, zona y detalle).', 'ae');
+  if (!emp || !rut || !det || (!ret && (!dir || !zona)))
+    return alerta('anv', ret
+      ? 'Completa empresa, RUT y detalle.'
+      : 'Completa los campos obligatorios (empresa, RUT, dirección, zona y detalle).', 'ae');
 
   const btn = document.getElementById('bagregar');
   btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
 
   try {
     await sbPost({
-      emp, rut, dir, zona, detalle: det,
+      emp, rut, dir, zona: ret ? '' : zona, detalle: det,
       factura_num: fact, factura_nombre: '',
-      estado: 'pendiente', fecha,
+      estado: 'pendiente', fecha, entrega,
       contacto, telefono: tel,
       fecha_entrega: '', recibe: '', comentario: ''
     });
@@ -1082,10 +1262,11 @@ async function agregar() {
       document.getElementById(id).value = ''
     );
     document.getElementById('nzona').value = '';
+    document.getElementById('nzona-nota').style.display = 'none';
     document.getElementById('nfecha').value = hoy();
     await cargar();
   } catch(e) {
-    alerta('anv', 'Error guardando. Intenta de nuevo.', 'ae');
+    alerta('anv', 'Error guardando: ' + hesc(e.message), 'ae');
   }
   btn.innerHTML = 'Guardar Pedido'; btn.disabled = false;
 }
@@ -1093,14 +1274,31 @@ async function agregar() {
 // ══════════════════════════════════════════
 //  MODAL EDITAR
 // ══════════════════════════════════════════
+function modalEntregaCambio() {
+  const ret = document.getElementById('mentrega').value === 'retiro';
+  document.getElementById('mzona-box').style.display = ret ? 'none' : '';
+  document.getElementById('mfentrega-lbl').textContent = ret ? 'Fecha y hora de retiro' : 'Fecha de Entrega';
+  document.getElementById('mrecibe-lbl').textContent   = ret ? 'Quién retira' : 'Recibe';
+  document.getElementById('mfentrega').placeholder = ret ? 'DD/MM/AAAA 11:00' : 'DD/MM/AAAA';
+}
+
 function abrir(id) {
   const p = pedidos.find(x => x.id === id);
   if (!p) return;
   eid = id;
+  const ret = esRetiro(p);
+
+  document.getElementById('m-folio').innerHTML = p.folio
+    ? `<div class="alert ai" style="display:flex;align-items:center;gap:8px">
+         <span>Folio del cliente</span><b class="folio" style="font-size:14px">${hesc(p.folio)}</b></div>`
+    : '';
+
+  document.getElementById('mentrega').value  = ret ? 'retiro' : 'despacho';
   document.getElementById('mzona').value     = p.zona          || '';
   document.getElementById('mestado').value   = p.estado        || 'pendiente';
   document.getElementById('memp').value      = p.emp           || '';
   document.getElementById('mdir').value      = p.dir           || '';
+  document.getElementById('mdet').value      = p.detalle       || '';
   document.getElementById('mfact').value     = p.factura_num   || '';
   document.getElementById('mfecha').value    = p.fecha         || '';
   document.getElementById('mcontacto').value = p.contacto      || '';
@@ -1108,6 +1306,16 @@ function abrir(id) {
   document.getElementById('mfentrega').value = p.fecha_entrega || '';
   document.getElementById('mrecibe').value   = p.recibe        || '';
   document.getElementById('mcom').value      = p.comentario    || '';
+
+  const msg = String(p.mensaje || '').trim();
+  document.getElementById('m-mensaje-box').style.display = msg ? '' : 'none';
+  document.getElementById('m-mensaje').textContent = msg;
+
+  modalEntregaCambio();
+  // Los pedidos del portal llegan sin zona. Si la dirección permite deducirla,
+  // se propone al abrir para no tener que pensarla cada vez.
+  if (!ret) proponerZona('mzona', 'mzona-nota', p.dir || '');
+
   document.getElementById('modal').classList.add('open');
 }
 
@@ -1117,20 +1325,22 @@ async function guardar() {
   const btn = document.getElementById('bguardar');
   btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true;
 
-  const p = pedidos.find(x => x.id === eid);
+  const entrega = document.getElementById('mentrega').value === 'retiro' ? 'retiro' : 'despacho';
   const row = {
-    zona:          document.getElementById('mzona').value,
+    entrega,
+    zona:          entrega === 'retiro' ? '' : document.getElementById('mzona').value,
     estado:        document.getElementById('mestado').value,
     emp:           document.getElementById('memp').value.trim(),
     dir:           document.getElementById('mdir').value.trim(),
+    detalle:       document.getElementById('mdet').value.trim(),
     factura_num:   document.getElementById('mfact').value.trim(),
     fecha:         document.getElementById('mfecha').value.trim(),
     contacto:      document.getElementById('mcontacto').value.trim(),
     telefono:      document.getElementById('mtel').value.trim(),
     fecha_entrega: document.getElementById('mfentrega').value.trim(),
     recibe:        document.getElementById('mrecibe').value.trim(),
-    comentario:    document.getElementById('mcom').value.trim(),
-    detalle:       p ? (p.detalle || '') : ''
+    comentario:    document.getElementById('mcom').value.trim()
+    // `mensaje` no se envía a propósito: lo escribió el cliente y no se toca.
   };
 
   try {
@@ -1138,7 +1348,7 @@ async function guardar() {
     await cargar();
     cerrar();
   } catch(e) {
-    alert('Error guardando. Intenta de nuevo.');
+    alert('Error guardando: ' + e.message);
   }
   btn.innerHTML = 'Guardar'; btn.disabled = false;
 }
@@ -1162,9 +1372,9 @@ function exportCSV() {
   if (!data.length) { alert('No hay pedidos para exportar con los filtros actuales.'); return; }
 
   const headers = [
-    'ID','Fecha','Empresa','RUT','Contacto','Teléfono',
-    'Dirección','Zona','Detalle','Estado','Factura N°',
-    'Fecha Entrega','Recibe','Comentario'
+    'ID','Folio','Fecha','Empresa','RUT','Contacto','Teléfono',
+    'Entrega','Dirección','Zona','Detalle','Mensaje del cliente','Estado','Factura N°',
+    'Fecha Entrega/Retiro','Recibe/Retira','Comentario interno'
   ];
 
   // El prefijo ' evita que Excel ejecute un campo que empiece con = + - @
@@ -1175,9 +1385,10 @@ function exportCSV() {
   };
 
   const rows = data.map(p => [
-    p.id, p.fecha||'', p.emp, p.rut,
+    p.id, p.folio||'', p.fecha||'', p.emp, p.rut,
     p.contacto||'', p.telefono||'',
-    p.dir, p.zona||'', p.detalle||'',
+    esRetiro(p) ? 'Retiro en oficina' : 'Despacho',
+    p.dir, p.zona||'', p.detalle||'', p.mensaje||'',
     estadoLabel(p.estado), p.factura_num||'',
     p.fecha_entrega||'', p.recibe||'', p.comentario||''
   ].map(esc).join(';'));
@@ -1197,11 +1408,25 @@ function exportCSV() {
 // ══════════════════════════════════════════
 //  ARMAR RUTA
 // ══════════════════════════════════════════
+// Los retiros NO entran: el cliente los viene a buscar. Si entraran, podrías
+// despachar algo que ya estaba coordinado para retiro.
 function renderChecksRuta() {
-  const f = pedidos.filter(p => p.estado === 'facturado');
+  const facturados = pedidos.filter(p => p.estado === 'facturado');
+  const f = facturados.filter(p => !esRetiro(p));
+  const nret = facturados.length - f.length;
+
+  document.getElementById('ruta-aviso').innerHTML = nret
+    ? `<div class="alert an">🏢 ${nret} pedido${nret > 1 ? 's' : ''} facturado${nret > 1 ? 's' : ''}
+         ${nret > 1 ? 'quedaron' : 'quedó'} fuera de la ruta porque ${nret > 1 ? 'son retiros' : 'es un retiro'} en oficina.</div>`
+    : '';
+
+  // si un retiro estaba seleccionado de antes, se saca de la selección
+  const validos = new Set(f.map(p => p.id));
+  selRuta = selRuta.filter(id => validos.has(id));
+
   const el = document.getElementById('checks');
   if (!f.length) {
-    el.innerHTML = '<p style="color:var(--textl);font-size:13px;padding:8px;font-weight:700">No hay pedidos en estado "Facturado".</p>';
+    el.innerHTML = '<p style="color:var(--textl);font-size:13px;padding:8px;font-weight:700">No hay pedidos facturados para despachar.</p>';
     return;
   }
   el.innerHTML = f.map(p => `
@@ -1217,6 +1442,7 @@ function renderChecksRuta() {
         <div style="font-size:12px;color:var(--textl);margin-top:2px;font-weight:600">
           📦 ${hesc((p.detalle||'').slice(0,100))}${(p.detalle||'').length > 100 ? '…' : ''}
         </div>
+        ${String(p.mensaje||'').trim() ? `<div class="msg-cli">💬 ${hesc(p.mensaje)}</div>` : ''}
         ${p.factura_num ? `<div style="font-size:11px;color:var(--mora-l);margin-top:2px;font-weight:700">Factura N° ${hesc(p.factura_num)}</div>` : ''}
       </div>
     </div>`).join('');
@@ -1246,10 +1472,12 @@ function genPrompt() {
     `\nPEDIDO ${i+1}:\n` +
     `- Cliente: ${p.emp}\n` +
     `- RUT: ${p.rut}\n` +
+    (p.folio ? `- Folio: ${p.folio}\n` : '') +
     (p.contacto ? `- Contacto: ${p.contacto}\n` : '') +
     (p.telefono ? `- Teléfono: ${p.telefono}\n` : '') +
     `- Dirección: ${p.dir}${p.zona ? ' (' + p.zona + ')' : ''}\n` +
     `- Productos: ${p.detalle || 'Sin detalle'}\n` +
+    (String(p.mensaje||'').trim() ? `- Mensaje del cliente: ${p.mensaje}\n` : '') +
     `- Fecha: ${p.fecha || 'N/A'}` +
     (p.factura_num ? `\n- Factura N°: ${p.factura_num}` : '')
   ).join('\n');
@@ -1466,8 +1694,14 @@ function leven(a, b) {
 }
 const similar = (a, b) => {
   if (!a || !b) return false;
-  const d = leven(a, b), L = Math.max(a.length, b.length);
-  return L >= 5 && d <= Math.max(1, Math.floor(L / 8)) ;
+  const L = Math.max(a.length, b.length);
+  if (L < 5) return false;
+  const tol = Math.max(1, Math.floor(L / 8));
+  // La distancia de edición nunca es menor que la diferencia de largos, así que
+  // si ya se pasa del tope se descarta sin calcularla. Mismo resultado, mucho
+  // más rápido: con cientos de clientes esto se ejecuta miles de veces.
+  if (Math.abs(a.length - b.length) > tol) return false;
+  return leven(a, b) <= tol;
 };
 
 // Une direcciones con el mismo número y la calle con un tipeo
@@ -1540,20 +1774,64 @@ const sucsDe  = c  => c ? sucursales.filter(s => String(s.cliente_id) === String
 
 let n2r = new Map();   // nombre normalizado -> clave de cliente con RUT válido
 
-function esDelCliente(p, c) {
-  if (!c) return false;
-  if (!c._local && p.cliente_id != null) return String(p.cliente_id) === String(c.id);
-  return clavePedido(p, n2r) === claveCliente(c);
+// ══════════════════════════════════════════════════════════════
+//  ÍNDICE DE PEDIDOS POR CLIENTE Y SUCURSAL
+// ══════════════════════════════════════════════════════════════
+// Antes, cada pregunta del tipo "cuántos pedidos tiene esta sucursal" recorría
+// los pedidos completos. Dentro de la revisión de duplicados, que compara todos
+// los clientes contra todos, eso significaba millones de operaciones: con 180
+// clientes y 433 pedidos, casi 14 millones cada vez que abrías Clientes.
+//
+// Ahora se recorre una sola vez y se guarda el resultado. El comportamiento es
+// el mismo; lo que cambia es que se calcula una vez en lugar de miles.
+let idx = { nCli:new Map(), nSuc:new Map(), ultCli:new Map(), ultSuc:new Map() };
+
+function indexar() {
+  n2r = mapaNombreRut();
+
+  const porId    = new Map(), porClave = new Map();
+  clientes.forEach(c => { porId.set(String(c.id), c); porClave.set(claveCliente(c), c); });
+  const sucPorId = new Map(), sucPorDir = new Map();
+  sucursales.forEach(s => {
+    sucPorId.set(String(s.id), s);
+    sucPorDir.set(String(s.cliente_id) + '|' + dirKeyF(s.dir), s);
+  });
+
+  idx = { nCli:new Map(), nSuc:new Map(), ultCli:new Map(), ultSuc:new Map() };
+
+  // `pedidos` viene ordenado created_at.desc, así que el primero que se ve de
+  // cada cliente o sucursal es el más reciente.
+  pedidos.forEach(p => {
+    let c = null;
+    if (p.cliente_id != null) {
+      const cand = porId.get(String(p.cliente_id));
+      if (cand && !cand._local) c = cand;
+    }
+    if (!c) c = porClave.get(clavePedido(p, n2r));
+    if (!c) return;
+
+    const kc = String(c.id);
+    idx.nCli.set(kc, (idx.nCli.get(kc) || 0) + 1);
+    if (!idx.ultCli.has(kc)) idx.ultCli.set(kc, p);
+
+    let s = null;
+    if (p.sucursal_id != null) {
+      const cand = sucPorId.get(String(p.sucursal_id));
+      if (cand && !cand._local) s = cand;
+    }
+    if (!s) s = sucPorDir.get(kc + '|' + dirKeyF(p.dir));
+    if (!s) return;
+
+    const ks = kc + '|' + String(s.id);
+    idx.nSuc.set(ks, (idx.nSuc.get(ks) || 0) + 1);
+    if (!idx.ultSuc.has(ks)) idx.ultSuc.set(ks, p);
+  });
 }
-function esDeSuc(p, s) {
-  if (!s) return false;
-  if (!s._local && p.sucursal_id != null) return String(p.sucursal_id) === String(s.id);
-  return dirKeyF(p.dir) === dirKeyF(s.dir);
-}
-// pedidos viene ordenado created_at.desc → find() devuelve el más reciente
-const ultPedidoCli = c    => pedidos.find(p => esDelCliente(p, c)) || null;
-const ultPedidoSuc = (c,s) => pedidos.find(p => esDelCliente(p, c) && esDeSuc(p, s)) || null;
-const nPedidosSuc  = (c,s) => pedidos.filter(p => esDelCliente(p, c) && esDeSuc(p, s)).length;
+
+const nPedidosCli  = c     => idx.nCli.get(String(c.id)) || 0;
+const ultPedidoCli = c     => idx.ultCli.get(String(c.id)) || null;
+const nPedidosSuc  = (c,s) => idx.nSuc.get(String(c.id) + '|' + String(s.id)) || 0;
+const ultPedidoSuc = (c,s) => idx.ultSuc.get(String(c.id) + '|' + String(s.id)) || null;
 
 function nombreDesdeDir(d) {
   const parts = String(d || '').split(',').map(x => x.trim()).filter(Boolean);
@@ -1583,6 +1861,7 @@ async function loadDirectorio() {
       sbJson('sucursales?select=*&order=nombre.asc')
     ]);
     clientes = c; sucursales = s; dirOK = true;
+    indexar();
   } catch (e) {
     dirOK = false;
     derivarDirectorio();
@@ -1671,6 +1950,7 @@ function derivarDirectorio() {
       sucursales.push(x);
   });
   clientes.sort((a, b) => a.emp.localeCompare(b.emp, 'es'));
+  indexar();
   resyncWz();
 }
 
@@ -1832,12 +2112,18 @@ function pickSucursal(id) {
   if (!s) return;
   wz.sucursal = s;
   document.getElementById('wzona').value = s.zona || '';
+  if (!s.zona) proponerZona('wzona', null, s.dir || '');
   wzGo(3);
 }
 
 // ══════════════════════════════════════════════════════════════
 //  PASO 3 — PEDIDO
 // ══════════════════════════════════════════════════════════════
+function wzEntregaCambio() {
+  const ret = document.getElementById('wentrega').value === 'retiro';
+  document.getElementById('wzona-req').style.display = ret ? 'none' : '';
+}
+
 function renderPaso3() {
   const c = wz.cliente, s = wz.sucursal;
   if (!c || !s) return wzGo(c ? 2 : 1);
@@ -1857,6 +2143,7 @@ function renderPaso3() {
   const up = ultPedidoSuc(c, s);
   document.getElementById('brepetir').style.display = up ? '' : 'none';
 
+  wzEntregaCambio();
   renderCatalogo();
   updWzBar();
 }
@@ -1956,17 +2243,19 @@ async function guardarWz() {
   const c = wz.cliente, s = wz.sucursal;
   if (!c || !s) return wzGo(1);
 
+  const entrega = document.getElementById('wentrega').value === 'retiro' ? 'retiro' : 'despacho';
+  const ret  = entrega === 'retiro';
   const zona = document.getElementById('wzona').value;
   const det  = buildDetalle();
-  if (!zona) return alerta('wz-alert', 'Asigna una zona antes de guardar.', 'ae');
+  if (!ret && !zona) return alerta('wz-alert', 'Asigna una zona antes de guardar.', 'ae');
   if (!det)  return alerta('wz-alert', 'Selecciona al menos un producto.', 'ae');
 
   const btn = document.getElementById('bwzguardar');
   btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
 
   const row = {
-    emp: c.emp, rut: c.rut || '', dir: s.dir, zona,
-    detalle: det,
+    emp: c.emp, rut: c.rut || '', dir: s.dir, zona: ret ? '' : zona,
+    detalle: det, entrega,
     contacto: s.contacto || c.contacto || '',
     telefono: s.telefono || c.telefono || '',
     factura_num: document.getElementById('wfact').value.trim(),
@@ -2026,7 +2315,6 @@ function renderClientes() {
     return;
   }
 
-
   el.innerHTML = lista.map(c => {
     const sucs = sucsDe(c);
     const up   = ultPedidoCli(c);
@@ -2082,6 +2370,7 @@ function pedirDesde(cid, sid) {
   wz.cliente = c; wz.sucursal = s; wz.qtys = {};
   ['wfact','wcom','wextra','pq'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('wzona').value  = s.zona || '';
+  document.getElementById('wentrega').value = 'despacho';
   document.getElementById('wfecha').value = hoy();
   const btn = [...document.querySelectorAll('.tb')].find(b => b.textContent.includes('Agregar'));
   goTab('nuevo', btn);
@@ -2136,6 +2425,7 @@ async function guardarCliente() {
         clientes.sort((a, b) => a.emp.localeCompare(b.emp, 'es'));
         if (cliCtx === 'wz') { wz.cliente = nc; wz.sucursal = null; wz.qtys = {}; }
       }
+      indexar();
     } else {
       if (cliEdit) await sbSend(`clientes?id=eq.${cliEdit}`, 'PATCH', row);
       else         await sbSend('clientes', 'POST', row);
@@ -2194,6 +2484,8 @@ function abrirSuc(id, ctx, cliId) {
   document.getElementById('mstel').value      = s ? (s.telefono||'') : (sucCli.telefono || '');
   document.getElementById('mshorario').value  = s ? (s.horario||'')  : '';
   document.getElementById('msnotas').value    = s ? (s.notas||'')    : '';
+  document.getElementById('mszona-nota').style.display = 'none';
+  if (s && !s.zona) proponerZona('mszona', 'mszona-nota', s.dir || '');
   document.getElementById('modal-suc').classList.add('open');
 }
 function cerrarSuc() { document.getElementById('modal-suc').classList.remove('open'); }
@@ -2227,6 +2519,7 @@ async function guardarSucursal() {
         sucursales.push(ns);
         if (sucCtx === 'wz') wz.sucursal = ns;
       }
+      indexar();
     } else {
       if (sucEdit) await sbSend(`sucursales?id=eq.${sucEdit}`, 'PATCH', row);
       else         await sbSend('sucursales', 'POST', row);
@@ -2351,50 +2644,53 @@ async function sincronizar() {
 // ══════════════════════════════════════════════════════════════
 //  REVISIÓN DE DUPLICADOS
 // ══════════════════════════════════════════════════════════════
+// Los datos comparables de cada cliente se calculan UNA vez, y el número de
+// pedidos se lee del índice en vez de recorrer la tabla dentro del bucle.
 function buscarDuplicados() {
   const pares = [];
 
+  const meta = clientes.map(c => ({
+    c, nn: nombreNorm(c.emp), rn: normRut(c.rut), rv: rutValido(c.rut), n: nPedidosCli(c)
+  }));
+
   // ── clientes ──
-  for (let i = 0; i < clientes.length; i++) {
-    for (let j = i + 1; j < clientes.length; j++) {
-      const a = clientes[i], b = clientes[j];
-      const ra = rutValido(a.rut), rb = rutValido(b.rut);
+  for (let i = 0; i < meta.length; i++) {
+    for (let j = i + 1; j < meta.length; j++) {
+      const A = meta[i], B = meta[j];
       let motivo = '';
-      if (ra && rb && normRut(a.rut) === normRut(b.rut))        motivo = 'mismo RUT';
-      else if (nombreNorm(a.emp) && nombreNorm(a.emp) === nombreNorm(b.emp)) motivo = 'mismo nombre';
-      else if (!ra && !rb && similar(nombreNorm(a.emp), nombreNorm(b.emp)))  motivo = 'nombre casi igual';
-      else if ((ra !== rb) && similar(nombreNorm(a.emp), nombreNorm(b.emp))) motivo = 'nombre casi igual (uno sin RUT)';
+      if (A.rv && B.rv && A.rn === B.rn)              motivo = 'mismo RUT';
+      else if (A.nn && A.nn === B.nn)                 motivo = 'mismo nombre';
+      else if (!A.rv && !B.rv && similar(A.nn, B.nn)) motivo = 'nombre casi igual';
+      else if ((A.rv !== B.rv) && similar(A.nn, B.nn)) motivo = 'nombre casi igual (uno sin RUT)';
       if (!motivo) continue;
       // el que tiene RUT válido y más pedidos se queda
-      const na = pedidos.filter(p => esDelCliente(p, a)).length;
-      const nb = pedidos.filter(p => esDelCliente(p, b)).length;
-      const aGana = (ra !== rb) ? ra : (na >= nb);
-      pares.push({ tipo:'cliente', motivo, keep: aGana ? a : b, dup: aGana ? b : a,
-                   nk: aGana ? na : nb, nd: aGana ? nb : na });
+      const aGana = (A.rv !== B.rv) ? A.rv : (A.n >= B.n);
+      pares.push({ tipo:'cliente', motivo,
+                   keep: aGana ? A.c : B.c, dup: aGana ? B.c : A.c,
+                   nk: aGana ? A.n : B.n, nd: aGana ? B.n : A.n });
     }
   }
 
   // ── sucursales del mismo cliente ──
   clientes.forEach(c => {
-    const ss = sucsDe(c);
+    const ss = sucsDe(c).map(s => ({
+      s, kf: dirKeyF(s.dir), k: dirKey(s.dir), com: comunaDe(s.dir), n: nPedidosSuc(c, s)
+    }));
     for (let i = 0; i < ss.length; i++) {
       for (let j = i + 1; j < ss.length; j++) {
-        const a = ss[i], b = ss[j];
-        const ka = dirKey(a.dir), kb = dirKey(b.dir);
+        const A = ss[i], B = ss[j];
         let motivo = '';
-        if (dirKeyF(a.dir) === dirKeyF(b.dir)) motivo = 'misma dirección';
-        else if (ka && kb && ka.split('|')[1] === kb.split('|')[1] &&
-                 similar(ka.split('|')[0], kb.split('|')[0])) motivo = 'misma calle con un tipeo';
-        else if ((!ka || !kb) && comunaDe(a.dir) && comunaDe(a.dir) === comunaDe(b.dir))
+        if (A.kf === B.kf) motivo = 'misma dirección';
+        else if (A.k && B.k && A.k.split('|')[1] === B.k.split('|')[1] &&
+                 similar(A.k.split('|')[0], B.k.split('|')[0])) motivo = 'misma calle con un tipeo';
+        else if ((!A.k || !B.k) && A.com && A.com === B.com)
                  motivo = 'misma comuna, dirección incompleta';
         if (!motivo) continue;
-        const na = pedidos.filter(p => esDelCliente(p, c) && esDeSuc(p, a)).length;
-        const nb = pedidos.filter(p => esDelCliente(p, c) && esDeSuc(p, b)).length;
         const punt = x => (x.dir !== x.dir.toUpperCase() ? 100 : 0) + x.dir.split(',').length * 10 + x.dir.length / 100;
-        const aGana = na !== nb ? na > nb : punt(a) >= punt(b);
+        const aGana = A.n !== B.n ? A.n > B.n : punt(A.s) >= punt(B.s);
         pares.push({ tipo:'sucursal', motivo, cliente: c,
-                     keep: aGana ? a : b, dup: aGana ? b : a,
-                     nk: aGana ? na : nb, nd: aGana ? nb : na });
+                     keep: aGana ? A.s : B.s, dup: aGana ? B.s : A.s,
+                     nk: aGana ? A.n : B.n, nd: aGana ? B.n : A.n });
       }
     }
   });
@@ -2497,15 +2793,15 @@ async function fusionar(i, silencioso) {
 }
 
 async function fusionarSeguros() {
-  const idx = dups.map((d, i) => i)
+  const idxs = dups.map((d, i) => i)
     .filter(i => dups[i].motivo === 'mismo RUT' || dups[i].motivo === 'misma dirección');
-  if (!idx.length) return;
-  if (!confirm(`Se van a fusionar ${idx.length} duplicado(s) exacto(s). Los pedidos se reasignan, no se borran.`)) return;
+  if (!idxs.length) return;
+  if (!confirm(`Se van a fusionar ${idxs.length} duplicado(s) exacto(s). Los pedidos se reasignan, no se borran.`)) return;
   try {
     // de atrás hacia adelante para no invalidar índices
-    for (const i of idx.slice().reverse()) await fusionar(i, true);
+    for (const i of idxs.slice().reverse()) await fusionar(i, true);
     await cargarTodo();
-    alerta('cl-alert', `\u2705 ${idx.length} duplicado(s) fusionado(s).`, 'as');
+    alerta('cl-alert', `\u2705 ${idxs.length} duplicado(s) fusionado(s).`, 'as');
   } catch (e) {
     await cargarTodo();
     alerta('cl-alert', 'Se interrumpió la fusión: ' + hesc(e.message), 'ae');
@@ -2517,6 +2813,7 @@ async function cargarTodo() {
   await loadDirectorio();
   renderClientes();
 }
+
 // Al volver desde planner.html, abre la pestaña que venía en la dirección
 (function irAHash(){
   const id = (location.hash || '').slice(1);
