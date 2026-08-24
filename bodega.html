@@ -1,0 +1,2785 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>nativo – Bodegas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --mora:#6b35b8;--mora-d:#4a1f7a;--mora-l:#9b6fd4;--mora-xl:#f0e6ff;
+  --am:#f5c842;--am-l:#fef9c3;
+  --crema:#fdf8f0;--crema-d:#ede3d0;
+  --text:#1e1226;--textl:#8b7a9e;--white:#fff;
+  --vl:#d1fae5;--vd:#065f46;--rl:#fee2e2;--rd:#7f1d1d;
+  --nl:#ffedd5;--nd:#9a3412;
+  --shadow:0 2px 8px rgba(107,53,184,.07);
+  --linea:rgba(107,53,184,.14);--linea2:rgba(107,53,184,.07);
+  --ok:#2E8B6E;--medio:#D89A1E;--alto:#C0392B;--nada:#8A8494;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:#f0eaf8;color:var(--text);min-height:100vh}
+
+/* ══ LOGIN (idéntico al panel) ══ */
+#login{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,var(--mora-d),var(--mora));padding:20px}
+.login-logo{font-family:'DM Serif Display',serif;font-size:52px;color:var(--am);letter-spacing:2px;text-align:center;margin-bottom:6px}
+.login-sub{color:rgba(255,255,255,.45);font-size:12px;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-bottom:32px;font-weight:700}
+.lcard{background:var(--white);border-radius:20px;padding:28px;width:100%;max-width:340px;box-shadow:0 24px 64px rgba(0,0,0,.25)}
+.lcard h3{font-family:'DM Serif Display',serif;font-size:22px;color:var(--mora-d);margin-bottom:16px}
+.inp{width:100%;padding:11px 14px;border:1.5px solid var(--crema-d);border-radius:10px;font-size:14px;outline:none;font-family:'Nunito',sans-serif;margin-bottom:12px;background:var(--crema);color:var(--text)}
+.inp:focus{border-color:var(--mora);background:var(--white)}
+.bam-full{width:100%;padding:12px;border:none;border-radius:10px;background:var(--am);color:var(--mora-d);font-size:14px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif}
+
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:700;margin-bottom:12px}
+.ae{background:var(--rl);color:var(--rd)}
+.as{background:var(--vl);color:var(--vd)}
+.ai{background:var(--mora-xl);color:var(--mora-d)}
+.aw{background:var(--nl);color:var(--nd)}
+
+/* ══ NAV (idéntico al panel) ══ */
+nav{background:var(--mora);display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;position:sticky;top:0;z-index:40;box-shadow:0 2px 12px rgba(74,31,122,.25)}
+.nlogo{font-family:'DM Serif Display',serif;font-size:20px;color:var(--am);letter-spacing:1px}
+.ntabs{display:flex;overflow-x:auto}
+.tb{background:none;border:none;color:rgba(255,255,255,.5);padding:14px 15px;cursor:pointer;
+  font-size:13px;font-weight:800;border-bottom:2px solid transparent;font-family:'Nunito',sans-serif;white-space:nowrap}
+.tb.act{color:var(--am);border-bottom-color:var(--am);background:rgba(255,255,255,.06)}
+.tb:hover:not(.act){color:var(--white)}
+.nright{display:flex;align-items:center;gap:10px}
+.bout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--white);
+  padding:6px 14px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:800;font-family:'Nunito',sans-serif}
+
+/* ══ ESTRUCTURA ══ */
+.wrap{padding:20px;max-width:1320px;margin:0 auto}
+.card{background:var(--white);border-radius:14px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px;border:1px solid rgba(107,53,184,.08)}
+.card h2{font-family:'DM Serif Display',serif;font-size:20px;color:var(--mora-d);margin-bottom:14px}
+.card-head{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.card-head h2{margin:0}
+.crece{flex:1 1 auto}
+.sep{width:1px;height:24px;background:var(--crema-d);margin:0 3px}
+
+.btn{padding:9px 18px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:800;font-family:'Nunito',sans-serif;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.bmora{background:var(--mora);color:var(--white)}
+.bam2{background:var(--am);color:var(--mora-d)}
+.bsm{padding:5px 12px;font-size:12px;border-radius:6px}
+.bol{background:var(--white);color:var(--mora);border:1.5px solid var(--mora)}
+.bdng{background:var(--rl);color:var(--rd);border:1px solid #fca5a5}
+.bgray{background:var(--crema-d);color:var(--textl)}
+.bgreen{background:var(--vl);color:var(--vd);border:1px solid #6ee7b7}
+label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--mora);margin-bottom:4px}
+input,textarea,select{width:100%;padding:9px 12px;border:1.5px solid var(--crema-d);border-radius:8px;
+  font-size:13px;outline:none;font-family:'Nunito',sans-serif;color:var(--text);background:var(--crema)}
+input:focus,textarea:focus,select:focus{border-color:var(--mora);background:var(--white)}
+input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--mora-l);outline-offset:1px}
+textarea{resize:vertical;min-height:56px}
+input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--mora);flex-shrink:0}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text);text-transform:none;letter-spacing:0}
+.chk input{width:16px;height:16px}
+.fb{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.fb input,.fb select{width:auto;flex:0 1 auto;min-width:140px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.f1{margin-bottom:12px}
+.hint{font-size:11px;font-weight:700;color:var(--textl);margin-top:4px;line-height:1.45}
+.empty{color:var(--textl);font-size:13px;font-weight:700;padding:26px 6px;text-align:center}
+.sp{display:inline-block;width:14px;height:14px;border:2px solid rgba(107,53,184,.2);border-top-color:var(--mora);
+  border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ SEGMENTOS ══ */
+.segs{display:flex;gap:3px;background:var(--crema);padding:3px;border-radius:10px;flex-wrap:wrap}
+.segs button{border:0;background:transparent;padding:7px 16px;border-radius:8px;font-weight:800;
+  font-size:13px;color:var(--textl);cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap}
+.segs button[aria-pressed=true]{background:var(--white);color:var(--mora-d);box-shadow:0 1px 3px rgba(107,53,184,.18)}
+
+/* ══ KPI ══ */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--white);border-radius:12px;padding:16px;text-align:center;box-shadow:var(--shadow);border:1px solid rgba(107,53,184,.08)}
+.stat.aviso{border-color:#fdba74;background:#fffbf5}
+.stat.grave{border-color:#fca5a5;background:#fff7f7}
+.sn{font-size:30px;font-weight:900;color:var(--mora);line-height:1.1}
+.stat.aviso .sn{color:var(--nd)}
+.stat.grave .sn{color:var(--alto)}
+.sl{font-size:10px;color:var(--textl);margin-top:2px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.sx{font-size:10.5px;color:var(--textl);margin-top:5px;font-weight:700}
+.stat.pulsa{cursor:pointer}
+.stat.pulsa:hover{border-color:var(--mora-l)}
+
+/* ══ TABLAS ══ */
+.tw{overflow-x:auto;border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--crema);color:var(--mora);font-weight:800;padding:9px 12px;text-align:left;font-size:11px;
+  text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid var(--crema-d);white-space:nowrap}
+th.num,td.num{text-align:right}
+td{padding:9px 12px;border-bottom:1px solid var(--crema-d);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#faf6ff}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+.bent{background:var(--vl);color:var(--vd)}
+.bsal{background:var(--rl);color:var(--rd)}
+.btra{background:#dbeafe;color:#1e40af}
+.baju{background:var(--mora-xl);color:var(--mora-d)}
+.brev{background:#f3f4f6;color:#6b7280;border:1px dashed #d1d5db}
+.chip{display:inline-block;background:var(--crema);border:1px solid var(--crema-d);border-radius:20px;
+  padding:2px 9px;font-size:10px;font-weight:800;color:var(--mora);white-space:nowrap}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;font-weight:700;letter-spacing:.2px}
+.sub{font-size:11px;color:var(--textl);font-weight:700;margin-top:2px}
+.pos{color:var(--ok);font-weight:900}
+.neg{color:var(--alto);font-weight:900}
+
+/* ══ MEDIDOR DE STOCK — el elemento central de la pantalla ══
+   Una barra por producto y bodega: el relleno es lo que hay, la muesca
+   vertical es el mínimo que definiste. De un vistazo se ve si el saldo
+   está por debajo de la línea sin tener que comparar dos números. */
+.med{position:relative;height:24px;background:var(--crema);border-radius:6px;overflow:hidden;
+  border:1px solid var(--crema-d);min-width:110px}
+.med .fill{position:absolute;left:0;top:0;bottom:0;border-radius:5px 0 0 5px;transition:width .45s cubic-bezier(.4,0,.2,1)}
+.med .marca{position:absolute;top:-1px;bottom:-1px;width:2px;background:var(--mora-d);opacity:.55}
+.med .marca::after{content:'';position:absolute;top:-1px;left:-2px;border-left:3px solid transparent;
+  border-right:3px solid transparent;border-top:4px solid var(--mora-d);opacity:.85}
+.med .val{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;
+  padding-right:7px;font-size:11.5px;font-weight:900;color:var(--text);text-shadow:0 0 3px rgba(255,255,255,.9)}
+.f-ok{background:linear-gradient(90deg,#5cbfa0,#2E8B6E)}
+.f-medio{background:linear-gradient(90deg,#f0c368,#D89A1E)}
+.f-alto{background:linear-gradient(90deg,#e08279,#C0392B)}
+.f-nada{background:repeating-linear-gradient(135deg,#d9d4e0 0 5px,#efecf3 5px 10px)}
+
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.d-ok{background:var(--ok)}.d-medio{background:var(--medio)}.d-alto{background:var(--alto)}.d-nada{background:var(--nada)}
+
+/* ══ MATRIZ DE SALDOS ══ */
+.mtz td{padding:8px 12px}
+.mtz .cel-bod{min-width:170px}
+.mtz .prod{font-weight:800}
+.mtz tr.fila-alerta td:first-child{box-shadow:inset 3px 0 0 var(--alto)}
+.mtz tr.fila-aviso td:first-child{box-shadow:inset 3px 0 0 var(--medio)}
+.celda{cursor:pointer;border-radius:6px}
+.celda:hover .med{border-color:var(--mora-l)}
+
+/* ══ ALERTAS ══ */
+.al-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.al{border-radius:10px;padding:11px 13px;border:1px solid;display:flex;gap:11px;align-items:center;cursor:pointer}
+.al:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(107,53,184,.12)}
+.al.crit{background:#fff7f7;border-color:#fca5a5}
+.al.baja{background:#fffbf5;border-color:#fdba74}
+.al-n{font-family:'DM Serif Display',serif;font-size:26px;line-height:1;min-width:44px;text-align:center}
+.al.crit .al-n{color:var(--alto)}
+.al.baja .al-n{color:var(--nd)}
+.al-t{font-weight:800;font-size:13px;line-height:1.3}
+.al-s{font-size:11px;color:var(--textl);font-weight:700;margin-top:2px}
+
+/* ══ ACCIONES RÁPIDAS ══ */
+.acc{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.acc button{background:var(--white);border:1.5px solid var(--crema-d);border-radius:12px;padding:14px 12px;
+  cursor:pointer;font-family:'Nunito',sans-serif;text-align:left;box-shadow:var(--shadow);transition:border .15s,transform .15s}
+.acc button:hover{border-color:var(--mora);transform:translateY(-1px)}
+.acc .ai-ico{font-size:20px;display:block;margin-bottom:5px}
+.acc .ai-t{font-weight:900;font-size:13.5px;color:var(--mora-d);display:block}
+.acc .ai-s{font-size:10.5px;color:var(--textl);font-weight:700;display:block;margin-top:1px}
+
+/* ══ GRÁFICO DE MERMAS ══ */
+.graf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px;align-items:center}
+@media(max-width:760px){.graf{grid-template-columns:1fr}}
+.leg{display:flex;flex-direction:column;gap:7px}
+.leg-i{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:700}
+.leg-c{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+.leg-v{margin-left:auto;font-weight:900;color:var(--mora-d)}
+.barra-mes{display:flex;align-items:flex-end;gap:3px;height:80px}
+.barra-mes div{flex:1;background:var(--mora-xl);border-radius:3px 3px 0 0;min-height:2px;position:relative}
+.barra-mes div span{position:absolute;bottom:-16px;left:0;right:0;text-align:center;font-size:9px;font-weight:800;color:var(--textl)}
+
+/* ══ MODAL ══ */
+.mbg{display:none;position:fixed;inset:0;background:rgba(74,31,122,.5);z-index:100;
+  justify-content:center;align-items:center;padding:16px}
+.mbg.open{display:flex}
+.modal{background:var(--white);border-radius:16px;padding:26px;max-width:560px;width:100%;
+  box-shadow:0 24px 64px rgba(0,0,0,.25);max-height:90vh;overflow-y:auto}
+.modal.ancho{max-width:820px}
+.modal h3{font-family:'DM Serif Display',serif;font-size:20px;color:var(--mora-d);margin-bottom:16px}
+.modal-section{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mora-l);
+  margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--crema-d)}
+.mact{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+
+/* ══ RESUMEN EN MODAL ══ */
+.res{background:var(--crema);border-radius:10px;padding:12px 14px;font-size:13px;font-weight:700;line-height:1.6}
+.res b{color:var(--mora-d)}
+.res .flecha{color:var(--mora-l);font-weight:900;margin:0 5px}
+
+/* ══ CONTEO ══ */
+.cnt-dif{font-weight:900;font-size:13px}
+.cnt input{width:96px;text-align:right}
+
+/* ══ TOAST ══ */
+#toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,120%);z-index:200;
+  background:var(--mora-d);color:var(--white);padding:12px 22px;border-radius:24px;font-weight:800;font-size:13.5px;
+  box-shadow:0 10px 34px rgba(74,31,122,.4);transition:transform .3s cubic-bezier(.4,0,.2,1);max-width:92vw;text-align:center}
+#toast.show{transform:translate(-50%,0)}
+#toast.err{background:var(--alto)}
+
+.page{display:none}
+.page.act{display:block}
+
+@media(max-width:640px){
+  .wrap{padding:12px}
+  .fg,.fg3{grid-template-columns:1fr}
+  .modal{padding:20px}
+  .sn{font-size:25px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+@media print{
+  nav,.acc,.fb,.btn,#toast{display:none!important}
+  body{background:#fff}
+  .card{box-shadow:none;border:1px solid #ddd;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login">
+  <div class="login-logo">nativo</div>
+  <div class="login-sub">Bodegas</div>
+  <div class="lcard">
+    <h3>Equipo nativo</h3>
+    <div id="lerr"></div>
+    <input class="inp" type="password" id="pin" placeholder="Clave de acceso"
+      autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="bam-full" id="bentrar" onclick="doLogin()">Ingresar →</button>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app" style="display:none">
+  <nav>
+    <div class="ntabs">
+      <button class="tb" onclick="location.href='admin.html#pedidos'">📋 Pedidos</button>
+      <button class="tb" onclick="location.href='admin.html#nuevo'">➕ Agregar</button>
+      <button class="tb" onclick="location.href='admin.html#clientes'">👥 Clientes</button>
+      <button class="tb" onclick="location.href='admin.html#rutas'">🚚 Ruta</button>
+      <button class="tb" onclick="location.href='planner.html'">📅 Planner</button>
+      <button class="tb act">📦 Bodega</button>
+    </div>
+    <div class="nlogo">nativo</div>
+    <div class="nright"><button class="bout" onclick="salir()">Salir</button></div>
+  </nav>
+
+  <div class="wrap">
+
+    <div class="card-head" style="margin-bottom:14px">
+      <div class="segs" role="group" aria-label="Secciones de bodega">
+        <button id="s-panorama"    aria-pressed="true"  onclick="irA('panorama')">📊 Panorama</button>
+        <button id="s-movimientos" aria-pressed="false" onclick="irA('movimientos')">📖 Movimientos</button>
+        <button id="s-conteo"      aria-pressed="false" onclick="irA('conteo')">🔢 Conteo físico</button>
+        <button id="s-maestros"    aria-pressed="false" onclick="irA('maestros')">⚙️ Configuración</button>
+      </div>
+      <div class="crece"></div>
+      <span class="chip" id="quien-chip" onclick="pedirOperador()" style="cursor:pointer"
+        title="Nombre con el que se firman los movimientos">👤 —</span>
+      <button class="btn bol bsm" onclick="cargarTodo(true)">🔄 Actualizar</button>
+    </div>
+
+    <div id="alert-global"></div>
+
+    <!-- ══════════════ PANORAMA ══════════════ -->
+    <div id="page-panorama" class="page act">
+
+      <div class="acc">
+        <button onclick="abrirMov('entrada')">
+          <span class="ai-ico">📥</span><span class="ai-t">Entrada</span>
+          <span class="ai-s">Llegó producto a bodega</span></button>
+        <button onclick="abrirMov('salida')">
+          <span class="ai-ico">📤</span><span class="ai-t">Salida</span>
+          <span class="ai-s">Se vendió, se mermó, se regaló</span></button>
+        <button onclick="abrirMov('traslado')">
+          <span class="ai-ico">🔁</span><span class="ai-t">Traslado</span>
+          <span class="ai-s">De una bodega a otra</span></button>
+        <button onclick="irA('conteo')">
+          <span class="ai-ico">🔢</span><span class="ai-t">Conteo físico</span>
+          <span class="ai-s">Cuadrar con lo que hay de verdad</span></button>
+      </div>
+
+      <div class="stats" id="kpis"></div>
+
+      <div class="card" id="card-alertas" style="display:none">
+        <div class="card-head">
+          <h2>🚨 Bajo el mínimo</h2>
+          <div class="crece"></div>
+          <span class="chip" id="alertas-cuenta"></span>
+        </div>
+        <div class="al-lista" id="alertas"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>📦 Stock por bodega</h2>
+          <div class="crece"></div>
+          <button class="btn bol bsm" onclick="exportarStock()">⬇ CSV</button>
+        </div>
+        <div class="fb">
+          <input type="text" id="f-buscar" placeholder="Buscar producto…" oninput="renderMatriz()">
+          <select id="f-familia" onchange="renderMatriz()"><option value="">Todas las familias</option></select>
+          <select id="f-estado" onchange="renderMatriz()">
+            <option value="">Todo el catálogo</option>
+            <option value="alerta">Solo bajo el mínimo</option>
+            <option value="pronto">Se acaban esta semana</option>
+            <option value="conmov">Solo con movimiento</option>
+            <option value="cero">Solo en cero</option>
+          </select>
+          <label class="chk" style="margin:0"><input type="checkbox" id="f-inactivas" onchange="renderMatriz()"> Ver bodegas inactivas</label>
+        </div>
+        <div class="tw"><table class="mtz" id="matriz"></table></div>
+        <div id="matriz-vacia"></div>
+      </div>
+
+      <div class="card">
+        <h2>📉 Salidas de los últimos 90 días</h2>
+        <div class="graf">
+          <div id="graf-dona"></div>
+          <div class="leg" id="graf-leg"></div>
+        </div>
+        <div class="hint" id="graf-nota" style="margin-top:14px"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════ MOVIMIENTOS ══════════════ -->
+    <div id="page-movimientos" class="page">
+      <div class="card">
+        <div class="card-head">
+          <h2>📖 Libro de movimientos</h2>
+          <div class="crece"></div>
+          <span class="chip" id="mov-cuenta"></span>
+          <button class="btn bol bsm" onclick="exportarMovs()">⬇ CSV</button>
+        </div>
+        <div class="fb">
+          <input type="text" id="m-buscar" placeholder="Producto, nota, documento…" oninput="renderMovs()">
+          <select id="m-bodega" onchange="renderMovs()"></select>
+          <select id="m-tipo" onchange="renderMovs()">
+            <option value="">Todo tipo</option>
+            <option value="entrada">Entradas</option>
+            <option value="salida">Salidas</option>
+            <option value="traslado">Traslados</option>
+            <option value="ajuste">Ajustes</option>
+          </select>
+          <select id="m-motivo" onchange="renderMovs()"><option value="">Todo motivo</option></select>
+          <input type="date" id="m-desde" onchange="renderMovs()" title="Desde">
+          <input type="date" id="m-hasta" onchange="renderMovs()" title="Hasta">
+          <button class="btn bgray bsm" onclick="limpiarFiltrosMov()">Limpiar</button>
+        </div>
+        <div class="tw"><table id="tabla-movs"></table></div>
+        <div id="movs-vacio"></div>
+        <div style="text-align:center;margin-top:14px">
+          <button class="btn bol bsm" id="b-vermas" onclick="verMasMovs()" style="display:none">Ver más</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ CONTEO ══════════════ -->
+    <div id="page-conteo" class="page">
+      <div class="card">
+        <div class="card-head">
+          <h2>🔢 Conteo físico</h2>
+          <div class="crece"></div>
+          <select id="c-bodega" style="width:auto;min-width:200px;font-weight:800" onchange="cambiarBodegaConteo()"></select>
+        </div>
+        <div class="alert ai">
+          Anota lo que hay <b>de verdad</b> en la repisa. Las filas que dejes en blanco no se tocan.
+          Al guardar se registra un ajuste por cada diferencia, con la explicación que escribas,
+          y el saldo del sistema queda igual al conteo.
+        </div>
+        <div class="fb">
+          <input type="text" id="c-buscar" placeholder="Buscar producto…" oninput="renderConteo()">
+          <select id="c-familia" onchange="renderConteo()"><option value="">Todas las familias</option></select>
+          <label class="chk" style="margin:0"><input type="checkbox" id="c-solostock" checked onchange="renderConteo()"> Solo productos con saldo o mínimo</label>
+          <div class="crece"></div>
+          <button class="btn bol bsm" onclick="imprimirHojaConteo()">🖨 Hoja para anotar</button>
+          <button class="btn bgray bsm" onclick="limpiarConteo()">Borrar lo escrito</button>
+        </div>
+        <div class="tw"><table class="cnt" id="tabla-conteo"></table></div>
+        <div class="card-head" style="margin-top:16px;margin-bottom:0">
+          <div class="crece"></div>
+          <span class="chip" id="c-resumen"></span>
+          <button class="btn bmora" id="b-conteo" onclick="guardarConteo()">Registrar ajustes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ MAESTROS ══════════════ -->
+    <div id="page-maestros" class="page">
+      <div class="card">
+        <div class="card-head">
+          <h2>🏬 Bodegas</h2><div class="crece"></div>
+          <button class="btn bam2 bsm" onclick="abrirBodega(null)">＋ Nueva bodega</button>
+        </div>
+        <div class="tw"><table id="tabla-bodegas"></table></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>🏷️ Productos</h2><div class="crece"></div>
+          <input type="text" id="p-buscar" placeholder="Buscar…" style="width:auto;min-width:150px" oninput="renderProductos()">
+          <label class="chk" style="margin:0"><input type="checkbox" id="p-inactivos" onchange="renderProductos()"> Ver inactivos</label>
+          <button class="btn bol bsm" onclick="abrirImportar()">⬇ Traer del catálogo</button>
+          <button class="btn bam2 bsm" onclick="abrirProducto(null)">＋ Nuevo producto</button>
+        </div>
+        <div class="tw" style="max-height:58vh;overflow-y:auto"><table id="tabla-productos"></table></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>🎯 Mínimos y alertas</h2><div class="crece"></div>
+          <select id="min-bodega" style="width:auto;min-width:190px;font-weight:800" onchange="renderMinimos()"></select>
+          <button class="btn bol bsm" onclick="abrirMinimosMasivo()">Fijar varios de una vez</button>
+        </div>
+        <div class="hint" style="margin-bottom:12px">
+          El mínimo se define por producto <b>y</b> por bodega: lo que necesitas tener en Pichilemu
+          no es lo mismo que en la oficina. Sin mínimo definido, el producto no genera alerta.
+        </div>
+        <div class="tw"><table id="tabla-minimos"></table></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>🧾 Motivos de movimiento</h2><div class="crece"></div>
+          <button class="btn bam2 bsm" onclick="abrirMotivo(null)">＋ Nuevo motivo</button>
+        </div>
+        <div class="hint" style="margin-bottom:12px">
+          Los motivos son tuyos: agrega los que necesites. El interruptor
+          <b>“cuenta como pérdida”</b> es el que separa la merma real de una muestra
+          comercial o un consumo de marketing, que salen del stock pero no son plata botada.
+        </div>
+        <div class="tw"><table id="tabla-motivos"></table></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ MODAL MOVIMIENTO ══ -->
+<div class="mbg" id="m-mov" role="dialog" aria-modal="true" aria-labelledby="mv-title">
+  <div class="modal">
+    <h3 id="mv-title">Nuevo movimiento</h3>
+    <div id="mv-alert"></div>
+
+    <div class="segs" style="margin-bottom:16px" role="group" aria-label="Tipo de movimiento">
+      <button id="mv-t-entrada"  onclick="mvTipo('entrada')">📥 Entrada</button>
+      <button id="mv-t-salida"   onclick="mvTipo('salida')">📤 Salida</button>
+      <button id="mv-t-traslado" onclick="mvTipo('traslado')">🔁 Traslado</button>
+    </div>
+
+    <div class="f1">
+      <label for="mv-producto">Producto *</label>
+      <select id="mv-producto" onchange="mvPintarSaldo()"></select>
+    </div>
+
+    <div class="fg">
+      <div>
+        <label for="mv-bodega" id="mv-lbl-bodega">Bodega *</label>
+        <select id="mv-bodega" onchange="mvPintarSaldo()"></select>
+      </div>
+      <div id="mv-wrap-destino" style="display:none">
+        <label for="mv-destino">Bodega de destino *</label>
+        <select id="mv-destino" onchange="mvPintarSaldo()"></select>
+      </div>
+      <div id="mv-wrap-motivo">
+        <label for="mv-motivo">Motivo *</label>
+        <select id="mv-motivo"></select>
+      </div>
+    </div>
+
+    <div class="fg">
+      <div>
+        <label for="mv-cantidad">Cantidad *</label>
+        <input type="number" id="mv-cantidad" min="0" step="0.001" placeholder="0" oninput="mvPintarSaldo()">
+      </div>
+      <div>
+        <label for="mv-fecha">Fecha</label>
+        <input type="date" id="mv-fecha">
+      </div>
+    </div>
+
+    <div class="fg">
+      <div>
+        <label for="mv-doc">Documento</label>
+        <input type="text" id="mv-doc" placeholder="Factura, guía, OC…">
+      </div>
+      <div>
+        <label for="mv-nota">Nota</label>
+        <input type="text" id="mv-nota" placeholder="Opcional">
+      </div>
+    </div>
+
+    <div class="res" id="mv-resumen"></div>
+
+    <div class="mact">
+      <button class="btn bgray" onclick="cerrar('m-mov')">Cancelar</button>
+      <button class="btn bmora" id="mv-guardar" onclick="guardarMov()">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL DETALLE PRODUCTO×BODEGA ══ -->
+<div class="mbg" id="m-detalle" role="dialog" aria-modal="true" aria-labelledby="dt-title">
+  <div class="modal ancho">
+    <h3 id="dt-title">Detalle</h3>
+    <div id="dt-cuerpo"></div>
+    <div class="mact">
+      <button class="btn bgray" onclick="cerrar('m-detalle')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL BODEGA ══ -->
+<div class="mbg" id="m-bodega" role="dialog" aria-modal="true" aria-labelledby="bd-title">
+  <div class="modal">
+    <h3 id="bd-title">Nueva bodega</h3>
+    <div id="bd-alert"></div>
+    <div class="f1"><label for="bd-nombre">Nombre *</label>
+      <input type="text" id="bd-nombre" placeholder="Ej: Bodega Pichilemu"></div>
+    <div class="f1"><label for="bd-ubic">Dirección o referencia</label>
+      <input type="text" id="bd-ubic" placeholder="Ej: Alejandro Serani Sur 9447, Huechuraba"></div>
+    <div class="f1"><label class="chk"><input type="checkbox" id="bd-activa" checked> Bodega en uso</label>
+      <div class="hint">Una bodega fuera de uso deja de aparecer en los formularios, pero conserva todo su historial.</div></div>
+    <div class="mact">
+      <button class="btn bgray" onclick="cerrar('m-bodega')">Cancelar</button>
+      <button class="btn bmora" id="bd-guardar" onclick="guardarBodega()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL PRODUCTO ══ -->
+<div class="mbg" id="m-producto" role="dialog" aria-modal="true" aria-labelledby="pr-title">
+  <div class="modal">
+    <h3 id="pr-title">Nuevo producto</h3>
+    <div id="pr-alert"></div>
+    <div class="f1"><label for="pr-nombre">Nombre *</label>
+      <input type="text" id="pr-nombre" placeholder="Ej: Balde Acai Nativo"></div>
+    <div class="fg">
+      <div><label for="pr-formato">Formato</label>
+        <input type="text" id="pr-formato" placeholder="Ej: 3,6 L"></div>
+      <div><label for="pr-unidad">Se cuenta en</label>
+        <select id="pr-unidad">
+          <option value="un">Unidades</option>
+          <option value="kg">Kilos</option>
+          <option value="L">Litros</option>
+          <option value="caja">Cajas</option>
+        </select></div>
+    </div>
+    <div class="fg">
+      <div><label for="pr-familia">Familia</label>
+        <input type="text" id="pr-familia" list="familias" placeholder="Ej: Baldes Congelados">
+        <datalist id="familias"></datalist></div>
+      <div><label for="pr-costo">Costo unitario (CLP)</label>
+        <input type="number" id="pr-costo" min="0" step="1" placeholder="Opcional">
+        <div class="hint">Solo para valorizar el inventario y las pérdidas.</div></div>
+    </div>
+    <div class="f1"><label class="chk"><input type="checkbox" id="pr-activo" checked> Producto vigente</label></div>
+    <div class="mact">
+      <button class="btn bgray" onclick="cerrar('m-producto')">Cancelar</button>
+      <button class="btn bmora" id="pr-guardar" onclick="guardarProducto()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL MOTIVO ══ -->
+<div class="mbg" id="m-motivo" role="dialog" aria-modal="true" aria-labelledby="mo-title">
+  <div class="modal">
+    <h3 id="mo-title">Nuevo motivo</h3>
+    <div id="mo-alert"></div>
+    <div class="f1"><label for="mo-nombre">Nombre *</label>
+      <input type="text" id="mo-nombre" placeholder="Ej: Degustación en feria"></div>
+    <div class="fg">
+      <div><label for="mo-tipo">Se usa en</label>
+        <select id="mo-tipo" onchange="moPintar()">
+          <option value="salida">Salidas</option>
+          <option value="entrada">Entradas</option>
+        </select></div>
+      <div><label for="mo-color">Color en el gráfico</label>
+        <select id="mo-color"></select></div>
+    </div>
+    <div class="f1" id="mo-wrap-perdida">
+      <label class="chk"><input type="checkbox" id="mo-perdida"> Cuenta como pérdida</label>
+      <div class="hint">Marca esto solo cuando el producto se botó o se echó a perder.
+        Una venta, una muestra o un consumo de marketing salen del stock, pero no son merma.</div>
+    </div>
+    <div class="f1"><label class="chk"><input type="checkbox" id="mo-activo" checked> Motivo disponible</label></div>
+    <div class="mact">
+      <button class="btn bgray" onclick="cerrar('m-motivo')">Cancelar</button>
+      <button class="btn bmora" id="mo-guardar" onclick="guardarMotivo()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL MÍNIMOS MASIVO ══ -->
+<div class="mbg" id="m-minmasivo" role="dialog" aria-modal="true" aria-labelledby="mm-title">
+  <div class="modal ancho">
+    <h3 id="mm-title">Fijar mínimos</h3>
+    <div id="mm-alert"></div>
+    <div class="fb">
+      <select id="mm-bodega" onchange="renderMinMasivo()" style="min-width:190px;font-weight:800"></select>
+      <input type="text" id="mm-buscar" placeholder="Buscar producto…" oninput="renderMinMasivo()">
+      <div class="crece"></div>
+      <label style="text-transform:none;letter-spacing:0;margin:0;font-size:12px;color:var(--textl)">Cubrir
+        <select id="mm-dias" style="width:auto;display:inline-block;margin:0 4px" onchange="renderMinMasivo()">
+          <option value="7">1 semana</option>
+          <option value="14" selected>2 semanas</option>
+          <option value="21">3 semanas</option>
+          <option value="30">1 mes</option>
+        </select></label>
+      <button class="btn bol bsm" onclick="mmAplicarSugeridos()">Usar los sugeridos</button>
+    </div>
+    <div class="tw" style="max-height:48vh;overflow-y:auto"><table id="tabla-minmasivo"></table></div>
+    <div class="mact">
+      <button class="btn bgray" onclick="cerrar('m-minmasivo')">Cancelar</button>
+      <button class="btn bmora" id="mm-guardar" onclick="guardarMinMasivo()">Guardar mínimos</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL IMPORTAR CATÁLOGO ══ -->
+<div class="mbg" id="m-importar" role="dialog" aria-modal="true" aria-labelledby="im-title">
+  <div class="modal ancho">
+    <h3 id="im-title">Traer productos del catálogo</h3>
+    <div id="im-alert"></div>
+    <div class="hint" style="margin-bottom:12px">
+      Es el mismo catálogo del portal de pedidos. Marca lo que quieras llevar el control en bodega:
+      no tienes que traerlo todo. Lo que ya existe aparece atenuado y no se duplica.
+    </div>
+    <div class="fb">
+      <input type="text" id="im-buscar" placeholder="Buscar…" oninput="renderImportar()">
+      <button class="btn bol bsm" onclick="imTodos(true)">Marcar todo lo visible</button>
+      <button class="btn bgray bsm" onclick="imTodos(false)">Desmarcar</button>
+      <div class="crece"></div><span class="chip" id="im-cuenta"></span>
+    </div>
+    <div class="tw" style="max-height:46vh;overflow-y:auto"><table id="tabla-importar"></table></div>
+    <div class="mact">
+      <button class="btn bgray" onclick="cerrar('m-importar')">Cancelar</button>
+      <button class="btn bmora" id="im-guardar" onclick="guardarImportar()">Agregar seleccionados</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL CONFIRMAR ══ -->
+<div class="mbg" id="m-confirm" role="dialog" aria-modal="true" aria-labelledby="cf-title">
+  <div class="modal" style="max-width:430px">
+    <h3 id="cf-title">Confirmar</h3>
+    <div id="cf-cuerpo" style="font-size:13.5px;font-weight:700;line-height:1.65"></div>
+    <div class="f1" id="cf-wrap-nota" style="display:none;margin-top:14px">
+      <label for="cf-nota">Por qué</label>
+      <input type="text" id="cf-nota" placeholder="Queda escrito en el libro">
+    </div>
+    <div class="mact">
+      <button class="btn bgray" onclick="cerrar('m-confirm')">Cancelar</button>
+      <button class="btn bdng" id="cf-ok">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL OPERADOR ══ -->
+<div class="mbg" id="m-quien" role="dialog" aria-modal="true" aria-labelledby="qn-title">
+  <div class="modal" style="max-width:400px">
+    <h3 id="qn-title">¿Quién está anotando?</h3>
+    <div class="hint" style="margin-bottom:12px">
+      Cada movimiento queda firmado. Sirve para preguntar sin adivinar cuando un número no cuadra.
+    </div>
+    <input type="text" id="qn-nombre" placeholder="Tu nombre" onkeydown="if(event.key==='Enter')guardarOperador()">
+    <div class="mact">
+      <button class="btn bmora" onclick="guardarOperador()">Listo</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+// ══════════════════════════════════════════════════════════════
+//  CONEXIÓN — igual que el panel y el planificador.
+//  La clave no está escrita en el archivo: se escribe al entrar,
+//  viaja en cada petición y la verifica el Worker. Si ya entraste
+//  al panel en esta pestaña, la sesión se comparte.
+// ══════════════════════════════════════════════════════════════
+const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
+let TOKEN = '';
+
+const T_BOD = 'bod_bodegas';
+const T_PRO = 'bod_productos';
+const T_MOT = 'bod_motivos';
+const T_MIN = 'bod_minimos';
+const T_MOV = 'bod_movimientos';
+
+// ══════════════════════════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════════════════════════
+async function doLogin() {
+  const clave = document.getElementById('pin').value;
+  const btn   = document.getElementById('bentrar');
+  if (!clave) return;
+  btn.innerHTML = '<span class="sp"></span>Verificando...'; btn.disabled = true;
+  document.getElementById('lerr').innerHTML = '';
+  try {
+    const r = await fetch(`${PROXY}/supabase/${T_BOD}?select=id&limit=1`, {
+      headers: { 'X-Admin-Token': clave }
+    });
+    if (r.status === 401) {
+      document.getElementById('lerr').innerHTML = '<div class="alert ae">Clave incorrecta.</div>';
+      btn.innerHTML = 'Ingresar →'; btn.disabled = false; return;
+    }
+    if (r.status === 403 || r.status === 404) {
+      document.getElementById('lerr').innerHTML =
+        '<div class="alert ae">El Worker todavía no permite las tablas de bodega. ' +
+        'Falta el paso 2 de la instalación.</div>';
+      btn.innerHTML = 'Ingresar →'; btn.disabled = false; return;
+    }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+  } catch (e) {
+    document.getElementById('lerr').innerHTML =
+      '<div class="alert ae">No se pudo conectar. Revisa tu conexión e intenta de nuevo.</div>';
+    btn.innerHTML = 'Ingresar →'; btn.disabled = false; return;
+  }
+  TOKEN = clave;
+  try { sessionStorage.setItem('nativo_token', clave); } catch (_) {}
+  document.getElementById('pin').value = '';
+  entrar();
+  btn.innerHTML = 'Ingresar →'; btn.disabled = false;
+}
+
+function entrar() {
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display   = 'block';
+  cargarOperador();
+  cargarTodo();
+}
+
+(function reanudar() {
+  try {
+    const g = sessionStorage.getItem('nativo_token');
+    if (!g) return;
+    TOKEN = g;
+    entrar();
+  } catch (_) {}
+})();
+
+function salir() {
+  TOKEN = '';
+  try { sessionStorage.removeItem('nativo_token'); } catch (_) {}
+  document.getElementById('app').style.display   = 'none';
+  document.getElementById('login').style.display = 'flex';
+  document.getElementById('pin').value = '';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  API
+// ══════════════════════════════════════════════════════════════
+function cabeceras(conCuerpo, extra) {
+  const h = Object.assign({ 'X-Admin-Token': TOKEN }, extra || {});
+  if (conCuerpo) h['Content-Type'] = 'application/json';
+  return h;
+}
+
+function revisarAuth(r) {
+  if (r.status === 401) {
+    TOKEN = '';
+    try { sessionStorage.removeItem('nativo_token'); } catch (_) {}
+    document.getElementById('app').style.display   = 'none';
+    document.getElementById('login').style.display = 'flex';
+    document.getElementById('lerr').innerHTML =
+      '<div class="alert ae">La sesión expiró o la clave cambió. Ingresa de nuevo.</div>';
+    throw new Error('Sesión no autorizada');
+  }
+  return r;
+}
+
+async function sbSend(path, method, body, extra) {
+  const o = { method, headers: cabeceras(true, extra) };
+  if (body !== undefined) o.body = JSON.stringify(body);
+  const r = revisarAuth(await fetch(`${PROXY}/supabase/${path}`, o));
+  if (!r.ok) {
+    let d = '';
+    try { d = (await r.text()).slice(0, 220); } catch (_) {}
+    throw new Error(`HTTP ${r.status}${d ? ' · ' + d : ''}`);
+  }
+  return r;
+}
+
+async function sbJson(path) {
+  const r = revisarAuth(await fetch(`${PROXY}/supabase/${path}`, { headers: cabeceras(false) }));
+  if (!r.ok) throw new Error('HTTP ' + r.status + ' en ' + path.split('?')[0]);
+  const d = await r.json();
+  if (!Array.isArray(d)) throw new Error('Respuesta inválida en ' + path.split('?')[0]);
+  return d;
+}
+
+// El libro de movimientos crece con los años y PostgREST corta en 1000 filas
+// por respuesta, así que se pide por tandas.
+//
+// La paginación va por `limit` y `offset` en la dirección, no por la cabecera
+// `Range`. El Worker arma sus propios headers hacia Supabase y descarta los del
+// navegador: un `Range` nunca llegaría, PostgREST devolvería siempre las mismas
+// mil filas y el libro quedaría cortado sin avisar. La dirección, en cambio, se
+// reenvía completa.
+//
+// El Set de ids es el cinturón de seguridad: si por lo que sea una tanda
+// repitiera filas, el ciclo corta en vez de inflar el libro con copias, que es
+// la falla que haría que los saldos mientan.
+async function sbTodo(tabla, query) {
+  const paso = 1000, vistos = new Set(), out = [];
+  for (let desde = 0; desde < 60000; desde += paso) {
+    const url = `${PROXY}/supabase/${tabla}?${query}&limit=${paso}&offset=${desde}`;
+    const r = revisarAuth(await fetch(url, { headers: cabeceras(false) }));
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' en ' + tabla);
+    const d = await r.json();
+    if (!Array.isArray(d)) throw new Error('Respuesta inválida en ' + tabla);
+    let nuevos = 0;
+    for (const f of d) { if (!vistos.has(f.id)) { vistos.add(f.id); out.push(f); nuevos++; } }
+    if (d.length < paso || nuevos === 0) break;
+  }
+  return out;
+}
+
+// El libro se pide ordenado por id, que es único y no se repite. Ordenar por
+// fecha para paginar es una trampa: dos movimientos del mismo día no tienen un
+// orden garantizado entre una tanda y la siguiente, y una fila puede salir dos
+// veces o ninguna. El orden de lectura se arma después, acá en el navegador.
+async function cargarLibro() {
+  const filas = await sbTodo(T_MOV, 'select=*&order=id.asc');
+  return filas.sort((a, b) => {
+    const fa = String(a.fecha).slice(0, 10), fb = String(b.fecha).slice(0, 10);
+    if (fa !== fb) return fa < fb ? 1 : -1;
+    return Number(b.id) - Number(a.id);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ESTADO
+// ══════════════════════════════════════════════════════════════
+let bodegas = [], productos = [], motivos = [], minimos = [], movs = [];
+let saldos = new Map();          // "bodegaId|productoId" -> cantidad
+let seccion = 'panorama';
+let operador = '';
+let movsVisibles = 60;
+let conteo = {};                 // productoId -> valor escrito
+let cargando = false;
+let _preguntado = false;
+
+// toISOString() devuelve la fecha de Greenwich: en Chile, un movimiento
+// anotado a las 21:30 quedaría con fecha del día siguiente. Se arma con el
+// calendario local para que el día del sistema sea el día del galpón.
+function fechaISO(d) {
+  const x = d || new Date();
+  const p = n => String(n).padStart(2, '0');
+  return `${x.getFullYear()}-${p(x.getMonth() + 1)}-${p(x.getDate())}`;
+}
+const HOY = () => fechaISO();
+
+// ══════════════════════════════════════════════════════════════
+//  UTILIDADES
+// ══════════════════════════════════════════════════════════════
+function esc(s) {
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Las cantidades pueden ser fraccionarias (kilos, litros). Se muestran sin
+// decimales cuando son enteras, para que 12 no se lea "12,000".
+function num(n) {
+  const v = Number(n) || 0;
+  const dec = Math.abs(v % 1) > 0.0005 ? 3 : 0;
+  return v.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: dec });
+}
+function pesos(n) {
+  return '$' + Math.round(Number(n) || 0).toLocaleString('es-CL');
+}
+function fechaCorta(f) {
+  if (!f) return '';
+  const p = String(f).slice(0, 10).split('-');
+  return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : String(f);
+}
+function toast(msg, err) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (err ? ' err' : '');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => { t.className = ''; }, err ? 5200 : 3000);
+}
+function alerta(id, tipo, msg) {
+  const e = document.getElementById(id);
+  if (e) e.innerHTML = msg ? `<div class="alert ${tipo}">${msg}</div>` : '';
+}
+
+// Los modales devuelven el foco a donde estaba y se cierran con Escape.
+let focoPrevio = null;
+function abrir(id) {
+  focoPrevio = document.activeElement;
+  const m = document.getElementById(id);
+  m.classList.add('open');
+  const f = m.querySelector('input:not([type=hidden]),select,textarea,button');
+  if (f) setTimeout(() => f.focus(), 40);
+}
+function cerrar(id) {
+  document.getElementById(id).classList.remove('open');
+  if (focoPrevio && document.body.contains(focoPrevio)) { try { focoPrevio.focus(); } catch (_) {} }
+}
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const ab = [...document.querySelectorAll('.mbg.open')];
+  if (ab.length) cerrar(ab[ab.length - 1].id);
+});
+document.querySelectorAll('.mbg').forEach(bg => {
+  bg.addEventListener('mousedown', e => { if (e.target === bg) cerrar(bg.id); });
+});
+
+function nombreBodega(id) { const b = bodegas.find(x => x.id === id); return b ? b.nombre : '—'; }
+function nombreProducto(id) {
+  const p = productos.find(x => x.id === id);
+  return p ? p.nombre + (p.formato ? ' · ' + p.formato : '') : '—';
+}
+function nombreMotivo(id) { const m = motivos.find(x => x.id === id); return m ? m.nombre : ''; }
+function unidadDe(id) { const p = productos.find(x => x.id === id); return p && p.unidad ? p.unidad : 'un'; }
+
+function operadorNombre() { return operador || 'sin firma'; }
+function cargarOperador() {
+  try { operador = localStorage.getItem('nativo_bodega_quien') || ''; } catch (_) { operador = ''; }
+  document.getElementById('quien-chip').textContent = '👤 ' + (operador || 'poner mi nombre');
+}
+function pedirOperador() {
+  document.getElementById('qn-nombre').value = operador;
+  abrir('m-quien');
+}
+function guardarOperador() {
+  operador = document.getElementById('qn-nombre').value.trim().slice(0, 40);
+  try { localStorage.setItem('nativo_bodega_quien', operador); } catch (_) {}
+  document.getElementById('quien-chip').textContent = '👤 ' + (operador || 'poner mi nombre');
+  cerrar('m-quien');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CARGA
+// ══════════════════════════════════════════════════════════════
+async function cargarTodo(avisar) {
+  if (cargando) return;
+  cargando = true;
+  alerta('alert-global', 'ai', '<span class="sp"></span>Cargando bodega…');
+  try {
+    const [b, p, mo, mi] = await Promise.all([
+      sbJson(`${T_BOD}?select=*&order=nombre.asc`),
+      sbJson(`${T_PRO}?select=*&order=nombre.asc`),
+      sbJson(`${T_MOT}?select=*&order=orden.asc,nombre.asc`),
+      sbJson(`${T_MIN}?select=*`)
+    ]);
+    bodegas = b; productos = p; motivos = mo; minimos = mi;
+    movs = await cargarLibro();
+    recalcularSaldos();
+    alerta('alert-global', 'ai', '');
+    pintarTodo();
+    if (avisar) toast('Datos actualizados');
+    // Se pregunta una sola vez, y solo cuando ya hay algo que anotar: la
+    // pantalla la usan Martín y Fernando, y un movimiento sin firma es una
+    // pregunta sin respuesta cuando un número no cuadra.
+    if (!operador && bodegas.length && productos.length && !_preguntado) {
+      _preguntado = true;
+      setTimeout(pedirOperador, 400);
+    }
+    if (!bodegas.length) {
+      alerta('alert-global', 'aw',
+        'Todavía no hay ninguna bodega. Parte creando una en <b>Configuración</b>.');
+    }
+  } catch (e) {
+    alerta('alert-global', 'ae',
+      'No se pudieron cargar los datos: ' + esc(e.message) +
+      '. Revisa que las tablas estén creadas y permitidas en el Worker.');
+  } finally {
+    cargando = false;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  SALDOS — el corazón del asunto
+//  No existe una columna "stock". El saldo se calcula sumando el libro
+//  de movimientos, así que nunca hay dos verdades peleando: si un número
+//  no cuadra, la explicación está en las filas que lo formaron.
+//  Un movimiento revertido y su reverso se anulan solos, porque el reverso
+//  es un movimiento más con el signo contrario.
+// ══════════════════════════════════════════════════════════════
+function clave(bodegaId, productoId) { return bodegaId + '|' + productoId; }
+
+function recalcularSaldos() {
+  const m = new Map();
+  const sumar = (bod, pro, q) => {
+    if (!bod || !pro) return;
+    const k = clave(bod, pro);
+    m.set(k, (m.get(k) || 0) + q);
+  };
+  for (const x of movs) {
+    const q = Number(x.cantidad) || 0;
+    if (x.tipo === 'entrada')       sumar(x.bodega_id, x.producto_id,  Math.abs(q));
+    else if (x.tipo === 'salida')   sumar(x.bodega_id, x.producto_id, -Math.abs(q));
+    else if (x.tipo === 'ajuste')   sumar(x.bodega_id, x.producto_id,  q);
+    else if (x.tipo === 'traslado') {
+      sumar(x.bodega_id,         x.producto_id, -Math.abs(q));
+      sumar(x.bodega_destino_id, x.producto_id,  Math.abs(q));
+    }
+  }
+  // Los flotantes acumulan basura: 0.1+0.2 no da 0.3 exacto y un saldo
+  // "cero" aparecería como 0,000000001 y no como agotado.
+  for (const [k, v] of m) m.set(k, Math.round(v * 1000) / 1000);
+  saldos = m;
+  _alertas = null;
+  _consumo = null;
+}
+
+function saldoDe(bodegaId, productoId) { return saldos.get(clave(bodegaId, productoId)) || 0; }
+function minimoDe(bodegaId, productoId) {
+  const m = minimos.find(x => x.bodega_id === bodegaId && x.producto_id === productoId);
+  return m ? Number(m.minimo) : null;
+}
+function totalDe(productoId) {
+  let t = 0;
+  for (const b of bodegas) t += saldoDe(b.id, productoId);
+  return Math.round(t * 1000) / 1000;
+}
+
+// Estado de una celda. Sin mínimo definido no hay alerta posible:
+// decir "está bien" de algo que nadie midió sería inventar tranquilidad.
+function estado(saldo, minimo) {
+  if (minimo === null || !(minimo > 0)) return saldo > 0 ? 'sinmin' : 'nada';
+  if (saldo <= 0) return 'nada';
+  if (saldo <= minimo) return 'alto';
+  if (saldo <= minimo * 1.5) return 'medio';
+  return 'ok';
+}
+const ESTADO_TXT = { ok: 'Con holgura', medio: 'Se acerca al mínimo', alto: 'Bajo el mínimo',
+                     nada: 'Agotado', sinmin: 'Sin mínimo definido' };
+
+// ── CONSUMO Y COBERTURA ───────────────────────────────────────────────
+//  Saber que quedan 12 baldes no sirve de nada solo: doce baldes son un mes
+//  en Pichilemu y tres días en la oficina. Lo que permite actuar con tiempo
+//  es cuántos días alcanza al ritmo al que se está yendo.
+//
+//  Se mide sobre lo que efectivamente salió: ventas, despachos, mermas y lo
+//  que se mandó a otra bodega. Las entradas y los ajustes de conteo no son
+//  consumo. La ventana es de 90 días, y se toma desde el primer movimiento
+//  registrado si el módulo lleva menos tiempo andando, para no dividir por
+//  noventa cuando llevas dos semanas usándolo.
+const VENTANA_CONSUMO = 90;
+let _consumo = null;
+
+function tablaConsumo() {
+  if (_consumo) return _consumo;
+  const desde = fechaISO(new Date(Date.now() - VENTANA_CONSUMO * 864e5));
+  const m = new Map();
+  let masViejo = HOY();
+  for (const x of movs) {
+    const f = String(x.fecha).slice(0, 10);
+    if (f < masViejo) masViejo = f;
+    if (f < desde) continue;
+    const q = Math.abs(Number(x.cantidad) || 0);
+    if (x.tipo === 'salida') {
+      const k = clave(x.bodega_id, x.producto_id);
+      m.set(k, (m.get(k) || 0) + q);
+    } else if (x.tipo === 'traslado') {
+      const k = clave(x.bodega_id, x.producto_id);
+      m.set(k, (m.get(k) || 0) + q);
+    }
+  }
+  const arranque = masViejo > desde ? masViejo : desde;
+  const dias = Math.max(7, Math.round((Date.now() - new Date(arranque + 'T12:00:00').getTime()) / 864e5));
+  const out = new Map();
+  for (const [k, v] of m) out.set(k, v / dias);
+  out._dias = dias;
+  _consumo = out;
+  return out;
+}
+
+function consumoDiario(bodegaId, productoId) {
+  return tablaConsumo().get(clave(bodegaId, productoId)) || 0;
+}
+
+// null cuando no hay consumo medible: no se puede dividir por cero, y decir
+// "alcanza para siempre" sería mentira disfrazada de dato.
+function coberturaDias(bodegaId, productoId) {
+  const c = consumoDiario(bodegaId, productoId);
+  if (!(c > 0)) return null;
+  const s = saldoDe(bodegaId, productoId);
+  if (s <= 0) return 0;
+  return Math.floor(s / c);
+}
+
+function coberturaTexto(d) {
+  if (d === null) return 'sin salidas en los últimos ' + VENTANA_CONSUMO + ' días';
+  if (d === 0)    return 'agotado';
+  if (d === 1)    return 'alcanza 1 día';
+  if (d <= 21)    return `alcanza ~${d} días`;
+  if (d <= 120)   return `alcanza ~${Math.round(d / 7)} semanas`;
+  if (d <= 400)   return `alcanza ~${Math.round(d / 30)} meses`;
+  return 'alcanza más de un año';
+}
+</script>
+<script>
+// ══════════════════════════════════════════════════════════════
+//  NAVEGACIÓN
+// ══════════════════════════════════════════════════════════════
+const SECCIONES = ['panorama', 'movimientos', 'conteo', 'maestros'];
+
+function irA(s) {
+  if (!SECCIONES.includes(s)) s = 'panorama';
+  seccion = s;
+  SECCIONES.forEach(x => {
+    document.getElementById('page-' + x).classList.toggle('act', x === s);
+    document.getElementById('s-' + x).setAttribute('aria-pressed', String(x === s));
+  });
+  if (location.hash.slice(1) !== s) history.replaceState(null, '', '#' + s);
+  if (s === 'conteo') renderConteo();
+  window.scrollTo({ top: 0, behavior: 'auto' });
+}
+
+function pintarTodo() {
+  llenarSelects();
+  renderKPIs();
+  renderAlertas();
+  renderMatriz();
+  renderGrafico();
+  renderMovs();
+  renderBodegas();
+  renderProductos();
+  renderMinimos();
+  renderMotivos();
+  renderConteo();
+}
+
+function bodegasVivas() { return bodegas.filter(b => b.activa !== false); }
+function productosVivos() { return productos.filter(p => p.activo !== false); }
+
+function llenarSelects() {
+  const vivas = bodegasVivas();
+  const opsBod = vivas.map(b => `<option value="${b.id}">${esc(b.nombre)}</option>`).join('');
+
+  const mb = document.getElementById('m-bodega');
+  const prevMb = mb.value;
+  mb.innerHTML = '<option value="">Todas las bodegas</option>' +
+    bodegas.map(b => `<option value="${b.id}">${esc(b.nombre)}</option>`).join('');
+  mb.value = prevMb;
+
+  ['c-bodega', 'min-bodega', 'mm-bodega'].forEach(id => {
+    const s = document.getElementById(id);
+    const prev = s.value;
+    s.innerHTML = opsBod || '<option value="">Sin bodegas</option>';
+    if (prev && vivas.some(b => String(b.id) === prev)) s.value = prev;
+  });
+
+  const mm = document.getElementById('m-motivo');
+  const prevMm = mm.value;
+  mm.innerHTML = '<option value="">Todo motivo</option>' +
+    motivos.map(m => `<option value="${m.id}">${esc(m.nombre)}</option>`).join('');
+  mm.value = prevMm;
+
+  const fams = [...new Set(productos.map(p => p.familia).filter(Boolean))].sort();
+  ['f-familia', 'c-familia'].forEach(id => {
+    const s = document.getElementById(id);
+    const prev = s.value;
+    s.innerHTML = '<option value="">Todas las familias</option>' +
+      fams.map(f => `<option value="${esc(f)}">${esc(f)}</option>`).join('');
+    s.value = prev;
+  });
+  document.getElementById('familias').innerHTML =
+    fams.map(f => `<option value="${esc(f)}"></option>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  KPIs
+// ══════════════════════════════════════════════════════════════
+// Se recalcula una vez por carga y se guarda: pintar la tabla de bodegas
+// la pedía una vez por fila.
+let _alertas = null;
+function listaAlertas() {
+  if (_alertas) return _alertas;
+  const out = [];
+  for (const b of bodegasVivas()) {
+    for (const p of productosVivos()) {
+      const min = minimoDe(b.id, p.id);
+      if (min === null || !(min > 0)) continue;
+      const s = saldoDe(b.id, p.id);
+      if (s > min) continue;
+      out.push({ bodega: b, producto: p, saldo: s, minimo: min,
+        falta: Math.round((min - s) * 1000) / 1000,
+        dias: coberturaDias(b.id, p.id) });
+    }
+  }
+  // Se ordena por lo que se acaba primero, no por lo que más falta. Reponer
+  // 200 vasos que duran dos meses es menos urgente que 4 baldes que duran
+  // dos días. Lo que no tiene consumo medible va al final: no hay urgencia
+  // que calcular.
+  _alertas = out.sort((x, y) => {
+    const a = x.dias === null ? 9e9 : x.dias, b = y.dias === null ? 9e9 : y.dias;
+    return a - b || y.falta - x.falta;
+  });
+  return _alertas;
+}
+
+function hayCostos() { return productos.some(p => Number(p.costo) > 0); }
+
+function valorInventario() {
+  let t = 0;
+  for (const p of productos) {
+    const c = Number(p.costo) || 0;
+    if (!c) continue;
+    t += totalDe(p.id) * c;
+  }
+  return t;
+}
+
+function movsDesde(dias) {
+  const lim = fechaISO(new Date(Date.now() - dias * 864e5));
+  return movs.filter(m => String(m.fecha).slice(0, 10) >= lim);
+}
+
+// La merma se mide en plata, no en unidades: sumar 3 baldes con 2 kilos de
+// granola da "5" y ese 5 no significa nada. Si faltan costos se dice cuántos
+// productos quedaron fuera en vez de dar un número que parece completo.
+function mermaPeriodo(dias) {
+  const perdida = new Set(motivos.filter(m => m.es_perdida).map(m => m.id));
+  let clp = 0, sinCosto = new Set(), lineas = 0;
+  for (const m of movsDesde(dias)) {
+    if (m.tipo !== 'salida' || !perdida.has(m.motivo_id)) continue;
+    lineas++;
+    const p = productos.find(x => x.id === m.producto_id);
+    const c = p ? Number(p.costo) || 0 : 0;
+    if (c > 0) clp += Math.abs(Number(m.cantidad) || 0) * c;
+    else sinCosto.add(m.producto_id);
+  }
+  return { clp, sinCosto: sinCosto.size, lineas };
+}
+
+// Se acaban esta semana: productos con salida medible y menos de siete días
+// de stock, tengan o no mínimo definido. Es el hueco que dejaban las alertas,
+// que solo miran el mínimo: un producto sin mínimo puesto podía estar a tres
+// días de quedar en cero sin que nada lo dijera.
+function seAcabanPronto(dias) {
+  const out = [];
+  for (const b of bodegasVivas())
+    for (const p of productosVivos()) {
+      const d = coberturaDias(b.id, p.id);
+      if (d === null || d > dias) continue;
+      out.push({ bodega: b, producto: p, dias: d, saldo: saldoDe(b.id, p.id) });
+    }
+  return out.sort((x, y) => x.dias - y.dias);
+}
+
+function renderKPIs() {
+  const al = listaAlertas();
+  const criticas = al.filter(a => a.saldo <= 0).length;
+  const conMin = minimos.filter(m => Number(m.minimo) > 0).length;
+  const pronto = seAcabanPronto(7);
+  const mer = mermaPeriodo(30);
+
+  const kpiMerma = hayCostos()
+    ? `<div class="sn">${pesos(mer.clp)}</div><div class="sl">Merma 30 días</div>
+       <div class="sx">${mer.lineas} registro${mer.lineas === 1 ? '' : 's'}${
+         mer.sinCosto ? ` · ${mer.sinCosto} producto${mer.sinCosto === 1 ? '' : 's'} sin costo cargado` : ''}</div>`
+    : `<div class="sn">${mer.lineas}</div><div class="sl">Mermas 30 días</div>
+       <div class="sx">Carga el costo de los productos para verlo en pesos</div>`;
+
+  const kpiValor = hayCostos()
+    ? `<div class="sn">${pesos(valorInventario())}</div><div class="sl">Valor en bodega</div>
+       <div class="sx">Solo productos con costo cargado</div>`
+    : `<div class="sn">${productosVivos().length}</div><div class="sl">Productos vigentes</div>
+       <div class="sx">${conMin} con mínimo definido</div>`;
+
+  document.getElementById('kpis').innerHTML = `
+    <div class="stat ${criticas ? 'grave' : ''} pulsa" onclick="irAlertas()">
+      <div class="sn">${criticas}</div><div class="sl">Agotados</div>
+      <div class="sx">Con mínimo definido y saldo en cero</div></div>
+    <div class="stat ${al.length - criticas > 0 ? 'aviso' : ''} pulsa" onclick="irAlertas()">
+      <div class="sn">${al.length - criticas}</div><div class="sl">Bajo el mínimo</div>
+      <div class="sx">Alcanza, pero hay que reponer</div></div>
+    <div class="stat">${kpiValor}</div>
+    <div class="stat">${kpiMerma}</div>
+    <div class="stat ${pronto.length ? 'aviso' : ''} pulsa" onclick="verSeAcaban()">
+      <div class="sn">${pronto.length}</div><div class="sl">Se acaban esta semana</div>
+      <div class="sx">Al ritmo al que están saliendo</div></div>`;
+}
+
+function verSeAcaban() {
+  irA('panorama');
+  document.getElementById('f-estado').value = 'pronto';
+  document.getElementById('f-buscar').value = '';
+  document.getElementById('f-familia').value = '';
+  renderMatriz();
+  document.getElementById('matriz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function irAlertas() {
+  irA('panorama');
+  const c = document.getElementById('card-alertas');
+  if (c.style.display !== 'none') c.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ALERTAS
+// ══════════════════════════════════════════════════════════════
+function renderAlertas() {
+  const al = listaAlertas();
+  const card = document.getElementById('card-alertas');
+  if (!al.length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  document.getElementById('alertas-cuenta').textContent =
+    al.length + (al.length === 1 ? ' aviso' : ' avisos');
+  document.getElementById('alertas').innerHTML = al.slice(0, 40).map(a => `
+    <div class="al ${a.saldo <= 0 ? 'crit' : 'baja'}" tabindex="0" role="button"
+      onclick="verDetalle(${a.bodega.id},${a.producto.id})"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();verDetalle(${a.bodega.id},${a.producto.id})}">
+      <div class="al-n">${num(a.saldo)}</div>
+      <div>
+        <div class="al-t">${esc(a.producto.nombre)}${a.producto.formato ? ' <span class="chip">' + esc(a.producto.formato) + '</span>' : ''}</div>
+        <div class="al-s"><b>${coberturaTexto(a.dias)}</b> · ${esc(a.bodega.nombre)}
+          · mínimo ${num(a.minimo)} · faltan ${num(a.falta)}</div>
+      </div>
+    </div>`).join('') +
+    (al.length > 40 ? `<div class="empty">y ${al.length - 40} más</div>` : '');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MATRIZ DE STOCK
+// ══════════════════════════════════════════════════════════════
+function medidor(saldo, minimo, unidad) {
+  const est = estado(saldo, minimo);
+  // La escala llega hasta el doble del mínimo (o hasta el saldo si lo supera),
+  // así la muesca del mínimo cae siempre a la mitad y se compara de un vistazo.
+  const tope = Math.max(minimo ? minimo * 2 : 0, saldo, 1);
+  const ancho = Math.max(0, Math.min(100, (saldo / tope) * 100));
+  const marca = minimo && minimo > 0 ? Math.min(100, (minimo / tope) * 100) : null;
+  return `<div class="med" title="${ESTADO_TXT[est]}${minimo ? ' · mínimo ' + num(minimo) : ''}">
+    <div class="fill f-${est === 'sinmin' ? 'ok' : est}" style="width:${ancho}%"></div>
+    ${marca !== null ? `<div class="marca" style="left:${marca}%"></div>` : ''}
+    <div class="val">${num(saldo)} <span style="font-weight:700;color:var(--textl)">${esc(unidad)}</span></div>
+  </div>`;
+}
+
+function filtrarProductos() {
+  const q  = document.getElementById('f-buscar').value.trim().toLowerCase();
+  const fa = document.getElementById('f-familia').value;
+  const es = document.getElementById('f-estado').value;
+  const bods = document.getElementById('f-inactivas').checked ? bodegas : bodegasVivas();
+  const conMov = new Set(movs.map(m => m.producto_id));
+
+  return productosVivos().filter(p => {
+    if (q && !(p.nombre + ' ' + (p.formato || '') + ' ' + (p.familia || '')).toLowerCase().includes(q)) return false;
+    if (fa && p.familia !== fa) return false;
+    if (es === 'pronto') {
+      const hay = bods.some(b => {
+        const d = coberturaDias(b.id, p.id);
+        return d !== null && d <= 7;
+      });
+      if (!hay) return false;
+    }
+    if (es === 'conmov' && !conMov.has(p.id)) return false;
+    if (es === 'cero'   && totalDe(p.id) > 0) return false;
+    if (es === 'alerta') {
+      const hay = bods.some(b => {
+        const min = minimoDe(b.id, p.id);
+        return min !== null && min > 0 && saldoDe(b.id, p.id) <= min;
+      });
+      if (!hay) return false;
+    }
+    return true;
+  });
+}
+
+function renderMatriz() {
+  const bods = document.getElementById('f-inactivas').checked ? bodegas : bodegasVivas();
+  const lista = filtrarProductos();
+  const t = document.getElementById('matriz');
+  const vacia = document.getElementById('matriz-vacia');
+
+  if (!bods.length) {
+    t.innerHTML = '';
+    vacia.innerHTML = '<div class="empty">No hay bodegas en uso. Crea una en Configuración.</div>';
+    return;
+  }
+  if (!lista.length) {
+    t.innerHTML = '';
+    vacia.innerHTML = '<div class="empty">Ningún producto calza con el filtro.</div>';
+    return;
+  }
+  vacia.innerHTML = '';
+
+  const cab = `<thead><tr>
+    <th scope="col" style="min-width:210px">Producto</th>
+    ${bods.map(b => `<th scope="col" class="cel-bod">${esc(b.nombre)}${b.activa === false ? ' <span class="chip">fuera de uso</span>' : ''}</th>`).join('')}
+    <th scope="col" class="num">Total</th>
+    <th scope="col" class="num" title="Al ritmo de salida de los últimos 90 días">Alcanza</th></tr></thead>`;
+
+  const filas = lista.map(p => {
+    const un = p.unidad || 'un';
+    let peor = 'ok';
+    const celdas = bods.map(b => {
+      const s = saldoDe(b.id, p.id), min = minimoDe(b.id, p.id);
+      const e = estado(s, min);
+      // El estado de la fila es el de la peor bodega, no el del total.
+      // Un producto con 40 baldes en la oficina y 0 en Pichilemu no está
+      // "cómodo": está agotado donde se necesita.
+      if (e === 'nada' || (e === 'alto' && peor !== 'nada') ||
+          (e === 'medio' && peor === 'ok')) peor = e;
+      return `<td class="celda" tabindex="0" role="button"
+        onclick="verDetalle(${b.id},${p.id})"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();verDetalle(${b.id},${p.id})}"
+        title="Ver detalle y mover">${medidor(s, min, un)}</td>`;
+    }).join('');
+    const cls = peor === 'nada' || peor === 'alto' ? 'fila-alerta' : (peor === 'medio' ? 'fila-aviso' : '');
+    return `<tr class="${cls}">
+      <td><div class="prod">${esc(p.nombre)}</div>
+        <div class="sub">${esc(p.formato || '')}${p.familia ? ' · ' + esc(p.familia) : ''}</div></td>
+      ${celdas}
+      <td class="num"><b style="font-size:14px">${num(totalDe(p.id))}</b>
+        <div class="sub">${esc(un)}</div></td>
+      <td class="num">${pintarCobertura(bods, p)}</td></tr>`;
+  }).join('');
+
+  t.innerHTML = cab + '<tbody>' + filas + '</tbody>';
+}
+
+// La cobertura de un producto es la de la bodega que primero se queda sin él,
+// no el promedio: si Pichilemu se seca en tres días, tener existencias en la
+// oficina no evita que allá falte producto.
+function pintarCobertura(bods, p) {
+  let peor = null;
+  for (const b of bods) {
+    const d = coberturaDias(b.id, p.id);
+    if (d === null) continue;
+    if (peor === null || d < peor) peor = d;
+  }
+  if (peor === null) return '<span class="sub" style="margin:0">—</span>';
+  const col = peor <= 7 ? 'var(--alto)' : (peor <= 21 ? 'var(--medio)' : 'var(--textl)');
+  return `<b style="color:${col}">${peor > 180 ? '6+ m' : peor + ' d'}</b>`;
+}
+
+function exportarStock() {
+  const bods = document.getElementById('f-inactivas').checked ? bodegas : bodegasVivas();
+  const filas = [['Producto', 'Formato', 'Familia', 'Unidad',
+    ...bods.flatMap(b => [b.nombre, 'Mínimo ' + b.nombre, 'Días ' + b.nombre]),
+    'Total', 'Consumo diario total']];
+  for (const p of filtrarProductos()) {
+    let cons = 0;
+    for (const b of bods) cons += consumoDiario(b.id, p.id);
+    filas.push([p.nombre, p.formato || '', p.familia || '', p.unidad || 'un',
+      ...bods.flatMap(b => [saldoDe(b.id, p.id), minimoDe(b.id, p.id) ?? '',
+        coberturaDias(b.id, p.id) ?? '']),
+      totalDe(p.id), Math.round(cons * 100) / 100]);
+  }
+  bajarCSV(filas, 'stock-nativo-' + HOY() + '.csv');
+}
+
+// El Excel en Chile abre con punto y coma; la coma decimal es la del sistema.
+function bajarCSV(filas, nombre) {
+  const txt = filas.map(f => f.map(c => {
+    let s = String(c === null || c === undefined ? '' : c);
+    if (typeof c === 'number') s = s.replace('.', ',');
+    return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }).join(';')).join('\r\n');
+  const url = URL.createObjectURL(new Blob(['\uFEFF' + txt], { type: 'text/csv;charset=utf-8;' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = nombre;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  GRÁFICO DE SALIDAS — dona en SVG, sin librerías
+// ══════════════════════════════════════════════════════════════
+const PALETA = ['#6b35b8', '#2E8B6E', '#D89A1E', '#3B6FB6', '#C25E3A',
+                '#B5427A', '#4a1f7a', '#5A6B7B', '#9b6fd4', '#C0392B'];
+
+function renderGrafico() {
+  const dona = document.getElementById('graf-dona');
+  const leg  = document.getElementById('graf-leg');
+  const nota = document.getElementById('graf-nota');
+  const conCosto = hayCostos();
+
+  const acum = new Map();
+  let sinCosto = 0;
+  for (const m of movsDesde(90)) {
+    if (m.tipo !== 'salida') continue;
+    const p = productos.find(x => x.id === m.producto_id);
+    const c = p ? Number(p.costo) || 0 : 0;
+    const q = Math.abs(Number(m.cantidad) || 0);
+    const peso = conCosto ? q * c : 1;      // sin costos se cuentan registros
+    if (conCosto && !c) { sinCosto++; continue; }
+    const k = m.motivo_id || 0;
+    acum.set(k, (acum.get(k) || 0) + peso);
+  }
+
+  const datos = [...acum.entries()]
+    .map(([id, v]) => {
+      const mo = motivos.find(x => x.id === id);
+      return { lbl: mo ? mo.nombre : 'Sin motivo', v, perdida: mo ? !!mo.es_perdida : false,
+               color: (mo && mo.color) || null };
+    })
+    .filter(d => d.v > 0).sort((a, b) => b.v - a.v);
+
+  if (!datos.length) {
+    dona.innerHTML = '<div class="empty">Todavía no hay salidas registradas.</div>';
+    leg.innerHTML = ''; nota.textContent = '';
+    return;
+  }
+
+  const total = datos.reduce((s, d) => s + d.v, 0);
+  let ang = -Math.PI / 2;
+  const R = 78, r = 47, CX = 96, CY = 96;
+  const arcos = datos.map((d, i) => {
+    const frac = d.v / total;
+    const a0 = ang, a1 = ang + frac * Math.PI * 2;
+    ang = a1;
+    const col = d.color || PALETA[i % PALETA.length];
+    d._c = col;
+    // Un solo segmento del 100% no se puede dibujar con un arco: se cierra
+    // sobre sí mismo y desaparece. En ese caso van dos anillos concéntricos.
+    if (frac > 0.9999) {
+      return `<circle cx="${CX}" cy="${CY}" r="${(R + r) / 2}" fill="none"
+        stroke="${col}" stroke-width="${R - r}"></circle>`;
+    }
+    const p = (a, rad) => [(CX + Math.cos(a) * rad).toFixed(2), (CY + Math.sin(a) * rad).toFixed(2)];
+    const grande = a1 - a0 > Math.PI ? 1 : 0;
+    const [x0, y0] = p(a0, R), [x1, y1] = p(a1, R);
+    const [x2, y2] = p(a1, r), [x3, y3] = p(a0, r);
+    return `<path d="M${x0},${y0} A${R},${R} 0 ${grande},1 ${x1},${y1}
+      L${x2},${y2} A${r},${r} 0 ${grande},0 ${x3},${y3} Z"
+      fill="${col}"><title>${esc(d.lbl)}</title></path>`;
+  }).join('');
+
+  const perdido = datos.filter(d => d.perdida).reduce((s, d) => s + d.v, 0);
+  const pctPerd = Math.round((perdido / total) * 100);
+
+  dona.innerHTML = `<svg viewBox="0 0 192 192" width="100%" style="max-width:230px;margin:0 auto;display:block"
+      role="img" aria-label="Reparto de salidas por motivo">
+    ${arcos}
+    <text x="${CX}" y="${CY - 6}" text-anchor="middle" font-family="DM Serif Display,serif"
+      font-size="27" fill="#4a1f7a">${pctPerd}%</text>
+    <text x="${CX}" y="${CY + 13}" text-anchor="middle" font-family="Nunito,sans-serif"
+      font-size="10" font-weight="800" fill="#8b7a9e">ES PÉRDIDA</text></svg>`;
+
+  leg.innerHTML = datos.map(d => `
+    <div class="leg-i">
+      <span class="leg-c" style="background:${d._c}"></span>
+      <span>${esc(d.lbl)}${d.perdida ? ' <span class="chip" style="background:var(--rl);color:var(--rd);border-color:#fca5a5">pérdida</span>' : ''}</span>
+      <span class="leg-v">${conCosto ? pesos(d.v) : num(d.v) + (d.v === 1 ? ' salida' : ' salidas')}</span>
+    </div>`).join('');
+
+  nota.innerHTML = conCosto
+    ? `Valorizado al costo que cargaste en cada producto.${sinCosto ? ` Quedaron fuera ${sinCosto} salida${sinCosto === 1 ? '' : 's'} de productos sin costo.` : ''}`
+    : 'Se cuentan registros, no cantidades: sumar baldes con kilos daría un número sin significado. Carga el costo de los productos y este gráfico pasa a pesos.';
+}
+</script>
+<script>
+// ══════════════════════════════════════════════════════════════
+//  LIBRO DE MOVIMIENTOS
+// ══════════════════════════════════════════════════════════════
+const TIPO_BADGE = { entrada: 'bent', salida: 'bsal', traslado: 'btra', ajuste: 'baju' };
+const TIPO_TXT   = { entrada: 'Entrada', salida: 'Salida', traslado: 'Traslado', ajuste: 'Ajuste' };
+
+function movsFiltrados() {
+  const q  = document.getElementById('m-buscar').value.trim().toLowerCase();
+  const b  = document.getElementById('m-bodega').value;
+  const t  = document.getElementById('m-tipo').value;
+  const mo = document.getElementById('m-motivo').value;
+  const d  = document.getElementById('m-desde').value;
+  const h  = document.getElementById('m-hasta').value;
+
+  return movs.filter(m => {
+    if (t && m.tipo !== t) return false;
+    if (mo && String(m.motivo_id) !== mo) return false;
+    if (b && String(m.bodega_id) !== b && String(m.bodega_destino_id) !== b) return false;
+    const f = String(m.fecha).slice(0, 10);
+    if (d && f < d) return false;
+    if (h && f > h) return false;
+    if (q) {
+      const txt = (nombreProducto(m.producto_id) + ' ' + (m.nota || '') + ' ' + (m.doc || '') + ' ' +
+                   nombreMotivo(m.motivo_id) + ' ' + (m.usuario || '')).toLowerCase();
+      if (!txt.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function limpiarFiltrosMov() {
+  ['m-buscar', 'm-bodega', 'm-tipo', 'm-motivo', 'm-desde', 'm-hasta']
+    .forEach(id => { document.getElementById(id).value = ''; });
+  movsVisibles = 60;
+  renderMovs();
+}
+
+function verMasMovs() { movsVisibles += 120; renderMovs(); }
+
+// Un movimiento revertido y su reverso quedan los dos a la vista, atenuados.
+// Nada se borra: si algo se anotó mal, el libro muestra el error y la
+// corrección, que es lo que permite entender qué pasó tres meses después.
+function idsRevertidos() {
+  return new Set(movs.filter(m => m.revierte_a).map(m => Number(m.revierte_a)));
+}
+
+function renderMovs() {
+  const lista = movsFiltrados();
+  const rev = idsRevertidos();
+  const t = document.getElementById('tabla-movs');
+  const vacio = document.getElementById('movs-vacio');
+  document.getElementById('mov-cuenta').textContent =
+    lista.length + (lista.length === 1 ? ' movimiento' : ' movimientos');
+
+  if (!lista.length) {
+    t.innerHTML = '';
+    vacio.innerHTML = movs.length
+      ? '<div class="empty">Ningún movimiento calza con el filtro.</div>'
+      : '<div class="empty">El libro está vacío. Registra la primera entrada desde el panorama.</div>';
+    document.getElementById('b-vermas').style.display = 'none';
+    return;
+  }
+  vacio.innerHTML = '';
+
+  const trozo = lista.slice(0, movsVisibles);
+  const filas = trozo.map(m => {
+    const anulado = rev.has(Number(m.id));
+    const esReverso = !!m.revierte_a;
+    const q = Number(m.cantidad) || 0;
+    let cant, donde;
+    if (m.tipo === 'entrada')       { cant = `<span class="pos">+${num(Math.abs(q))}</span>`; donde = esc(nombreBodega(m.bodega_id)); }
+    else if (m.tipo === 'salida')   { cant = `<span class="neg">−${num(Math.abs(q))}</span>`; donde = esc(nombreBodega(m.bodega_id)); }
+    else if (m.tipo === 'traslado') { cant = `<b>${num(Math.abs(q))}</b>`;
+      donde = `${esc(nombreBodega(m.bodega_id))} <span style="color:var(--mora-l);font-weight:900">→</span> ${esc(nombreBodega(m.bodega_destino_id))}`; }
+    else { cant = `<span class="${q >= 0 ? 'pos' : 'neg'}">${q >= 0 ? '+' : '−'}${num(Math.abs(q))}</span>`;
+      donde = esc(nombreBodega(m.bodega_id)); }
+
+    const mot = m.motivo_id ? `<span class="chip">${esc(nombreMotivo(m.motivo_id))}</span>` : '';
+    return `<tr style="${anulado ? 'opacity:.5' : ''}">
+      <td class="mono">${fechaCorta(m.fecha)}</td>
+      <td><span class="badge ${TIPO_BADGE[m.tipo] || 'baju'}">${TIPO_TXT[m.tipo] || esc(m.tipo)}</span>
+        ${anulado ? '<div class="sub">revertido</div>' : ''}
+        ${esReverso ? '<div class="sub">es un reverso</div>' : ''}</td>
+      <td><div style="font-weight:800">${esc(nombreProducto(m.producto_id))}</div>
+        ${m.nota ? `<div class="sub">${esc(m.nota)}</div>` : ''}</td>
+      <td>${donde}</td>
+      <td class="num" style="font-size:14px">${cant}
+        <div class="sub">${esc(unidadDe(m.producto_id))}</div></td>
+      <td>${mot}${m.doc ? `<div class="sub mono">${esc(m.doc)}</div>` : ''}</td>
+      <td><div class="sub" style="margin:0">${esc(m.usuario || '—')}</div></td>
+      <td class="num">${anulado || esReverso ? '' :
+        `<button class="btn bdng bsm" onclick="pedirRevertir(${m.id})" title="Anota el movimiento contrario">Revertir</button>`}</td>
+    </tr>`;
+  }).join('');
+
+  t.innerHTML = `<thead><tr>
+    <th>Fecha</th><th>Tipo</th><th>Producto</th><th>Bodega</th>
+    <th class="num">Cantidad</th><th>Motivo / doc.</th><th>Anotó</th><th></th></tr></thead>
+    <tbody>${filas}</tbody>`;
+
+  const b = document.getElementById('b-vermas');
+  b.style.display = lista.length > movsVisibles ? 'inline-block' : 'none';
+  b.textContent = `Ver más (${lista.length - movsVisibles} restantes)`;
+}
+
+function exportarMovs() {
+  const rev = idsRevertidos();
+  const filas = [['Fecha', 'Tipo', 'Producto', 'Formato', 'Unidad', 'Bodega', 'Destino',
+    'Cantidad', 'Motivo', 'Es pérdida', 'Documento', 'Nota', 'Anotó', 'Estado']];
+  for (const m of movsFiltrados()) {
+    const p = productos.find(x => x.id === m.producto_id);
+    const mo = motivos.find(x => x.id === m.motivo_id);
+    filas.push([
+      String(m.fecha).slice(0, 10), TIPO_TXT[m.tipo] || m.tipo,
+      p ? p.nombre : '', p ? p.formato || '' : '', p ? p.unidad || 'un' : '',
+      nombreBodega(m.bodega_id), m.bodega_destino_id ? nombreBodega(m.bodega_destino_id) : '',
+      Number(m.cantidad) || 0, mo ? mo.nombre : '', mo && mo.es_perdida ? 'sí' : '',
+      m.doc || '', m.nota || '', m.usuario || '',
+      rev.has(Number(m.id)) ? 'revertido' : (m.revierte_a ? 'reverso' : 'vigente')
+    ]);
+  }
+  bajarCSV(filas, 'movimientos-bodega-' + HOY() + '.csv');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MODAL DE MOVIMIENTO
+// ══════════════════════════════════════════════════════════════
+let mvActual = 'entrada';
+
+function abrirMov(tipo, productoId, bodegaId) {
+  if (!bodegasVivas().length) { toast('Primero crea una bodega en Configuración', true); irA('maestros'); return; }
+  if (!productosVivos().length) { toast('Primero agrega productos en Configuración', true); irA('maestros'); return; }
+
+  const sp = document.getElementById('mv-producto');
+  sp.innerHTML = productosVivos().map(p =>
+    `<option value="${p.id}">${esc(p.nombre)}${p.formato ? ' · ' + esc(p.formato) : ''}</option>`).join('');
+
+  const ops = bodegasVivas().map(b => `<option value="${b.id}">${esc(b.nombre)}</option>`).join('');
+  document.getElementById('mv-bodega').innerHTML  = ops;
+  document.getElementById('mv-destino').innerHTML = ops;
+
+  if (productoId) sp.value = productoId;
+  if (bodegaId)   document.getElementById('mv-bodega').value = bodegaId;
+
+  document.getElementById('mv-cantidad').value = '';
+  document.getElementById('mv-fecha').value = HOY();
+  document.getElementById('mv-doc').value = '';
+  document.getElementById('mv-nota').value = '';
+  alerta('mv-alert', 'ae', '');
+  mvTipo(tipo || 'entrada');
+  abrir('m-mov');
+}
+
+function mvTipo(t) {
+  mvActual = t;
+  ['entrada', 'salida', 'traslado'].forEach(x =>
+    document.getElementById('mv-t-' + x).setAttribute('aria-pressed', String(x === t)));
+  document.getElementById('mv-title').textContent =
+    { entrada: 'Entrada a bodega', salida: 'Salida de bodega', traslado: 'Traslado entre bodegas' }[t];
+  document.getElementById('mv-wrap-destino').style.display = t === 'traslado' ? 'block' : 'none';
+  document.getElementById('mv-wrap-motivo').style.display  = t === 'traslado' ? 'none'  : 'block';
+  document.getElementById('mv-lbl-bodega').textContent = t === 'traslado' ? 'Bodega de origen *' : 'Bodega *';
+
+  const dispo = motivos.filter(m => m.activo !== false && m.tipo === (t === 'entrada' ? 'entrada' : 'salida'));
+  document.getElementById('mv-motivo').innerHTML = dispo.length
+    ? dispo.map(m => `<option value="${m.id}">${esc(m.nombre)}${m.es_perdida ? ' · pérdida' : ''}</option>`).join('')
+    : '<option value="">— sin motivos configurados —</option>';
+
+  // En un traslado el destino no puede ser el origen: si coinciden, se corre
+  // al siguiente disponible antes de que el usuario pueda equivocarse.
+  if (t === 'traslado') {
+    const o = document.getElementById('mv-bodega').value;
+    const d = document.getElementById('mv-destino');
+    if (d.value === o) {
+      const otra = bodegasVivas().find(b => String(b.id) !== o);
+      if (otra) d.value = otra.id;
+    }
+  }
+  mvPintarSaldo();
+}
+
+function mvPintarSaldo() {
+  const pid = Number(document.getElementById('mv-producto').value);
+  const bid = Number(document.getElementById('mv-bodega').value);
+  const did = Number(document.getElementById('mv-destino').value);
+  const q   = Number(document.getElementById('mv-cantidad').value) || 0;
+  const un  = unidadDe(pid);
+  const r   = document.getElementById('mv-resumen');
+  if (!pid || !bid) { r.innerHTML = ''; return; }
+
+  const s = saldoDe(bid, pid);
+  const min = minimoDe(bid, pid);
+  let html = '';
+
+  if (mvActual === 'entrada') {
+    html = `En <b>${esc(nombreBodega(bid))}</b> hay <b>${num(s)} ${esc(un)}</b>
+      <span class="flecha">→</span> quedarán <b>${num(s + q)} ${esc(un)}</b>`;
+  } else if (mvActual === 'salida') {
+    const fin = s - q;
+    html = `En <b>${esc(nombreBodega(bid))}</b> hay <b>${num(s)} ${esc(un)}</b>
+      <span class="flecha">→</span> quedarán <b>${num(fin)} ${esc(un)}</b>`;
+    if (q > 0 && fin < 0) html += `<div class="alert ae" style="margin:9px 0 0">
+      La bodega quedaría en <b>${num(fin)}</b>. Se puede registrar igual —a veces el error
+      está en lo anotado antes— pero conviene revisar el conteo físico.</div>`;
+    else if (min !== null && min > 0 && q > 0 && fin <= min) html += `<div class="alert aw" style="margin:9px 0 0">
+      Queda en el mínimo o por debajo (mínimo ${num(min)}). Va a aparecer en las alertas.</div>`;
+  } else {
+    if (bid === did) { r.innerHTML = '<div class="alert ae" style="margin:0">Origen y destino son la misma bodega.</div>'; return; }
+    const sd = saldoDe(did, pid);
+    html = `<b>${esc(nombreBodega(bid))}</b> ${num(s)} <span class="flecha">→</span> ${num(s - q)}
+      <br><b>${esc(nombreBodega(did))}</b> ${num(sd)} <span class="flecha">→</span> ${num(sd + q)}
+      <div class="sub" style="margin-top:6px">El total de la empresa no cambia: el producto solo cambia de lugar.</div>`;
+    if (q > 0 && s - q < 0) html += `<div class="alert ae" style="margin:9px 0 0">
+      El origen quedaría en <b>${num(s - q)}</b>.</div>`;
+  }
+  r.innerHTML = html;
+}
+
+async function guardarMov() {
+  const b = document.getElementById('mv-guardar');
+  const pid = Number(document.getElementById('mv-producto').value);
+  const bid = Number(document.getElementById('mv-bodega').value);
+  const did = Number(document.getElementById('mv-destino').value);
+  // La columna es numeric(14,3): redondear acá evita que lo guardado sea
+  // distinto de lo que la persona vio en pantalla.
+  const q   = Math.round((Number(document.getElementById('mv-cantidad').value) || 0) * 1000) / 1000;
+  const f   = document.getElementById('mv-fecha').value || HOY();
+  const mo  = document.getElementById('mv-motivo').value;
+
+  alerta('mv-alert', 'ae', '');
+  if (!pid) return alerta('mv-alert', 'ae', 'Elige un producto.');
+  if (!bid) return alerta('mv-alert', 'ae', 'Elige una bodega.');
+  if (!(q > 0)) return alerta('mv-alert', 'ae', 'La cantidad tiene que ser mayor que cero.');
+  if (f > HOY()) return alerta('mv-alert', 'ae',
+    'La fecha está en el futuro. El saldo se calcula con todo lo anotado, así que un movimiento ' +
+    'con fecha de mañana descuenta hoy igual. Corrige la fecha o déjala en blanco.');
+  if (mvActual === 'traslado') {
+    if (!did) return alerta('mv-alert', 'ae', 'Elige la bodega de destino.');
+    if (did === bid) return alerta('mv-alert', 'ae', 'El destino tiene que ser una bodega distinta al origen.');
+  } else if (!mo) {
+    return alerta('mv-alert', 'ae',
+      'Falta el motivo. Si no hay ninguno disponible, créalo en Configuración → Motivos.');
+  }
+
+  const fila = {
+    fecha: f, tipo: mvActual, producto_id: pid, bodega_id: bid,
+    bodega_destino_id: mvActual === 'traslado' ? did : null,
+    cantidad: q, motivo_id: mvActual === 'traslado' ? null : Number(mo),
+    doc: document.getElementById('mv-doc').value.trim() || null,
+    nota: document.getElementById('mv-nota').value.trim() || null,
+    usuario: operadorNombre()
+  };
+
+  b.disabled = true; b.innerHTML = '<span class="sp"></span>Guardando…';
+  try {
+    await sbSend(T_MOV, 'POST', fila);
+    cerrar('m-mov');
+    toast(TIPO_TXT[mvActual] + ' registrada');
+    await cargarTodo();
+  } catch (e) {
+    alerta('mv-alert', 'ae', 'No se pudo guardar: ' + esc(e.message));
+  } finally {
+    b.disabled = false; b.innerHTML = 'Registrar';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  REVERTIR
+// ══════════════════════════════════════════════════════════════
+const revirtiendo = new Set();   // evita que dos clics rápidos dupliquen el reverso
+
+function pedirRevertir(id) {
+  const m = movs.find(x => Number(x.id) === Number(id));
+  if (!m) return;
+  document.getElementById('cf-title').textContent = 'Revertir movimiento';
+  document.getElementById('cf-cuerpo').innerHTML =
+    `Se anota el movimiento contrario de
+     <b>${TIPO_TXT[m.tipo]} de ${num(Math.abs(Number(m.cantidad)))} ${esc(unidadDe(m.producto_id))}</b>
+     de ${esc(nombreProducto(m.producto_id))}.
+     <div class="sub" style="margin-top:8px">El original no se borra: quedan los dos en el libro,
+     el error y la corrección.</div>`;
+  document.getElementById('cf-wrap-nota').style.display = 'block';
+  document.getElementById('cf-nota').value = '';
+  const ok = document.getElementById('cf-ok');
+  ok.textContent = 'Revertir';
+  ok.onclick = () => revertir(id);
+  abrir('m-confirm');
+}
+
+async function revertir(id) {
+  if (revirtiendo.has(Number(id))) return;
+  const orig = movs.find(x => Number(x.id) === Number(id));
+  if (!orig) return;
+  if (movs.some(x => Number(x.revierte_a) === Number(id))) {
+    cerrar('m-confirm'); toast('Ese movimiento ya estaba revertido', true); return;
+  }
+  revirtiendo.add(Number(id));
+  const ok = document.getElementById('cf-ok');
+  ok.disabled = true; ok.innerHTML = '<span class="sp"></span>Revirtiendo…';
+  const nota = document.getElementById('cf-nota').value.trim();
+
+  // El reverso es un movimiento normal con el signo dado vuelta. Un traslado
+  // se revierte trasladando al revés; una entrada, con una salida; una salida,
+  // con una entrada. Así el saldo vuelve solo, sin tocar el original.
+  let fila;
+  const q = Math.abs(Number(orig.cantidad) || 0);
+  const base = {
+    fecha: HOY(), producto_id: orig.producto_id, cantidad: q,
+    doc: orig.doc || null, usuario: operadorNombre(), revierte_a: Number(id),
+    nota: 'Reverso' + (nota ? ': ' + nota : '')
+  };
+  if (orig.tipo === 'traslado') {
+    fila = Object.assign(base, { tipo: 'traslado', bodega_id: orig.bodega_destino_id,
+      bodega_destino_id: orig.bodega_id, motivo_id: null });
+  } else if (orig.tipo === 'ajuste') {
+    fila = Object.assign(base, { tipo: 'ajuste', bodega_id: orig.bodega_id,
+      bodega_destino_id: null, cantidad: -(Number(orig.cantidad) || 0), motivo_id: null });
+  } else {
+    fila = Object.assign(base, {
+      tipo: orig.tipo === 'entrada' ? 'salida' : 'entrada',
+      bodega_id: orig.bodega_id, bodega_destino_id: null,
+      motivo_id: orig.motivo_id || null
+    });
+  }
+
+  try {
+    await sbSend(T_MOV, 'POST', fila);
+    cerrar('m-confirm');
+    toast('Movimiento revertido');
+    await cargarTodo();
+  } catch (e) {
+    toast('No se pudo revertir: ' + e.message, true);
+  } finally {
+    revirtiendo.delete(Number(id));
+    ok.disabled = false; ok.innerHTML = 'Revertir';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  DETALLE PRODUCTO × BODEGA
+// ══════════════════════════════════════════════════════════════
+function verDetalle(bodegaId, productoId) {
+  const p = productos.find(x => x.id === productoId);
+  const b = bodegas.find(x => x.id === bodegaId);
+  if (!p || !b) return;
+  const s = saldoDe(bodegaId, productoId);
+  const min = minimoDe(bodegaId, productoId);
+  const est = estado(s, min);
+  const un = p.unidad || 'un';
+  const cd = coberturaDias(bodegaId, productoId);
+
+  const suyos = movs.filter(m => m.producto_id === productoId &&
+    (m.bodega_id === bodegaId || m.bodega_destino_id === bodegaId)).slice(0, 12);
+
+  const hist = suyos.length ? `<div class="tw"><table><thead><tr>
+      <th>Fecha</th><th>Tipo</th><th class="num">Cantidad</th><th>Detalle</th></tr></thead><tbody>
+      ${suyos.map(m => {
+        const q = Math.abs(Number(m.cantidad) || 0);
+        let signo = '', txt = '';
+        if (m.tipo === 'entrada') { signo = `<span class="pos">+${num(q)}</span>`; txt = nombreMotivo(m.motivo_id); }
+        else if (m.tipo === 'salida') { signo = `<span class="neg">−${num(q)}</span>`; txt = nombreMotivo(m.motivo_id); }
+        else if (m.tipo === 'ajuste') { const v = Number(m.cantidad) || 0;
+          signo = `<span class="${v >= 0 ? 'pos' : 'neg'}">${v >= 0 ? '+' : '−'}${num(Math.abs(v))}</span>`;
+          txt = m.nota || 'Conteo físico'; }
+        else { const entra = m.bodega_destino_id === bodegaId;
+          signo = `<span class="${entra ? 'pos' : 'neg'}">${entra ? '+' : '−'}${num(q)}</span>`;
+          txt = entra ? 'desde ' + nombreBodega(m.bodega_id) : 'hacia ' + nombreBodega(m.bodega_destino_id); }
+        return `<tr><td class="mono">${fechaCorta(m.fecha)}</td>
+          <td><span class="badge ${TIPO_BADGE[m.tipo]}">${TIPO_TXT[m.tipo]}</span></td>
+          <td class="num" style="font-size:14px">${signo}</td>
+          <td>${esc(txt)}${m.usuario ? `<div class="sub">${esc(m.usuario)}</div>` : ''}</td></tr>`;
+      }).join('')}</tbody></table></div>`
+    : '<div class="empty">Sin movimientos en esta bodega.</div>';
+
+  document.getElementById('dt-title').textContent = p.nombre;
+  document.getElementById('dt-cuerpo').innerHTML = `
+    <div class="stats" style="margin-bottom:16px">
+      <div class="stat"><div class="sn">${num(s)}</div><div class="sl">${esc(un)} en ${esc(b.nombre)}</div>
+        <div class="sx"><span class="dot d-${est === 'sinmin' ? 'ok' : est}"></span>${ESTADO_TXT[est]}</div></div>
+      <div class="stat"><div class="sn">${min === null ? '—' : num(min)}</div><div class="sl">Mínimo aquí</div>
+        <div class="sx"><a href="#" onclick="event.preventDefault();cerrar('m-detalle');irA('maestros');document.getElementById('min-bodega').value=${bodegaId};renderMinimos()"
+          style="color:var(--mora);font-weight:800">cambiar</a></div></div>
+      <div class="stat"><div class="sn">${num(totalDe(productoId))}</div><div class="sl">Total empresa</div>
+        <div class="sx">${bodegasVivas().map(x => esc(x.nombre) + ': ' + num(saldoDe(x.id, productoId))).join(' · ')}</div></div>
+      <div class="stat ${cd !== null && cd <= 7 ? 'aviso' : ''}">
+        <div class="sn">${cd === null ? '—' : (cd > 180 ? '6+ m' : cd)}</div>
+        <div class="sl">${cd === null ? 'Sin salidas' : 'Días que alcanza'}</div>
+        <div class="sx">${consumoDiario(bodegaId, productoId) > 0
+          ? 'Salen ~' + num(Math.round(consumoDiario(bodegaId, productoId) * 70) / 10) + ' ' + esc(un) + ' por semana'
+          : 'No salió nada en los últimos ' + VENTANA_CONSUMO + ' días'}</div></div>
+    </div>
+    <div class="card-head">
+      <button class="btn bgreen bsm" onclick="cerrar('m-detalle');abrirMov('entrada',${productoId},${bodegaId})">📥 Entrada</button>
+      <button class="btn bdng bsm"   onclick="cerrar('m-detalle');abrirMov('salida',${productoId},${bodegaId})">📤 Salida</button>
+      <button class="btn bol bsm"    onclick="cerrar('m-detalle');abrirMov('traslado',${productoId},${bodegaId})">🔁 Traslado</button>
+    </div>
+    <div class="modal-section">Últimos movimientos</div>
+    ${hist}`;
+  abrir('m-detalle');
+}
+</script>
+<script>
+// ══════════════════════════════════════════════════════════════
+//  CONTEO FÍSICO
+// ══════════════════════════════════════════════════════════════
+function conteoProductos() {
+  const bid = Number(document.getElementById('c-bodega').value);
+  const q  = document.getElementById('c-buscar').value.trim().toLowerCase();
+  const fa = document.getElementById('c-familia').value;
+  const solo = document.getElementById('c-solostock').checked;
+  return productosVivos().filter(p => {
+    if (q && !(p.nombre + ' ' + (p.formato || '')).toLowerCase().includes(q)) return false;
+    if (fa && p.familia !== fa) return false;
+    if (solo && !(saldoDe(bid, p.id) !== 0 || minimoDe(bid, p.id) !== null)) return false;
+    return true;
+  });
+}
+
+function renderConteo() {
+  const bid = Number(document.getElementById('c-bodega').value);
+  const t = document.getElementById('tabla-conteo');
+  if (!bid) {
+    t.innerHTML = '';
+    document.getElementById('c-resumen').textContent = 'Sin bodegas';
+    return;
+  }
+  const lista = conteoProductos();
+  if (!lista.length) {
+    t.innerHTML = '<tbody><tr><td><div class="empty">Ningún producto calza con el filtro.</div></td></tr></tbody>';
+    actualizarResumenConteo();
+    return;
+  }
+  t.innerHTML = `<thead><tr>
+      <th style="min-width:200px">Producto</th>
+      <th class="num">Según el sistema</th>
+      <th class="num" style="width:130px">Contado</th>
+      <th class="num">Diferencia</th></tr></thead>
+    <tbody>${lista.map(p => {
+      const s = saldoDe(bid, p.id);
+      const v = conteo[p.id];
+      return `<tr>
+        <td><div style="font-weight:800">${esc(p.nombre)}</div>
+          <div class="sub">${esc(p.formato || '')}</div></td>
+        <td class="num">${num(s)} <span class="sub" style="display:inline">${esc(p.unidad || 'un')}</span></td>
+        <td class="num"><input type="number" step="0.001" min="0" id="cn-${p.id}"
+          value="${v === undefined ? '' : esc(v)}" placeholder="—"
+          oninput="anotarConteo(${p.id},this.value)"></td>
+        <td class="num cnt-dif" id="cd-${p.id}">${pintarDif(s, v)}</td></tr>`;
+    }).join('')}</tbody>`;
+  actualizarResumenConteo();
+}
+
+function pintarDif(saldo, valor) {
+  if (valor === undefined || valor === '') return '<span style="color:var(--textl)">—</span>';
+  const d = Math.round((Number(valor) - saldo) * 1000) / 1000;
+  if (d === 0) return '<span style="color:var(--ok)">cuadra</span>';
+  return `<span class="${d > 0 ? 'pos' : 'neg'}">${d > 0 ? '+' : '−'}${num(Math.abs(d))}</span>`;
+}
+
+function anotarConteo(pid, valor) {
+  const bid = Number(document.getElementById('c-bodega').value);
+  if (valor === '') delete conteo[pid];
+  else conteo[pid] = valor;
+  const c = document.getElementById('cd-' + pid);
+  if (c) c.innerHTML = pintarDif(saldoDe(bid, pid), conteo[pid]);
+  actualizarResumenConteo();
+}
+
+function diferenciasConteo() {
+  const bid = Number(document.getElementById('c-bodega').value);
+  const out = [];
+  for (const pid of Object.keys(conteo)) {
+    const v = conteo[pid];
+    if (v === '' || v === undefined || isNaN(Number(v))) continue;
+    const id = Number(pid);
+    const d = Math.round((Number(v) - saldoDe(bid, id)) * 1000) / 1000;
+    if (d !== 0) out.push({ producto_id: id, delta: d, contado: Number(v) });
+  }
+  return out;
+}
+
+function actualizarResumenConteo() {
+  const dif = diferenciasConteo();
+  const escritos = Object.keys(conteo).length;
+  document.getElementById('c-resumen').textContent =
+    `${escritos} contado${escritos === 1 ? '' : 's'} · ${dif.length} diferencia${dif.length === 1 ? '' : 's'}`;
+  document.getElementById('b-conteo').disabled = dif.length === 0;
+}
+
+function limpiarConteo() { conteo = {}; renderConteo(); }
+
+// Lo escrito pertenece a una bodega. Arrastrarlo al cambiar de selector
+// habría aplicado el conteo de la oficina a Pichilemu sin que nadie lo note.
+let bodegaContada = null;
+function cambiarBodegaConteo() {
+  const nueva = document.getElementById('c-bodega').value;
+  if (bodegaContada && bodegaContada !== nueva && Object.keys(conteo).length) {
+    conteo = {};
+    toast('Se borró lo que habías anotado: era de ' + nombreBodega(Number(bodegaContada)));
+  }
+  bodegaContada = nueva;
+  renderConteo();
+}
+
+// Contar con el celular en la mano y las manos frías es incómodo. Esta hoja
+// sale con el saldo del sistema y una casilla en blanco para anotar a lápiz.
+function imprimirHojaConteo() {
+  const bid = Number(document.getElementById('c-bodega').value);
+  if (!bid) return;
+  const lista = conteoProductos();
+  if (!lista.length) { toast('No hay productos que imprimir', true); return; }
+  const w = window.open('', '_blank');
+  if (!w) { toast('El navegador bloqueó la ventana de impresión', true); return; }
+  const filas = lista.map(p => `<tr>
+    <td>${esc(p.nombre)}<br><span class="f">${esc(p.formato || '')}</span></td>
+    <td class="c">${num(saldoDe(bid, p.id))} ${esc(p.unidad || 'un')}</td>
+    <td class="caja"></td></tr>`).join('');
+  w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+    <title>Conteo ${esc(nombreBodega(bid))}</title><style>
+    body{font-family:system-ui,sans-serif;padding:22px;color:#1e1226}
+    h1{font-size:19px;margin:0 0 3px}
+    .sub{font-size:12px;color:#666;margin-bottom:16px}
+    table{width:100%;border-collapse:collapse;font-size:12.5px}
+    th{text-align:left;border-bottom:2px solid #333;padding:6px 8px;font-size:11px;text-transform:uppercase}
+    td{border-bottom:1px solid #ddd;padding:7px 8px;vertical-align:top}
+    .c{text-align:right;white-space:nowrap}
+    .f{color:#777;font-size:11px}
+    .caja{width:96px;border:1px solid #999;border-radius:4px;height:30px}
+    .pie{margin-top:22px;font-size:11.5px;color:#666}
+    @media print{body{padding:0}}</style></head><body>
+    <h1>Conteo físico · ${esc(nombreBodega(bid))}</h1>
+    <div class="sub">${fechaCorta(HOY())} · contó: ______________________</div>
+    <table><thead><tr><th>Producto</th><th class="c">Según el sistema</th>
+      <th style="width:110px">Contado</th></tr></thead><tbody>${filas}</tbody></table>
+    <div class="pie">Anota solo lo que cuentes. Las filas en blanco no se tocan al pasarlo al sistema.</div>
+    </body></html>`);
+  w.document.close();
+  setTimeout(() => { w.focus(); w.print(); }, 350);
+}
+
+async function guardarConteo() {
+  const bid = Number(document.getElementById('c-bodega').value);
+  const b = document.getElementById('b-conteo');
+  if (!bid) return;
+  const dif = diferenciasConteo();
+  if (!dif.length) return;
+
+  b.disabled = true; b.innerHTML = '<span class="sp"></span>Verificando…';
+
+  // Un conteo puede tomar media hora. Si en ese rato Fernando despachó algo,
+  // el saldo de la pantalla quedó viejo y el ajuste calculado contra él
+  // borraría ese despacho. Por eso se relee el libro justo antes de escribir
+  // y se recalcula la diferencia contra el saldo de este segundo.
+  try {
+    movs = await cargarLibro();
+    recalcularSaldos();
+  } catch (e) {
+    b.disabled = false; b.innerHTML = 'Registrar ajustes';
+    toast('No se pudo verificar el saldo actual: ' + e.message, true);
+    return;
+  }
+
+  const finales = [];
+  for (const d of dif) {
+    const delta = Math.round((d.contado - saldoDe(bid, d.producto_id)) * 1000) / 1000;
+    if (delta !== 0) finales.push({ producto_id: d.producto_id, delta, contado: d.contado });
+  }
+  if (!finales.length) {
+    conteo = {}; renderConteo(); pintarTodo();
+    b.disabled = false; b.innerHTML = 'Registrar ajustes';
+    toast('Al releer el libro ya no había diferencias');
+    return;
+  }
+  const cambiaron = finales.length !== dif.length ||
+    finales.some(f => { const o = dif.find(x => x.producto_id === f.producto_id); return !o || o.delta !== f.delta; });
+
+  b.innerHTML = '<span class="sp"></span>Guardando…';
+  const nota = 'Conteo físico ' + fechaCorta(HOY());
+  const filas = finales.map(f => ({
+    fecha: HOY(), tipo: 'ajuste', producto_id: f.producto_id, bodega_id: bid,
+    bodega_destino_id: null, cantidad: f.delta, motivo_id: null,
+    doc: null, nota: nota + ' · contado ' + num(f.contado), usuario: operadorNombre()
+  }));
+
+  try {
+    await sbSend(T_MOV, 'POST', filas);
+    conteo = {};
+    toast(`${filas.length} ajuste${filas.length === 1 ? '' : 's'} registrado${filas.length === 1 ? '' : 's'}` +
+      (cambiaron ? ' (hubo movimientos durante el conteo, se recalculó)' : ''));
+    await cargarTodo();
+  } catch (e) {
+    toast('No se pudieron guardar los ajustes: ' + e.message, true);
+  } finally {
+    b.disabled = false; b.innerHTML = 'Registrar ajustes';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  BODEGAS
+// ══════════════════════════════════════════════════════════════
+let bodegaEdit = null;
+
+function renderBodegas() {
+  const t = document.getElementById('tabla-bodegas');
+  if (!bodegas.length) {
+    t.innerHTML = '<tbody><tr><td><div class="empty">Sin bodegas. Crea la primera arriba.</div></td></tr></tbody>';
+    return;
+  }
+  t.innerHTML = `<thead><tr><th>Bodega</th><th>Dónde</th>
+      <th class="num">Productos con saldo</th><th class="num">Alertas</th><th></th></tr></thead>
+    <tbody>${bodegas.map(b => {
+      const conStock = productosVivos().filter(p => saldoDe(b.id, p.id) !== 0).length;
+      const al = listaAlertas().filter(a => a.bodega.id === b.id).length;
+      return `<tr><td><div style="font-weight:800">${esc(b.nombre)}</div>
+          ${b.activa === false ? '<span class="chip">fuera de uso</span>' : ''}</td>
+        <td><div class="sub" style="margin:0">${esc(b.ubicacion || '—')}</div></td>
+        <td class="num">${conStock}</td>
+        <td class="num">${al ? `<span class="badge bsal">${al}</span>` : '—'}</td>
+        <td class="num">
+          <button class="btn bol bsm" onclick="abrirBodega(${b.id})">Editar</button>
+          <button class="btn bdng bsm" onclick="pedirBorrarBodega(${b.id})">Eliminar</button></td></tr>`;
+    }).join('')}</tbody>`;
+}
+
+function abrirBodega(id) {
+  bodegaEdit = id;
+  const b = id ? bodegas.find(x => x.id === id) : null;
+  document.getElementById('bd-title').textContent = b ? 'Editar bodega' : 'Nueva bodega';
+  document.getElementById('bd-nombre').value = b ? b.nombre : '';
+  document.getElementById('bd-ubic').value   = b ? b.ubicacion || '' : '';
+  document.getElementById('bd-activa').checked = b ? b.activa !== false : true;
+  alerta('bd-alert', 'ae', '');
+  abrir('m-bodega');
+}
+
+async function guardarBodega() {
+  const nombre = document.getElementById('bd-nombre').value.trim();
+  if (!nombre) return alerta('bd-alert', 'ae', 'Ponle un nombre a la bodega.');
+  if (bodegas.some(b => b.nombre.toLowerCase() === nombre.toLowerCase() && b.id !== bodegaEdit))
+    return alerta('bd-alert', 'ae', 'Ya existe una bodega con ese nombre.');
+
+  const fila = { nombre, ubicacion: document.getElementById('bd-ubic').value.trim() || null,
+    activa: document.getElementById('bd-activa').checked };
+  const b = document.getElementById('bd-guardar');
+  b.disabled = true; b.innerHTML = '<span class="sp"></span>Guardando…';
+  try {
+    if (bodegaEdit) await sbSend(`${T_BOD}?id=eq.${bodegaEdit}`, 'PATCH', fila);
+    else await sbSend(T_BOD, 'POST', fila);
+    cerrar('m-bodega'); toast('Bodega guardada');
+    await cargarTodo();
+  } catch (e) {
+    alerta('bd-alert', 'ae', 'No se pudo guardar: ' + esc(e.message));
+  } finally { b.disabled = false; b.innerHTML = 'Guardar'; }
+}
+
+function pedirBorrarBodega(id) {
+  const b = bodegas.find(x => x.id === id);
+  const usos = movs.filter(m => m.bodega_id === id || m.bodega_destino_id === id).length;
+  document.getElementById('cf-title').textContent = 'Eliminar bodega';
+  document.getElementById('cf-wrap-nota').style.display = 'none';
+  const ok = document.getElementById('cf-ok');
+  if (usos) {
+    document.getElementById('cf-cuerpo').innerHTML =
+      `<b>${esc(b.nombre)}</b> tiene ${usos} movimiento${usos === 1 ? '' : 's'} en el libro,
+       así que no se puede eliminar sin perder historia.
+       <div class="sub" style="margin-top:8px">Lo que sí puedes hacer es marcarla
+       <b>fuera de uso</b>: desaparece de los formularios y conserva todo.</div>`;
+    ok.textContent = 'Marcar fuera de uso';
+    ok.onclick = async () => {
+      try { await sbSend(`${T_BOD}?id=eq.${id}`, 'PATCH', { activa: false });
+        cerrar('m-confirm'); toast('Bodega marcada fuera de uso'); await cargarTodo();
+      } catch (e) { toast('No se pudo: ' + e.message, true); }
+    };
+  } else {
+    document.getElementById('cf-cuerpo').innerHTML =
+      `Se elimina <b>${esc(b.nombre)}</b>. No tiene movimientos, así que no se pierde historia.`;
+    ok.textContent = 'Eliminar';
+    ok.onclick = async () => {
+      try {
+        await sbSend(`${T_MIN}?bodega_id=eq.${id}`, 'DELETE');
+        await sbSend(`${T_BOD}?id=eq.${id}`, 'DELETE');
+        cerrar('m-confirm'); toast('Bodega eliminada'); await cargarTodo();
+      } catch (e) { toast('No se pudo eliminar: ' + e.message, true); }
+    };
+  }
+  abrir('m-confirm');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  PRODUCTOS
+// ══════════════════════════════════════════════════════════════
+let productoEdit = null;
+
+function renderProductos() {
+  const q = document.getElementById('p-buscar').value.trim().toLowerCase();
+  const verInact = document.getElementById('p-inactivos').checked;
+  const lista = productos.filter(p => {
+    if (!verInact && p.activo === false) return false;
+    if (q && !(p.nombre + ' ' + (p.formato || '') + ' ' + (p.familia || '')).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const t = document.getElementById('tabla-productos');
+  if (!lista.length) {
+    t.innerHTML = `<tbody><tr><td><div class="empty">${productos.length
+      ? 'Ningún producto calza con la búsqueda.'
+      : 'Sin productos. Puedes traerlos del catálogo del portal con un clic.'}</div></td></tr></tbody>`;
+    return;
+  }
+  t.innerHTML = `<thead><tr><th>Producto</th><th>Familia</th><th>Unidad</th>
+      <th class="num">Costo</th><th class="num">Total en bodegas</th><th></th></tr></thead>
+    <tbody>${lista.map(p => `<tr style="${p.activo === false ? 'opacity:.55' : ''}">
+      <td><div style="font-weight:800">${esc(p.nombre)}</div>
+        <div class="sub">${esc(p.formato || '')}${p.activo === false ? ' · inactivo' : ''}</div></td>
+      <td>${p.familia ? `<span class="chip">${esc(p.familia)}</span>` : '—'}</td>
+      <td>${esc(p.unidad || 'un')}</td>
+      <td class="num">${Number(p.costo) > 0 ? pesos(p.costo) : '—'}</td>
+      <td class="num"><b>${num(totalDe(p.id))}</b></td>
+      <td class="num">
+        <button class="btn bol bsm" onclick="abrirProducto(${p.id})">Editar</button>
+        <button class="btn bdng bsm" onclick="pedirBorrarProducto(${p.id})">Eliminar</button></td></tr>`).join('')}</tbody>`;
+}
+
+function abrirProducto(id) {
+  productoEdit = id;
+  const p = id ? productos.find(x => x.id === id) : null;
+  document.getElementById('pr-title').textContent = p ? 'Editar producto' : 'Nuevo producto';
+  document.getElementById('pr-nombre').value  = p ? p.nombre : '';
+  document.getElementById('pr-formato').value = p ? p.formato || '' : '';
+  document.getElementById('pr-familia').value = p ? p.familia || '' : '';
+  document.getElementById('pr-unidad').value  = p ? p.unidad || 'un' : 'un';
+  document.getElementById('pr-costo').value   = p && Number(p.costo) > 0 ? p.costo : '';
+  document.getElementById('pr-activo').checked = p ? p.activo !== false : true;
+  alerta('pr-alert', 'ae', '');
+  abrir('m-producto');
+}
+
+async function guardarProducto() {
+  const nombre = document.getElementById('pr-nombre').value.trim();
+  const formato = document.getElementById('pr-formato').value.trim();
+  if (!nombre) return alerta('pr-alert', 'ae', 'Ponle un nombre al producto.');
+  const dup = productos.some(p => p.id !== productoEdit &&
+    p.nombre.toLowerCase() === nombre.toLowerCase() &&
+    (p.formato || '').toLowerCase() === formato.toLowerCase());
+  if (dup) return alerta('pr-alert', 'ae', 'Ya existe ese producto con el mismo formato.');
+
+  const costo = Number(document.getElementById('pr-costo').value);
+  const fila = { nombre, formato: formato || null,
+    familia: document.getElementById('pr-familia').value.trim() || null,
+    unidad: document.getElementById('pr-unidad').value,
+    costo: costo > 0 ? costo : null,
+    activo: document.getElementById('pr-activo').checked };
+
+  const b = document.getElementById('pr-guardar');
+  b.disabled = true; b.innerHTML = '<span class="sp"></span>Guardando…';
+  try {
+    if (productoEdit) await sbSend(`${T_PRO}?id=eq.${productoEdit}`, 'PATCH', fila);
+    else await sbSend(T_PRO, 'POST', fila);
+    cerrar('m-producto'); toast('Producto guardado');
+    await cargarTodo();
+  } catch (e) {
+    alerta('pr-alert', 'ae', 'No se pudo guardar: ' + esc(e.message));
+  } finally { b.disabled = false; b.innerHTML = 'Guardar'; }
+}
+
+function pedirBorrarProducto(id) {
+  const p = productos.find(x => x.id === id);
+  const usos = movs.filter(m => m.producto_id === id).length;
+  document.getElementById('cf-title').textContent = 'Eliminar producto';
+  document.getElementById('cf-wrap-nota').style.display = 'none';
+  const ok = document.getElementById('cf-ok');
+  if (usos) {
+    document.getElementById('cf-cuerpo').innerHTML =
+      `<b>${esc(p.nombre)}</b> aparece en ${usos} movimiento${usos === 1 ? '' : 's'}.
+       Eliminarlo dejaría el libro con filas sin nombre.
+       <div class="sub" style="margin-top:8px">Márcalo <b>inactivo</b>: sale de los formularios
+       y sigue apareciendo en el historial.</div>`;
+    ok.textContent = 'Marcar inactivo';
+    ok.onclick = async () => {
+      try { await sbSend(`${T_PRO}?id=eq.${id}`, 'PATCH', { activo: false });
+        cerrar('m-confirm'); toast('Producto marcado inactivo'); await cargarTodo();
+      } catch (e) { toast('No se pudo: ' + e.message, true); }
+    };
+  } else {
+    document.getElementById('cf-cuerpo').innerHTML =
+      `Se elimina <b>${esc(p.nombre)}</b>. No tiene movimientos registrados.`;
+    ok.textContent = 'Eliminar';
+    ok.onclick = async () => {
+      try {
+        await sbSend(`${T_MIN}?producto_id=eq.${id}`, 'DELETE');
+        await sbSend(`${T_PRO}?id=eq.${id}`, 'DELETE');
+        cerrar('m-confirm'); toast('Producto eliminado'); await cargarTodo();
+      } catch (e) { toast('No se pudo eliminar: ' + e.message, true); }
+    };
+  }
+  abrir('m-confirm');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MÍNIMOS
+// ══════════════════════════════════════════════════════════════
+function renderMinimos() {
+  const bid = Number(document.getElementById('min-bodega').value);
+  const t = document.getElementById('tabla-minimos');
+  if (!bid) { t.innerHTML = '<tbody><tr><td><div class="empty">Crea una bodega primero.</div></td></tr></tbody>'; return; }
+  const conMin = productosVivos()
+    .map(p => ({ p, min: minimoDe(bid, p.id) }))
+    .filter(x => x.min !== null);
+  if (!conMin.length) {
+    t.innerHTML = `<tbody><tr><td><div class="empty">
+      Ningún producto tiene mínimo en esta bodega, así que no hay alertas.<br>
+      Usa <b>Fijar varios de una vez</b> para partir.</div></td></tr></tbody>`;
+    return;
+  }
+  t.innerHTML = `<thead><tr><th>Producto</th><th class="num">Mínimo</th>
+      <th class="num">Ahora hay</th><th>Estado</th><th></th></tr></thead>
+    <tbody>${conMin.map(({ p, min }) => {
+      const s = saldoDe(bid, p.id), e = estado(s, min);
+      return `<tr><td><div style="font-weight:800">${esc(p.nombre)}</div>
+          <div class="sub">${esc(p.formato || '')}</div></td>
+        <td class="num"><b>${num(min)}</b> <span class="sub" style="display:inline">${esc(p.unidad || 'un')}</span></td>
+        <td class="num">${num(s)}</td>
+        <td><span class="dot d-${e === 'sinmin' ? 'ok' : e}"></span>${ESTADO_TXT[e]}</td>
+        <td class="num"><button class="btn bdng bsm" onclick="quitarMinimo(${bid},${p.id})">Quitar</button></td></tr>`;
+    }).join('')}</tbody>`;
+}
+
+async function quitarMinimo(bid, pid) {
+  try {
+    await sbSend(`${T_MIN}?bodega_id=eq.${bid}&producto_id=eq.${pid}`, 'DELETE');
+    toast('Mínimo quitado'); await cargarTodo();
+  } catch (e) { toast('No se pudo quitar: ' + e.message, true); }
+}
+
+function abrirMinimosMasivo() {
+  if (!bodegasVivas().length) { toast('Crea una bodega primero', true); return; }
+  document.getElementById('mm-bodega').value = document.getElementById('min-bodega').value;
+  document.getElementById('mm-buscar').value = '';
+  alerta('mm-alert', 'ae', '');
+  renderMinMasivo();
+  abrir('m-minmasivo');
+}
+
+function renderMinMasivo() {
+  const bid = Number(document.getElementById('mm-bodega').value);
+  const q = document.getElementById('mm-buscar').value.trim().toLowerCase();
+  const lista = productosVivos().filter(p =>
+    !q || (p.nombre + ' ' + (p.formato || '')).toLowerCase().includes(q));
+  const t = document.getElementById('tabla-minmasivo');
+  if (!lista.length) { t.innerHTML = '<tbody><tr><td><div class="empty">Nada que mostrar.</div></td></tr></tbody>'; return; }
+  const dias = Number(document.getElementById('mm-dias').value) || 14;
+  t.innerHTML = `<thead><tr><th scope="col">Producto</th><th scope="col" class="num">Ahora hay</th>
+      <th scope="col" class="num">Sale por semana</th>
+      <th scope="col" class="num" title="Consumo diario × los días que quieres cubrir">Sugerido</th>
+      <th scope="col" class="num" style="width:120px">Mínimo</th></tr></thead>
+    <tbody>${lista.map(p => {
+      const min = minimoDe(bid, p.id);
+      const sug = minimoSugerido(bid, p.id, dias);
+      const sem = consumoDiario(bid, p.id) * 7;
+      return `<tr><td><div style="font-weight:800">${esc(p.nombre)}</div>
+          <div class="sub">${esc(p.formato || '')}</div></td>
+        <td class="num">${num(saldoDe(bid, p.id))} <span class="sub" style="display:inline">${esc(p.unidad || 'un')}</span></td>
+        <td class="num">${sem > 0 ? num(Math.round(sem * 10) / 10) : '<span class="sub" style="margin:0">—</span>'}</td>
+        <td class="num">${sug === null ? '<span class="sub" style="margin:0">—</span>'
+          : `<button class="btn bgray bsm" onclick="document.getElementById('mm-${p.id}').value=${sug}">${num(sug)}</button>`}</td>
+        <td class="num"><input type="number" min="0" step="0.001" id="mm-${p.id}"
+          value="${min === null ? '' : esc(min)}" placeholder="—"></td></tr>`;
+    }).join('')}</tbody>`;
+}
+
+// Poner un mínimo a mano en setenta y ocho productos es una tarde perdida y
+// termina en números inventados. El sugerido es lo que de verdad sale en la
+// ventana, multiplicado por los días que quieras tener de colchón. Es una
+// propuesta: el número que manda es el que escribas tú.
+function minimoSugerido(bid, pid, dias) {
+  const c = consumoDiario(bid, pid);
+  if (!(c > 0)) return null;
+  const v = c * dias;
+  return v >= 10 ? Math.ceil(v) : Math.ceil(v * 10) / 10;
+}
+
+function mmAplicarSugeridos() {
+  const bid = Number(document.getElementById('mm-bodega').value);
+  const dias = Number(document.getElementById('mm-dias').value) || 14;
+  let puestos = 0;
+  for (const p of productosVivos()) {
+    const inp = document.getElementById('mm-' + p.id);
+    if (!inp) continue;
+    const sug = minimoSugerido(bid, p.id, dias);
+    if (sug === null) continue;
+    inp.value = sug; puestos++;
+  }
+  toast(puestos ? `${puestos} sugerido${puestos === 1 ? '' : 's'} puesto${puestos === 1 ? '' : 's'} · revisa y guarda`
+                : 'Todavía no hay consumo registrado para sugerir');
+}
+
+async function guardarMinMasivo() {
+  const bid = Number(document.getElementById('mm-bodega').value);
+  const b = document.getElementById('mm-guardar');
+  const nuevos = [], cambios = [], borrar = [];
+  for (const p of productosVivos()) {
+    const inp = document.getElementById('mm-' + p.id);
+    if (!inp) continue;                        // no está a la vista por el filtro
+    const txt = inp.value.trim();
+    const actual = minimoDe(bid, p.id);
+    if (txt === '') { if (actual !== null) borrar.push(p.id); continue; }
+    const v = Number(txt);
+    if (isNaN(v) || v < 0) return alerta('mm-alert', 'ae', `El mínimo de ${esc(p.nombre)} no es un número válido.`);
+    if (actual === null) nuevos.push({ bodega_id: bid, producto_id: p.id, minimo: v });
+    else if (actual !== v) cambios.push({ producto_id: p.id, minimo: v });
+  }
+  if (!nuevos.length && !cambios.length && !borrar.length) { cerrar('m-minmasivo'); return; }
+
+  b.disabled = true; b.innerHTML = '<span class="sp"></span>Guardando…';
+  try {
+    // Alta y modificación por separado. Un upsert sería más corto, pero
+    // depende de que el Worker reenvíe la cabecera Prefer; si no lo hace,
+    // Postgres rechaza por clave repetida y el usuario ve un error críptico.
+    if (nuevos.length) await sbSend(T_MIN, 'POST', nuevos);
+    for (const c of cambios)
+      await sbSend(`${T_MIN}?bodega_id=eq.${bid}&producto_id=eq.${c.producto_id}`, 'PATCH', { minimo: c.minimo });
+    for (const pid of borrar) await sbSend(`${T_MIN}?bodega_id=eq.${bid}&producto_id=eq.${pid}`, 'DELETE');
+    cerrar('m-minmasivo');
+    const tot = nuevos.length + cambios.length;
+    toast(`${tot} mínimo${tot === 1 ? '' : 's'} guardado${tot === 1 ? '' : 's'}` +
+      (borrar.length ? `, ${borrar.length} quitado${borrar.length === 1 ? '' : 's'}` : ''));
+    await cargarTodo();
+  } catch (e) {
+    alerta('mm-alert', 'ae', 'No se pudo guardar: ' + esc(e.message));
+  } finally { b.disabled = false; b.innerHTML = 'Guardar mínimos'; }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MOTIVOS
+// ══════════════════════════════════════════════════════════════
+let motivoEdit = null;
+
+function renderMotivos() {
+  const t = document.getElementById('tabla-motivos');
+  if (!motivos.length) {
+    t.innerHTML = '<tbody><tr><td><div class="empty">Sin motivos. Crea el primero arriba.</div></td></tr></tbody>';
+    return;
+  }
+  const uso = new Map();
+  for (const m of movs) if (m.motivo_id) uso.set(m.motivo_id, (uso.get(m.motivo_id) || 0) + 1);
+  t.innerHTML = `<thead><tr><th>Motivo</th><th>Se usa en</th><th>Pérdida</th>
+      <th class="num">Veces usado</th><th></th></tr></thead>
+    <tbody>${motivos.map(m => `<tr style="${m.activo === false ? 'opacity:.55' : ''}">
+      <td><span class="leg-c" style="display:inline-block;background:${esc(m.color || '#6b35b8')};margin-right:8px"></span>
+        <b>${esc(m.nombre)}</b>${m.activo === false ? ' <span class="chip">no disponible</span>' : ''}</td>
+      <td><span class="badge ${m.tipo === 'entrada' ? 'bent' : 'bsal'}">${m.tipo === 'entrada' ? 'Entradas' : 'Salidas'}</span></td>
+      <td>${m.es_perdida ? '<span class="badge bsal">Sí</span>' : '<span class="sub" style="margin:0">No</span>'}</td>
+      <td class="num">${uso.get(m.id) || 0}</td>
+      <td class="num">
+        <button class="btn bol bsm" onclick="abrirMotivo(${m.id})">Editar</button>
+        <button class="btn bdng bsm" onclick="pedirBorrarMotivo(${m.id})">Eliminar</button></td></tr>`).join('')}</tbody>`;
+}
+
+function abrirMotivo(id) {
+  motivoEdit = id;
+  const m = id ? motivos.find(x => x.id === id) : null;
+  document.getElementById('mo-color').innerHTML = PALETA.map(c =>
+    `<option value="${c}" style="background:${c}">${c}</option>`).join('');
+  document.getElementById('mo-title').textContent = m ? 'Editar motivo' : 'Nuevo motivo';
+  document.getElementById('mo-nombre').value = m ? m.nombre : '';
+  document.getElementById('mo-tipo').value = m ? m.tipo : 'salida';
+  document.getElementById('mo-color').value = m && m.color ? m.color : PALETA[motivos.length % PALETA.length];
+  document.getElementById('mo-perdida').checked = m ? !!m.es_perdida : false;
+  document.getElementById('mo-activo').checked = m ? m.activo !== false : true;
+  alerta('mo-alert', 'ae', '');
+  moPintar();
+  abrir('m-motivo');
+}
+
+function moPintar() {
+  const esSalida = document.getElementById('mo-tipo').value === 'salida';
+  document.getElementById('mo-wrap-perdida').style.display = esSalida ? 'block' : 'none';
+  if (!esSalida) document.getElementById('mo-perdida').checked = false;
+}
+
+async function guardarMotivo() {
+  const nombre = document.getElementById('mo-nombre').value.trim();
+  if (!nombre) return alerta('mo-alert', 'ae', 'Ponle un nombre al motivo.');
+  if (motivos.some(m => m.nombre.toLowerCase() === nombre.toLowerCase() && m.id !== motivoEdit))
+    return alerta('mo-alert', 'ae', 'Ya existe un motivo con ese nombre.');
+
+  const fila = { nombre, tipo: document.getElementById('mo-tipo').value,
+    es_perdida: document.getElementById('mo-perdida').checked,
+    color: document.getElementById('mo-color').value,
+    activo: document.getElementById('mo-activo').checked,
+    orden: motivoEdit ? (motivos.find(m => m.id === motivoEdit).orden ?? 99) : motivos.length + 1 };
+
+  const b = document.getElementById('mo-guardar');
+  b.disabled = true; b.innerHTML = '<span class="sp"></span>Guardando…';
+  try {
+    if (motivoEdit) await sbSend(`${T_MOT}?id=eq.${motivoEdit}`, 'PATCH', fila);
+    else await sbSend(T_MOT, 'POST', fila);
+    cerrar('m-motivo'); toast('Motivo guardado');
+    await cargarTodo();
+  } catch (e) {
+    alerta('mo-alert', 'ae', 'No se pudo guardar: ' + esc(e.message));
+  } finally { b.disabled = false; b.innerHTML = 'Guardar'; }
+}
+
+function pedirBorrarMotivo(id) {
+  const m = motivos.find(x => x.id === id);
+  const usos = movs.filter(x => x.motivo_id === id).length;
+  document.getElementById('cf-title').textContent = 'Eliminar motivo';
+  document.getElementById('cf-wrap-nota').style.display = 'none';
+  const ok = document.getElementById('cf-ok');
+  if (usos) {
+    document.getElementById('cf-cuerpo').innerHTML =
+      `<b>${esc(m.nombre)}</b> está usado en ${usos} movimiento${usos === 1 ? '' : 's'}.
+       <div class="sub" style="margin-top:8px">Márcalo <b>no disponible</b>: deja de ofrecerse
+       en los formularios y el historial sigue explicándose.</div>`;
+    ok.textContent = 'Marcar no disponible';
+    ok.onclick = async () => {
+      try { await sbSend(`${T_MOT}?id=eq.${id}`, 'PATCH', { activo: false });
+        cerrar('m-confirm'); toast('Motivo marcado no disponible'); await cargarTodo();
+      } catch (e) { toast('No se pudo: ' + e.message, true); }
+    };
+  } else {
+    document.getElementById('cf-cuerpo').innerHTML = `Se elimina <b>${esc(m.nombre)}</b>. No está usado.`;
+    ok.textContent = 'Eliminar';
+    ok.onclick = async () => {
+      try { await sbSend(`${T_MOT}?id=eq.${id}`, 'DELETE');
+        cerrar('m-confirm'); toast('Motivo eliminado'); await cargarTodo();
+      } catch (e) { toast('No se pudo eliminar: ' + e.message, true); }
+    };
+  }
+  abrir('m-confirm');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  IMPORTAR DEL CATÁLOGO DEL PORTAL
+//  Es la misma lista que ve el cliente en index.html. Copiarla acá evita
+//  escribir 78 productos a mano y evita que los nombres se separen.
+// ══════════════════════════════════════════════════════════════
+const CATALOGO = [
+  ['Baldes Congelados', 'un', [['Balde Acai Nativo','3,6 L'],['Balde Pitaya Blue Monkey','3,6 L'],
+    ['Balde Acai Blue Monkey','3,6 L'],['Balde Pistacho Soft Blue Monkey','5 L'],
+    ['Balde Acai Riva','3,6 L'],['Balde Yoghurt Griego Soft Blue Monkey','5 L']]],
+  ['Congelados Retail', 'caja', [['Scoopable Acai (caja)','500 ml — caja 12 un'],
+    ['Acai Fused (caja)','4×100 g — caja 15 un'],['Acai Puro (caja)','4×100 g — caja 15 un']]],
+  ['Frutos Secos & Toppings', 'un', [['Cacao Nibs','0,1 kg'],['Castañas de caju','2 kg'],
+    ['Avellana europea tostada','2 kg'],['Nueces cuarto','2 kg'],['Almendra Laminada','2 kg'],
+    ['Oreo molidas','4 kg'],['Avena integral','2 kg'],['Chia','2 kg'],['Coco laminado','2 kg'],
+    ['Coco rallado','2 kg'],['Colageno hidrolizado puro','1 kg'],['Proteina vegana (arveja)','1 kg'],
+    ['Proteina normal (sin sabor)','0,66 kg'],['Chip de chocolate 60%','0,25 kg'],['Maní','2 kg'],
+    ['Pacoquita','100 un'],['Leche nido entera','1,1 kg']]],
+  ['Salsas & Otros', 'un', [['Mantequilla de almendra','1 kg'],['Mantequilla de mani','1 kg'],
+    ['Mantequilla de pistachos','1 kg'],['Nutella','3 kg'],['Miel','1 kg'],
+    ['Leche condensada','6 kg'],['Crema Oreo Zero','3 kg']]],
+  ['Granolas & Crumbles', 'un', [['Crumbole Clásico','3,5 kg'],['Granola Avena Miel','2 kg'],
+    ['Granola Cacao Dulce','2 kg'],['Granola Zero','1 kg']]],
+  ['Te Matcha', 'un', [['Te Matcha','1 kg']]],
+  ['Vasos & Tapas', 'un', [['Pote blanco 8 oz con impresion 360° Modelo: Blue monkey','50 un'],
+    ['Pote blanco 8 oz con impresion 360° Modelo: Nativo','50 un'],['Vaso Go Nativo (9 oz)','50 un'],
+    ['Vaso Classic Nativo (12 oz)','50 un'],['Vaso Power Nativo (16 oz)','50 un'],
+    ['Vaso Full Nativo (24 oz)','50 un'],['Vaso Go Blue Monkey (9 oz)','50 un'],
+    ['Vaso Classic Blue Monkey (12 oz)','50 un'],['Vaso Power Blue Monkey (16 oz)','50 un'],
+    ['Vaso Full Blue Monkey (24 oz)','50 un'],['Vaso Compostable (8 oz del dia)','100 un'],
+    ['Tapa Plana Vaso 9 oz','100 un'],['Tapa Plana Vaso 12 oz','100 un'],
+    ['Tapa Plana Vaso 16 oz','100 un'],['Tapa Plana Vaso 24 oz','100 un'],
+    ['Tapa Domo Vaso 9 oz','100 un'],['Tapa Domo Vaso 12 oz','100 un'],
+    ['Tapa Domo Vaso 16 oz','100 un'],['Tapa Domo Vaso 24 oz','100 un'],
+    ['Vaso Sellable 250 ml','50 un'],['Vaso Sellable 330 ml','50 un'],
+    ['Vaso Sellable 500 ml','50 un'],['Vaso Sellable 650 ml','50 un'],
+    ['Vaso Kraft Doble Capa Liso 8 oz','25 un'],['Vaso Kraft Doble Capa Liso 12 oz','25 un'],
+    ['Vaso Negro Ripple 8 oz','25 un'],['Vaso Negro Ripple 12 oz','25 un'],
+    ['Cuchara Plastica Desechable Te/Café','100 un'],
+    ['Tapa PS 80 mm para vasos 8 oz (Te/Café)','50 un'],
+    ['Tapa PS 90 mm para vasos 12 oz (Te/Café)','50 un']]],
+  ['Natural Bars', 'caja', [['Barra Cereal Almendra (1 caja)','16 un'],
+    ['Barra Cereal Arándano (1 caja)','16 un'],['Barra Cereal Chocolate (1 caja)','16 un'],
+    ['Barra Strong Chocolate (1 caja)','12 un'],['Barra Strong Clasica (1 caja)','12 un'],
+    ['Barra Best Caramelo (1 caja)','10 un'],['Barra Best Frutos Rojos (1 caja)','10 un'],
+    ['Alfajor Granola Blanco (1 caja)','8 un'],['Alfajor Raw Blanco (1 caja)','8 un'],
+    ['Alfajor Raw Negro (1 caja)','8 un']]]
+];
+
+let imSel = new Set();
+let catPlano = null;
+
+// El catálogo vive en index.html. Copiarlo acá sirve de respaldo, pero se
+// desincroniza en cuanto agregas un producto al portal. Se intenta leer el
+// archivo real —está en el mismo dominio— y solo si algo no calza se usa la
+// copia. Si el portal cambia de forma, esto falla hacia el respaldo en vez
+// de romper la pantalla.
+async function leerCatalogoDelPortal() {
+  try {
+    const r = await fetch('index.html', { cache: 'no-store' });
+    if (!r.ok) return null;
+    const txt = await r.text();
+    const i = txt.indexOf('const CATS');
+    if (i < 0) return null;
+    const j = txt.indexOf('\n];', i);
+    if (j < 0) return null;
+    const trozo = txt.slice(i, j + 3);
+    const out = [];
+    const reFam = /label:'([^']*)',\s*items:\[([\s\S]*?)\]\}/g;
+    let f;
+    while ((f = reFam.exec(trozo))) {
+      const fam = f[1];
+      const reIt = /\{n:'((?:[^'\\]|\\.)*)',\s*f:'((?:[^'\\]|\\.)*)'\}/g;
+      let it;
+      while ((it = reIt.exec(f[2]))) {
+        const n = it[1].replace(/\\'/g, "'"), fo = it[2].replace(/\\'/g, "'");
+        if (n) out.push({ fam, un: unidadPorFamilia(fam), n, f: fo });
+      }
+    }
+    return out.length >= 20 ? out : null;   // si vinieron cuatro, algo se rompió
+  } catch (_) { return null; }
+}
+
+function unidadPorFamilia(fam) {
+  const f = (fam || '').toLowerCase();
+  if (f.includes('retail') || f.includes('bars')) return 'caja';
+  return 'un';
+}
+
+function existeYa(nombre, formato) {
+  return productos.some(p => p.nombre.toLowerCase() === nombre.toLowerCase() &&
+    (p.formato || '').toLowerCase() === (formato || '').toLowerCase());
+}
+
+async function abrirImportar() {
+  imSel = new Set();
+  document.getElementById('im-buscar').value = '';
+  alerta('im-alert', 'ae', '');
+  catPlano = null;
+  renderImportar();
+  abrir('m-importar');
+  const delPortal = await leerCatalogoDelPortal();
+  if (delPortal) {
+    catPlano = delPortal.map((x, i) => Object.assign({ i }, x));
+    renderImportar();
+  }
+}
+
+function catalogoPlano() {
+  if (catPlano) return catPlano;
+  const out = [];
+  for (const [fam, un, items] of CATALOGO)
+    for (const [n, f] of items) out.push({ fam, un, n, f });
+  catPlano = out.map((x, i) => Object.assign({ i }, x));
+  return catPlano;
+}
+
+function renderImportar() {
+  const q = document.getElementById('im-buscar').value.trim().toLowerCase();
+  const lista = catalogoPlano().filter(x => !q || (x.n + ' ' + x.f + ' ' + x.fam).toLowerCase().includes(q));
+  document.getElementById('tabla-importar').innerHTML = `<thead><tr>
+      <th style="width:40px"></th><th>Producto</th><th>Familia</th></tr></thead>
+    <tbody>${lista.map(x => {
+      const ya = existeYa(x.n, x.f);
+      return `<tr style="${ya ? 'opacity:.45' : ''}">
+        <td><input type="checkbox" ${ya ? 'disabled' : ''} ${imSel.has(x.i) ? 'checked' : ''}
+          onchange="imMarcar(${x.i},this.checked)"></td>
+        <td><div style="font-weight:800">${esc(x.n)}</div>
+          <div class="sub">${esc(x.f)}${ya ? ' · ya está en bodega' : ''}</div></td>
+        <td><span class="chip">${esc(x.fam)}</span></td></tr>`;
+    }).join('')}</tbody>`;
+  document.getElementById('im-cuenta').textContent = imSel.size + ' marcado' + (imSel.size === 1 ? '' : 's');
+}
+
+function imMarcar(i, on) {
+  if (on) imSel.add(i); else imSel.delete(i);
+  document.getElementById('im-cuenta').textContent = imSel.size + ' marcado' + (imSel.size === 1 ? '' : 's');
+}
+
+function imTodos(on) {
+  const q = document.getElementById('im-buscar').value.trim().toLowerCase();
+  for (const x of catalogoPlano()) {
+    if (q && !(x.n + ' ' + x.f + ' ' + x.fam).toLowerCase().includes(q)) continue;
+    if (existeYa(x.n, x.f)) continue;
+    if (on) imSel.add(x.i); else imSel.delete(x.i);
+  }
+  renderImportar();
+}
+
+async function guardarImportar() {
+  if (!imSel.size) return alerta('im-alert', 'ae', 'No hay nada marcado.');
+  const filas = catalogoPlano()
+    .filter(x => imSel.has(x.i) && !existeYa(x.n, x.f))
+    .map(x => ({ nombre: x.n, formato: x.f, familia: x.fam, unidad: x.un, costo: null, activo: true }));
+  if (!filas.length) return alerta('im-alert', 'ae', 'Todo lo marcado ya existía.');
+
+  const b = document.getElementById('im-guardar');
+  b.disabled = true; b.innerHTML = '<span class="sp"></span>Agregando…';
+  try {
+    await sbSend(T_PRO, 'POST', filas, { 'Prefer': 'return=minimal' });
+    cerrar('m-importar');
+    toast(`${filas.length} producto${filas.length === 1 ? '' : 's'} agregado${filas.length === 1 ? '' : 's'}`);
+    await cargarTodo();
+  } catch (e) {
+    alerta('im-alert', 'ae', 'No se pudieron agregar: ' + esc(e.message));
+  } finally { b.disabled = false; b.innerHTML = 'Agregar seleccionados'; }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ARRANQUE
+// ══════════════════════════════════════════════════════════════
+(function irAHash() {
+  const h = (location.hash || '').slice(1);
+  if (SECCIONES.includes(h)) irA(h);
+})();
+</script>
+</body>
+</html>
