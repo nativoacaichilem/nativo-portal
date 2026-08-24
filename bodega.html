@@ -282,6 +282,7 @@ tbody tr:hover td{background:#faf6ff}
       <div class="crece"></div>
       <span class="chip" id="quien-chip" onclick="pedirOperador()" style="cursor:pointer"
         title="Nombre con el que se firman los movimientos">👤 —</span>
+      <span class="chip" id="ver-chip" title="Versión del archivo que está corriendo"></span>
       <button class="btn bol bsm" onclick="cargarTodo(true)">🔄 Actualizar</button>
     </div>
 
@@ -721,6 +722,11 @@ tbody tr:hover td{background:#faf6ff}
 //  viaja en cada petición y la verifica el Worker. Si ya entraste
 //  al panel en esta pestaña, la sesión se comparte.
 // ══════════════════════════════════════════════════════════════
+// Sube con cada entrega. Se ve arriba a la derecha y en el diagnóstico:
+// sirve para saber en dos segundos si el navegador está sirviendo el archivo
+// nuevo o el viejo que tiene guardado.
+const VERSION = 'v5 · 2026-08-24';
+
 const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
 let TOKEN = '';
 
@@ -767,6 +773,7 @@ async function doLogin() {
 }
 
 function entrar() {
+  document.getElementById('ver-chip').textContent = VERSION;
   document.getElementById('login').style.display = 'none';
   document.getElementById('app').style.display   = 'block';
   cargarOperador();
@@ -800,15 +807,18 @@ const ORIGEN_OK = 'https://nativoacaichilem.github.io';
 
 function explicarRed(e) {
   const o = location.origin;
+  // El texto original importa: "Failed to fetch" y "NetworkError" tienen
+  // causas distintas, y sin él solo queda adivinar.
+  const crudo = e && e.message ? ` [${e.name || 'Error'}: ${e.message}]` : '';
   if (location.protocol === 'file:')
     return 'La página se está abriendo como archivo del computador. Así el navegador ' +
            'bloquea toda conexión con el Worker. Súbela a GitHub y ábrela desde ' +
-           ORIGEN_OK + '/bodega.html';
+           ORIGEN_OK + '/bodega.html' + crudo;
   if (o && o !== ORIGEN_OK)
     return `Esta página se está sirviendo desde ${o}, y el Worker solo acepta ` +
-           `${ORIGEN_OK}. Ábrela desde esa dirección, o agrega este origen a ORIGENES en el Worker.`;
-  return 'No se pudo contactar el Worker. Puede ser la conexión, o que el Worker ' +
-         'esté caído. Prueba abrir ' + PROXY + '/salud en otra pestaña.';
+           `${ORIGEN_OK}. Ábrela desde esa dirección, o agrega este origen a ORIGENES en el Worker.` + crudo;
+  return 'La petición no llegó a salir del navegador. Anda a 🩺 Diagnóstico y aprieta ' +
+         '“Probar todo”: ahí se prueba esta misma operación por partes y se ve dónde se corta.' + crudo;
 }
 
 // Todas las llamadas pasan por acá: un error de red se convierte en una frase
@@ -821,8 +831,19 @@ async function pedir(url, opciones) {
   }
 }
 
-function cabeceras(conCuerpo, extra) {
-  const h = Object.assign({ 'X-Admin-Token': TOKEN }, extra || {});
+// El Worker declara qué cabeceras acepta:
+//   'Access-Control-Allow-Headers': 'Content-Type,X-Admin-Token'
+// Si el navegador ve una cabecera fuera de esa lista, hace una consulta previa,
+// el Worker no la autoriza y la petición NUNCA SALE. El error que llega es
+// "Failed to fetch", que parece un problema de red y no lo es.
+//
+// Por eso acá no se manda ninguna otra. Nada de `Prefer` ni de `Range`: el
+// Worker ya fuerza `Prefer: return=minimal` por su cuenta, y para paginar se
+// usan `limit` y `offset` en la dirección, que viajan como parte de la URL.
+const CABECERAS_PERMITIDAS = ['Content-Type', 'X-Admin-Token'];
+
+function cabeceras(conCuerpo) {
+  const h = { 'X-Admin-Token': TOKEN };
   if (conCuerpo) h['Content-Type'] = 'application/json';
   return h;
 }
@@ -840,8 +861,8 @@ function revisarAuth(r) {
   return r;
 }
 
-async function sbSend(path, method, body, extra) {
-  const o = { method, headers: cabeceras(true, extra) };
+async function sbSend(path, method, body) {
+  const o = { method, headers: cabeceras(true) };
   if (body !== undefined) o.body = JSON.stringify(body);
   const r = revisarAuth(await pedir(`${PROXY}/supabase/${path}`, o));
   if (!r.ok) {
@@ -2821,7 +2842,7 @@ async function guardarImportar() {
   const b = document.getElementById('im-guardar');
   b.disabled = true; b.innerHTML = '<span class="sp"></span>Agregando…';
   try {
-    await sbSend(T_PRO, 'POST', filas, { 'Prefer': 'return=minimal' });
+    await sbSend(T_PRO, 'POST', filas);
     cerrar('mod-importar');
     toast(`${filas.length} producto${filas.length === 1 ? '' : 's'} agregado${filas.length === 1 ? '' : 's'}`);
     await cargarTodo();
@@ -2858,6 +2879,10 @@ async function correrDiag() {
   const add = (e, t, d) => { filas.push(lineaDiag(e, t, d)); pinta(); };
 
   filas.length = 0; pinta();
+
+  add('ok', 'Versión del archivo', esc(VERSION) +
+    ' — si esto no dice <b>v5</b>, el navegador está usando una copia guardada. ' +
+    'Recarga con <b>Ctrl+F5</b> (Cmd+Shift+R en Mac).');
 
   // ── 1. Desde dónde se está sirviendo la página ──
   const o = location.origin;
@@ -2943,7 +2968,26 @@ async function correrDiag() {
     }
   }
 
-  // ── 6. El catálogo del portal ──
+  // ── 6. Escribir un producto: es la tabla del importador, y la que falló
+  //       antes por mandar una cabecera que el Worker no autoriza. ──
+  const marcaP = 'ZZ producto de prueba ' + Date.now();
+  try {
+    await sbSend(T_PRO, 'POST', [{ nombre: marcaP, formato: 'x', familia: null,
+      unidad: 'un', costo: null, activo: false }]);
+    const h = await sbJson(`${T_PRO}?select=id&nombre=eq.${encodeURIComponent(marcaP)}`);
+    if (h.length) {
+      await sbSend(`${T_PRO}?id=eq.${h[0].id}`, 'DELETE');
+      add('ok', 'Se puede agregar productos', 'producto de prueba creado y borrado');
+    } else {
+      add('aviso', 'Producto de prueba creado pero no se pudo releer',
+        'búscalo como <span class="mono">' + esc(marcaP) + '</span> y bórralo');
+    }
+  } catch (e) {
+    add('mal', 'No se pueden agregar productos', esc(e.message) +
+      ' — es lo que usa “Traer del catálogo”.');
+  }
+
+  // ── 7. El catálogo del portal ──
   const cat = await leerCatalogoDelPortal();
   if (cat)
     add('ok', 'Catálogo leído del portal', `${cat.length} productos desde index.html`);
@@ -2952,7 +2996,40 @@ async function correrDiag() {
       `Se usa la copia interna de ${catalogoPlano().length} productos. No es un problema ` +
       'para trabajar: solo significa que si agregas productos al portal, no aparecen solos acá.');
 
-  // ── 7. Resumen ──
+  // ── 8. El importador, exactamente como lo hace de verdad ──
+  //  Manda un arreglo de productos al mismo sitio y con el mismo método.
+  //  Se prueba con tandas de distinto tamaño porque si lo que falla es el
+  //  peso del envío, con una fila pasa y con setenta y ocho no.
+  for (const cuantos of [1, 10, 40, 78]) {
+    const sello = 'ZZdiag' + Date.now() + 'n' + cuantos;
+    const lote = [];
+    for (let i = 0; i < cuantos; i++)
+      lote.push({ nombre: sello + '-' + i, formato: 'prueba diagnóstico',
+                  familia: null, unidad: 'un', costo: null, activo: false });
+    const peso = new Blob([JSON.stringify(lote)]).size;
+    try {
+      await sbSend(T_PRO, 'POST', lote);
+      add('ok', `Importar ${cuantos} producto${cuantos === 1 ? '' : 's'} de una vez`,
+        `${peso} bytes enviados`);
+      // El Worker solo acepta filtros eq, in o is en un DELETE: un `like`
+      // lo rechaza con 400. Se leen los ids y se borran con `in`.
+      try {
+        const puestos = await sbJson(
+          `${T_PRO}?select=id&nombre=like.${encodeURIComponent(sello + '%')}`);
+        if (puestos.length)
+          await sbSend(`${T_PRO}?id=in.(${puestos.map(x => x.id).join(',')})`, 'DELETE');
+      } catch (_) {
+        add('aviso', 'Quedaron productos de prueba sin borrar',
+          'búscalos como <span class="mono">' + esc(sello) + '</span> y bórralos');
+      }
+    } catch (e) {
+      add('mal', `Falla al importar ${cuantos} producto${cuantos === 1 ? '' : 's'}`,
+        esc(e.message) + ` — el envío pesaba ${peso} bytes.`);
+      break;   // si ya falló con este tamaño, con más también
+    }
+  }
+
+  // ── 9. Resumen ──
   const malos = filas.filter(f => f.includes('❌')).length;
   caja.innerHTML =
     (malos
