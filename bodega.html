@@ -288,6 +288,7 @@ tbody tr:hover td{background:#faf6ff}
     </div>
 
     <div id="alert-global"></div>
+    <div id="aviso-respaldo"></div>
 
     <!-- ══════════════ PANORAMA ══════════════ -->
     <div id="page-panorama" class="page act">
@@ -505,6 +506,32 @@ tbody tr:hover td{background:#faf6ff}
           no es lo mismo que en la oficina. Sin mínimo definido, el producto no genera alerta.
         </div>
         <div class="tw"><table id="tabla-minimos"></table></div>
+      </div>
+
+      <div class="card" id="card-respaldo">
+        <div class="card-head">
+          <h2>💾 Respaldo</h2>
+          <div class="crece"></div>
+          <span class="chip" id="rp-cuando"></span>
+          <button class="btn bmora bsm" id="rp-bajar" onclick="bajarRespaldo()">⬇ Descargar respaldo</button>
+        </div>
+        <div class="hint" style="margin-bottom:12px">
+          El plan gratuito de Supabase no guarda puntos de restauración: si algo se borra
+          o se corrompe, no hay a dónde volver. Y el valor de esta bodega está justamente
+          en la historia acumulada, que no se recupera contando de nuevo.
+          <br><br>
+          El archivo que se baja es un <b>.sql que se pega en Supabase y reconstruye todo</b>:
+          bodegas, productos, motivos, mínimos y el libro completo, con los mismos números
+          de identificación. Guárdalo en Drive una vez al mes.
+        </div>
+        <div class="fb">
+          <label class="btn bol bsm" style="text-transform:none;letter-spacing:0;margin:0;cursor:pointer">
+            🔎 Revisar un respaldo
+            <input type="file" accept=".sql,.txt" style="display:none" onchange="revisarRespaldo(this)">
+          </label>
+          <span class="hint" style="margin:0">Lee un archivo guardado y dice qué contiene, sin tocar nada.</span>
+        </div>
+        <div id="rp-info"></div>
       </div>
 
       <div class="card">
@@ -769,7 +796,7 @@ tbody tr:hover td{background:#faf6ff}
 // Sube con cada entrega. Se ve arriba a la derecha y en el diagnóstico:
 // sirve para saber en dos segundos si el navegador está sirviendo el archivo
 // nuevo o el viejo que tiene guardado.
-const VERSION = 'v7 · 2026-08-25';
+const VERSION = 'v8 · 2026-08-25';
 
 const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
 let TOKEN = '';
@@ -1117,8 +1144,15 @@ async function cargarTodo(avisar) {
     // pregunta sin respuesta cuando un número no cuadra.
     if (!operador && bodegas.length && productos.length && !_preguntado && !yaPregunte()) {
       _preguntado = true;
-      marcarPregunte();
-      setTimeout(pedirOperador, 400);
+      setTimeout(() => {
+        // Si en esos segundos abriste algo —un movimiento, el importador—,
+        // no se salta encima: se deja para la próxima vez. Por eso la marca
+        // de "ya pregunté" se pone acá y no antes: si no alcanzó a preguntar,
+        // no puede darse por preguntado.
+        if (document.querySelector('.mbg.open')) { _preguntado = false; return; }
+        marcarPregunte();
+        pedirOperador();
+      }, 400);
     }
     if (!bodegas.length) {
       alerta('alert-global', 'aw',
@@ -1275,6 +1309,7 @@ function irA(s) {
 
 function pintarTodo() {
   llenarSelects();
+  pintarCuandoRespaldo();
   renderKPIs();
   renderAlertas();
   renderMatriz();
@@ -1412,6 +1447,8 @@ function renderKPIs() {
   const conMin = minimos.filter(m => Number(m.minimo) > 0).length;
   const pronto = seAcabanPronto(7);
   const mer = mermaPeriodo(30);
+
+  document.getElementById('aviso-respaldo').innerHTML = avisoRespaldo();
 
   const kpiMerma = hayCostos()
     ? `<div class="sn">${pesos(mer.clp)}</div><div class="sl">Merma 30 días</div>
@@ -3121,6 +3158,228 @@ function exportarCuadratura() {
       f.productos.size, [...f.bodegas].join(' + '),
       Math.round(f.unidades * 1000) / 1000, Math.round(f.costo * 100) / 100]));
   bajarCSV(filas, 'cuadratura-facturas-' + HOY() + '.csv');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RESPALDO
+//  Un archivo .sql que se pega en Supabase y reconstruye la bodega entera.
+//  Se eligió SQL y no un JSON a propósito: un respaldo que nadie sabe cómo
+//  restaurar no es un respaldo, es un archivo. Este se abre, se lee y se
+//  ejecuta sin necesitar ninguna herramienta.
+// ══════════════════════════════════════════════════════════════
+
+// Texto para SQL: las comillas simples se doblan, y lo vacío es NULL de
+// verdad y no la cadena 'null'.
+function sqlTxt(v) {
+  if (v === null || v === undefined || v === '') return 'null';
+  return "'" + String(v).replace(/'/g, "''") + "'";
+}
+function sqlNum(v) {
+  if (v === null || v === undefined || v === '') return 'null';
+  const n = Number(v);
+  return isFinite(n) ? String(n) : 'null';
+}
+function sqlBool(v) { return v === false ? 'false' : 'true'; }
+function sqlFecha(v) {
+  if (!v) return 'null';
+  return "'" + String(v).slice(0, 10) + "'";
+}
+
+// `overriding system value` es lo que permite reponer los mismos números de
+// identificación. Sin eso, los movimientos apuntarían a productos equivocados.
+function filasSQL(tabla, columnas, filas, fmt) {
+  if (!filas.length) return `-- ${tabla}: sin filas\n`;
+  const cab = `insert into ${tabla} (${columnas.join(', ')}) overriding system value values`;
+  const cuerpo = filas.map(f => '  (' + columnas.map(c => fmt(c, f[c], f)).join(', ') + ')')
+                      .join(',\n');
+  return `${cab}\n${cuerpo}\non conflict (id) do nothing;\n`;
+}
+
+function armarRespaldo() {
+  const ahora = new Date();
+  const sello = fechaISO(ahora) + ' ' +
+    String(ahora.getHours()).padStart(2, '0') + ':' + String(ahora.getMinutes()).padStart(2, '0');
+
+  const txt = (c, v) => sqlTxt(v);
+  const partes = [];
+
+  partes.push(`-- ══════════════════════════════════════════════════════════════
+--  RESPALDO DE BODEGA · nativo açaí
+--  Tomado el ${sello} desde ${VERSION}
+--
+--  Contenido:
+--    ${bodegas.length} bodegas · ${productos.length} productos · ${motivos.length} motivos
+--    ${minimos.length} mínimos · ${movs.length} movimientos
+--
+--  CÓMO SE RESTAURA
+--  1. Corre primero bodega-tablas.sql (crea las tablas vacías).
+--  2. Pega este archivo completo en Supabase → SQL Editor → Run.
+--  3. Comprueba los totales con la consulta del final.
+--
+--  Es seguro correrlo sobre una base que ya tiene datos: las filas que ya
+--  existen se saltan (on conflict do nothing) en vez de duplicarse. Lo que
+--  NO hace es borrar: si algo sobra, eso se decide a mano.
+-- ══════════════════════════════════════════════════════════════
+`);
+
+  partes.push('\n-- ── BODEGAS ──');
+  partes.push(filasSQL('bod_bodegas', ['id', 'nombre', 'ubicacion', 'activa'], bodegas,
+    (c, v) => c === 'id' ? sqlNum(v) : c === 'activa' ? sqlBool(v) : sqlTxt(v)));
+
+  partes.push('\n-- ── PRODUCTOS ──');
+  partes.push(filasSQL('bod_productos',
+    ['id', 'nombre', 'formato', 'familia', 'unidad', 'costo', 'activo'], productos,
+    (c, v) => c === 'id' || c === 'costo' ? sqlNum(v) : c === 'activo' ? sqlBool(v) : sqlTxt(v)));
+
+  partes.push('\n-- ── MOTIVOS ──');
+  partes.push(filasSQL('bod_motivos',
+    ['id', 'nombre', 'tipo', 'es_perdida', 'es_venta', 'color', 'orden', 'activo'], motivos,
+    (c, v) => c === 'id' || c === 'orden' ? sqlNum(v)
+            : (c === 'es_perdida' || c === 'es_venta') ? (v ? 'true' : 'false')
+            : c === 'activo' ? sqlBool(v) : sqlTxt(v)));
+
+  partes.push('\n-- ── MÍNIMOS ──');
+  partes.push(filasSQL('bod_minimos', ['id', 'bodega_id', 'producto_id', 'minimo'], minimos,
+    (c, v) => sqlNum(v)));
+
+  partes.push(`\n-- ── MOVIMIENTOS (el libro: ${movs.length} filas) ──`);
+  // Se escriben en orden de id ascendente porque `revierte_a` apunta a filas
+  // anteriores: al revés, la llave foránea fallaría a mitad de camino.
+  const libro = movs.slice().sort((a, b) => Number(a.id) - Number(b.id));
+  const colsMov = ['id', 'fecha', 'tipo', 'producto_id', 'bodega_id', 'bodega_destino_id',
+                   'cantidad', 'motivo_id', 'doc', 'nota', 'usuario', 'revierte_a', 'pedido_id'];
+  // Por tandas: una sentencia con veinte mil filas es difícil de digerir para
+  // el editor de Supabase y para quien tenga que mirarla.
+  for (let i = 0; i < libro.length; i += 500) {
+    partes.push(filasSQL('bod_movimientos', colsMov, libro.slice(i, i + 500),
+      (c, v) => c === 'fecha' ? sqlFecha(v)
+              : ['tipo', 'doc', 'nota', 'usuario'].includes(c) ? sqlTxt(v)
+              : sqlNum(v)));
+  }
+
+  partes.push(`
+-- ── REAJUSTAR LOS CONTADORES ──────────────────────────────────────────────
+--  Sin esto, la próxima fila que se cree intentaría usar un número que ya
+--  está ocupado y la base la rechazaría.
+select setval(pg_get_serial_sequence('bod_bodegas','id'),     coalesce((select max(id) from bod_bodegas), 1));
+select setval(pg_get_serial_sequence('bod_productos','id'),   coalesce((select max(id) from bod_productos), 1));
+select setval(pg_get_serial_sequence('bod_motivos','id'),     coalesce((select max(id) from bod_motivos), 1));
+select setval(pg_get_serial_sequence('bod_minimos','id'),     coalesce((select max(id) from bod_minimos), 1));
+select setval(pg_get_serial_sequence('bod_movimientos','id'), coalesce((select max(id) from bod_movimientos), 1));
+
+-- ── COMPROBACIÓN ──────────────────────────────────────────────────────────
+--  Los números de la derecha son los que tenía la bodega cuando se tomó
+--  este respaldo. Si no calzan, algo no entró.
+select 'bodegas'     as tabla, count(*) as hay, ${bodegas.length} as deberia from bod_bodegas
+union all select 'productos',   count(*), ${productos.length} from bod_productos
+union all select 'motivos',     count(*), ${motivos.length} from bod_motivos
+union all select 'minimos',     count(*), ${minimos.length} from bod_minimos
+union all select 'movimientos', count(*), ${movs.length} from bod_movimientos;
+`);
+
+  return partes.join('\n');
+}
+
+function bajarRespaldo() {
+  const b = document.getElementById('rp-bajar');
+  b.disabled = true; b.innerHTML = '<span class="sp"></span>Armando…';
+  try {
+    const sql = armarRespaldo();
+    const url = URL.createObjectURL(new Blob([sql], { type: 'text/plain;charset=utf-8;' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'respaldo-bodega-' + HOY() + '.sql';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    try { localStorage.setItem('nativo_bodega_respaldo', HOY()); } catch (_) {}
+    pintarCuandoRespaldo();
+    const kb = Math.round(sql.length / 1024);
+    toast(`Respaldo listo · ${movs.length} movimientos · ${kb} KB. Guárdalo en Drive.`);
+  } catch (e) {
+    toast('No se pudo armar el respaldo: ' + e.message, true);
+  } finally {
+    b.disabled = false; b.innerHTML = '⬇ Descargar respaldo';
+  }
+}
+
+function ultimoRespaldo() {
+  try { return localStorage.getItem('nativo_bodega_respaldo') || ''; } catch (_) { return ''; }
+}
+
+function diasSinRespaldo() {
+  const u = ultimoRespaldo();
+  if (!u) return null;
+  return Math.floor((new Date(HOY() + 'T12:00:00') - new Date(u + 'T12:00:00')) / 864e5);
+}
+
+function pintarCuandoRespaldo() {
+  const chip = document.getElementById('rp-cuando');
+  if (!chip) return;
+  const d = diasSinRespaldo();
+  if (d === null) { chip.textContent = 'nunca'; chip.style.background = 'var(--nl)'; return; }
+  chip.textContent = d === 0 ? 'hoy' : d === 1 ? 'ayer' : `hace ${d} días`;
+  chip.style.background = d > 30 ? 'var(--rl)' : 'var(--crema)';
+}
+
+// El aviso solo aparece cuando hay algo que perder: con el libro vacío, pedir
+// un respaldo sería ruido.
+function avisoRespaldo() {
+  const d = diasSinRespaldo();
+  if (movs.length < 20) return '';
+  if (d !== null && d <= 30) return '';
+  const cuanto = d === null ? 'Nunca has bajado un respaldo' : `El último respaldo fue hace ${d} días`;
+  return `<div class="alert aw" style="cursor:pointer" onclick="irA('maestros');
+            document.getElementById('card-respaldo').scrollIntoView({behavior:'smooth'})">
+       💾 <b>${cuanto}</b> y el libro ya tiene ${num(movs.length)} movimientos.
+       Supabase gratis no guarda puntos de restauración: si algo se pierde, se pierde.
+       <u>Bajar el respaldo</u> toma cinco segundos.</div>`;
+}
+
+// Lee un respaldo guardado y dice qué contiene. Un respaldo que nunca se
+// abrió es una suposición, no una garantía.
+function revisarRespaldo(input) {
+  const f = input.files && input.files[0];
+  const caja = document.getElementById('rp-info');
+  input.value = '';
+  if (!f) return;
+  const lector = new FileReader();
+  lector.onload = () => {
+    const txt = String(lector.result || '');
+    // Las filas van indentadas, así que se cuentan por línea que empieza con
+    // paréntesis, no por el salto. Contar mal acá haría que un respaldo a
+    // medias se viera sano, que es justo lo contrario de para qué sirve esto.
+    const cuenta = t => {
+      let total = 0;
+      const re = new RegExp(
+        'insert into ' + t + ' \\([^)]*\\) overriding system value values\\n([\\s\\S]*?)\\non conflict', 'g');
+      let m;
+      while ((m = re.exec(txt))) total += (m[1].match(/^\s*\(/gm) || []).length;
+      return total;
+    };
+    const sello = (txt.match(/Tomado el ([\d-]+ [\d:]+)/) || [])[1] || 'sin fecha';
+    const esNuestro = /RESPALDO DE BODEGA/.test(txt);
+    const tablas = [
+      ['bodegas', 'bod_bodegas'], ['productos', 'bod_productos'],
+      ['motivos', 'bod_motivos'], ['mínimos', 'bod_minimos'],
+      ['movimientos', 'bod_movimientos']
+    ].map(([n, t]) => `${cuenta(t)} ${n}`);
+
+    caja.innerHTML = esNuestro
+      ? `<div class="alert as" style="line-height:1.6">
+           ✅ <b>${esc(f.name)}</b> se ve completo.<br>
+           Tomado el <b>${esc(sello)}</b> · ${Math.round(f.size / 1024)} KB<br>
+           Contiene: ${tablas.map(esc).join(' · ')}
+           <div class="sub" style="margin-top:6px">
+             ${/setval/.test(txt) ? '✔ Trae el reajuste de contadores' : '⚠️ Sin reajuste de contadores'} ·
+             ${/select 'bodegas'/.test(txt) ? '✔ Trae la comprobación final' : '⚠️ Sin comprobación'}
+           </div></div>`
+      : `<div class="alert ae">Este archivo no parece un respaldo de bodega.
+           Busca uno que se llame <span class="mono">respaldo-bodega-….sql</span></div>`;
+  };
+  lector.onerror = () => {
+    caja.innerHTML = '<div class="alert ae">No se pudo leer el archivo.</div>';
+  };
+  lector.readAsText(f);
 }
 
 // ══════════════════════════════════════════════════════════════
