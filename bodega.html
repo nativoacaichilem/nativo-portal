@@ -276,6 +276,7 @@ tbody tr:hover td{background:#faf6ff}
         <button id="s-panorama"    aria-pressed="true"  onclick="irA('panorama')">📊 Panorama</button>
         <button id="s-movimientos" aria-pressed="false" onclick="irA('movimientos')">📖 Movimientos</button>
         <button id="s-conteo"      aria-pressed="false" onclick="irA('conteo')">🔢 Conteo físico</button>
+        <button id="s-ventas"      aria-pressed="false" onclick="irA('ventas')">🧾 Ventas</button>
         <button id="s-maestros"    aria-pressed="false" onclick="irA('maestros')">⚙️ Configuración</button>
         <button id="s-diag"        aria-pressed="false" onclick="irA('diag')">🩺 Diagnóstico</button>
       </div>
@@ -408,6 +409,49 @@ tbody tr:hover td{background:#faf6ff}
           <span class="chip" id="c-resumen"></span>
           <button class="btn bmora" id="b-conteo" onclick="guardarConteo()">Registrar ajustes</button>
         </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ VENTAS Y FACTURAS ══════════════ -->
+    <div id="page-ventas" class="page">
+      <div class="card">
+        <div class="card-head">
+          <h2>🧾 Salidas por factura</h2>
+          <div class="crece"></div>
+          <span class="chip" id="v-cuenta"></span>
+          <button class="btn bol bsm" onclick="exportarVentas()">⬇ CSV detalle</button>
+          <button class="btn bam2 bsm" onclick="exportarCuadratura()">⬇ CSV cuadratura</button>
+        </div>
+        <div class="hint" style="margin-bottom:12px">
+          Cada salida marcada como <b>venta</b> queda pegada a su número de factura.
+          Esta es la lista que antes había que armar cruzando bodega con facturación a mano.
+          Las muestras y el consumo interno salen del stock pero no aparecen acá:
+          no se cobraron.
+        </div>
+        <div class="fb">
+          <input type="text" id="v-buscar" placeholder="Factura, cliente, producto…" oninput="renderVentas()">
+          <select id="v-mes" onchange="renderVentas()"></select>
+          <select id="v-bodega" onchange="renderVentas()"></select>
+          <label class="chk" style="margin:0"><input type="checkbox" id="v-agrupar" checked onchange="renderVentas()"> Agrupar por factura</label>
+        </div>
+        <div class="stats" id="v-kpis"></div>
+        <div class="tw"><table id="tabla-ventas"></table></div>
+        <div id="v-vacio"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>⚠️ Salidas sin factura</h2>
+          <div class="crece"></div>
+          <span class="chip" id="v-sin-cuenta"></span>
+        </div>
+        <div class="hint" style="margin-bottom:12px">
+          Producto que salió de la bodega con un motivo de venta pero sin número de
+          factura. La base no deja crear estos movimientos, así que solo pueden venir
+          de antes de instalar la regla. Si aparece algo acá, es exactamente lo que
+          descuadra el mes.
+        </div>
+        <div class="tw"><table id="tabla-sinfact"></table></div>
       </div>
     </div>
 
@@ -725,7 +769,7 @@ tbody tr:hover td{background:#faf6ff}
 // Sube con cada entrega. Se ve arriba a la derecha y en el diagnóstico:
 // sirve para saber en dos segundos si el navegador está sirviendo el archivo
 // nuevo o el viejo que tiene guardado.
-const VERSION = 'v5 · 2026-08-24';
+const VERSION = 'v6 · 2026-08-25';
 
 const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
 let TOKEN = '';
@@ -1191,7 +1235,7 @@ function coberturaTexto(d) {
 // ══════════════════════════════════════════════════════════════
 //  NAVEGACIÓN
 // ══════════════════════════════════════════════════════════════
-const SECCIONES = ['panorama', 'movimientos', 'conteo', 'maestros', 'diag'];
+const SECCIONES = ['panorama', 'movimientos', 'conteo', 'ventas', 'maestros', 'diag'];
 
 function irA(s) {
   if (!SECCIONES.includes(s)) s = 'panorama';
@@ -1212,6 +1256,7 @@ function pintarTodo() {
   renderMatriz();
   renderGrafico();
   renderMovs();
+  renderVentas();
   renderBodegas();
   renderProductos();
   renderMinimos();
@@ -1730,7 +1775,8 @@ function renderMovs() {
       <td>${donde}</td>
       <td class="num" style="font-size:14px">${cant}
         <div class="sub">${esc(unidadDe(m.producto_id))}</div></td>
-      <td>${mot}${m.doc ? `<div class="sub mono">${esc(m.doc)}</div>` : ''}</td>
+      <td>${mot}${m.doc ? `<div class="sub mono">${esc(m.doc)}</div>` : ''}
+        ${m.pedido_id ? `<div class="sub">pedido #${esc(m.pedido_id)}</div>` : ''}</td>
       <td><div class="sub" style="margin:0">${esc(m.usuario || '—')}</div></td>
       <td class="num">${anulado || esReverso ? '' :
         `<button class="btn bdng bsm" onclick="pedirRevertir(${m.id})" title="Anota el movimiento contrario">Revertir</button>`}</td>
@@ -2849,6 +2895,208 @@ async function guardarImportar() {
   } catch (e) {
     alerta('im-alert', 'ae', 'No se pudieron agregar: ' + esc(e.message));
   } finally { b.disabled = false; b.innerHTML = 'Agregar seleccionados'; }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  VENTAS Y FACTURAS
+//  El cruce que antes se hacía a mano: qué salió de bodega contra qué se
+//  facturó. Un movimiento cuenta como venta cuando su motivo está marcado
+//  como venta, y la base no deja que eso ocurra sin número de factura.
+// ══════════════════════════════════════════════════════════════
+function motivoEsVenta(id) {
+  const m = motivos.find(x => x.id === id);
+  return !!(m && m.es_venta);
+}
+
+// Los reversos y lo revertido quedan fuera: se anulan entre sí, y dejarlos
+// haría aparecer ventas que no ocurrieron.
+function movsVigentes() {
+  const rev = idsRevertidos();
+  return movs.filter(m => !m.revierte_a && !rev.has(Number(m.id)));
+}
+
+function lineasVenta() {
+  return movsVigentes()
+    .filter(m => m.tipo === 'salida' && motivoEsVenta(m.motivo_id))
+    .map(m => {
+      const p = productos.find(x => x.id === m.producto_id);
+      const cant = Math.abs(Number(m.cantidad) || 0);
+      const costo = p ? Number(p.costo) || 0 : 0;
+      return {
+        id: m.id, fecha: String(m.fecha).slice(0, 10),
+        factura: String(m.doc || '').trim(),
+        pedido: m.pedido_id || null,
+        bodega: nombreBodega(m.bodega_id), bodega_id: m.bodega_id,
+        producto: p ? p.nombre : '—', formato: p ? p.formato || '' : '',
+        unidad: p ? p.unidad || 'un' : 'un',
+        cantidad: cant, costo, total: Math.round(cant * costo * 100) / 100,
+        motivo: nombreMotivo(m.motivo_id), quien: m.usuario || '', nota: m.nota || ''
+      };
+    });
+}
+
+// Salidas marcadas como venta a las que les falta el número de factura.
+// Con el trigger puesto ya no se pueden crear, pero pueden existir de antes.
+function ventasSinFactura() {
+  return lineasVenta().filter(l => !l.factura);
+}
+
+function ventasFiltradas() {
+  const q  = document.getElementById('v-buscar').value.trim().toLowerCase();
+  const me = document.getElementById('v-mes').value;
+  const bo = document.getElementById('v-bodega').value;
+  return lineasVenta().filter(l => {
+    if (!l.factura) return false;                 // las sin factura van aparte
+    if (me && l.fecha.slice(0, 7) !== me) return false;
+    if (bo && String(l.bodega_id) !== bo) return false;
+    if (q && !(l.factura + ' ' + l.producto + ' ' + l.bodega + ' ' + l.nota)
+              .toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function llenarSelectsVentas() {
+  const meses = [...new Set(lineasVenta().map(l => l.fecha.slice(0, 7)))].sort().reverse();
+  const sm = document.getElementById('v-mes');
+  const prev = sm.value;
+  const NOMBRE_MES = ['enero','febrero','marzo','abril','mayo','junio','julio',
+                      'agosto','septiembre','octubre','noviembre','diciembre'];
+  sm.innerHTML = '<option value="">Todos los meses</option>' + meses.map(m => {
+    const [a, me] = m.split('-');
+    return `<option value="${m}">${NOMBRE_MES[Number(me) - 1]} ${a}</option>`;
+  }).join('');
+  sm.value = prev;
+
+  const sb = document.getElementById('v-bodega');
+  const prevB = sb.value;
+  sb.innerHTML = '<option value="">Todas las bodegas</option>' +
+    bodegas.map(b => `<option value="${b.id}">${esc(b.nombre)}</option>`).join('');
+  sb.value = prevB;
+}
+
+function renderVentas() {
+  llenarSelectsVentas();
+  const lineas = ventasFiltradas();
+  const t = document.getElementById('tabla-ventas');
+  const vacio = document.getElementById('v-vacio');
+  const agrupar = document.getElementById('v-agrupar').checked;
+
+  const facturas = new Set(lineas.map(l => l.factura));
+  const total = lineas.reduce((s, l) => s + l.total, 0);
+  const sinCosto = lineas.filter(l => !l.costo).length;
+
+  document.getElementById('v-cuenta').textContent =
+    `${lineas.length} línea${lineas.length === 1 ? '' : 's'} · ${facturas.size} factura${facturas.size === 1 ? '' : 's'}`;
+
+  document.getElementById('v-kpis').innerHTML = `
+    <div class="stat"><div class="sn">${facturas.size}</div><div class="sl">Facturas</div>
+      <div class="sx">con salida de bodega registrada</div></div>
+    <div class="stat"><div class="sn">${lineas.length}</div><div class="sl">Líneas vendidas</div>
+      <div class="sx">${[...new Set(lineas.map(l => l.producto))].length} productos distintos</div></div>
+    <div class="stat"><div class="sn">${pesos(total)}</div><div class="sl">Costo de lo vendido</div>
+      <div class="sx">${sinCosto ? sinCosto + ' línea(s) sin costo cargado' : 'al costo de cada producto'}</div></div>`;
+
+  if (!lineas.length) {
+    t.innerHTML = '';
+    vacio.innerHTML = `<div class="empty">${lineasVenta().length
+      ? 'Ninguna venta calza con el filtro.'
+      : 'Todavía no hay salidas marcadas como venta. Se registran solas al despachar un pedido desde el panel.'}</div>`;
+    renderSinFactura();
+    return;
+  }
+  vacio.innerHTML = '';
+
+  if (agrupar) {
+    const porFactura = new Map();
+    for (const l of lineas) {
+      if (!porFactura.has(l.factura)) porFactura.set(l.factura, []);
+      porFactura.get(l.factura).push(l);
+    }
+    const filas = [...porFactura.entries()]
+      .sort((a, b) => (b[1][0].fecha).localeCompare(a[1][0].fecha))
+      .map(([fac, ls]) => {
+        const sub = ls.reduce((s, x) => s + x.total, 0);
+        const bods = [...new Set(ls.map(x => x.bodega))];
+        return `<tr>
+          <td><b class="mono" style="font-size:13px">${esc(fac)}</b>
+            <div class="sub">${fechaCorta(ls[0].fecha)}${ls[0].pedido ? ' · pedido #' + ls[0].pedido : ''}</div></td>
+          <td>${ls.map(x => `<div style="font-size:12px;font-weight:700">${esc(x.producto)}
+                <span class="chip">${num(x.cantidad)} ${esc(x.unidad)}</span>
+                <span class="sub" style="display:inline">${esc(x.bodega)}</span></div>`).join('')}</td>
+          <td class="num">${bods.length}</td>
+          <td class="num"><b>${pesos(sub)}</b></td></tr>`;
+      }).join('');
+    t.innerHTML = `<thead><tr><th scope="col">Factura</th><th scope="col">Qué salió</th>
+        <th scope="col" class="num">Bodegas</th><th scope="col" class="num">Costo</th></tr></thead>
+      <tbody>${filas}</tbody>`;
+  } else {
+    const filas = lineas.slice().sort((a, b) => b.fecha.localeCompare(a.fecha)).map(l => `
+      <tr><td class="mono">${fechaCorta(l.fecha)}</td>
+        <td><b class="mono">${esc(l.factura)}</b>
+          ${l.pedido ? `<div class="sub">pedido #${l.pedido}</div>` : ''}</td>
+        <td><div style="font-weight:800">${esc(l.producto)}</div>
+          <div class="sub">${esc(l.formato)}</div></td>
+        <td>${esc(l.bodega)}</td>
+        <td class="num"><b>${num(l.cantidad)}</b> <span class="sub" style="display:inline">${esc(l.unidad)}</span></td>
+        <td class="num">${l.costo ? pesos(l.total) : '<span class="sub" style="margin:0">sin costo</span>'}</td>
+        <td><span class="chip">${esc(l.motivo)}</span></td></tr>`).join('');
+    t.innerHTML = `<thead><tr><th scope="col">Fecha</th><th scope="col">Factura</th>
+        <th scope="col">Producto</th><th scope="col">Bodega</th>
+        <th scope="col" class="num">Cantidad</th><th scope="col" class="num">Costo</th>
+        <th scope="col">Motivo</th></tr></thead><tbody>${filas}</tbody>`;
+  }
+  renderSinFactura();
+}
+
+function renderSinFactura() {
+  const sin = ventasSinFactura();
+  const t = document.getElementById('tabla-sinfact');
+  document.getElementById('v-sin-cuenta').textContent =
+    sin.length ? sin.length + (sin.length === 1 ? ' caso' : ' casos') : 'ninguna';
+  if (!sin.length) {
+    t.innerHTML = '<tbody><tr><td><div class="empty">✅ Todas las ventas tienen su factura anotada.</div></td></tr></tbody>';
+    return;
+  }
+  t.innerHTML = `<thead><tr><th>Fecha</th><th>Producto</th><th>Bodega</th>
+      <th class="num">Cantidad</th><th>Anotó</th></tr></thead>
+    <tbody>${sin.map(l => `<tr>
+      <td class="mono">${fechaCorta(l.fecha)}</td>
+      <td><div style="font-weight:800">${esc(l.producto)}</div>
+        <div class="sub">${esc(l.nota)}</div></td>
+      <td>${esc(l.bodega)}</td>
+      <td class="num"><b>${num(l.cantidad)}</b></td>
+      <td><div class="sub" style="margin:0">${esc(l.quien)}</div></td></tr>`).join('')}</tbody>`;
+}
+
+function exportarVentas() {
+  const filas = [['Fecha', 'Factura', 'Pedido', 'Producto', 'Formato', 'Bodega',
+    'Cantidad', 'Unidad', 'Costo unitario', 'Costo total', 'Motivo', 'Anotó']];
+  for (const l of ventasFiltradas())
+    filas.push([l.fecha, l.factura, l.pedido || '', l.producto, l.formato, l.bodega,
+      l.cantidad, l.unidad, l.costo || '', l.total, l.motivo, l.quien]);
+  bajarCSV(filas, 'ventas-bodega-' + HOY() + '.csv');
+}
+
+// Una fila por factura: es el formato con el que se cruza contra el listado
+// de facturación del mes, pegando las dos columnas en una planilla.
+function exportarCuadratura() {
+  const porFactura = new Map();
+  for (const l of ventasFiltradas()) {
+    if (!porFactura.has(l.factura))
+      porFactura.set(l.factura, { fecha: l.fecha, pedido: l.pedido, lineas: 0,
+        bodegas: new Set(), productos: new Set(), unidades: 0, costo: 0 });
+    const f = porFactura.get(l.factura);
+    if (l.fecha < f.fecha) f.fecha = l.fecha;
+    f.lineas++; f.bodegas.add(l.bodega); f.productos.add(l.producto);
+    f.unidades += l.cantidad; f.costo += l.total;
+  }
+  const filas = [['Factura', 'Fecha primera salida', 'Pedido', 'Líneas',
+    'Productos distintos', 'Bodegas', 'Unidades', 'Costo total']];
+  [...porFactura.entries()].sort((a, b) => a[1].fecha.localeCompare(b[1].fecha))
+    .forEach(([fac, f]) => filas.push([fac, f.fecha, f.pedido || '', f.lineas,
+      f.productos.size, [...f.bodegas].join(' + '),
+      Math.round(f.unidades * 1000) / 1000, Math.round(f.costo * 100) / 100]));
+  bajarCSV(filas, 'cuadratura-facturas-' + HOY() + '.csv');
 }
 
 // ══════════════════════════════════════════════════════════════
