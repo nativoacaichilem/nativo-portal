@@ -769,7 +769,7 @@ tbody tr:hover td{background:#faf6ff}
 // Sube con cada entrega. Se ve arriba a la derecha y en el diagnóstico:
 // sirve para saber en dos segundos si el navegador está sirviendo el archivo
 // nuevo o el viejo que tiene guardado.
-const VERSION = 'v6 · 2026-08-25';
+const VERSION = 'v7 · 2026-08-25';
 
 const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
 let TOKEN = '';
@@ -824,14 +824,26 @@ function entrar() {
   cargarTodo();
 }
 
-(function reanudar() {
-  try {
-    const g = sessionStorage.getItem('nativo_token');
-    if (!g) return;
-    TOKEN = g;
-    entrar();
-  } catch (_) {}
-})();
+// OJO: esta función NO se llama acá. Se llama al final del archivo, en el
+// bloque de arranque.
+//
+// Estaba ejecutándose en este punto, a mitad del script, y ahí todavía no
+// existen las variables de la sección ESTADO —`operador`, `bodegas`— que
+// declara un `let` más abajo. El error se lo tragaba un `catch` vacío puesto
+// para tolerar navegadores sin sessionStorage, así que la pantalla aparecía
+// pero no cargaba nada hasta apretar Actualizar.
+//
+// El try envuelve solo la lectura del almacenamiento, que es lo único que
+// puede fallar por el navegador. Un error dentro de entrar() es un error de
+// programación y tiene que verse, no esconderse.
+function reanudar() {
+  let guardado = null;
+  try { guardado = sessionStorage.getItem('nativo_token'); } catch (_) { return false; }
+  if (!guardado) return false;
+  TOKEN = guardado;
+  entrar();
+  return true;
+}
 
 function salir() {
   TOKEN = '';
@@ -1058,11 +1070,22 @@ function cargarOperador() {
   try { operador = localStorage.getItem('nativo_bodega_quien') || ''; } catch (_) { operador = ''; }
   document.getElementById('quien-chip').textContent = '👤 ' + (operador || 'poner mi nombre');
 }
+
+// Se marca que ya se preguntó aunque el nombre quede vacío: si alguien cierra
+// el recuadro sin escribir, preguntarle de nuevo en cada visita es acoso, no
+// insistencia. El chip de arriba queda disponible para ponerlo cuando quiera.
+function yaPregunte() {
+  try { return localStorage.getItem('nativo_bodega_pregunte') === '1'; } catch (_) { return false; }
+}
+function marcarPregunte() {
+  try { localStorage.setItem('nativo_bodega_pregunte', '1'); } catch (_) {}
+}
 function pedirOperador() {
   document.getElementById('qn-nombre').value = operador;
   abrir('mod-quien');
 }
 function guardarOperador() {
+  marcarPregunte();
   operador = document.getElementById('qn-nombre').value.trim().slice(0, 40);
   try { localStorage.setItem('nativo_bodega_quien', operador); } catch (_) {}
   document.getElementById('quien-chip').textContent = '👤 ' + (operador || 'poner mi nombre');
@@ -1092,8 +1115,9 @@ async function cargarTodo(avisar) {
     // Se pregunta una sola vez, y solo cuando ya hay algo que anotar: la
     // pantalla la usan Martín y Fernando, y un movimiento sin firma es una
     // pregunta sin respuesta cuando un número no cuadra.
-    if (!operador && bodegas.length && productos.length && !_preguntado) {
+    if (!operador && bodegas.length && productos.length && !_preguntado && !yaPregunte()) {
       _preguntado = true;
+      marcarPregunte();
       setTimeout(pedirOperador, 400);
     }
     if (!bodegas.length) {
@@ -3291,9 +3315,12 @@ async function correrDiag() {
 // ══════════════════════════════════════════════════════════════
 //  ARRANQUE
 // ══════════════════════════════════════════════════════════════
-(function irAHash() {
+// Todo el arranque en un solo lugar, y al final: en este punto ya están
+// definidas las funciones Y las variables de todos los bloques.
+(function arrancar() {
   const h = (location.hash || '').slice(1);
   if (SECCIONES.includes(h)) irA(h);
+  reanudar();
 })();
 </script>
 </body>
