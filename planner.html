@@ -41,7 +41,7 @@ body{font-family:'Nunito',sans-serif;background:#f0eaf8;color:var(--text);min-he
 nav{background:var(--mora);display:flex;align-items:center;justify-content:space-between;
   padding:0 20px;position:sticky;top:0;z-index:40;box-shadow:0 2px 12px rgba(74,31,122,.25)}
 .nlogo{font-family:'DM Serif Display',serif;font-size:20px;color:var(--am);letter-spacing:1px}
-.ntabs{display:flex}
+.ntabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tb{background:none;border:none;color:rgba(255,255,255,.5);padding:14px 15px;cursor:pointer;
   font-size:13px;font-weight:800;border-bottom:2px solid transparent;font-family:'Nunito',sans-serif;white-space:nowrap}
 .tb.act{color:var(--am);border-bottom-color:var(--am);background:rgba(255,255,255,.06)}
@@ -349,6 +349,7 @@ textarea{resize:vertical;min-height:60px}
       <button class="tb" onclick="location.href='admin.html#clientes'">👥 Clientes</button>
       <button class="tb" onclick="location.href='admin.html#rutas'">🚚 Ruta</button>
       <button class="tb act">📅 Planner</button>
+      <button class="tb" onclick="location.href='bodega.html'">📦 Bodega</button>
     </div>
     <div class="nlogo">nativo</div>
     <div class="nright"><button class="bout" onclick="salir()">Salir</button></div>
