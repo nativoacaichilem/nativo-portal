@@ -3,383 +3,2179 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>nativo – Orden de Compra</title>
+<title>nativo – Admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
   --mora:#6b35b8;--mora-d:#4a1f7a;--mora-l:#9b6fd4;--mora-xl:#f0e6ff;
-  --am:#f5c842;--am-l:#fef3c7;
+  --am:#f5c842;--am-l:#fef9c3;
   --crema:#fdf8f0;--crema-d:#ede3d0;
-  --text:#1e1226;--textl:#8b7a9e;--white:#ffffff;
+  --text:#1e1226;--textl:#8b7a9e;--white:#fff;
   --vl:#d1fae5;--vd:#065f46;--rl:#fee2e2;--rd:#7f1d1d;
+  --nl:#ffedd5;--nd:#9a3412;
+  --shadow:0 2px 8px rgba(107,53,184,.07);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);min-height:100vh}
+body{font-family:'Nunito',sans-serif;background:#f0eaf8;color:var(--text);min-height:100vh}
 
 /* ── LOGIN ── */
-#screen-login{
+#login{
   min-height:100vh;display:flex;flex-direction:column;
   align-items:center;justify-content:center;
-  background:linear-gradient(160deg,var(--mora-d) 0%,var(--mora) 100%);
-  padding:24px;position:relative;overflow:hidden;
+  background:linear-gradient(160deg,var(--mora-d),var(--mora));padding:20px;
 }
-#screen-login::before{
-  content:'';position:absolute;inset:0;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 300'%3E%3Cg fill='%23ffffff' opacity='0.04'%3E%3Cellipse cx='60' cy='285' rx='20' ry='65'/%3E%3Cellipse cx='60' cy='220' rx='45' ry='13'/%3E%3Cellipse cx='38' cy='210' rx='38' ry='11'/%3E%3Cellipse cx='82' cy='213' rx='40' ry='12'/%3E%3Cellipse cx='440' cy='290' rx='18' ry='60'/%3E%3Cellipse cx='440' cy='230' rx='42' ry='12'/%3E%3Cellipse cx='418' cy='220' rx='36' ry='11'/%3E%3Cellipse cx='462' cy='223' rx='38' ry='11'/%3E%3Cellipse cx='250' cy='295' rx='16' ry='55'/%3E%3Cellipse cx='250' cy='240' rx='40' ry='12'/%3E%3C/g%3E%3C/svg%3E") center bottom/cover no-repeat;
-  pointer-events:none;
-}
-.brand{text-align:center;margin-bottom:28px;position:relative}
-.brand-logo{font-family:'DM Serif Display',serif;font-size:52px;color:var(--am);letter-spacing:2px;line-height:1}
-.brand-sub{color:rgba(255,255,255,.5);font-size:12px;letter-spacing:3px;text-transform:uppercase;margin-top:6px;font-weight:700}
-.login-card{
-  background:var(--white);border-radius:20px;padding:32px 28px;
-  width:100%;max-width:420px;
-  box-shadow:0 24px 64px rgba(0,0,0,.25);position:relative;
-}
-.login-card h3{font-family:'DM Serif Display',serif;font-size:22px;color:var(--mora-d);margin-bottom:4px}
-.login-card p{font-size:13px;color:var(--textl);margin-bottom:22px;font-weight:600}
-.field{margin-bottom:14px}
-.field label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mora);margin-bottom:5px}
-.field input{
-  width:100%;padding:12px 14px;border:1.5px solid var(--crema-d);border-radius:10px;
-  font-size:14px;font-family:'Nunito',sans-serif;outline:none;color:var(--text);
-  transition:border .2s;background:var(--crema);
-}
-.field input:focus{border-color:var(--mora);background:var(--white)}
-.field input.err{border-color:#f87171}
-.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.aviso-campo{display:none;font-size:12px;font-weight:700;color:#b45309;margin-top:5px;line-height:1.4}
-.btn-primary{
-  width:100%;padding:13px;border:none;border-radius:10px;
-  background:var(--am);color:var(--mora-d);
-  font-size:15px;font-weight:900;cursor:pointer;
-  font-family:'Nunito',sans-serif;transition:opacity .2s;margin-top:4px;
-}
-.btn-primary:hover{opacity:.88}
-.btn-primary:disabled{opacity:.45;cursor:not-allowed}
-.alert{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:700;margin-bottom:12px}
-.alert-error{background:var(--rl);color:var(--rd)}
-.alert-success{background:var(--vl);color:var(--vd)}
+.login-logo{font-family:'DM Serif Display',serif;font-size:52px;color:var(--am);letter-spacing:2px;text-align:center;margin-bottom:6px}
+.login-sub{color:rgba(255,255,255,.45);font-size:12px;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-bottom:32px;font-weight:700}
+.lcard{background:var(--white);border-radius:20px;padding:28px;width:100%;max-width:340px;box-shadow:0 24px 64px rgba(0,0,0,.25)}
+.lcard h3{font-family:'DM Serif Display',serif;font-size:22px;color:var(--mora-d);margin-bottom:16px}
+.inp{width:100%;padding:11px 14px;border:1.5px solid var(--crema-d);border-radius:10px;font-size:14px;outline:none;font-family:'Nunito',sans-serif;margin-bottom:12px;background:var(--crema);color:var(--text)}
+.inp:focus{border-color:var(--mora);background:var(--white)}
+.bam-full{width:100%;padding:12px;border:none;border-radius:10px;background:var(--am);color:var(--mora-d);font-size:14px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif}
 
-/* ── CATÁLOGO ── */
-#screen-catalogo{display:none;min-height:100vh}
-.app-header{
-  background:var(--mora);padding:13px 20px;
-  display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:10;
-  box-shadow:0 2px 12px rgba(74,31,122,.2);
+/* ── ALERTS ── */
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:700;margin-bottom:12px}
+.ae{background:var(--rl);color:var(--rd)}
+.as{background:var(--vl);color:var(--vd)}
+.ai{background:var(--mora-xl);color:var(--mora-d)}
+.an{background:var(--nl);color:var(--nd)}
+
+/* ── NAV ── */
+nav{
+  background:var(--mora);display:flex;align-items:center;
+  justify-content:space-between;padding:0 20px;
+  position:sticky;top:0;z-index:40;
+  box-shadow:0 2px 12px rgba(74,31,122,.25);
 }
-.app-logo{font-family:'DM Serif Display',serif;font-size:22px;color:var(--am);letter-spacing:1px}
-.app-user{font-size:12px;color:rgba(255,255,255,.65);display:flex;align-items:center;gap:10px;font-weight:700}
-.btn-logout{
-  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);
+.nlogo{font-family:'DM Serif Display',serif;font-size:20px;color:var(--am);letter-spacing:1px}
+.ntabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tb{
+  background:none;border:none;color:rgba(255,255,255,.5);
+  padding:14px 15px;cursor:pointer;font-size:13px;font-weight:800;
+  border-bottom:2px solid transparent;font-family:'Nunito',sans-serif;white-space:nowrap;
+}
+.tb.act{color:var(--am);border-bottom-color:var(--am);background:rgba(255,255,255,.06)}
+.tb:hover:not(.act){color:var(--white)}
+.nright{display:flex;align-items:center;gap:10px}
+.bout{
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
   color:var(--white);padding:6px 14px;border-radius:20px;
   cursor:pointer;font-size:12px;font-weight:800;font-family:'Nunito',sans-serif;
 }
-.info-bar{
-  background:var(--white);border-bottom:1px solid var(--crema-d);
-  padding:10px 20px;display:flex;gap:16px;flex-wrap:wrap;
-}
-.info-item{display:flex;flex-direction:column;gap:1px}
-.info-item span:first-child{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mora)}
-.info-item span:last-child{font-size:13px;font-weight:700;color:var(--text)}
-.catalogo-wrap{max-width:860px;margin:0 auto;padding:18px 14px 130px}
 
-/* ── SECCIONES ── */
-.seccion{
-  background:var(--white);border-radius:14px;margin-bottom:10px;
-  overflow:hidden;box-shadow:0 2px 8px rgba(107,53,184,.07);
-  border:1.5px solid var(--crema-d);transition:border .2s;
-}
-.seccion.open{border-color:var(--mora-l)}
-.sec-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:14px 18px;cursor:pointer;user-select:none;transition:background .2s;
-}
-.sec-header:hover{background:var(--crema)}
-.sec-left{display:flex;align-items:center;gap:12px}
-.sec-icon{font-size:20px}
-.sec-title{font-size:15px;font-weight:800;color:var(--mora-d)}
-.sec-count{font-size:11px;color:var(--textl);font-weight:600;margin-top:1px}
-.sec-arrow{font-size:14px;color:var(--mora);transition:transform .3s;font-weight:900}
-.sec-arrow.open{transform:rotate(180deg)}
-.sec-body{display:none;padding:0 14px 14px;border-top:1px solid var(--crema-d)}
-.sec-body.open{display:block}
+/* ── PAGES ── */
+.page{display:none;padding:20px;max-width:1120px;margin:0 auto}
+.page.act{display:block}
+.card{background:var(--white);border-radius:14px;padding:22px;box-shadow:var(--shadow);margin-bottom:16px;border:1px solid rgba(107,53,184,.08)}
+.card h2{font-family:'DM Serif Display',serif;font-size:20px;color:var(--mora-d);margin-bottom:16px}
 
-/* ── PRODUCTOS ── */
-.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:9px;padding-top:12px}
-.prod-card{
-  border:1.5px solid var(--crema-d);border-radius:12px;padding:12px;
-  display:flex;flex-direction:column;gap:8px;background:var(--crema);transition:all .2s;
-}
-.prod-card.sel{border-color:var(--mora);background:#f5eeff}
-.prod-name{font-size:12px;font-weight:700;color:var(--text);line-height:1.3;flex:1}
-.prod-format{font-size:10px;color:var(--textl);font-weight:600}
-.qty-row{display:flex;align-items:center;gap:6px}
-.qty-btn{
-  width:28px;height:28px;border:none;border-radius:7px;
-  background:var(--mora);color:var(--white);
-  font-size:17px;font-weight:900;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  line-height:1;flex-shrink:0;font-family:'Nunito',sans-serif;
-}
-.qty-btn:hover{background:var(--mora-d)}
-.qty-inp{
-  width:36px;text-align:center;padding:4px 2px;
-  border:1.5px solid var(--crema-d);border-radius:6px;
-  font-size:13px;font-weight:800;outline:none;font-family:'Nunito',sans-serif;color:var(--text);
-}
-.qty-inp:focus{border-color:var(--mora)}
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--white);border-radius:12px;padding:16px;text-align:center;box-shadow:var(--shadow);border:1px solid rgba(107,53,184,.08)}
+.stat.aviso{border-color:#fdba74;background:#fffbf5}
+.sn{font-size:30px;font-weight:900;color:var(--mora)}
+.stat.aviso .sn{color:var(--nd)}
+.sl{font-size:10px;color:var(--textl);margin-top:2px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.stat.pulsa{cursor:pointer}
+.stat.pulsa:hover{border-color:var(--mora-l)}
 
-/* ── CARRITO FLOTANTE ── */
-.cart-float{
-  position:fixed;bottom:0;left:0;right:0;
-  background:var(--white);border-top:2px solid var(--crema-d);
-  padding:10px 16px;z-index:10;
-  box-shadow:0 -4px 20px rgba(107,53,184,.1);
+/* ── FORM ── */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--mora);margin-bottom:4px}
+input,textarea,select{
+  width:100%;padding:9px 12px;border:1.5px solid var(--crema-d);
+  border-radius:8px;font-size:13px;outline:none;
+  font-family:'Nunito',sans-serif;color:var(--text);background:var(--crema);
 }
-.cart-inner{max-width:860px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.cart-info{flex:1;min-width:0}
-.cart-count{font-size:13px;font-weight:800;color:var(--mora)}
-.cart-preview{font-size:11px;color:var(--textl);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
-.cart-btn{
-  padding:11px 22px;border:none;border-radius:10px;
-  background:var(--am);color:var(--mora-d);
-  font-size:14px;font-weight:900;cursor:pointer;
-  font-family:'Nunito',sans-serif;white-space:nowrap;flex-shrink:0;
-}
-.cart-btn:disabled{opacity:.4;cursor:not-allowed}
+input:focus,textarea:focus,select:focus{border-color:var(--mora);background:var(--white)}
+textarea{resize:vertical;min-height:78px}
+.nota-campo{font-size:11px;font-weight:700;color:var(--mora);margin-top:4px;display:none}
+.solo-lectura{background:var(--crema);border:1.5px dashed var(--crema-d);border-radius:8px;
+  padding:9px 12px;font-size:13px;font-weight:700;line-height:1.5;color:var(--text)}
 
-/* ── OC SCREEN ── */
-#screen-oc{display:none;min-height:100vh;background:var(--crema)}
-.oc-topbar{
-  background:var(--mora);padding:13px 20px;
-  display:flex;align-items:center;gap:12px;
-  position:sticky;top:0;z-index:10;
-  box-shadow:0 2px 12px rgba(74,31,122,.2);
+/* ── BUTTONS ── */
+.btn{padding:9px 18px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:800;font-family:'Nunito',sans-serif;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.bmora{background:var(--mora);color:var(--white)}
+.bam2{background:var(--am);color:var(--mora-d)}
+.bsm{padding:5px 12px;font-size:12px;border-radius:6px}
+.bol{background:var(--white);color:var(--mora);border:1.5px solid var(--mora)}
+.bdng{background:var(--rl);color:var(--rd);border:1px solid #fca5a5}
+.bgray{background:var(--crema-d);color:var(--textl)}
+.bgreen{background:var(--vl);color:var(--vd);border:1px solid #6ee7b7}
+
+/* ── FILTER BAR ── */
+.fb{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.fb input,.fb select{width:auto;flex:1;min-width:110px}
+
+/* ── TABLE ── */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{
+  background:var(--crema);color:var(--mora);font-weight:800;
+  padding:9px 12px;text-align:left;font-size:11px;
+  text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid var(--crema-d);
 }
-.btn-back{
-  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);
-  color:var(--white);padding:8px 16px;border-radius:20px;
-  cursor:pointer;font-size:13px;font-weight:800;font-family:'Nunito',sans-serif;
+th.th-check{width:40px;text-align:center;padding:9px 8px}
+td{padding:10px 12px;border-bottom:1px solid var(--crema-d);vertical-align:top}
+td.td-check{text-align:center;vertical-align:middle;padding:10px 8px}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#faf6ff}
+tr.row-sel td{background:#f5eeff}
+tr.row-sel:hover td{background:#ede0ff}
+
+/* ── CHECKBOX ── */
+input[type=checkbox]{
+  width:16px;height:16px;cursor:pointer;
+  accent-color:var(--mora);flex-shrink:0;
 }
-.oc-topbar-title{color:var(--white);font-weight:800;font-size:15px;flex:1}
-.btn-enviar-top{
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.3px}
+.bnorte{background:#dbeafe;color:#1e40af}
+.bsur{background:#d1fae5;color:#065f46}
+.bstgo{background:var(--am-l);color:#78350f}
+.blito{background:#fee2e2;color:#7f1d1d}
+.bsinz{background:#f3f4f6;color:#6b7280;border:1px dashed #d1d5db}
+.bret{background:var(--nl);color:var(--nd);border:1px solid #fdba74}
+.bpend{background:var(--am-l);color:#78350f}
+.bfact{background:var(--mora-xl);color:var(--mora-d)}
+.bruta{background:#dbeafe;color:#1e40af}
+.bentr{background:var(--vl);color:var(--vd)}
+/* Ámbar ya significa "falta facturar" en el resto del panel, así que un
+   entregado sin facturar va ámbar con el visto puesto: salió, falta cobrar. */
+.bentrsf{background:var(--am-l);color:#78350f;border:1px solid #fbbf24}
+.coord{font-size:11px;font-weight:800;color:var(--nd);margin-top:3px}
+/* Dos recuadros deliberadamente distintos. El azul lo escribió el cliente; el
+   morado con candado lo escribiste tú. Que nunca haya que preguntarse quién
+   dijo qué es más importante que ahorrar un color. */
+.msg-cli{margin-top:6px;background:#eff6ff;border-left:3px solid #60a5fa;border-radius:0 7px 7px 0;
+  padding:5px 9px;font-size:11px;color:#1e3a5f;font-weight:700;line-height:1.5}
+.nota-wrap{margin-top:6px}
+/* Fondo blanco y borde discontinuo, igual que el botón de "+ nota": lo
+   discontinuo marca lo que escribes tú, y así no se confunde con el bloque
+   lleno de los productos, que es del mismo morado. */
+.nota-int{cursor:pointer;background:var(--white);border:1px dashed var(--mora-l);
+  border-radius:7px;padding:5px 9px;font-size:11px;color:var(--mora-d);
+  font-weight:700;line-height:1.5}
+.nota-int:hover{background:var(--mora-xl);border-style:solid}
+.folio{font-family:monospace;font-size:11px;font-weight:800;color:var(--mora-l);letter-spacing:.3px}
+
+/* ── NOTA INTERNA EN LA FILA ── */
+/* Estas cuatro clases las usaba el JS desde antes y nunca se definieron: el
+   botón salía con el estilo por omisión del navegador, gris y fuera de lugar. */
+.nota-add{background:var(--white);border:1px dashed var(--mora-l);border-radius:7px;
+  padding:4px 9px;font-size:11px;color:var(--mora);font-weight:800;cursor:pointer;
+  font-family:'Nunito',sans-serif}
+.nota-add:hover{background:var(--mora-xl);border-style:solid}
+.nota-edit{margin-top:6px}
+.nota-edit textarea{min-height:52px;font-size:12px}
+.nota-acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:5px}
+.nota-hint{font-size:10px;color:var(--textl);font-weight:700}
+
+/* ── DESCARGO DE BODEGA ── */
+.ds-cab{display:flex;gap:18px;flex-wrap:wrap;background:var(--crema);border-radius:10px;
+  padding:11px 14px;margin-bottom:14px}
+.ds-cab > div{display:flex;flex-direction:column;gap:1px}
+.ds-cab span{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--mora)}
+.ds-cab b{font-size:13.5px;font-weight:800}
+.ds-sinfact{color:var(--nd)}
+.ds-linea{border:1.5px solid var(--crema-d);border-radius:11px;padding:11px 12px;margin-bottom:9px;background:var(--white)}
+.ds-linea.mala{border-color:#fca5a5;background:#fff7f7}
+.ds-campos{display:flex;gap:9px;flex-wrap:wrap;align-items:flex-end}
+.ds-campos label{font-size:9.5px;margin-bottom:3px}
+.ds-campos select,.ds-campos input{padding:7px 9px;font-size:12.5px}
+.ds-pie{font-size:11.5px;font-weight:700;color:var(--textl);margin-top:7px;line-height:1.5}
+.ds-pie b{color:var(--text)}
+.badge-nods{background:var(--nl);color:var(--nd);border:1px solid #fdba74}
+
+/* ── FLOATING ACTION BAR ── */
+.action-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:30;
+  background:var(--mora-d);
+  padding:14px 20px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  box-shadow:0 -4px 24px rgba(74,31,122,.4);
+  transform:translateY(100%);
+  transition:transform .25s cubic-bezier(.4,0,.2,1);
+}
+.action-bar.visible{transform:translateY(0)}
+.action-bar-info{color:var(--am);font-weight:900;font-size:14px;flex-shrink:0}
+.action-bar select{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+  color:var(--white);padding:8px 12px;border-radius:8px;
+  font-size:13px;font-weight:700;font-family:'Nunito',sans-serif;
+  width:auto;flex:1;min-width:150px;max-width:220px;
+}
+.action-bar select option{background:var(--mora-d);color:var(--white)}
+.action-bar .btn{flex-shrink:0}
+.ab-apply{background:var(--am);color:var(--mora-d)}
+.ab-cancel{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--white)}
+
+/* ── ROUTE CHECKS ── */
+.ci{
+  display:flex;align-items:flex-start;gap:10px;padding:12px;
+  background:var(--crema);border-radius:10px;margin-bottom:8px;
+  border:2px solid transparent;cursor:pointer;transition:border .15s;
+}
+.ci:hover{border-color:var(--mora-l)}
+.ci.sel{border-color:var(--mora);background:var(--mora-xl)}
+
+/* ── PROMPT BOX ── */
+.pbox{
+  background:var(--mora-d);color:#e9d8fd;border-radius:12px;
+  padding:20px;font-family:monospace;font-size:12px;
+  line-height:1.8;white-space:pre-wrap;margin-top:14px;
+  max-height:480px;overflow-y:auto;
+}
+.bcopy{
   background:var(--am);color:var(--mora-d);border:none;
-  padding:9px 18px;border-radius:20px;font-size:13px;font-weight:900;
-  cursor:pointer;font-family:'Nunito',sans-serif;
-}
-.btn-enviar-top:disabled{opacity:.5;cursor:not-allowed}
-.btn-enviar-top.confirmar{background:var(--vd);color:#fff}
-.oc-wrap{max-width:720px;margin:0 auto;padding:24px 16px 40px}
-#oc-doc{background:var(--white);border-radius:16px;padding:32px;box-shadow:0 4px 20px rgba(107,53,184,.09)}
-#oc-alert:not(:empty){margin-bottom:16px}
-.btn-wa{
-  display:inline-block;background:#25D366;color:#fff;text-decoration:none;
-  padding:11px 20px;border-radius:10px;font-weight:900;font-size:14px;margin-top:10px;
+  padding:10px 20px;border-radius:8px;cursor:pointer;
+  font-size:13px;font-weight:900;margin-top:10px;font-family:'Nunito',sans-serif;
 }
 
-/* ── ELECCIÓN DE ENTREGA ── */
-.entrega-card{background:var(--white);border-radius:16px;padding:20px;margin-bottom:16px;
-  box-shadow:0 4px 20px rgba(107,53,184,.09)}
-.entrega-card > label{margin-bottom:10px}
-.eopts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.eopt{display:flex;gap:11px;align-items:flex-start;cursor:pointer;
-  border:2px solid var(--crema-d);border-radius:12px;padding:13px;background:var(--crema);transition:.15s}
-.eopt:hover{border-color:var(--mora-l)}
-.eopt.sel{border-color:var(--mora);background:#f5eeff}
-.eopt input{margin-top:2px;width:18px;height:18px;accent-color:var(--mora);flex:none;cursor:pointer}
-.eopt b{display:block;font-size:13.5px;font-weight:900;color:var(--mora-d);line-height:1.3}
-.eopt span{display:block;font-size:11.5px;color:var(--textl);font-weight:700;margin-top:3px;line-height:1.45}
-.aviso-retiro{background:var(--mora-xl);border:1.5px solid #ddc9f5;border-radius:11px;
-  padding:12px 14px;margin-top:12px;font-size:12.5px;font-weight:700;color:var(--mora-d);line-height:1.6}
-.msg-box{margin-top:16px}
-.msg-box textarea{width:100%;padding:11px 13px;border:1.5px solid var(--crema-d);border-radius:10px;
-  font-size:13.5px;font-family:'Nunito',sans-serif;outline:none;background:var(--crema);
-  color:var(--text);min-height:74px;resize:vertical}
-.msg-box textarea:focus{border-color:var(--mora);background:var(--white)}
-.msg-cuenta{font-size:11px;font-weight:700;color:var(--textl);text-align:right;margin-top:4px}
-.doc-retiro{background:var(--mora-xl);border-radius:8px;padding:10px 12px}
-.doc-retiro b{display:block;font-size:13px;font-weight:900;color:var(--mora-d)}
-.doc-retiro span{display:block;font-size:11.5px;color:var(--mora);font-weight:700;margin-top:2px}
-.doc-msg{background:#eff6ff;border-left:3px solid #60a5fa;border-radius:0 8px 8px 0;
-  padding:9px 12px;margin-bottom:20px;font-size:12.5px;color:#1e3a5f;font-weight:700;line-height:1.55}
-@media(max-width:480px){ .eopts{grid-template-columns:1fr} }
-.err-detalle{font-size:11px;font-weight:700;opacity:.85;margin-top:8px;font-family:monospace}
-
-/* ── DOCUMENTO OC ── */
-.doc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:20px;border-bottom:3px solid var(--mora)}
-.doc-logo{font-family:'DM Serif Display',serif;font-size:28px;color:var(--mora);letter-spacing:1px}
-.doc-logo small{display:block;font-family:'Nunito',sans-serif;font-size:11px;color:var(--textl);font-weight:600;margin-top:2px;letter-spacing:0}
-.doc-titulo{text-align:right}
-.doc-titulo h1{font-family:'DM Serif Display',serif;font-size:20px;color:var(--mora-d)}
-.doc-titulo p{font-size:12px;color:var(--textl);font-weight:600;margin-top:3px}
-.doc-datos{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;background:var(--crema);padding:16px;border-radius:10px}
-.doc-dato label{display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--mora);margin-bottom:3px}
-.doc-dato p{font-size:13px;font-weight:700;color:var(--text)}
-.doc-table{width:100%;border-collapse:collapse;margin-bottom:24px}
-.doc-table th{background:var(--mora);color:var(--white);padding:10px 12px;text-align:left;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
-.doc-table th:last-child{text-align:center}
-.doc-table td{padding:9px 12px;border-bottom:1px solid var(--crema-d);font-size:13px;font-weight:600}
-.doc-table td:last-child{text-align:center;font-weight:900;color:var(--mora)}
-.doc-table tr:nth-child(even) td{background:var(--crema)}
-.doc-cat td{background:#f0e6ff!important;font-weight:800;color:var(--mora);font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:6px 12px!important}
-.doc-footer{border-top:2px solid var(--crema-d);padding-top:14px;display:flex;justify-content:space-between;align-items:center}
-.doc-footer p{font-size:11px;color:var(--textl);font-weight:600}
-.doc-num{font-size:12px;font-weight:800;color:var(--mora)}
-
-/* ── CONFIRMACIÓN ── */
-.confirm-wrap{text-align:center;padding:32px 24px 20px}
-.confirm-emoji{font-size:56px;margin-bottom:12px}
-.confirm-title{font-family:'DM Serif Display',serif;font-size:28px;color:var(--mora-d);margin-bottom:8px}
-.confirm-sub{font-size:14px;font-weight:700;color:var(--textl);margin-bottom:20px;line-height:1.5}
-.confirm-folio{
-  display:inline-block;background:var(--mora-xl);border:1.5px dashed var(--mora-l);
-  border-radius:12px;padding:12px 22px;margin-bottom:24px;
+/* ── MODAL ── */
+.mbg{
+  display:none;position:fixed;inset:0;
+  background:rgba(74,31,122,.5);z-index:100;
+  justify-content:center;align-items:center;padding:16px;
 }
-.confirm-folio span{display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--mora)}
-.confirm-folio b{font-family:'DM Serif Display',serif;font-size:26px;color:var(--mora-d);letter-spacing:1px}
-.confirm-box{background:var(--crema);border-radius:12px;padding:16px 20px;margin-bottom:16px;text-align:left}
-.confirm-box-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mora);margin-bottom:12px}
-.confirm-row{margin-bottom:8px}
-.confirm-row span:first-child{display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--textl)}
-.confirm-row span:last-child{font-size:14px;font-weight:700;color:var(--text)}
-.confirm-products{background:var(--white);border-radius:12px;padding:16px 20px;margin-bottom:24px;border:1.5px solid var(--crema-d);text-align:left}
-.confirm-prod-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--crema-d)}
-.confirm-prod-item:last-child{border-bottom:none}
-.confirm-prod-name{font-size:13px;font-weight:700;color:var(--text)}
-.confirm-prod-qty{font-size:12px;font-weight:900;color:var(--mora);background:var(--mora-xl);padding:2px 10px;border-radius:12px}
-.btn-nuevo{
-  background:var(--am);color:var(--mora-d);border:none;
-  border-radius:10px;padding:13px 28px;
-  font-size:15px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;
+.mbg.open{display:flex}
+.modal{
+  background:var(--white);border-radius:16px;padding:26px;
+  max-width:520px;width:100%;
+  box-shadow:0 24px 64px rgba(0,0,0,.25);
+  max-height:90vh;overflow-y:auto;
 }
+.modal h3{font-family:'DM Serif Display',serif;font-size:20px;color:var(--mora-d);margin-bottom:16px}
+.modal-section{
+  font-size:10px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.8px;color:var(--mora-l);margin:16px 0 10px;
+  padding-bottom:6px;border-bottom:1px solid var(--crema-d);
+}
+.mact{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
 
-@media(max-width:480px){
-  .prod-grid{grid-template-columns:repeat(2,1fr)}
-  .doc-datos{grid-template-columns:1fr}
-  #oc-doc{padding:20px 14px}
-  .doc-header{flex-direction:column;gap:12px}
-  .doc-titulo{text-align:left}
-  .field-row{grid-template-columns:1fr}
-  .info-bar{gap:12px}
+/* ── SPINNER ── */
+.sp{
+  display:inline-block;width:14px;height:14px;
+  border:2px solid rgba(107,53,184,.2);border-top-color:var(--mora);
+  border-radius:50%;animation:spin .7s linear infinite;
+  vertical-align:middle;margin-right:6px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── WIZARD PEDIDO ── */
+.wz-steps{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.wz-pill{
+  flex:1;min-width:130px;display:flex;align-items:center;gap:9px;
+  padding:10px 12px;border-radius:11px;background:var(--white);
+  border:1.5px solid var(--crema-d);font-size:12px;font-weight:800;
+  color:var(--textl);cursor:pointer;font-family:'Nunito',sans-serif;text-align:left;
+}
+.wz-pill.on{border-color:var(--mora);background:var(--mora-xl);color:var(--mora-d)}
+.wz-pill.done{border-color:#6ee7b7;background:var(--vl);color:var(--vd)}
+.wz-pill:disabled{opacity:.5;cursor:not-allowed}
+.wz-num{
+  width:22px;height:22px;border-radius:50%;background:var(--crema-d);color:var(--textl);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex:0 0 22px;
+}
+.wz-pill.on   .wz-num{background:var(--mora);color:#fff}
+.wz-pill.done .wz-num{background:var(--vd);color:#fff}
+.wz-sub{display:block;font-size:10px;font-weight:700;opacity:.75;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+.wstep{display:none}
+
+/* ── LISTA SELECCIONABLE ── */
+.picks{max-height:440px;overflow-y:auto;padding-right:2px}
+.pick{
+  border:1.5px solid var(--crema-d);border-radius:10px;padding:10px 12px;
+  margin-bottom:8px;cursor:pointer;background:var(--white);display:flex;gap:10px;align-items:center;
+}
+.pick:hover{border-color:var(--mora-l);background:#faf6ff}
+.pick.sel{border-color:var(--mora);background:var(--mora-xl)}
+.pick-t{font-weight:800;font-size:13px;color:var(--mora-d)}
+.pick-s{font-size:11px;color:var(--textl);font-weight:700;margin-top:2px;line-height:1.55}
+.pick-r{margin-left:auto;flex:0 0 auto;text-align:right}
+.chip{display:inline-block;background:var(--crema);border:1px solid var(--crema-d);border-radius:20px;padding:2px 9px;font-size:10px;font-weight:800;color:var(--mora);margin:0 4px 2px 0}
+.empty{color:var(--textl);font-size:13px;font-weight:700;padding:18px 6px;text-align:center}
+
+/* ── CABECERA CONTEXTO ── */
+.wz-head{background:var(--mora-xl);border:1.5px solid #ddc9f5;border-radius:11px;padding:11px 13px;margin-bottom:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.wz-head .hb{font-size:13px;font-weight:900;color:var(--mora-d)}
+.wz-head .hs{font-size:11px;font-weight:700;color:var(--mora);margin-top:1px}
+
+/* ── CATÁLOGO ── */
+.cat{border:1.5px solid var(--crema-d);border-radius:10px;margin-bottom:8px;overflow:hidden}
+.cat-h{background:var(--crema);padding:9px 12px;font-size:12px;font-weight:800;color:var(--mora-d);cursor:pointer;display:flex;align-items:center;gap:8px}
+.cat-h .cn{margin-left:auto;font-size:10px;color:var(--textl);font-weight:800}
+.cat-b{display:none}
+.cat.open .cat-b{display:block}
+.prod{display:flex;align-items:center;gap:10px;padding:6px 12px;border-top:1px solid var(--crema-d)}
+.prod.on{background:#faf6ff}
+.prod-n{flex:1;font-size:12px;font-weight:700;line-height:1.35}
+.prod-f{font-size:10px;color:var(--textl);font-weight:700}
+.stp{display:flex;align-items:center;gap:4px;flex:0 0 auto}
+.stp button{width:26px;height:26px;border-radius:6px;border:1.5px solid var(--crema-d);background:var(--white);font-weight:900;cursor:pointer;color:var(--mora);font-size:15px;line-height:1;padding:0;font-family:'Nunito',sans-serif}
+.stp button:hover{border-color:var(--mora);background:var(--mora-xl)}
+.stp input{width:48px;text-align:center;padding:4px 2px;font-weight:800;font-size:12px}
+
+/* ── BARRA RESUMEN ── */
+.wz-bar{position:sticky;bottom:0;background:var(--white);border-top:2px solid var(--crema-d);padding:12px 0 2px;margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.wz-bar-info{flex:1;min-width:170px;font-size:12px;font-weight:800;color:var(--mora)}
+.wz-prev{font-size:11px;color:var(--textl);font-weight:600;margin-top:4px;width:100%;line-height:1.5}
+
+/* ── DIRECTORIO CLIENTES ── */
+.cli{border:1.5px solid var(--crema-d);border-radius:11px;margin-bottom:10px;overflow:hidden}
+.cli-h{padding:11px 13px;display:flex;gap:10px;align-items:center;cursor:pointer;background:var(--white)}
+.cli-h:hover{background:#faf6ff}
+.cli-b{display:none;background:var(--crema);padding:10px 13px 12px;border-top:1px solid var(--crema-d)}
+.cli.open .cli-b{display:block}
+.suc{background:var(--white);border:1px solid var(--crema-d);border-radius:8px;padding:8px 11px;margin-bottom:6px;display:flex;gap:10px;align-items:center}
+.suc-a{margin-left:auto;display:flex;gap:6px;flex:0 0 auto}
+
+/* ── RESPONSIVE ── */
+@media(max-width:640px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .fg{grid-template-columns:1fr}
+  .tb{padding:12px 10px;font-size:11px}
+  .nlogo{display:none}
+  .action-bar{gap:8px}
+  .wz-pill{min-width:0;flex:1 1 100%}
+  .wz-sub{max-width:100%}
+  .pick-r{margin-left:0;width:100%;text-align:left}
+  .pick{flex-wrap:wrap}
 }
 </style>
 </head>
 <body>
 
-<!-- ── PANTALLA 1: LOGIN ── -->
-<div id="screen-login">
-  <div class="brand">
-    <div class="brand-logo">nativo</div>
-    <div class="brand-sub">Portal de Órdenes de Compra</div>
-  </div>
-  <div class="login-card">
-    <h3>Bienvenido</h3>
-    <p>Ingresa los datos de tu empresa para acceder al catálogo</p>
-    <div id="login-alert"></div>
-    <div class="field">
-      <label>RUT Empresa *</label>
-      <input type="text" id="rut-inp" placeholder="76.123.456-0" oninput="fmtR(this); avisoRut()">
-      <div id="rut-aviso" class="aviso-campo"></div>
-    </div>
-    <div class="field"><label>Nombre Empresa *</label><input type="text" id="emp-inp" placeholder="Nombre de tu empresa"></div>
-    <div class="field"><label>Dirección de Despacho *</label><input type="text" id="dir-inp" placeholder="Av. Ejemplo 1234, Santiago"></div>
-    <div class="field">
-      <label>Email *</label>
-      <input type="email" id="email-inp" placeholder="correo@empresa.cl" oninput="avisoEmail()">
-      <div id="email-aviso" class="aviso-campo"></div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>Nombre de Contacto *</label><input type="text" id="contacto-inp" placeholder="Nombre completo"></div>
-      <div class="field"><label>Teléfono de Contacto *</label><input type="text" id="tel-inp" placeholder="+56 9 1234 5678"></div>
-    </div>
-    <button class="btn-primary" onclick="login()">Ver catálogo →</button>
+<!-- ══ LOGIN ══ -->
+<div id="login">
+  <div class="login-logo">nativo</div>
+  <div class="login-sub">Panel de Administración</div>
+  <div class="lcard">
+    <h3>Equipo nativo</h3>
+    <div id="lerr"></div>
+    <input class="inp" type="password" id="pin" placeholder="Clave de acceso"
+      autocomplete="current-password"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="bam-full" id="bentrar" onclick="doLogin()">Ingresar →</button>
   </div>
 </div>
 
-<!-- ── PANTALLA 2: CATÁLOGO ── -->
-<div id="screen-catalogo">
-  <div class="app-header">
-    <div class="app-logo">nativo</div>
-    <div class="app-user">
-      <span id="hdr-emp"></span>
-      <button class="btn-logout" onclick="logout()">Salir</button>
+<!-- ══ APP ══ -->
+<div id="app" style="display:none">
+  <nav>
+    <div class="ntabs">
+      <button class="tb act" onclick="goTab('pedidos',this)">📋 Pedidos</button>
+      <button class="tb"     onclick="goTab('nuevo',this)">➕ Agregar</button>
+      <button class="tb"     onclick="goTab('clientes',this)">👥 Clientes</button>
+      <button class="tb"     onclick="goTab('rutas',this)">🚚 Ruta</button>
+      <button class="tb"     onclick="location.href='planner.html'">📅 Planner</button>
+      <button class="tb"     onclick="location.href='bodega.html'">📦 Bodega</button>
+    </div>
+    <div class="nlogo">nativo</div>
+    <div class="nright">
+      <button class="bout" onclick="salir()">Salir</button>
+    </div>
+  </nav>
+
+  <!-- ── PEDIDOS ── -->
+  <div id="page-pedidos" class="page act">
+    <div class="stats">
+      <div class="stat"><div class="sn" id="st">0</div><div class="sl">Total</div></div>
+      <div class="stat pulsa" id="stat-sf" onclick="verSinFacturar()" title="Todo lo que no se ha facturado">
+        <div class="sn" id="sp">0</div><div class="sl">Sin facturar</div></div>
+      <div class="stat"><div class="sn" id="sr">0</div><div class="sl">En ruta</div></div>
+      <div class="stat"><div class="sn" id="se">0</div><div class="sl">Entregados</div></div>
+      <div class="stat pulsa" id="stat-esf" onclick="verEntregadoSinFacturar()"
+           title="Ya se entregó pero todavía no se factura">
+        <div class="sn" id="sesf">0</div><div class="sl">Entregado sin facturar</div></div>
+      <div class="stat pulsa" id="stat-ret" onclick="verRetirosPendientes()" title="Retiros sin fecha acordada">
+        <div class="sn" id="sret">0</div><div class="sl">Retiros por coordinar</div>
+      </div>
+      <div class="stat pulsa" id="stat-nods" onclick="verSinDescargo()"
+           title="Ya salieron pero nadie descontó el stock" style="display:none">
+        <div class="sn" id="snods">0</div><div class="sl">Sin descargar bodega</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>📋 Pedidos</h2>
+      <div class="fb">
+        <input type="text" id="buscar" placeholder="🔍 Buscar empresa, RUT, contacto o folio..." oninput="render()">
+        <select id="fentrega" onchange="render()">
+          <option value="">Despachos y retiros</option>
+          <option value="despacho">Solo despachos</option>
+          <option value="retiro">Solo retiros</option>
+        </select>
+        <select id="fzona" onchange="render()">
+          <option value="">Todas las zonas</option>
+          <option value="norte">Norte</option>
+          <option value="sur">Sur</option>
+          <option value="santiago">Santiago</option>
+          <option value="litoral">Litoral</option>
+        </select>
+        <select id="festado" onchange="render()">
+          <option value="">Todos los estados</option>
+          <option value="sf">▸ Todo lo que falta facturar</option>
+          <option value="pendiente">Sin facturar</option>
+          <option value="facturado">Facturado</option>
+          <option value="en-ruta">En ruta</option>
+          <option value="entregado-sin-facturar">Entregado · sin facturar</option>
+          <option value="entregado">Entregado</option>
+        </select>
+        <button class="btn bol bsm" onclick="cargar()">🔄 Actualizar</button>
+        <button class="btn bgreen bsm" onclick="exportCSV()">⬇️ Exportar CSV</button>
+      </div>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr>
+              <th class="th-check">
+                <input type="checkbox" id="chk-all" onclick="toggleAll(this)"
+                  title="Seleccionar todos">
+              </th>
+              <th>Fecha</th>
+              <th>Empresa / Contacto</th>
+              <th>Dirección</th>
+              <th>Zona / Entrega</th>
+              <th>Estado / Recibe</th>
+              <th>Factura</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
-  <div class="info-bar">
-    <div class="info-item"><span>Empresa</span><span id="d-emp"></span></div>
-    <div class="info-item"><span>RUT</span><span id="d-rut"></span></div>
-    <div class="info-item"><span>Dirección</span><span id="d-dir"></span></div>
-    <div class="info-item"><span>Email</span><span id="d-email"></span></div>
-    <div class="info-item"><span>Contacto</span><span id="d-contacto"></span></div>
-    <div class="info-item"><span>Teléfono</span><span id="d-tel"></span></div>
-    <div class="info-item"><span>Fecha</span><span id="d-fecha"></span></div>
-  </div>
-  <div class="catalogo-wrap" id="catalogo-wrap"></div>
-  <div class="cart-float">
-    <div class="cart-inner">
-      <div class="cart-info">
-        <div class="cart-count" id="cart-count">0 productos seleccionados</div>
-        <div class="cart-preview" id="cart-preview">Selecciona productos del catálogo</div>
+
+  <!-- ── AGREGAR (WIZARD 3 PASOS) ── -->
+  <div id="page-nuevo" class="page">
+    <div class="card" style="max-width:760px;margin:0 auto">
+      <h2>➕ Nuevo Pedido</h2>
+      <div class="wz-steps" id="wz-pills"></div>
+      <div id="wz-alert"></div>
+
+      <!-- PASO 1 · CLIENTE -->
+      <div class="wstep" id="wstep1" style="display:block">
+        <div class="fb">
+          <input type="text" id="wq" placeholder="🔍 Buscar cliente por nombre, RUT o contacto..." oninput="renderPaso1()">
+          <button class="btn bam2 bsm" onclick="abrirCli(null,'wz')">＋ Cliente nuevo</button>
+        </div>
+        <div class="picks" id="wz-clientes"></div>
+        <div style="margin-top:12px;border-top:1px solid var(--crema-d);padding-top:12px">
+          <button class="btn bol bsm" onclick="togManual()">✏️ Entrada manual (pedido puntual)</button>
+        </div>
       </div>
-      <button class="cart-btn" id="btn-oc" onclick="irAOC()" disabled>Ver Orden →</button>
+
+      <!-- PASO 2 · SUCURSAL -->
+      <div class="wstep" id="wstep2">
+        <div class="wz-head" id="wz-head2"></div>
+        <div class="fb">
+          <input type="text" id="wqs" placeholder="🔍 Buscar sucursal o dirección..." oninput="renderPaso2()">
+          <button class="btn bam2 bsm" onclick="abrirSuc(null,'wz')">＋ Nueva sucursal</button>
+        </div>
+        <div class="picks" id="wz-sucursales"></div>
+        <div style="margin-top:12px">
+          <button class="btn bgray bsm" onclick="wzGo(1)">← Cambiar cliente</button>
+        </div>
+      </div>
+
+      <!-- PASO 3 · PEDIDO -->
+      <div class="wstep" id="wstep3">
+        <div class="wz-head" id="wz-head3"></div>
+
+        <div class="fb">
+          <input type="text" id="pq" placeholder="🔍 Buscar producto..." oninput="renderCatalogo()">
+          <button class="btn bol bsm" id="brepetir" onclick="repetirUltimo()">🔁 Repetir último pedido</button>
+          <button class="btn bgray bsm" onclick="limpiarProds()">Limpiar</button>
+        </div>
+        <div id="cat-wrap"></div>
+
+        <div style="margin-top:14px">
+          <label>Otros productos / notas del pedido</label>
+          <textarea id="wextra" placeholder="Un ítem por línea. Solo para productos que no están en el catálogo." style="min-height:56px"></textarea>
+        </div>
+
+        <div class="modal-section">Despacho y facturación</div>
+        <div class="fg">
+          <div><label>Tipo de entrega</label>
+            <select id="wentrega" onchange="wzEntregaCambio()">
+              <option value="despacho">Despacho a domicilio</option>
+              <option value="retiro">Retiro en oficina</option>
+            </select>
+          </div>
+          <div><label>Zona <span id="wzona-req">*</span></label>
+            <select id="wzona">
+              <option value="">— Asignar zona —</option>
+              <option value="norte">Norte</option>
+              <option value="sur">Sur</option>
+              <option value="santiago">Santiago</option>
+              <option value="litoral">Litoral</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg">
+          <div><label>N° Factura</label><input id="wfact" type="text" placeholder="001234"></div>
+          <div><label>Fecha del Pedido</label><input id="wfecha" type="text" placeholder="DD/MM/AAAA"></div>
+        </div>
+        <div style="margin-bottom:12px"><label>Comentario interno 🔒</label><input id="wcom" type="text" placeholder="Opcional"></div>
+
+        <div class="wz-bar">
+          <div class="wz-bar-info" id="wz-bar-info">Sin productos seleccionados</div>
+          <button class="btn bgray bsm" onclick="wzGo(2)">← Sucursal</button>
+          <button class="btn bmora" id="bwzguardar" onclick="guardarWz()">Guardar Pedido</button>
+          <div class="wz-prev" id="wz-prev"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENTRADA MANUAL (clásica) -->
+    <div class="card" id="manual-box" style="max-width:760px;margin:16px auto 0;display:none">
+      <h2>✏️ Entrada manual</h2>
+      <div class="alert ai" style="margin-bottom:16px">
+        💡 Sube la imagen de la OC aquí en Claude y pídele que extraiga los datos.
+      </div>
+      <div id="anv"></div>
+
+      <div class="modal-section">Datos del cliente</div>
+      <div class="fg">
+        <div><label>Empresa *</label><input id="nemp" type="text" placeholder="Nombre empresa"></div>
+        <div><label>RUT *</label><input id="nrut" type="text" placeholder="12.345.678-9" oninput="fmtR(this)"></div>
+      </div>
+      <div class="fg">
+        <div><label>Nombre de Contacto</label><input id="ncontacto" type="text" placeholder="Nombre completo"></div>
+        <div><label>Teléfono</label><input id="ntel" type="text" placeholder="+56 9 1234 5678"></div>
+      </div>
+
+      <div class="modal-section">Entrega</div>
+      <div class="fg">
+        <div><label>Tipo de entrega</label>
+          <select id="nentrega" onchange="manualEntregaCambio()">
+            <option value="despacho">Despacho a domicilio</option>
+            <option value="retiro">Retiro en oficina</option>
+          </select>
+        </div>
+        <div><label>Zona <span id="nzona-req">*</span></label>
+          <select id="nzona">
+            <option value="">— Asignar zona —</option>
+            <option value="norte">Norte</option>
+            <option value="sur">Sur</option>
+            <option value="santiago">Santiago</option>
+            <option value="litoral">Litoral</option>
+          </select>
+          <div class="nota-campo" id="nzona-nota"></div>
+        </div>
+      </div>
+      <div style="margin-bottom:12px">
+        <label>Dirección <span id="ndir-req">*</span></label>
+        <input id="ndir" type="text" placeholder="Av. Ejemplo 1234, Santiago" onblur="proponerZonaManual()">
+      </div>
+      <div style="margin-bottom:12px">
+        <label>Detalle del Pedido *</label>
+        <textarea id="ndet" placeholder="Ej: Balde Acai Nativo (3,6 L) x2, Granola Avena Miel x3"></textarea>
+      </div>
+
+      <div class="modal-section">Facturación</div>
+      <div class="fg">
+        <div><label>N° Factura</label><input id="nfact" type="text" placeholder="001234"></div>
+        <div><label>Fecha del Pedido</label><input id="nfecha" type="text" placeholder="DD/MM/AAAA"></div>
+      </div>
+      <button class="btn bmora" id="bagregar" onclick="agregar()" style="margin-top:4px">
+        Guardar Pedido
+      </button>
+    </div>
+  </div>
+
+  <!-- ── CLIENTES ── -->
+  <div id="page-clientes" class="page">
+    <div class="card">
+      <h2>👥 Directorio de Clientes</h2>
+      <div id="cl-alert"></div>
+      <div id="cl-banner"></div>
+      <div class="fb">
+        <input type="text" id="clq" placeholder="🔍 Buscar cliente, RUT o dirección..." oninput="renderClientes()">
+        <button class="btn bam2 bsm" onclick="abrirCli(null,'list')">＋ Nuevo cliente</button>
+        <button class="btn bol bsm" id="bsync" onclick="sincronizar()">🔄 Sincronizar desde pedidos</button>
+        <button class="btn bol bsm" id="bdups" onclick="renderDuplicados()">🔍 Revisar duplicados</button>
+      </div>
+      <div id="cl-dups"></div>
+      <div id="cl-list"></div>
+    </div>
+  </div>
+
+  <!-- ── RUTAS ── -->
+  <div id="page-rutas" class="page">
+    <div class="card">
+      <h2>🚚 Armar Ruta</h2>
+      <p style="font-size:13px;color:var(--textl);margin-bottom:16px;font-weight:600">
+        Selecciona pedidos facturados para generar el prompt de ruta.
+        Los retiros en oficina no aparecen: el cliente los viene a buscar.
+      </p>
+      <div id="ruta-aviso"></div>
+      <div id="checks"></div>
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn bam2" onclick="genPrompt()">✨ Generar Prompt para Claude</button>
+        <button class="btn bgray bsm" onclick="deselRuta()">Deseleccionar todo</button>
+      </div>
+      <div id="pres" style="display:none">
+        <div id="pout" class="pbox"></div>
+        <button class="bcopy" onclick="copiar()">📋 Copiar y pegar en Claude</button>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ── PANTALLA 3: OC ── -->
-<div id="screen-oc">
-  <div class="oc-topbar">
-    <button class="btn-back" onclick="volverCatalogo()">← Volver</button>
-    <span class="oc-topbar-title">Orden de Compra</span>
-    <button class="btn-enviar-top" id="btn-enviar" onclick="enviarPedido()">Enviar Pedido</button>
-  </div>
-  <div class="oc-wrap">
-    <div id="oc-alert"></div>
+<!-- ══ MODAL EDITAR ══ -->
+<div class="mbg" id="modal">
+  <div class="modal">
+    <h3>Editar Pedido</h3>
+    <div id="m-folio"></div>
 
-    <div class="entrega-card" id="entrega-card">
-      <label>¿Cómo quieres recibirlo?</label>
-      <div class="eopts">
-        <label class="eopt sel" id="eopt-despacho">
-          <input type="radio" name="entrega" value="despacho" checked onchange="cambiarEntrega()">
-          <div><b>🚚 Despacho a domicilio</b>
-               <span>Lo llevamos a la dirección que registraste</span></div>
-        </label>
-        <label class="eopt" id="eopt-retiro">
-          <input type="radio" name="entrega" value="retiro" onchange="cambiarEntrega()">
-          <div><b>🏢 Retiro en nuestra oficina</b>
-               <span>Lo vienes a buscar tú</span></div>
-        </label>
+    <div class="modal-section">Entrega, Zona y Estado</div>
+    <div class="fg" style="margin-bottom:12px">
+      <div>
+        <label>Tipo de entrega</label>
+        <select id="mentrega" onchange="modalEntregaCambio()">
+          <option value="despacho">Despacho a domicilio</option>
+          <option value="retiro">Retiro en oficina</option>
+        </select>
       </div>
-
-      <div class="aviso-retiro" id="aviso-retiro" style="display:none">
-        📞 <b>Nos contactamos contigo para coordinar el día y la hora de retiro</b>, y ahí te
-        indicamos la dirección exacta. Te escribimos al teléfono o email que registraste.
+      <div>
+        <label>Estado</label>
+        <select id="mestado">
+          <option value="pendiente">Sin facturar</option>
+          <option value="facturado">Facturado</option>
+          <option value="en-ruta">En ruta</option>
+          <option value="entregado-sin-facturar">Entregado · sin facturar</option>
+          <option value="entregado">Entregado</option>
+        </select>
       </div>
+    </div>
+    <div style="margin-bottom:12px" id="mzona-box">
+      <label>Zona</label>
+      <select id="mzona">
+        <option value="">— Asignar zona —</option>
+        <option value="norte">Norte</option>
+        <option value="sur">Sur</option>
+        <option value="santiago">Santiago</option>
+        <option value="litoral">Litoral</option>
+      </select>
+      <div class="nota-campo" id="mzona-nota"></div>
+    </div>
 
-      <div class="msg-box">
-        <label id="msg-label">Mensaje para nosotros (opcional)</label>
-        <textarea id="mensaje" maxlength="500" oninput="contarMensaje()"></textarea>
-        <div class="msg-cuenta" id="msg-cuenta">0 / 500</div>
+    <div class="modal-section">Datos del Cliente</div>
+    <div style="margin-bottom:12px"><label>Empresa</label><input id="memp" type="text"></div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Nombre de Contacto</label><input id="mcontacto" type="text" placeholder="Opcional"></div>
+      <div><label>Teléfono</label><input id="mtel" type="text" placeholder="Opcional"></div>
+    </div>
+
+    <div class="modal-section">Despacho</div>
+    <div style="margin-bottom:12px"><label>Dirección</label><input id="mdir" type="text"></div>
+
+    <div class="modal-section">Productos del pedido</div>
+    <div style="margin-bottom:4px">
+      <textarea id="mdet" placeholder="Balde Acai Nativo (3,6 L) x2, Granola Avena Miel (2 kg) x3"></textarea>
+      <div style="font-size:11px;color:var(--textl);font-weight:700;margin-top:5px;line-height:1.5">
+        Separa los productos con coma. Mantener el formato
+        <b>Nombre (formato) xCantidad</b> permite que “Repetir último pedido” los reconozca.
       </div>
     </div>
 
-    <div id="oc-doc"></div>
+    <div id="m-mensaje-box" style="display:none">
+      <div class="modal-section">Mensaje del cliente</div>
+      <div class="solo-lectura" id="m-mensaje"></div>
+      <div style="font-size:11px;color:var(--textl);font-weight:700;margin-top:5px">
+        Lo escribió el cliente al hacer el pedido. No se puede editar.
+      </div>
+    </div>
+
+    <div class="modal-section">Facturación y Entrega</div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>N° Factura</label><input id="mfact" type="text"></div>
+      <div><label>Fecha Pedido</label><input id="mfecha" type="text"></div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label id="mfentrega-lbl">Fecha de Entrega</label><input id="mfentrega" type="text" placeholder="DD/MM/AAAA"></div>
+      <div><label id="mrecibe-lbl">Recibe</label><input id="mrecibe" type="text" placeholder="Nombre de quien recibe"></div>
+    </div>
+
+    <div class="modal-section">Notas internas</div>
+    <div style="margin-bottom:4px">
+      <label>Comentario Interno 🔒</label>
+      <textarea id="mcom" placeholder="Notas internas del equipo nativo..."></textarea>
+    </div>
+
+    <div class="mact">
+      <button class="btn bgray bsm" onclick="cerrar()">Cancelar</button>
+      <button class="btn bdng bsm" onclick="eliminar()">Eliminar</button>
+      <button class="btn bmora bsm" id="bguardar" onclick="guardar()">Guardar</button>
+    </div>
   </div>
+</div>
+
+<!-- ══ MODAL CLIENTE ══ -->
+<div class="mbg" id="modal-cli">
+  <div class="modal">
+    <h3 id="mc-title">Nuevo Cliente</h3>
+    <div id="mc-alert"></div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Empresa *</label><input id="mcemp" type="text" placeholder="Nombre empresa"></div>
+      <div><label>RUT</label><input id="mcrut" type="text" placeholder="12.345.678-9" oninput="fmtR(this)"></div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Nombre de Contacto</label><input id="mccontacto" type="text" placeholder="Opcional"></div>
+      <div><label>Teléfono</label><input id="mctel" type="text" placeholder="+56 9 1234 5678"></div>
+    </div>
+    <div style="margin-bottom:12px"><label>Email</label><input id="mcemail" type="text" placeholder="Opcional"></div>
+    <div style="margin-bottom:12px"><label>Nombres antiguos (para búsqueda)</label><input id="mcalias" type="text" placeholder="Separados por |"></div>
+    <div style="margin-bottom:4px"><label>Notas</label><textarea id="mcnotas" placeholder="Condiciones, observaciones..." style="min-height:56px"></textarea></div>
+    <div class="mact">
+      <button class="btn bgray bsm" onclick="cerrarCli()">Cancelar</button>
+      <button class="btn bmora bsm" id="bmc" onclick="guardarCliente()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL SUCURSAL ══ -->
+<div class="mbg" id="modal-suc">
+  <div class="modal">
+    <h3 id="ms-title">Nueva Sucursal</h3>
+    <div id="ms-alert"></div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Nombre de la sucursal *</label><input id="msnombre" type="text" placeholder="Ej: Casa Matriz, Local Providencia"></div>
+      <div><label>Zona</label>
+        <select id="mszona">
+          <option value="">— Asignar zona —</option>
+          <option value="norte">Norte</option>
+          <option value="sur">Sur</option>
+          <option value="santiago">Santiago</option>
+          <option value="litoral">Litoral</option>
+        </select>
+        <div class="nota-campo" id="mszona-nota"></div>
+      </div>
+    </div>
+    <div style="margin-bottom:12px"><label>Dirección de despacho *</label><input id="msdir" type="text" placeholder="Calle 1234, Comuna, Ciudad" onblur="proponerZonaSuc()"></div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Contacto en sucursal</label><input id="mscontacto" type="text" placeholder="Opcional"></div>
+      <div><label>Teléfono</label><input id="mstel" type="text" placeholder="Opcional"></div>
+    </div>
+    <div style="margin-bottom:12px"><label>Horario de recepción</label><input id="mshorario" type="text" placeholder="Ej: Lun a Vie 10:00–18:00"></div>
+    <div style="margin-bottom:4px"><label>Notas de despacho</label><textarea id="msnotas" placeholder="Ej: 3er piso, requiere tiempo extra de descarga" style="min-height:56px"></textarea></div>
+    <div class="mact">
+      <button class="btn bgray bsm" onclick="cerrarSuc()">Cancelar</button>
+      <button class="btn bmora bsm" id="bms" onclick="guardarSucursal()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL DESCARGO DE BODEGA ══ -->
+<div class="mbg" id="modal-ds">
+  <div class="modal" style="max-width:820px">
+    <h3 id="ds-title">Descargar de bodega</h3>
+    <div id="ds-alert"></div>
+    <div id="ds-cuerpo"></div>
+    <div class="mact" id="ds-acciones"></div>
+  </div>
+</div>
+
+<!-- ══ FLOATING ACTION BAR ══ -->
+<div class="action-bar" id="action-bar">
+  <span class="action-bar-info" id="ab-count">0 seleccionados</span>
+  <select id="ab-estado">
+    <option value="">— Cambiar estado a —</option>
+    <option value="pendiente">Sin facturar</option>
+    <option value="facturado">Facturado</option>
+    <option value="en-ruta">En ruta</option>
+    <option value="entregado-sin-facturar">Entregado · sin facturar</option>
+    <option value="entregado">Entregado</option>
+  </select>
+  <button class="btn bsm ab-apply" id="ab-btn" onclick="aplicarMasivo()">Aplicar</button>
+  <button class="btn bsm ab-cancel" onclick="deselTabla()">✕ Deseleccionar</button>
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════
 //  CONFIGURACIÓN
-// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════
 const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
 
-// WhatsApp de pedidos: código de país, sin +, sin espacios ni guiones.
-// Si queda el número de ejemplo, el botón de respaldo no aparece.
-const WHATSAPP = '56900000000';
+// La clave NO se guarda aquí. Se escribe al entrar, se manda al Worker en
+// cada petición y es el Worker quien la verifica. Este archivo es público:
+// cualquier clave escrita en él sería visible para todo el mundo.
+let TOKEN = '';
 
+// ══════════════════════════════════════════
+//  ESTADO GLOBAL
+// ══════════════════════════════════════════
+let pedidos  = [];   // todos los pedidos cargados
+let eid      = null; // id del pedido en edición
+let checked  = [];   // ids seleccionados via checkboxes de tabla
+let selRuta  = [];   // ids seleccionados para armar ruta
+
+// ── Directorio ──
+let clientes   = [];    // catálogo de clientes
+let sucursales = [];    // catálogo de sucursales
+let dirOK      = false; // true = tablas clientes/sucursales disponibles en Supabase
+let dirLoaded  = false;
+let wz         = { paso:1, cliente:null, sucursal:null, qtys:{} };
+let cliEdit    = null, cliCtx = 'list';
+let dsSaltar   = false;   // evita que el descargo se vuelva a ofrecer en bucle
+let sucEdit    = null, sucCtx = 'list', sucCli = null;
+
+// ══════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════
+async function doLogin() {
+  const clave = document.getElementById('pin').value;
+  const btn   = document.getElementById('bentrar');
+  if (!clave) return;
+
+  btn.innerHTML = '<span class="sp"></span>Verificando...'; btn.disabled = true;
+  document.getElementById('lerr').innerHTML = '';
+
+  try {
+    // El Worker es quien decide. Se prueba con una lectura mínima.
+    const r = await fetch(`${PROXY}/supabase/pedidos?select=id&limit=1`, {
+      headers: { 'X-Admin-Token': clave }
+    });
+    if (r.status === 401) {
+      document.getElementById('lerr').innerHTML =
+        '<div class="alert ae">Clave incorrecta.</div>';
+      btn.innerHTML = 'Ingresar →'; btn.disabled = false;
+      return;
+    }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+  } catch (e) {
+    document.getElementById('lerr').innerHTML =
+      '<div class="alert ae">No se pudo conectar. Revisa tu conexión e intenta de nuevo.</div>';
+    btn.innerHTML = 'Ingresar →'; btn.disabled = false;
+    return;
+  }
+
+  TOKEN = clave;
+  try { sessionStorage.setItem('nativo_token', clave); } catch (_) {}
+  document.getElementById('pin').value = '';
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display   = 'block';
+  btn.innerHTML = 'Ingresar →'; btn.disabled = false;
+  cargar();
+}
+
+// Si recargas la página, no hay que escribir la clave de nuevo.
+// Se guarda solo en la pestaña actual: al cerrarla desaparece.
+(function reanudar() {
+  try {
+    const g = sessionStorage.getItem('nativo_token');
+    if (!g) return;
+    TOKEN = g;
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display   = 'block';
+    cargar();
+  } catch (_) {}
+})();
+
+function salir() {
+  TOKEN = '';
+  try { sessionStorage.removeItem('nativo_token'); } catch (_) {}
+  document.getElementById('login').style.display = 'flex';
+  document.getElementById('app').style.display   = 'none';
+  document.getElementById('pin').value = '';
+  checked = []; selRuta = [];
+  updateActionBar();
+}
+
+// ══════════════════════════════════════════
+//  NAVEGACIÓN
+// ══════════════════════════════════════════
+function goTab(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('act'));
+  document.querySelectorAll('.tb').forEach(b => b.classList.remove('act'));
+  document.getElementById('page-' + id).classList.add('act');
+  btn.classList.add('act');
+  if (id === 'pedidos')  cargar();
+  if (id === 'rutas')    renderChecksRuta();
+  if (id === 'clientes') renderClientes();
+  if (id === 'nuevo') {
+    document.getElementById('nfecha').value = hoy();
+    if (!document.getElementById('wfecha').value)
+      document.getElementById('wfecha').value = hoy();
+    wzGo(wz.cliente ? wz.paso : 1);
+  }
+}
+
+// ══════════════════════════════════════════
+//  UTILIDADES
+// ══════════════════════════════════════════
+function hoy() { return new Date().toLocaleDateString('es-CL'); }
+
+// Escapa HTML. Todo dato que venga de la base pasa por aquí antes de
+// insertarse en la página: los pedidos del portal los escribe cualquiera.
+function hesc(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g,
+    c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+function fmtR(el) {
+  let v = el.value.replace(/[^0-9kK]/g, '');
+  if (v.length < 2) { el.value = v; return; }
+  let b = v.slice(0, -1), d = v.slice(-1).toUpperCase();
+  b = b.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  el.value = b + '-' + d;
+}
+
+function splitDet(s) {
+  if (!s || !s.trim()) return [];
+  return s.split(/,\s*(?=[A-ZÁÉÍÓÚÑ])/).map(d => d.trim()).filter(Boolean);
+}
+
+// Ambas insertan HTML, así que solo aceptan valores de la lista conocida.
+// hasOwnProperty evita que un valor como "toString" cuele por el prototipo.
+const tiene = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+
+const esRetiro = p => (p.entrega || 'despacho') === 'retiro';
+
+function zbadge(z) {
+  const m = { norte:'bnorte', sur:'bsur', santiago:'bstgo', litoral:'blito' };
+  if (!z || !tiene(m, z)) return '<span class="badge bsinz">⚠️ Sin zona</span>';
+  return `<span class="badge ${m[z]}">${hesc(z)}</span>`;
+}
+
+// Un retiro no tiene zona que asignar, así que reclamarla no tiene sentido:
+// muestra su propio distintivo. Y mientras no tenga fecha acordada, avisa que
+// hay que llamar al cliente — porque el portal no le dice dónde retirar.
+function entregaBadge(p) {
+  if (!esRetiro(p)) return zbadge(p.zona);
+  // un retiro ya entregado no hay que coordinarlo, esté facturado o no
+  const falta = !String(p.fecha_entrega || '').trim() && !yaEntregado(p.estado);
+  return '<span class="badge bret">🏢 Retiro</span>' +
+    (falta ? '<div class="coord">⏳ coordinar horario</div>' : '');
+}
+
+// Los estados mezclan dos cosas: si está facturado y si está despachado.
+// "Entregado sin facturar" es la combinación que faltaba: la mercadería salió
+// pero la plata todavía no se cobró, y eso hay que poder verlo.
+const ESTADOS = {
+  'pendiente':               { cls:'bpend',   lbl:'Sin facturar' },
+  'facturado':               { cls:'bfact',   lbl:'Facturado' },
+  'en-ruta':                 { cls:'bruta',   lbl:'En ruta' },
+  'entregado-sin-facturar':  { cls:'bentrsf', lbl:'Entregado · sin facturar' },
+  'entregado':               { cls:'bentr',   lbl:'Entregado' }
+};
+
+// Ya salió de la bodega, esté facturado o no
+const yaEntregado = e => e === 'entregado' || e === 'entregado-sin-facturar';
+// Todavía no se cobró
+const sinFacturar = e => e === 'pendiente' || e === 'entregado-sin-facturar';
+
+function ebadge(e) {
+  if (!e || !tiene(ESTADOS, e)) return `<span class="badge bpend">${hesc(e) || 'Sin estado'}</span>`;
+  return `<span class="badge ${ESTADOS[e].cls}">${hesc(ESTADOS[e].lbl)}</span>`;
+}
+
+function estadoLabel(e) {
+  return tiene(ESTADOS, e) ? ESTADOS[e].lbl : e;
+}
+
+function alerta(id, msg, cls) {
+  const el = document.getElementById(id);
+  el.innerHTML = `<div class="alert ${cls}">${msg}</div>`;
+  setTimeout(() => el.innerHTML = '', 4000);
+}
+
+// ══════════════════════════════════════════
+//  SUPABASE API
+// ══════════════════════════════════════════
+async function sbGet() {
+  const r = revisarAuth(await fetch(`${PROXY}/supabase/pedidos?order=created_at.desc`,
+    { headers: cabeceras(false) }));
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const d = await r.json();
+  if (!Array.isArray(d)) throw new Error('Respuesta inválida');
+  return d;
+}
+
+// Envío genérico: lanza error si la respuesta no es OK (antes fallaba en silencio)
+function cabeceras(conCuerpo) {
+  const h = { 'X-Admin-Token': TOKEN };
+  if (conCuerpo) h['Content-Type'] = 'application/json';
+  return h;
+}
+
+// Si el Worker responde 401, la clave dejó de servir: se vuelve al login
+// en vez de dejar el panel a medias.
+function revisarAuth(r) {
+  if (r.status === 401) {
+    TOKEN = '';
+    try { sessionStorage.removeItem('nativo_token'); } catch (_) {}
+    document.getElementById('app').style.display   = 'none';
+    document.getElementById('login').style.display = 'flex';
+    document.getElementById('lerr').innerHTML =
+      '<div class="alert ae">La sesión expiró o la clave cambió. Ingresa de nuevo.</div>';
+    throw new Error('Sesión no autorizada');
+  }
+  return r;
+}
+
+async function sbSend(path, method, body) {
+  const o = { method, headers: cabeceras(true) };
+  if (body !== undefined) o.body = JSON.stringify(body);
+  const r = revisarAuth(await fetch(`${PROXY}/supabase/${path}`, o));
+  if (!r.ok) {
+    let d = '';
+    try { d = (await r.text()).slice(0, 180); } catch(_) {}
+    throw new Error(`HTTP ${r.status}${d ? ' · ' + d : ''}`);
+  }
+  return r;
+}
+
+async function sbJson(path) {
+  const r = revisarAuth(await fetch(`${PROXY}/supabase/${path}`, { headers: cabeceras(false) }));
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const d = await r.json();
+  if (!Array.isArray(d)) throw new Error('Respuesta inválida');
+  return d;
+}
+
+async function sbPost(row)      { return sbSend('pedidos', 'POST', row); }
+async function sbPatch(id, row) { return sbSend(`pedidos?id=eq.${id}`, 'PATCH', row); }
+async function sbDelete(id)     { return sbSend(`pedidos?id=eq.${id}`, 'DELETE'); }
+
+// ══════════════════════════════════════════
+//  CARGAR PEDIDOS
+// ══════════════════════════════════════════
+async function cargar() {
+  document.getElementById('tbody').innerHTML =
+    '<tr><td colspan="8" style="text-align:center;padding:28px">' +
+    '<span class="sp"></span>Cargando pedidos...</td></tr>';
+  try {
+    pedidos = await sbGet();
+    if (!dirLoaded)   await loadDirectorio();
+    else if (!dirOK)  derivarDirectorio();   // modo historial: se recalcula local
+    else              indexar();
+    checked = []; updateActionBar();
+    render();
+    renderChecksRuta();
+    // En segundo plano: si bodega no está instalada, el panel funciona igual
+    // y el indicador simplemente no aparece.
+    cargarBodega().then(() => render());
+  } catch(e) {
+    document.getElementById('tbody').innerHTML =
+      '<tr><td colspan="8" style="text-align:center;color:var(--rd);padding:28px;font-weight:700">' +
+      'Error cargando pedidos. Verifica la conexión.</td></tr>';
+  }
+}
+
+// ══════════════════════════════════════════
+//  RENDER TABLA
+// ══════════════════════════════════════════
+function filtrados() {
+  const q  = (document.getElementById('buscar').value || '').toLowerCase().trim();
+  const fz = document.getElementById('fzona').value;
+  const fe = document.getElementById('festado').value;
+  const fn = document.getElementById('fentrega').value;
+  return pedidos.filter(p =>
+    (!q  || (p.emp||'').toLowerCase().includes(q) ||
+             (p.rut||'').includes(q) ||
+             (p.contacto||'').toLowerCase().includes(q) ||
+             (p.folio||'').toLowerCase().includes(q)) &&
+    (!fz || p.zona === fz) &&
+    // 'sf' no es un estado: es "falta facturar", que son dos estados distintos
+    (!fe || (fe === 'sf' ? sinFacturar(p.estado) : p.estado === fe)) &&
+    (!fn || (p.entrega || 'despacho') === fn) &&
+    (!filtroSinDescargo || (
+      ['en-ruta','entregado','entregado-sin-facturar'].includes(p.estado) &&
+      !bodPedidosConMov.has(String(p.id))))
+  );
+}
+
+// Retiros que todavía no tienen fecha acordada. Un retiro entregado ya pasó,
+// así que sale de la cuenta: el contador se apaga con el trabajo hecho, no
+// con un tilde.
+const retirosPendientes = () => pedidos.filter(p =>
+  esRetiro(p) && !String(p.fecha_entrega || '').trim() && !yaEntregado(p.estado));
+
+// Los contadores pinchables llevan la tabla a lo que representan
+function verSinFacturar() {
+  filtroSinDescargo = false;
+  // el contador cuenta dos estados, así que el filtro tiene que cubrir los dos
+  document.getElementById('festado').value = 'sf';
+  document.getElementById('fentrega').value = '';
+  document.getElementById('buscar').value = '';
+  render();
+  document.getElementById('tbody').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function verEntregadoSinFacturar() {
+  filtroSinDescargo = false;
+  document.getElementById('festado').value = 'entregado-sin-facturar';
+  document.getElementById('fentrega').value = '';
+  document.getElementById('buscar').value = '';
+  render();
+  document.getElementById('tbody').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function verRetirosPendientes() {
+  filtroSinDescargo = false;
+  document.getElementById('fentrega').value = 'retiro';
+  document.getElementById('fzona').value = '';
+  document.getElementById('festado').value = '';
+  document.getElementById('buscar').value = '';
+  render();
+  document.getElementById('tbody').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function render() {
+  const f = filtrados();
+  // "Sin facturar" y "Entregados" cuentan las dos dimensiones por separado, así
+  // que un entregado sin facturar aparece en ambas: salió de la bodega Y falta
+  // cobrarlo. El contador propio destaca justamente ese cruce, que es el
+  // accionable: mercadería entregada que todavía no se factura.
+  const nEsf = pedidos.filter(p => p.estado === 'entregado-sin-facturar').length;
+  document.getElementById('st').textContent   = pedidos.length;
+  document.getElementById('sp').textContent   = pedidos.filter(p => sinFacturar(p.estado)).length;
+  document.getElementById('sr').textContent   = pedidos.filter(p => p.estado === 'en-ruta').length;
+  document.getElementById('se').textContent   = pedidos.filter(p => yaEntregado(p.estado)).length;
+  document.getElementById('sesf').textContent = nEsf;
+  document.getElementById('stat-esf').classList.toggle('aviso', nEsf > 0);
+
+  const nret = retirosPendientes().length;
+  document.getElementById('sret').textContent = nret;
+  document.getElementById('stat-ret').classList.toggle('aviso', nret > 0);
+
+  // Solo se muestra si bodega está andando: sin el módulo instalado, este
+  // indicador diría que todo está pendiente y no significaría nada.
+  const nods = pedidosSinDescargo().length;
+  const cajaNods = document.getElementById('stat-nods');
+  cajaNods.style.display = bodListo ? '' : 'none';
+  document.getElementById('snods').textContent = nods;
+  cajaNods.classList.toggle('aviso', nods > 0);
+
+  const chkAll = document.getElementById('chk-all');
+  if (chkAll) chkAll.checked = false;
+
+  const tb = document.getElementById('tbody');
+  if (!f.length) {
+    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--textl);padding:28px;font-weight:700">Sin resultados</td></tr>';
+    return;
+  }
+
+  tb.innerHTML = f.map(p => {
+    const isChecked = checked.includes(p.id);
+    const items = splitDet(p.detalle);
+    const dhtml = items.length
+      ? '<div style="margin-top:6px;background:var(--mora-xl);border-radius:7px;padding:6px 8px">' +
+        items.map(d => `<div style="font-size:11px;color:var(--mora-d);font-weight:700;line-height:1.6">· ${hesc(d)}</div>`).join('') +
+        '</div>'
+      : '<div style="font-size:11px;color:#d1d5db;margin-top:4px;font-weight:600">Sin detalle</div>';
+
+    const contactoHtml = (p.contacto || p.telefono)
+      ? `<div style="margin-top:3px;display:flex;gap:8px;flex-wrap:wrap">
+           ${p.contacto ? `<span style="font-size:11px;color:var(--textl);font-weight:700">👤 ${hesc(p.contacto)}</span>` : ''}
+           ${p.telefono ? `<span style="font-size:11px;color:var(--textl);font-weight:700">📞 ${hesc(p.telefono)}</span>` : ''}
+         </div>` : '';
+
+    const folioHtml = p.folio
+      ? `<div class="folio">${hesc(p.folio)}</div>` : '';
+
+    // El mensaje lo escribió el cliente; la nota, tú. Cada uno con su marca y su
+    // color, para que nunca se confunda quién lo escribió.
+    const msgHtml = String(p.mensaje || '').trim()
+      ? `<div class="msg-cli">💬 <b>Dice el cliente:</b> ${hesc(p.mensaje)}</div>` : '';
+    const notaHtml = notaCelda(p);
+
+    const recibeHtml = p.recibe
+      ? `<div style="font-size:11px;color:var(--vd);font-weight:700;margin-top:3px">✔ ${esRetiro(p) ? 'Retira' : 'Recibe'}: ${hesc(p.recibe)}</div>` : '';
+
+    const entregaHtml = p.fecha_entrega
+      ? `<div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:2px">📅 ${esRetiro(p) ? 'Retiro' : 'Entrega'}: ${hesc(p.fecha_entrega)}</div>` : '';
+
+    return `<tr class="${isChecked ? 'row-sel' : ''}">
+      <td class="td-check">
+        <input type="checkbox" ${isChecked ? 'checked' : ''}
+          onchange="toggleRow(${p.id}, this.checked)">
+      </td>
+      <td style="font-size:12px;color:var(--textl);font-weight:600;white-space:nowrap">${hesc(p.fecha)||'—'}</td>
+      <td>
+        <div style="font-weight:800;font-size:13px">${hesc(p.emp)}</div>
+        <div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:1px">${hesc(p.rut)}</div>
+        ${folioHtml}
+        ${contactoHtml}
+        ${dhtml}
+        ${msgHtml}
+        ${notaHtml}
+      </td>
+      <td style="font-size:12px;font-weight:600;max-width:210px">${hesc(p.dir)}</td>
+      <td>${entregaBadge(p)}</td>
+      <td>
+        ${ebadge(p.estado)}
+        ${recibeHtml}
+        ${entregaHtml}
+      </td>
+      <td style="font-size:12px;color:var(--textl);font-weight:600">${hesc(p.factura_num)||'—'}</td>
+      <td><button class="btn bol bsm" onclick="abrir(${p.id})">Editar</button>
+        ${bodListo && ['en-ruta','entregado','entregado-sin-facturar'].includes(p.estado)
+          ? (bodPedidosConMov.has(String(p.id))
+              ? '<div class="sub" style="font-size:10px;color:var(--vd);font-weight:800;margin-top:4px">✔ bodega descargada</div>'
+              : `<button class="btn bam2 bsm" style="margin-top:4px" onclick="abrirDescargo(${p.id},null)"
+                   title="Anotar qué salió de bodega para este pedido">📦 Descargar</button>`)
+          : ''}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//  NOTA INTERNA EDITABLE EN LA MISMA FILA
+// ══════════════════════════════════════════
+// Antes había que abrir el pedido, bajar hasta el final del modal y guardar.
+// En un día de despacho eso son cuatro clics por pedido. Ahora se escribe
+// donde se lee.
+function notaCelda(p) {
+  const t = String(p.comentario || '').trim();
+  const cuerpo = t
+    ? `<div class="nota-int" onclick="editarNota(${p.id})" title="Pinchar para editar">
+         🔒 <b>Nota interna:</b> ${hesc(t)}</div>`
+    : `<button class="nota-add" onclick="editarNota(${p.id})">🔒 + nota interna</button>`;
+  return `<div class="nota-wrap" id="nota-${p.id}">${cuerpo}</div>`;
+}
+
+function pintarNota(id) {
+  const p = pedidos.find(x => x.id === id);
+  const w = document.getElementById('nota-' + id);
+  if (p && w) w.outerHTML = notaCelda(p);
+}
+
+function editarNota(id) {
+  const p = pedidos.find(x => x.id === id);
+  const w = document.getElementById('nota-' + id);
+  if (!p || !w) return;
+  w.innerHTML = `<div class="nota-edit">
+      <textarea id="nota-ta-${id}" placeholder="Notas internas del equipo nativo...">${hesc(p.comentario || '')}</textarea>
+      <div class="nota-acts">
+        <button class="btn bmora bsm" id="nota-ok-${id}" onclick="guardarNota(${id})">Guardar nota</button>
+        <button class="btn bgray bsm" onclick="pintarNota(${id})">Cancelar</button>
+        <span class="nota-hint">Ctrl+Enter guarda · Esc cancela</span>
+      </div>
+    </div>`;
+  const ta = document.getElementById('nota-ta-' + id);
+  ta.focus();
+  ta.setSelectionRange(ta.value.length, ta.value.length);
+  ta.onkeydown = e => {
+    if (e.key === 'Escape') { e.preventDefault(); pintarNota(id); }
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); guardarNota(id); }
+  };
+}
+
+async function guardarNota(id) {
+  const p = pedidos.find(x => x.id === id);
+  const ta = document.getElementById('nota-ta-' + id);
+  if (!p || !ta) return;
+  const texto = ta.value.trim();
+  const btn = document.getElementById('nota-ok-' + id);
+  if (btn) { btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true; }
+  try {
+    // Solo se manda el comentario: nada más del pedido se toca
+    await sbPatch(id, { comentario: texto });
+    p.comentario = texto;
+    pintarNota(id);
+  } catch (e) {
+    // Si no se guardó, se deja el texto escrito para no perderlo
+    if (btn) { btn.innerHTML = 'Reintentar'; btn.disabled = false; }
+    const acts = ta.parentNode.querySelector('.nota-acts');
+    if (acts && !acts.querySelector('.nota-err')) {
+      const sp = document.createElement('span');
+      sp.className = 'nota-hint nota-err';
+      sp.style.color = 'var(--rd)';
+      sp.textContent = 'No se pudo guardar: ' + e.message;
+      acts.appendChild(sp);
+    }
+  }
+}
+
+// ══════════════════════════════════════════
+//  CHECKBOXES Y ACCIÓN MASIVA
+// ══════════════════════════════════════════
+function toggleRow(id, isChecked) {
+  if (isChecked) {
+    if (!checked.includes(id)) checked.push(id);
+  } else {
+    checked = checked.filter(x => x !== id);
+  }
+  const rows = document.querySelectorAll('#tbody tr');
+  rows.forEach(row => {
+    const cb = row.querySelector('input[type=checkbox]');
+    if (cb) {
+      const rowId = parseInt(cb.getAttribute('onchange').match(/\d+/)[0]);
+      row.classList.toggle('row-sel', checked.includes(rowId));
+    }
+  });
+  updateActionBar();
+}
+
+function toggleAll(masterCb) {
+  const f = filtrados();
+  if (masterCb.checked) {
+    f.forEach(p => { if (!checked.includes(p.id)) checked.push(p.id); });
+  } else {
+    const ids = f.map(p => p.id);
+    checked = checked.filter(id => !ids.includes(id));
+  }
+  render();
+  updateActionBar();
+}
+
+function deselTabla() {
+  checked = [];
+  render();
+  updateActionBar();
+}
+
+function updateActionBar() {
+  const bar = document.getElementById('action-bar');
+  if (checked.length > 0) {
+    bar.classList.add('visible');
+    document.getElementById('ab-count').textContent =
+      `${checked.length} pedido${checked.length > 1 ? 's' : ''} seleccionado${checked.length > 1 ? 's' : ''}`;
+  } else {
+    bar.classList.remove('visible');
+    document.getElementById('ab-estado').value = '';
+  }
+}
+
+async function aplicarMasivo() {
+  const nuevoEstado = document.getElementById('ab-estado').value;
+  if (!nuevoEstado) { alert('Selecciona un estado para aplicar.'); return; }
+  if (!checked.length) return;
+
+  const btn = document.getElementById('ab-btn');
+  btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true;
+
+  // Se informa cuántos alcanzaron a cambiar: antes, si uno fallaba, el aviso
+  // era genérico y no se sabía en qué estado quedó la tanda.
+  const r = await Promise.allSettled(checked.map(id => sbPatch(id, { estado: nuevoEstado })));
+  const malos = r.filter(x => x.status === 'rejected').length;
+  // El cambio masivo NO descarga bodega: no se pueden abrir diez ventanas a la
+  // vez, y descontar a ciegas de la bodega equivocada es peor que no descontar.
+  // Quedan contados en el indicador para hacerlo uno por uno.
+  const avisoBod = bodListo && ['en-ruta','entregado','entregado-sin-facturar'].includes(nuevoEstado)
+    ? '\n\nEl stock NO se descontó: hazlo desde el botón 📦 Descargar de cada fila.' : '';
+  await cargar();
+  document.getElementById('ab-estado').value = '';
+  if (malos) alert(`${r.length - malos} de ${r.length} pedidos se actualizaron. ` +
+                   `${malos} falló(aron); vuelve a intentar con esos.` + avisoBod);
+  else if (avisoBod) alert(`${r.length} pedido(s) actualizados.` + avisoBod);
+  btn.innerHTML = 'Aplicar'; btn.disabled = false;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  DESCARGO DE BODEGA AL DESPACHAR
+//
+//  Cuando un pedido pasa a ruta, el producto sale físicamente de la bodega.
+//  Antes eso se anotaba después, a mano y de memoria; ahora se anota en el
+//  mismo momento, y cada salida queda pegada al pedido y a su factura.
+//
+//  Regla que manda: un movimiento marcado como VENTA exige número de factura.
+//  Está en la pantalla y también en un trigger de la base, para que valga
+//  incluso si alguien escribe por otro camino.
+//
+//  Lo que NUNCA hace: bloquear el despacho. Si bodega falla o falta un dato,
+//  el pedido igual puede salir a ruta con el botón de "sin descontar", y queda
+//  contado en el indicador de pendientes para que no se pierda.
+// ══════════════════════════════════════════════════════════════
+let bodBodegas = [], bodProductos = [], bodMotivos = [], bodSaldos = [];
+let bodPedidosConMov = new Map();   // pedido_id -> nº de movimientos
+let bodListo = false, bodFalla = '';
+
+let ds = { pedido: null, lineas: [], tras: null };   // tras = qué hacer al terminar
+
+const T_BOD_B = 'bod_bodegas', T_BOD_P = 'bod_productos',
+      T_BOD_MO = 'bod_motivos', T_BOD_MV = 'bod_movimientos',
+      T_BOD_S = 'bod_saldos';
+
+// El saldo se lee de la vista bod_saldos en vez de traer el libro completo:
+// son unas cientos de filas en vez de miles, y el número lo calcula Postgres
+// con la misma fórmula que usa la pantalla de bodega.
+async function cargarBodega(forzar) {
+  if (bodListo && !forzar) return true;
+  try {
+    const [b, p, mo, s, mv] = await Promise.all([
+      sbJson(`${T_BOD_B}?select=*&order=nombre.asc`),
+      sbJson(`${T_BOD_P}?select=*&order=nombre.asc`),
+      sbJson(`${T_BOD_MO}?select=*&order=orden.asc,nombre.asc`),
+      sbJson(`${T_BOD_S}?select=bodega_id,producto_id,saldo,minimo`),
+      sbJson(`${T_BOD_MV}?select=id,pedido_id&pedido_id=not.is.null`)
+    ]);
+    bodBodegas = b; bodProductos = p; bodMotivos = mo; bodSaldos = s;
+    bodPedidosConMov = new Map();
+    mv.forEach(x => {
+      const k = String(x.pedido_id);
+      bodPedidosConMov.set(k, (bodPedidosConMov.get(k) || 0) + 1);
+    });
+    bodListo = true; bodFalla = '';
+    return true;
+  } catch (e) {
+    bodListo = false;
+    bodFalla = e.message;
+    return false;
+  }
+}
+
+function bodVivas()    { return bodBodegas.filter(b => b.activa !== false); }
+function bodVigentes() { return bodProductos.filter(p => p.activo !== false); }
+function bodSalidas()  { return bodMotivos.filter(m => m.activo !== false && m.tipo === 'salida'); }
+
+function bodSaldo(bid, pid) {
+  const f = bodSaldos.find(x => String(x.bodega_id) === String(bid) &&
+                                String(x.producto_id) === String(pid));
+  return f ? Number(f.saldo) || 0 : 0;
+}
+
+// La bodega propuesta es la que más tiene de ese producto. Es la respuesta
+// correcta casi siempre y ahorra el clic; igual se puede cambiar.
+function bodMejor(pid) {
+  let mejor = null, max = -Infinity;
+  for (const b of bodVivas()) {
+    const s = bodSaldo(b.id, pid);
+    if (s > max) { max = s; mejor = b; }
+  }
+  return mejor;
+}
+
+function bodMotivo(id) { return bodMotivos.find(m => String(m.id) === String(id)) || null; }
+function esMotivoVenta(id) { const m = bodMotivo(id); return !!(m && m.es_venta); }
+
+// El detalle del pedido está escrito como "Nombre (formato) xCantidad". Se
+// aprovecha para precargar las líneas: lo único que queda por decidir es de
+// qué bodega sale cada cosa.
+function bodPreparar(p) {
+  const lineas = [], fuera = [];
+  splitDet(p.detalle).forEach(it => {
+    const m = it.match(/^(.*?)\s*\(([^)]*)\)\s*[x×]\s*([\d.,]+)$/i);
+    const nombre = m ? m[1].trim() : it.trim();
+    const cant   = m ? Number(String(m[3]).replace(',', '.')) || 1 : null;
+    const fmt    = m ? m[2].trim() : '';
+
+    // Se busca por nombre y formato; si el formato no calza, basta el nombre.
+    let prod = bodVigentes().find(x => normTxt(x.nombre) === normTxt(nombre) &&
+                                       normTxt(x.formato || '') === normTxt(fmt));
+    if (!prod) prod = bodVigentes().find(x => normTxt(x.nombre) === normTxt(nombre));
+
+    if (!prod || cant === null) { fuera.push(it); return; }
+    const b = bodMejor(prod.id);
+    lineas.push({ producto_id: prod.id, bodega_id: b ? b.id : '', cantidad: cant,
+                  motivo_id: '', texto: it });
+  });
+  return { lineas, fuera };
+}
+
+// ── ABRIR ────────────────────────────────────────────────────
+// `tras` es lo que se hace cuando el descargo termina bien: normalmente
+// guardar el pedido con su nuevo estado.
+async function abrirDescargo(pedidoId, tras) {
+  const p = pedidos.find(x => String(x.id) === String(pedidoId));
+  if (!p) return;
+
+  document.getElementById('ds-alert').innerHTML =
+    '<div class="alert ai"><span class="sp"></span>Cargando bodega…</div>';
+  document.getElementById('ds-cuerpo').innerHTML = '';
+  document.getElementById('modal-ds').classList.add('open');
+
+  const ok = await cargarBodega(true);
+  if (!ok) {
+    document.getElementById('ds-alert').innerHTML =
+      `<div class="alert ae">No se pudo leer bodega: ${hesc(bodFalla)}.<br>
+       Puedes despachar igual: el pedido queda marcado como pendiente de descargo.</div>`;
+    ds = { pedido: p, lineas: [], tras: tras || null };
+    pintarDescargo();
+    return;
+  }
+
+  ds = { pedido: p, tras: tras || null, lineas: [], fuera: [] };
+
+  const yaTiene = bodPedidosConMov.get(String(p.id)) || 0;
+  if (!yaTiene) {
+    const prep = bodPreparar(p);
+    ds.lineas = prep.lineas;
+    ds.fuera  = prep.fuera;
+    // Motivo por omisión: venta si hay factura; si no, el primero que no
+    // exija factura. Así la pantalla no propone algo que la base rechazaría.
+    const conFactura = !!String(p.factura_num || '').trim();
+    const venta   = bodSalidas().find(m => m.es_venta);
+    const noVenta = bodSalidas().find(m => !m.es_venta);
+    const def = conFactura ? (venta || noVenta) : (noVenta || null);
+    ds.lineas.forEach(l => { l.motivo_id = def ? def.id : ''; });
+  }
+  document.getElementById('ds-alert').innerHTML = '';
+  pintarDescargo();
+}
+
+function cerrarDescargo() {
+  document.getElementById('modal-ds').classList.remove('open');
+}
+
+// ── PINTAR ───────────────────────────────────────────────────
+function pintarDescargo() {
+  const p = ds.pedido;
+  if (!p) return;
+  const factura = String(p.factura_num || '').trim();
+  const yaTiene = bodPedidosConMov.get(String(p.id)) || 0;
+  const cuerpo = document.getElementById('ds-cuerpo');
+
+  document.getElementById('ds-title').textContent = 'Descargar de bodega — ' + p.emp;
+
+  // Ya descargado: no se ofrece hacerlo de nuevo. Descontar dos veces el mismo
+  // pedido es la forma más fácil de dejar el stock mintiendo.
+  if (yaTiene) {
+    cuerpo.innerHTML = `
+      <div class="alert as" style="line-height:1.6">
+        ✅ Este pedido <b>ya descargó bodega</b>: ${yaTiene} movimiento${yaTiene === 1 ? '' : 's'} registrado${yaTiene === 1 ? '' : 's'}.
+        <div style="font-size:12px;font-weight:700;margin-top:8px">
+          No se vuelve a descontar. Si algo quedó mal anotado, córrígelo desde
+          <b>Bodega → Movimientos → Revertir</b>: ahí queda el error y la corrección,
+          en vez de un descuento doble que nadie puede explicar después.
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:8px">
+        <a class="btn bol bsm" href="bodega.html#movimientos" target="_blank"
+           style="text-decoration:none;display:inline-block">Ver en bodega ↗</a>
+      </div>`;
+    document.getElementById('ds-acciones').innerHTML =
+      `<button class="btn bgray" onclick="cerrarDescargo()">Cerrar</button>
+       ${ds.tras ? `<button class="btn bmora" onclick="terminarDescargo(true)">Continuar sin descontar</button>` : ''}`;
+    return;
+  }
+
+  if (!bodListo) {
+    cuerpo.innerHTML = '';
+    document.getElementById('ds-acciones').innerHTML =
+      `<button class="btn bgray" onclick="cerrarDescargo()">Cancelar</button>
+       ${ds.tras ? `<button class="btn bam2" onclick="terminarDescargo(true)">Despachar sin descontar</button>` : ''}`;
+    return;
+  }
+
+  const opsProd = pid => bodVigentes().map(x =>
+    `<option value="${x.id}" ${String(x.id) === String(pid) ? 'selected' : ''}>${hesc(x.nombre)}${x.formato ? ' · ' + hesc(x.formato) : ''}</option>`).join('');
+  const opsBod = bid => `<option value="">— bodega —</option>` + bodVivas().map(b =>
+    `<option value="${b.id}" ${String(b.id) === String(bid) ? 'selected' : ''}>${hesc(b.nombre)}</option>`).join('');
+  const opsMot = mid => `<option value="">— motivo —</option>` + bodSalidas().map(m =>
+    `<option value="${m.id}" ${String(m.id) === String(mid) ? 'selected' : ''}>${hesc(m.nombre)}${m.es_venta ? ' · venta' : ''}</option>`).join('');
+
+  const filas = ds.lineas.map((l, i) => {
+    const saldo = l.bodega_id ? bodSaldo(l.bodega_id, l.producto_id) : null;
+    const queda = saldo === null ? null : Math.round((saldo - (Number(l.cantidad) || 0)) * 1000) / 1000;
+    const prod = bodProductos.find(x => String(x.id) === String(l.producto_id));
+    const un = prod ? prod.unidad || 'un' : 'un';
+    const esVenta = esMotivoVenta(l.motivo_id);
+    const faltaFact = esVenta && !String(ds.pedido.factura_num || '').trim();
+
+    return `<div class="ds-linea ${faltaFact ? 'mala' : ''}">
+      <div class="ds-campos">
+        <div style="flex:2 1 210px">
+          <label>Producto</label>
+          <select onchange="dsCambiar(${i},'producto_id',this.value)">${opsProd(l.producto_id)}</select>
+        </div>
+        <div style="flex:1 1 130px">
+          <label>Bodega</label>
+          <select onchange="dsCambiar(${i},'bodega_id',this.value)">${opsBod(l.bodega_id)}</select>
+        </div>
+        <div style="flex:0 1 92px">
+          <label>Cantidad</label>
+          <input type="number" min="0" step="0.001" value="${hesc(l.cantidad)}"
+            onchange="dsCambiar(${i},'cantidad',this.value)">
+        </div>
+        <div style="flex:1 1 150px">
+          <label>Qué pasó</label>
+          <select onchange="dsCambiar(${i},'motivo_id',this.value)">${opsMot(l.motivo_id)}</select>
+        </div>
+        <div style="flex:0 0 auto;padding-top:16px">
+          <button class="btn bdng bsm" onclick="dsQuitar(${i})" title="Sacar esta línea">✕</button>
+        </div>
+      </div>
+      <div class="ds-pie">
+        ${saldo === null
+          ? '<span style="color:var(--nd)">Elige la bodega para ver el saldo</span>'
+          : `En bodega hay <b>${saldo}</b> ${hesc(un)} <span style="color:var(--mora-l)">→</span> quedarán <b style="color:${queda < 0 ? 'var(--rd)' : 'inherit'}">${queda}</b>`}
+        ${queda !== null && queda < 0
+          ? ' · <b style="color:var(--rd)">queda negativo, revisa la bodega o el conteo</b>' : ''}
+        ${faltaFact
+          ? ' · <b style="color:var(--rd)">una venta necesita número de factura</b>' : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const fueraHtml = (ds.fuera || []).length
+    ? `<div class="alert an" style="margin-top:12px;line-height:1.55">
+         <b>No se controlan en bodega:</b> ${ds.fuera.map(hesc).join(' · ')}
+         <div style="font-size:11.5px;font-weight:700;margin-top:5px">
+           Estos ítems del pedido no están en el catálogo de bodega, así que no se descuentan.
+           Si quieres controlarlos, agrégalos en <b>Bodega → Configuración → Productos</b>.
+         </div></div>`
+    : '';
+
+  cuerpo.innerHTML = `
+    <div class="ds-cab">
+      <div>
+        <span>Cliente</span><b>${hesc(p.emp)}</b>
+      </div>
+      <div>
+        <span>Factura</span>
+        <b class="${factura ? '' : 'ds-sinfact'}">${factura ? hesc(factura) : 'sin número'}</b>
+      </div>
+      <div>
+        <span>Entrega</span><b>${esRetiro(p) ? '🏢 Retiro' : '🚚 Despacho'}</b>
+      </div>
+    </div>
+
+    ${factura ? '' : `<div class="alert an" style="line-height:1.55">
+      Este pedido <b>no tiene número de factura</b>, así que nada puede marcarse como venta.
+      Escríbelo en el pedido y vuelve, o elige un motivo que no sea de venta —una muestra,
+      por ejemplo— y el stock igual se descuenta.</div>`}
+
+    ${filas || '<div class="empty">No se reconoció ningún producto del pedido. Puedes agregar las líneas a mano.</div>'}
+    ${fueraHtml}
+
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="btn bol bsm" onclick="dsAgregar()">＋ Agregar línea</button>
+      <div style="flex:1"></div>
+      <span style="font-size:12px;font-weight:800;color:var(--mora)" id="ds-resumen"></span>
+    </div>`;
+
+  document.getElementById('ds-acciones').innerHTML = `
+    <button class="btn bgray" onclick="cerrarDescargo()">Cancelar</button>
+    ${ds.tras ? `<button class="btn bam2" onclick="terminarDescargo(true)"
+       title="Cambia el estado del pedido sin tocar el stock">Despachar sin descontar</button>` : ''}
+    <button class="btn bmora" id="ds-guardar" onclick="guardarDescargo()">
+      ${ds.tras ? 'Descontar y despachar' : 'Descontar de bodega'}</button>`;
+
+  // El resumen va al final a propósito: es el que apaga el botón cuando hay
+  // algo sin resolver, y si se pinta antes, la línea de arriba lo vuelve a
+  // crear habilitado.
+  pintarResumenDs();
+}
+
+function pintarResumenDs() {
+  const e = document.getElementById('ds-resumen');
+  if (!e) return;
+  const n = ds.lineas.length;
+  const problemas = dsProblemas();
+  e.innerHTML = `${n} línea${n === 1 ? '' : 's'}` +
+    (problemas.length ? ` · <span style="color:var(--rd)">${problemas.length} por resolver</span>` : '');
+  const b = document.getElementById('ds-guardar');
+  if (b) b.disabled = n === 0 || problemas.length > 0;
+}
+
+function dsProblemas() {
+  const factura = String((ds.pedido || {}).factura_num || '').trim();
+  const out = [];
+  ds.lineas.forEach((l, i) => {
+    if (!l.producto_id) out.push(`Línea ${i + 1}: falta el producto`);
+    if (!l.bodega_id)   out.push(`Línea ${i + 1}: falta la bodega`);
+    if (!l.motivo_id)   out.push(`Línea ${i + 1}: falta decir qué pasó`);
+    if (!(Number(l.cantidad) > 0)) out.push(`Línea ${i + 1}: la cantidad tiene que ser mayor que cero`);
+    if (esMotivoVenta(l.motivo_id) && !factura)
+      out.push(`Línea ${i + 1}: una venta necesita número de factura`);
+  });
+  return out;
+}
+
+function dsCambiar(i, campo, valor) {
+  if (!ds.lineas[i]) return;
+  if (campo === 'cantidad') ds.lineas[i].cantidad = valor;
+  else if (campo === 'producto_id') {
+    ds.lineas[i].producto_id = Number(valor) || valor;
+    // al cambiar el producto, la bodega propuesta cambia con él
+    const b = bodMejor(ds.lineas[i].producto_id);
+    if (b) ds.lineas[i].bodega_id = b.id;
+  }
+  else ds.lineas[i][campo] = valor ? (Number(valor) || valor) : '';
+  pintarDescargo();
+}
+
+function dsQuitar(i) { ds.lineas.splice(i, 1); pintarDescargo(); }
+
+function dsAgregar() {
+  const p = bodVigentes()[0];
+  if (!p) { alert('No hay productos cargados en bodega.'); return; }
+  const b = bodMejor(p.id);
+  const factura = String((ds.pedido || {}).factura_num || '').trim();
+  const venta = bodSalidas().find(m => m.es_venta);
+  const noVenta = bodSalidas().find(m => !m.es_venta);
+  const def = factura ? (venta || noVenta) : (noVenta || null);
+  ds.lineas.push({ producto_id: p.id, bodega_id: b ? b.id : '', cantidad: 1,
+                   motivo_id: def ? def.id : '', texto: '' });
+  pintarDescargo();
+}
+
+// ── GUARDAR ──────────────────────────────────────────────────
+async function guardarDescargo() {
+  const problemas = dsProblemas();
+  if (problemas.length) {
+    document.getElementById('ds-alert').innerHTML =
+      `<div class="alert ae"><b>Falta resolver:</b><br>${problemas.map(hesc).join('<br>')}</div>`;
+    return;
+  }
+  const p = ds.pedido;
+  const factura = String(p.factura_num || '').trim();
+  const b = document.getElementById('ds-guardar');
+  b.disabled = true; b.innerHTML = '<span class="sp"></span>Guardando…';
+  document.getElementById('ds-alert').innerHTML = '';
+
+  // Todas las líneas en un solo envío: o entran todas o no entra ninguna.
+  // Media descarga es peor que ninguna, porque nadie sabe qué falta.
+  const filas = ds.lineas.map(l => ({
+    fecha: fechaHoyISO(),
+    tipo: 'salida',
+    producto_id: Number(l.producto_id),
+    bodega_id: Number(l.bodega_id),
+    bodega_destino_id: null,
+    cantidad: Math.round((Number(l.cantidad) || 0) * 1000) / 1000,
+    motivo_id: Number(l.motivo_id),
+    // El número de factura viaja en `doc` incluso cuando el motivo no es venta:
+    // si mañana se reclasifica, el dato ya está.
+    doc: factura || null,
+    nota: 'Pedido #' + p.id + (p.folio ? ' · ' + p.folio : ''),
+    usuario: quienDescarga(),
+    pedido_id: Number(p.id)
+  }));
+
+  try {
+    await sbSend(T_BOD_MV, 'POST', filas);
+    bodPedidosConMov.set(String(p.id), filas.length);
+    await terminarDescargo(false, filas.length);
+  } catch (e) {
+    const msg = String(e.message);
+    document.getElementById('ds-alert').innerHTML =
+      `<div class="alert ae" style="line-height:1.55">
+         <b>No se pudo descargar bodega.</b> ${hesc(msg)}
+         ${/factura/i.test(msg) ? '<br>La base rechazó una venta sin número de factura.' : ''}
+         <div style="font-size:12px;font-weight:700;margin-top:8px">
+           El pedido no cambió de estado. Puedes corregir y reintentar, o despacharlo
+           sin descontar y anotar el movimiento después en Bodega.
+         </div></div>`;
+    b.disabled = false; b.innerHTML = ds.tras ? 'Descontar y despachar' : 'Descontar de bodega';
+  }
+}
+
+// Cierra el flujo: si venía de un cambio de estado, lo ejecuta ahora.
+async function terminarDescargo(sinDescontar, cuantas) {
+  const tras = ds.tras;
+  cerrarDescargo();
+  if (typeof tras === 'function') await tras();
+  if (sinDescontar) {
+    avisoLargo('Pedido despachado sin descontar bodega. Queda en el indicador de pendientes.');
+  } else if (cuantas) {
+    avisoLargo(`✅ ${cuantas} salida${cuantas === 1 ? '' : 's'} registrada${cuantas === 1 ? '' : 's'} en bodega.`);
+  }
+  await cargarBodega(true);
+  render();
+}
+
+// El nombre con el que se firma. Se comparte con bodega.html a propósito:
+// es la misma persona anotando en las dos pantallas.
+function quienDescarga() {
+  try { return localStorage.getItem('nativo_bodega_quien') || 'panel'; }
+  catch (_) { return 'panel'; }
+}
+
+// La fecha del sistema tiene que ser la del galpón, no la de Greenwich.
+function fechaHoyISO() {
+  const d = new Date(), z = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`;
+}
+
+function avisoLargo(msg) {
+  const el = document.getElementById('cl-alert') || document.getElementById('anv');
+  if (el) { el.innerHTML = `<div class="alert as">${hesc(msg)}</div>`;
+            setTimeout(() => { el.innerHTML = ''; }, 6000); }
+}
+
+// ── PEDIDOS DESPACHADOS SIN DESCARGO ─────────────────────────
+// El hueco a vigilar. Sin esto, el stock queda alto y la diferencia recién
+// aparece en el conteo físico, cuando ya nadie recuerda qué pasó.
+function pedidosSinDescargo() {
+  if (!bodListo) return [];
+  return pedidos.filter(p =>
+    ['en-ruta', 'entregado', 'entregado-sin-facturar'].includes(p.estado) &&
+    !bodPedidosConMov.has(String(p.id)));
+}
+
+function verSinDescargo() {
+  document.getElementById('festado').value = '';
+  document.getElementById('fentrega').value = '';
+  document.getElementById('buscar').value = '';
+  filtroSinDescargo = true;
+  render();
+  document.getElementById('tbody').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+let filtroSinDescargo = false;
+
+// ══════════════════════════════════════════
+//  ZONA PROPUESTA DESDE LA COMUNA
+// ══════════════════════════════════════════
+// Correspondencia comuna → zona. Solo PROPONE: siempre puedes cambiarla antes
+// de guardar. Si alguna comuna quedó en la zona equivocada, corrígela aquí.
+const ZONA_DE_COMUNA = {
+  santiago: ['lo barnechea','las condes','vitacura','providencia','nunoa','la reina','penalolen','macul',
+    'la florida','puente alto','san jose de maipo','pirque','la pintana','el bosque','la cisterna','san ramon',
+    'la granja','san miguel','pedro aguirre cerda','lo espejo','san joaquin','estacion central','cerrillos',
+    'maipu','padre hurtado','penaflor','talagante','el monte','isla de maipo','buin','paine','calera de tango',
+    'san bernardo','quilicura','conchali','huechuraba','recoleta','independencia','renca','quinta normal',
+    'cerro navia','lo prado','pudahuel','colina','lampa','tiltil','chamisero','santiago centro','santiago',
+    'curacavi','melipilla'],
+  litoral: ['vina del mar','renaca','concon','valparaiso','quilpue','villa alemana','zapallar','maitencillo',
+    'cachagua','papudo','san antonio','algarrobo','el quisco','el tabo','cartagena','casablanca'],
+  norte: ['la serena','coquimbo','iquique','antofagasta'],
+  sur: ['concepcion','temuco','pucon','villarrica','valdivia','osorno','puerto varas','puerto montt',
+    'rancagua','curico','talca','chillan','los angeles']
+};
+
+const COMUNA_A_ZONA = (() => {
+  const m = new Map();
+  Object.entries(ZONA_DE_COMUNA).forEach(([z, l]) => l.forEach(c => m.set(c, z)));
+  return m;
+})();
+
+// Devuelve { zona, comuna } o null si la dirección no permite decidir
+function zonaDeDir(d) {
+  const com = comunaDe(d);
+  if (!com) return null;
+  const z = COMUNA_A_ZONA.get(sinTilde(com).toLowerCase());
+  return z ? { zona: z, comuna: com } : null;
+}
+
+// Propone la zona en un select, sin pisar una elección ya hecha
+function proponerZona(idSelect, idNota, dir) {
+  const sel = document.getElementById(idSelect);
+  const nota = document.getElementById(idNota);
+  if (!sel) return;
+  if (nota) { nota.style.display = 'none'; nota.textContent = ''; }
+  if (sel.value) return;                       // ya tiene zona: no se toca
+  const p = zonaDeDir(dir);
+  if (!p) return;
+  sel.value = p.zona;
+  if (nota) {
+    nota.textContent = `Propuesta a partir de “${p.comuna}”. Cámbiala si no corresponde.`;
+    nota.style.display = 'block';
+  }
+}
+
+const proponerZonaManual = () =>
+  proponerZona('nzona', 'nzona-nota', document.getElementById('ndir').value);
+const proponerZonaSuc = () =>
+  proponerZona('mszona', 'mszona-nota', document.getElementById('msdir').value);
+
+// ══════════════════════════════════════════
+//  AGREGAR PEDIDO (entrada manual)
+// ══════════════════════════════════════════
+// En un retiro, la dirección y la zona dejan de ser obligatorias: no hay a
+// dónde despachar. La dirección se guarda si está, porque es dato del cliente.
+function manualEntregaCambio() {
+  const ret = document.getElementById('nentrega').value === 'retiro';
+  document.getElementById('nzona-req').style.display = ret ? 'none' : '';
+  document.getElementById('ndir-req').style.display  = ret ? 'none' : '';
+}
+
+async function agregar() {
+  const emp      = document.getElementById('nemp').value.trim();
+  const rut      = document.getElementById('nrut').value.trim();
+  const dir      = document.getElementById('ndir').value.trim();
+  const zona     = document.getElementById('nzona').value;
+  const det      = document.getElementById('ndet').value.trim();
+  const fact     = document.getElementById('nfact').value.trim();
+  const fecha    = document.getElementById('nfecha').value.trim() || hoy();
+  const contacto = document.getElementById('ncontacto').value.trim();
+  const tel      = document.getElementById('ntel').value.trim();
+  const entrega  = document.getElementById('nentrega').value === 'retiro' ? 'retiro' : 'despacho';
+  const ret      = entrega === 'retiro';
+
+  if (!emp || !rut || !det || (!ret && (!dir || !zona)))
+    return alerta('anv', ret
+      ? 'Completa empresa, RUT y detalle.'
+      : 'Completa los campos obligatorios (empresa, RUT, dirección, zona y detalle).', 'ae');
+
+  const btn = document.getElementById('bagregar');
+  btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
+
+  try {
+    await sbPost({
+      emp, rut, dir, zona: ret ? '' : zona, detalle: det,
+      factura_num: fact, factura_nombre: '',
+      estado: 'pendiente', fecha, entrega,
+      contacto, telefono: tel,
+      fecha_entrega: '', recibe: '', comentario: ''
+    });
+    alerta('anv', '✅ Pedido guardado correctamente.', 'as');
+    ['nemp','nrut','ndir','ndet','nfact','ncontacto','ntel'].forEach(id =>
+      document.getElementById(id).value = ''
+    );
+    document.getElementById('nzona').value = '';
+    document.getElementById('nzona-nota').style.display = 'none';
+    document.getElementById('nfecha').value = hoy();
+    await cargar();
+  } catch(e) {
+    alerta('anv', 'Error guardando: ' + hesc(e.message), 'ae');
+  }
+  btn.innerHTML = 'Guardar Pedido'; btn.disabled = false;
+}
+
+// ══════════════════════════════════════════
+//  MODAL EDITAR
+// ══════════════════════════════════════════
+function modalEntregaCambio() {
+  const ret = document.getElementById('mentrega').value === 'retiro';
+  document.getElementById('mzona-box').style.display = ret ? 'none' : '';
+  document.getElementById('mfentrega-lbl').textContent = ret ? 'Fecha y hora de retiro' : 'Fecha de Entrega';
+  document.getElementById('mrecibe-lbl').textContent   = ret ? 'Quién retira' : 'Recibe';
+  document.getElementById('mfentrega').placeholder = ret ? 'DD/MM/AAAA 11:00' : 'DD/MM/AAAA';
+}
+
+function abrir(id) {
+  const p = pedidos.find(x => x.id === id);
+  if (!p) return;
+  eid = id;
+  const ret = esRetiro(p);
+
+  document.getElementById('m-folio').innerHTML = p.folio
+    ? `<div class="alert ai" style="display:flex;align-items:center;gap:8px">
+         <span>Folio del cliente</span><b class="folio" style="font-size:14px">${hesc(p.folio)}</b></div>`
+    : '';
+
+  document.getElementById('mentrega').value  = ret ? 'retiro' : 'despacho';
+  document.getElementById('mzona').value     = p.zona          || '';
+  document.getElementById('mestado').value   = p.estado        || 'pendiente';
+  document.getElementById('memp').value      = p.emp           || '';
+  document.getElementById('mdir').value      = p.dir           || '';
+  document.getElementById('mdet').value      = p.detalle       || '';
+  document.getElementById('mfact').value     = p.factura_num   || '';
+  document.getElementById('mfecha').value    = p.fecha         || '';
+  document.getElementById('mcontacto').value = p.contacto      || '';
+  document.getElementById('mtel').value      = p.telefono      || '';
+  document.getElementById('mfentrega').value = p.fecha_entrega || '';
+  document.getElementById('mrecibe').value   = p.recibe        || '';
+  document.getElementById('mcom').value      = p.comentario    || '';
+
+  const msg = String(p.mensaje || '').trim();
+  document.getElementById('m-mensaje-box').style.display = msg ? '' : 'none';
+  document.getElementById('m-mensaje').textContent = msg;
+
+  modalEntregaCambio();
+  // Los pedidos del portal llegan sin zona. Si la dirección permite deducirla,
+  // se propone al abrir para no tener que pensarla cada vez.
+  if (!ret) proponerZona('mzona', 'mzona-nota', p.dir || '');
+
+  document.getElementById('modal').classList.add('open');
+}
+
+function cerrar() { document.getElementById('modal').classList.remove('open'); }
+
+async function guardar() {
+  const btn = document.getElementById('bguardar');
+
+  // Si el pedido está saliendo a la calle recién ahora, es el momento de
+  // anotar qué salió de bodega: el producto está a la vista y la factura
+  // está en la mano. Anotarlo después es anotarlo de memoria.
+  const antes  = (pedidos.find(x => String(x.id) === String(eid)) || {}).estado;
+  const ahora  = document.getElementById('mestado').value;
+  const saliendo = ahora !== antes &&
+    ['en-ruta', 'entregado', 'entregado-sin-facturar'].includes(ahora);
+
+  if (saliendo && !dsSaltar) {
+    cerrar();
+    await abrirDescargo(eid, async () => { dsSaltar = true; await guardar(); dsSaltar = false; });
+    return;
+  }
+
+  btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true;
+
+  const entrega = document.getElementById('mentrega').value === 'retiro' ? 'retiro' : 'despacho';
+  const row = {
+    entrega,
+    zona:          entrega === 'retiro' ? '' : document.getElementById('mzona').value,
+    estado:        document.getElementById('mestado').value,
+    emp:           document.getElementById('memp').value.trim(),
+    dir:           document.getElementById('mdir').value.trim(),
+    detalle:       document.getElementById('mdet').value.trim(),
+    factura_num:   document.getElementById('mfact').value.trim(),
+    fecha:         document.getElementById('mfecha').value.trim(),
+    contacto:      document.getElementById('mcontacto').value.trim(),
+    telefono:      document.getElementById('mtel').value.trim(),
+    fecha_entrega: document.getElementById('mfentrega').value.trim(),
+    recibe:        document.getElementById('mrecibe').value.trim(),
+    comentario:    document.getElementById('mcom').value.trim()
+    // `mensaje` no se envía a propósito: lo escribió el cliente y no se toca.
+  };
+
+  try {
+    await sbPatch(eid, row);
+    await cargar();
+    cerrar();
+  } catch(e) {
+    alert('Error guardando: ' + e.message);
+  }
+  btn.innerHTML = 'Guardar'; btn.disabled = false;
+}
+
+async function eliminar() {
+  if (!confirm('¿Eliminar este pedido? Esta acción no se puede deshacer.')) return;
+  try {
+    await sbDelete(eid);
+    await cargar();
+    cerrar();
+  } catch(e) {
+    alert('Error eliminando. Intenta de nuevo.');
+  }
+}
+
+// ══════════════════════════════════════════
+//  EXPORTAR CSV
+// ══════════════════════════════════════════
+function exportCSV() {
+  const data = filtrados();
+  if (!data.length) { alert('No hay pedidos para exportar con los filtros actuales.'); return; }
+
+  const headers = [
+    'ID','Folio','Fecha','Empresa','RUT','Contacto','Teléfono',
+    'Entrega','Dirección','Zona','Detalle','Mensaje del cliente','Estado','Factura N°',
+    'Fecha Entrega/Retiro','Recibe/Retira','Comentario interno'
+  ];
+
+  // El prefijo ' evita que Excel ejecute un campo que empiece con = + - @
+  const esc = v => {
+    let t = String(v == null ? '' : v);
+    if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;
+    return `"${t.replace(/"/g,'""')}"`;
+  };
+
+  const rows = data.map(p => [
+    p.id, p.folio||'', p.fecha||'', p.emp, p.rut,
+    p.contacto||'', p.telefono||'',
+    esRetiro(p) ? 'Retiro en oficina' : 'Despacho',
+    p.dir, p.zona||'', p.detalle||'', p.mensaje||'',
+    estadoLabel(p.estado), p.factura_num||'',
+    p.fecha_entrega||'', p.recibe||'', p.comentario||''
+  ].map(esc).join(';'));
+
+  const csv = [headers.map(esc).join(';'), ...rows].join('\r\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `nativo-pedidos-${hoy().replace(/\//g,'-')}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════
+//  ARMAR RUTA
+// ══════════════════════════════════════════
+// Los retiros NO entran: el cliente los viene a buscar. Si entraran, podrías
+// despachar algo que ya estaba coordinado para retiro.
+function renderChecksRuta() {
+  const facturados = pedidos.filter(p => p.estado === 'facturado');
+  const f = facturados.filter(p => !esRetiro(p));
+  const nret = facturados.length - f.length;
+
+  document.getElementById('ruta-aviso').innerHTML = nret
+    ? `<div class="alert an">🏢 ${nret} pedido${nret > 1 ? 's' : ''} facturado${nret > 1 ? 's' : ''}
+         ${nret > 1 ? 'quedaron' : 'quedó'} fuera de la ruta porque ${nret > 1 ? 'son retiros' : 'es un retiro'} en oficina.</div>`
+    : '';
+
+  // si un retiro estaba seleccionado de antes, se saca de la selección
+  const validos = new Set(f.map(p => p.id));
+  selRuta = selRuta.filter(id => validos.has(id));
+
+  const el = document.getElementById('checks');
+  if (!f.length) {
+    el.innerHTML = '<p style="color:var(--textl);font-size:13px;padding:8px;font-weight:700">No hay pedidos facturados para despachar.</p>';
+    return;
+  }
+  el.innerHTML = f.map(p => `
+    <div class="ci ${selRuta.includes(p.id) ? 'sel' : ''}" id="ci${p.id}" onclick="togRuta(${p.id})">
+      <input type="checkbox" id="cb${p.id}" ${selRuta.includes(p.id) ? 'checked' : ''}
+        onclick="event.stopPropagation(); togRuta(${p.id})">
+      <div style="flex:1">
+        <div style="font-weight:800;font-size:13px;color:var(--mora-d)">
+          ${hesc(p.emp)} ${zbadge(p.zona)}
+        </div>
+        <div style="font-size:12px;color:var(--textl);margin-top:2px;font-weight:600">📍 ${hesc(p.dir)}</div>
+        ${p.telefono ? `<div style="font-size:12px;color:var(--textl);font-weight:600">📞 ${hesc(p.telefono)}</div>` : ''}
+        <div style="font-size:12px;color:var(--textl);margin-top:2px;font-weight:600">
+          📦 ${hesc((p.detalle||'').slice(0,100))}${(p.detalle||'').length > 100 ? '…' : ''}
+        </div>
+        ${String(p.mensaje||'').trim() ? `<div class="msg-cli">💬 <b>Cliente:</b> ${hesc(p.mensaje)}</div>` : ''}
+        ${String(p.comentario||'').trim() ? `<div class="nota-int">🔒 <b>Nota:</b> ${hesc(p.comentario)}</div>` : ''}
+        ${p.factura_num ? `<div style="font-size:11px;color:var(--mora-l);margin-top:2px;font-weight:700">Factura N° ${hesc(p.factura_num)}</div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function togRuta(id) {
+  selRuta = selRuta.includes(id) ? selRuta.filter(x => x !== id) : [...selRuta, id];
+  const cb   = document.getElementById('cb'  + id);
+  const card = document.getElementById('ci'  + id);
+  if (cb)   cb.checked = selRuta.includes(id);
+  if (card) card.classList.toggle('sel', selRuta.includes(id));
+}
+
+function deselRuta() {
+  selRuta = [];
+  document.querySelectorAll('#checks input[type=checkbox]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('#checks .ci').forEach(c => c.classList.remove('sel'));
+}
+
+function genPrompt() {
+  if (!selRuta.length) { alert('Selecciona al menos un pedido.'); return; }
+  const s    = pedidos.filter(p => selRuta.includes(p.id));
+  const fecha = new Date().toLocaleDateString('es-CL', {
+    weekday:'long', year:'numeric', month:'long', day:'numeric'
+  });
+  const lista = s.map((p, i) =>
+    `\nPEDIDO ${i+1}:\n` +
+    `- Cliente: ${p.emp}\n` +
+    `- RUT: ${p.rut}\n` +
+    (p.folio ? `- Folio: ${p.folio}\n` : '') +
+    (p.contacto ? `- Contacto: ${p.contacto}\n` : '') +
+    (p.telefono ? `- Teléfono: ${p.telefono}\n` : '') +
+    `- Dirección: ${p.dir}${p.zona ? ' (' + p.zona + ')' : ''}\n` +
+    `- Productos: ${p.detalle || 'Sin detalle'}\n` +
+    (String(p.mensaje||'').trim() ? `- Mensaje del cliente: ${p.mensaje}\n` : '') +
+    `- Fecha: ${p.fecha || 'N/A'}` +
+    (p.factura_num ? `\n- Factura N°: ${p.factura_num}` : '')
+  ).join('\n');
+
+  const txt =
+    `Necesito que organices la ruta de despacho más eficiente para hoy ${fecha}.\n\n` +
+    `Punto de partida: Alejandro Serani Sur 9447, Santiago de Chile.\n\n` +
+    `Pedidos a entregar:\n${lista}\n\n` +
+    `Por favor:\n` +
+    `1. Ordena los pedidos minimizando tiempo y combustible, considerando la geografía real de Santiago.\n` +
+    `2. Para cada parada:\n\n` +
+    `📍 PARADA [N] — [CLIENTE]\n` +
+    `Cliente: [Nombre]\n` +
+    `Dirección: [Dirección]\n` +
+    `Productos: [Detalle]\n` +
+    `🗺 Google Maps: https://www.google.com/maps/dir/?api=1&destination=[DIRECCIÓN CODIFICADA]&travelmode=driving\n\n` +
+    `3. Al final: total por zona, estimación del recorrido y justificación del orden.`;
+
+  document.getElementById('pres').style.display = 'block';
+  document.getElementById('pout').textContent   = txt;
+}
+
+function copiar() {
+  navigator.clipboard.writeText(document.getElementById('pout').textContent).then(() => {
+    const b = document.querySelector('.bcopy');
+    b.textContent = '✅ ¡Copiado! Pégalo en Claude';
+    setTimeout(() => b.textContent = '📋 Copiar y pegar en Claude', 3000);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CATÁLOGO DE PRODUCTOS (espejo de index.html)
+// ══════════════════════════════════════════════════════════════
 const CATS = [
   {id:'baldes', icon:'🧊', label:'Baldes Congelados', items:[
     {n:'Balde Acai Nativo', f:'3,6 L'},
@@ -477,31 +2273,27 @@ const CATS = [
   ]}
 ];
 
-let sess = {}, qtys = {}, confirmando = false;
-
-// 'despacho' o 'retiro'. Vive junto al pedido, no en la sesión del cliente:
-// alguien puede pedir despacho hoy y retiro la próxima vez.
-let entrega = 'despacho';
+const PRODS = [];
+CATS.forEach(c => c.items.forEach((it, i) =>
+  PRODS.push({ id: c.id + '-' + i, cat: c.id, n: it.n, f: it.f })
+));
+const prodById = id => PRODS.find(p => p.id === id) || null;
 
 // ══════════════════════════════════════════════════════════════
-//  UTILIDADES
+//  HELPERS DIRECTORIO
 // ══════════════════════════════════════════════════════════════
-// Todo lo que escribe el cliente pasa por aquí antes de insertarse en la
-// página. Son sus propios datos, así que el riesgo es bajo, pero un nombre de
-// empresa con un signo < no tiene por qué descuadrar el documento.
-function esc(v) {
-  return String(v == null ? '' : v).replace(/[&<>"']/g,
-    c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-}
+// Espejo exacto de las funciones nativo_* del script directorio-v2.sql
+const normRut = r => String(r == null ? '' : r).toUpperCase().replace(/[^0-9K]/g, '');
+const normTxt = s => String(s == null ? '' : s).trim().toLowerCase().replace(/\s+/g, ' ');
+const sinTilde = s => String(s == null ? '' : s).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-// Verifica el dígito verificador del RUT. Solo sirve para avisar:
-// nunca impide enviar el pedido.
-function rutOk(r) {
-  const v = String(r || '').toUpperCase().replace(/[^0-9K]/g, '');
+// RUT válido = pasa el dígito verificador y no es de relleno (11.111.111-1, etc.)
+function rutValido(r) {
+  const v = normRut(r);
   if (v.length < 8 || v.length > 9) return false;
   const cuerpo = v.slice(0, -1), d = v.slice(-1);
   if (!/^[0-9]+$/.test(cuerpo)) return false;
-  if (new Set(cuerpo).size === 1) return true;   // 11.111.111-1 es placeholder válido
+  if (new Set(cuerpo).size === 1) return false;
   let s = 0, m = 2;
   for (let i = cuerpo.length - 1; i >= 0; i--) {
     s += parseInt(cuerpo[i], 10) * m;
@@ -511,472 +2303,1192 @@ function rutOk(r) {
   return (r2 === 11 ? '0' : r2 === 10 ? 'K' : String(r2)) === d;
 }
 
-function avisoRut() {
-  const el = document.getElementById('rut-inp');
-  const av = document.getElementById('rut-aviso');
-  const v  = el.value.replace(/[^0-9kK]/g, '');
-  if (v.length < 8) { av.style.display = 'none'; el.style.borderColor = ''; return; }
-  if (rutOk(el.value)) {
-    av.style.display = 'none';
-    el.style.borderColor = '';
-  } else {
-    av.style.display = 'block';
-    av.textContent = v.length > 9
-      ? '⚠️ Ese RUT tiene demasiados dígitos. ¿Escribiste el teléfono por error?'
-      : '⚠️ Revisa el RUT, parece que hay un dígito cambiado. Puedes continuar igual.';
-    el.style.borderColor = '#f59e0b';
+const LEGAL = /\b(spa|sa|ltda|limitada|eirl|ltd|cia|compania|sociedad|comercial|comercializadora|inversiones|servicios|alimentos|importadora|distribuidora)\b/g;
+const STOP  = /\b(de|del|la|el|los|las|y|e)\b/g;
+
+// Nombre comparable: sin tildes, sin puntuación, sin sufijos societarios
+function nombreNorm(s) {
+  let x = sinTilde(s).toLowerCase().replace(/[^a-z0-9 ]/g, ' ');
+  x = x.replace(LEGAL, ' ').replace(STOP, ' ');
+  return x.replace(/\s+/g, ' ').trim();
+}
+
+// Clave de dirección "calle|numero": ignora AV/AVENIDA, local, comuna, tildes
+function dirKey(d) {
+  let s = sinTilde(d).toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+  s = s.replace(/^(direccion de despacho|direccion|despacho|dir)\s+/, '');
+  s = s.replace(/^(av|avda|avenida|calle|psje|pasaje)\s+/, '');
+  const m = s.match(/^(.*?)\b(\d{2,6})\b/);
+  if (!m) return '';
+  const calle = m[1].trim();
+  return calle ? calle + '|' + m[2] : '';
+}
+const dirKeyF = d => dirKey(d) || ('x:' + normTxt(d));
+
+const COMUNAS = ['lo barnechea','las condes','vitacura','providencia','nunoa','la reina','penalolen','macul',
+ 'la florida','puente alto','san jose de maipo','pirque','la pintana','el bosque','la cisterna','san ramon',
+ 'la granja','san miguel','pedro aguirre cerda','lo espejo','san joaquin','estacion central','cerrillos','maipu',
+ 'padre hurtado','penaflor','talagante','el monte','isla de maipo','buin','paine','calera de tango','san bernardo',
+ 'quilicura','conchali','huechuraba','recoleta','independencia','renca','quinta normal','cerro navia','lo prado',
+ 'pudahuel','colina','lampa','tiltil','chamisero','santiago centro','santiago','vina del mar','renaca','concon',
+ 'valparaiso','quilpue','villa alemana','zapallar','maitencillo','cachagua','papudo','la serena','coquimbo',
+ 'iquique','antofagasta','concepcion','temuco','pucon','villarrica','valdivia','osorno','puerto varas',
+ 'puerto montt','rancagua','curico','talca','chillan','los angeles','san antonio','algarrobo','el quisco',
+ 'el tabo','cartagena','casablanca','curacavi','melipilla'];
+
+function comunaDe(d) {
+  const s = ' ' + sinTilde(d).toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+  for (const c of COMUNAS) if (s.includes(' ' + c + ' '))
+    return c.replace(/\b\w/g, m => m.toUpperCase());
+  return '';
+}
+
+// Distancia de edición, para detectar tipeos
+function leven(a, b) {
+  if (a === b) return 0;
+  const m = a.length, n = b.length;
+  if (!m || !n) return m || n;
+  let prev = Array.from({ length: n + 1 }, (_, i) => i);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++)
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
   }
+  return prev[n];
 }
+const similar = (a, b) => {
+  if (!a || !b) return false;
+  const L = Math.max(a.length, b.length);
+  if (L < 5) return false;
+  const tol = Math.max(1, Math.floor(L / 8));
+  // La distancia de edición nunca es menor que la diferencia de largos, así que
+  // si ya se pasa del tope se descarta sin calcularla. Mismo resultado, mucho
+  // más rápido: con cientos de clientes esto se ejecuta miles de veces.
+  if (Math.abs(a.length - b.length) > tol) return false;
+  return leven(a, b) <= tol;
+};
 
-// Mismo criterio que el RUT: avisa, no bloquea. Un email mal escrito significa
-// que no vas a poder responderle el pedido a ese cliente.
-const emailOk = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(e || '').trim());
-
-function avisoEmail() {
-  const el = document.getElementById('email-inp');
-  const av = document.getElementById('email-aviso');
-  const v  = el.value.trim();
-  if (v.length < 5 || emailOk(v)) {
-    av.style.display = 'none'; el.style.borderColor = '';
-  } else {
-    av.style.display = 'block';
-    av.textContent = '⚠️ Revisa el email, parece incompleto. Puedes continuar igual.';
-    el.style.borderColor = '#f59e0b';
+// Une direcciones con el mismo número y la calle con un tipeo
+// ("AV LAUTRO 2115" y "Av Lautaro 2115"). Mismo criterio que el SQL.
+function fusionarDirs(dirs) {
+  const ks = [...dirs.keys()].filter(k => k.includes('|') && !k.startsWith('x:'));
+  for (let i = 0; i < ks.length; i++) {
+    for (let j = i + 1; j < ks.length; j++) {
+      const a = ks[i], b = ks[j];
+      if (!dirs.has(a) || !dirs.has(b)) continue;
+      const [ca, na] = a.split('|'), [cb, nb] = b.split('|');
+      if (na !== nb || ca.length < 6) continue;
+      const dist = leven(ca, cb);
+      if (dist < 1 || dist > 2) continue;
+      const keep = dirs.get(a).dirs.length >= dirs.get(b).dirs.length ? a : b;
+      const dup  = keep === a ? b : a;
+      const K = dirs.get(keep), D = dirs.get(dup);
+      K.dirs = K.dirs.concat(D.dirs);
+      if (!K.zona && D.zona)         K.zona     = D.zona;
+      if (!K.contacto && D.contacto) K.contacto = D.contacto;
+      if (!K.telefono && D.telefono) K.telefono = D.telefono;
+      dirs.delete(dup);
+    }
   }
+  return dirs;
 }
 
-function fmtR(el) {
-  let v = el.value.replace(/[^0-9kK]/g, '');
-  if (v.length < 2) { el.value = v; return; }
-  let b = v.slice(0, -1), d = v.slice(-1).toUpperCase();
-  b = b.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  el.value = b + '-' + d;
+// ── CLAVE DE AGRUPACIÓN ──
+// El RUT manda. Si no es válido, se usa el nombre normalizado; y si ese nombre
+// ya se usó alguna vez con un RUT válido, el pedido se engancha a ese cliente.
+function mapaNombreRut() {
+  const acc = new Map();
+  pedidos.forEach(p => {
+    if (!rutValido(p.rut)) return;
+    const n = nombreNorm(p.emp);
+    if (!n) return;
+    if (!acc.has(n)) acc.set(n, new Set());
+    acc.get(n).add(normRut(p.rut));
+  });
+  const m = new Map();
+  acc.forEach((v, k) => { if (v.size === 1) m.set(k, 'R:' + [...v][0]); });
+  return m;
+}
+function clavePedido(p, n2r) {
+  if (rutValido(p.rut)) return 'R:' + normRut(p.rut);
+  const n = nombreNorm(p.emp);
+  if (!n) return '';
+  return (n2r && n2r.get(n)) || ('N:' + n);
+}
+const claveCliente = c => c.clave ||
+  (rutValido(c.rut) ? 'R:' + normRut(c.rut) : 'N:' + nombreNorm(c.emp));
+
+// Grafía canónica: la más usada ignorando mayúsculas y tildes
+function nombreCanonico(nombres) {
+  const g = new Map();
+  nombres.forEach(n => {
+    const k = sinTilde(n).toLowerCase();
+    g.set(k, (g.get(k) || 0) + 1);
+  });
+  let win = '', top = -1;
+  g.forEach((v, k) => { if (v > top) { top = v; win = k; } });
+  const cand = nombres.filter(n => sinTilde(n).toLowerCase() === win);
+  const puntaje = n => (n !== n.toUpperCase() ? 1000 : 0) + (n !== sinTilde(n) ? 100 : 0) - n.length / 100;
+  return cand.sort((a, b) => puntaje(b) - puntaje(a))[0] || nombres[0] || '';
 }
 
-function showScreen(id) {
-  ['screen-login', 'screen-catalogo', 'screen-oc'].forEach(s => {
-    const el = document.getElementById(s);
-    el.style.display = s === id ? (id === 'screen-login' ? 'flex' : 'block') : 'none';
+const findCli = id => clientes.find(c => String(c.id) === String(id)) || null;
+const findSuc = id => sucursales.find(s => String(s.id) === String(id)) || null;
+const sucsDe  = c  => c ? sucursales.filter(s => String(s.cliente_id) === String(c.id)) : [];
+
+let n2r = new Map();   // nombre normalizado -> clave de cliente con RUT válido
+
+// ══════════════════════════════════════════════════════════════
+//  ÍNDICE DE PEDIDOS POR CLIENTE Y SUCURSAL
+// ══════════════════════════════════════════════════════════════
+// Antes, cada pregunta del tipo "cuántos pedidos tiene esta sucursal" recorría
+// los pedidos completos. Dentro de la revisión de duplicados, que compara todos
+// los clientes contra todos, eso significaba millones de operaciones: con 180
+// clientes y 433 pedidos, casi 14 millones cada vez que abrías Clientes.
+//
+// Ahora se recorre una sola vez y se guarda el resultado. El comportamiento es
+// el mismo; lo que cambia es que se calcula una vez en lugar de miles.
+let idx = { nCli:new Map(), nSuc:new Map(), ultCli:new Map(), ultSuc:new Map() };
+
+function indexar() {
+  n2r = mapaNombreRut();
+
+  const porId    = new Map(), porClave = new Map();
+  clientes.forEach(c => { porId.set(String(c.id), c); porClave.set(claveCliente(c), c); });
+  const sucPorId = new Map(), sucPorDir = new Map();
+  sucursales.forEach(s => {
+    sucPorId.set(String(s.id), s);
+    sucPorDir.set(String(s.cliente_id) + '|' + dirKeyF(s.dir), s);
+  });
+
+  idx = { nCli:new Map(), nSuc:new Map(), ultCli:new Map(), ultSuc:new Map() };
+
+  // `pedidos` viene ordenado created_at.desc, así que el primero que se ve de
+  // cada cliente o sucursal es el más reciente.
+  pedidos.forEach(p => {
+    let c = null;
+    if (p.cliente_id != null) {
+      const cand = porId.get(String(p.cliente_id));
+      if (cand && !cand._local) c = cand;
+    }
+    if (!c) c = porClave.get(clavePedido(p, n2r));
+    if (!c) return;
+
+    const kc = String(c.id);
+    idx.nCli.set(kc, (idx.nCli.get(kc) || 0) + 1);
+    if (!idx.ultCli.has(kc)) idx.ultCli.set(kc, p);
+
+    let s = null;
+    if (p.sucursal_id != null) {
+      const cand = sucPorId.get(String(p.sucursal_id));
+      if (cand && !cand._local) s = cand;
+    }
+    if (!s) s = sucPorDir.get(kc + '|' + dirKeyF(p.dir));
+    if (!s) return;
+
+    const ks = kc + '|' + String(s.id);
+    idx.nSuc.set(ks, (idx.nSuc.get(ks) || 0) + 1);
+    if (!idx.ultSuc.has(ks)) idx.ultSuc.set(ks, p);
   });
 }
 
-// ══════════════════════════════════════════════════════════════
-//  LOGIN
-// ══════════════════════════════════════════════════════════════
-function login() {
-  const dato = id => document.getElementById(id).value.trim();
-  const rut = dato('rut-inp'), emp = dato('emp-inp'), dir = dato('dir-inp');
-  const email = dato('email-inp'), contacto = dato('contacto-inp'), tel = dato('tel-inp');
+const nPedidosCli  = c     => idx.nCli.get(String(c.id)) || 0;
+const ultPedidoCli = c     => idx.ultCli.get(String(c.id)) || null;
+const nPedidosSuc  = (c,s) => idx.nSuc.get(String(c.id) + '|' + String(s.id)) || 0;
+const ultPedidoSuc = (c,s) => idx.ultSuc.get(String(c.id) + '|' + String(s.id)) || null;
 
-  if (!rut || !emp || !dir || !email || !contacto || !tel) {
-    document.getElementById('login-alert').innerHTML =
-      '<div class="alert alert-error">Por favor completa todos los campos.</div>';
-    return;
-  }
-
-  sess = { rut, emp, dir, email, contacto, tel, fecha: new Date().toLocaleDateString('es-CL') };
-
-  const poner = (id, v) => document.getElementById(id).textContent = v;
-  poner('hdr-emp', emp);
-  poner('d-emp', emp);
-  poner('d-rut', rut);
-  poner('d-dir', dir);
-  poner('d-email', email);          // antes quedaba vacío
-  poner('d-contacto', contacto);
-  poner('d-tel', tel);
-  poner('d-fecha', sess.fecha);
-
-  buildCatalogo();
-  showScreen('screen-catalogo');
+function nombreDesdeDir(d) {
+  const parts = String(d || '').split(',').map(x => x.trim()).filter(Boolean);
+  if (parts.length >= 2 && parts[1].length <= 28) return parts[1];
+  return parts[0] || String(d || '');
 }
 
-function logout() {
-  sess = {}; qtys = {}; entrega = 'despacho';
-  document.getElementById('mensaje').value = '';
-  contarMensaje();
-  ['rut-aviso','email-aviso'].forEach(id => document.getElementById(id).style.display = 'none');
-  ['rut-inp','emp-inp','dir-inp','email-inp','contacto-inp','tel-inp'].forEach(id => {
-    const el = document.getElementById(id);
-    el.value = ''; el.style.borderColor = '';
+// Busca por nombre actual, nombres antiguos (alias), contacto o RUT
+function coincide(c, q, qr) {
+  if (!q) return true;
+  const qs = sinTilde(q).toLowerCase();
+  if (sinTilde(normTxt(c.emp)).includes(qs))      return true;
+  if (sinTilde(normTxt(c.alias)).includes(qs))    return true;
+  if (sinTilde(normTxt(c.contacto)).includes(qs)) return true;
+  if (qr && normRut(c.rut).includes(qr.toUpperCase())) return true;
+  return false;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CARGA DEL DIRECTORIO (Supabase, con respaldo desde historial)
+// ══════════════════════════════════════════════════════════════
+async function loadDirectorio() {
+  dirLoaded = true;
+  try {
+    const [c, s] = await Promise.all([
+      sbJson('clientes?select=*&order=emp.asc'),
+      sbJson('sucursales?select=*&order=nombre.asc')
+    ]);
+    clientes = c; sucursales = s; dirOK = true;
+    indexar();
+  } catch (e) {
+    dirOK = false;
+    derivarDirectorio();
+  }
+}
+
+// Respaldo: arma el directorio a partir del historial de pedidos.
+function derivarDirectorio() {
+  const tempC = clientes.filter(c => c._temp);     // clientes puntuales de la sesión
+  const tempS = sucursales.filter(s => s._temp);
+  n2r = mapaNombreRut();
+
+  const g = new Map();   // clave -> datos acumulados
+  pedidos.forEach(p => {
+    const k = clavePedido(p, n2r);
+    if (!k) return;
+    if (!g.has(k)) g.set(k, { clave:k, nombres:[], rut:'', contacto:'', telefono:'', email:'', dirs:new Map(), n:0 });
+    const c = g.get(k);
+    c.n++;
+    if (p.emp && p.emp.trim()) c.nombres.push(p.emp.trim());
+    if (!c.rut && rutValido(p.rut)) c.rut = (p.rut || '').trim();
+    if (!c.contacto && p.contacto) c.contacto = p.contacto;
+    if (!c.telefono && p.telefono) c.telefono = p.telefono;
+    if (!c.email && p.email)       c.email    = p.email;
+
+    const dir = (p.dir || '').trim();
+    if (!dir) return;
+    const dk = dirKeyF(dir);
+    if (!c.dirs.has(dk)) c.dirs.set(dk, { dirs:[], zona:'', contacto:'', telefono:'' });
+    const sc = c.dirs.get(dk);
+    sc.dirs.push(dir);
+    if (!sc.zona && p.zona)         sc.zona     = p.zona;
+    if (!sc.contacto && p.contacto) sc.contacto = p.contacto;
+    if (!sc.telefono && p.telefono) sc.telefono = p.telefono;
   });
-  document.getElementById('login-alert').innerHTML = '';
-  showScreen('screen-login');
-}
 
-// ══════════════════════════════════════════════════════════════
-//  CATÁLOGO
-// ══════════════════════════════════════════════════════════════
-function slug(s) { return s.replace(/[^a-zA-Z0-9]/g, '_'); }
-
-function buildCatalogo() {
-  document.getElementById('catalogo-wrap').innerHTML = CATS.map(cat => `
-    <div class="seccion" id="sec-${cat.id}">
-      <div class="sec-header" onclick="toggleSec('${cat.id}')">
-        <div class="sec-left">
-          <span class="sec-icon">${cat.icon}</span>
-          <div>
-            <div class="sec-title">${esc(cat.label)}</div>
-            <div class="sec-count">${cat.items.length} productos</div>
-          </div>
-        </div>
-        <span class="sec-arrow" id="arr-${cat.id}">▼</span>
-      </div>
-      <div class="sec-body" id="body-${cat.id}">
-        <div class="prod-grid">
-          ${cat.items.map(({n,f}) => `
-            <div class="prod-card" id="pc-${slug(n)}" data-prod="${esc(n)}">
-              <div>
-                <div class="prod-name">${esc(n)}</div>
-                <div class="prod-format">${esc(f)}</div>
-              </div>
-              <div class="qty-row">
-                <button class="qty-btn" data-menos="${slug(n)}">−</button>
-                <input class="qty-inp" type="number" min="0" id="qi-${slug(n)}" value="0" data-set="${slug(n)}">
-                <button class="qty-btn" data-mas="${slug(n)}">+</button>
-              </div>
-            </div>`).join('')}
-        </div>
-      </div>
-    </div>`).join('');
-
-  // Los manejadores se enganchan aquí y no dentro del HTML: el nombre del
-  // producto viajaba metido en un onclick, y bastaría un apóstrofo en un
-  // producto nuevo para romper toda la tarjeta.
-  const nombreDe = el => el.closest('.prod-card').dataset.prod;
-  document.querySelectorAll('[data-menos]').forEach(b =>
-    b.onclick = () => chg(b.dataset.menos, nombreDe(b), -1));
-  document.querySelectorAll('[data-mas]').forEach(b =>
-    b.onclick = () => chg(b.dataset.mas, nombreDe(b), 1));
-  document.querySelectorAll('[data-set]').forEach(i =>
-    i.onchange = () => setQ(i.dataset.set, nombreDe(i), i.value));
-}
-
-function toggleSec(id) {
-  document.getElementById('body-' + id).classList.toggle('open');
-  document.getElementById('arr-' + id).classList.toggle('open');
-  document.getElementById('sec-' + id).classList.toggle('open');
-}
-
-function chg(id, name, d) {
-  const el = document.getElementById('qi-' + id);
-  const v = Math.max(0, (parseInt(el.value) || 0) + d);
-  el.value = v; upd(id, name, v);
-}
-function setQ(id, name, v) {
-  const val = Math.max(0, parseInt(v) || 0);
-  document.getElementById('qi-' + id).value = val; upd(id, name, val);
-}
-function upd(id, name, v) {
-  if (v > 0) qtys[name] = v; else delete qtys[name];
-  document.getElementById('pc-' + id).classList.toggle('sel', v > 0);
-  // Si cambia el pedido, cambia el folio: el anterior podría estar ya guardado
-  // y no queremos que la base confunda dos pedidos distintos.
-  sess.folio = null;
-  updateCart();
-}
-function updateCart() {
-  const items = Object.entries(qtys);
-  const n = items.length;
-  document.getElementById('cart-count').textContent =
-    n > 0 ? `${n} producto${n > 1 ? 's' : ''} seleccionado${n > 1 ? 's' : ''}` : '0 productos seleccionados';
-  document.getElementById('cart-preview').textContent =
-    n > 0 ? items.map(([k,q]) => `${k} ×${q}`).join(', ') : 'Selecciona productos del catálogo';
-  document.getElementById('btn-oc').disabled = n === 0;
-}
-
-// ══════════════════════════════════════════════════════════════
-//  ORDEN DE COMPRA
-// ══════════════════════════════════════════════════════════════
-// El folio se guarda en la base con índice único. Reintentar el mismo pedido
-// no crea un duplicado: la base lo rechaza y el portal lo lee como "ya estaba".
-function nuevoFolio() {
-  const abc = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ';   // sin I ni O, se confunden
-  let s = '';
-  const azar = crypto.getRandomValues(new Uint8Array(8));
-  azar.forEach(b => s += abc[b % abc.length]);
-  return 'NTV-' + s;
-}
-
-function lineasPedido() {
-  return CATS.flatMap(({items}) =>
-    items.filter(({n}) => qtys[n]).map(({n,f}) => `${n} (${f}) x${qtys[n]}`));
-}
-
-const esRetiro = () => entrega === 'retiro';
-
-function cambiarEntrega() {
-  const sel = document.querySelector('input[name=entrega]:checked');
-  const nueva = sel && sel.value === 'retiro' ? 'retiro' : 'despacho';
-  const cambio = nueva !== entrega;
-  entrega = nueva;
-  document.getElementById('eopt-despacho').classList.toggle('sel', !esRetiro());
-  document.getElementById('eopt-retiro').classList.toggle('sel', esRetiro());
-  document.getElementById('aviso-retiro').style.display = esRetiro() ? '' : 'none';
-
-  document.getElementById('msg-label').textContent = esRetiro()
-    ? 'Mensaje para nosotros (opcional)'
-    : 'Mensaje para el despacho (opcional)';
-  document.getElementById('mensaje').placeholder = esRetiro()
-    ? 'Cuéntanos si tienes preferencia de día u horario para pasar'
-    : 'Horario de recepción, cómo llegar, a quién avisar al llegar...';
-
-  // Solo si la entrega CAMBIÓ de verdad se renueva el folio: el anterior podría
-  // estar guardado como despacho y no queremos que la base confunda dos pedidos
-  // distintos. Esta función también se llama al entrar a la pantalla, y ahí
-  // renovar el folio rompería la protección contra envíos duplicados.
-  if (cambio) {
-    sess.folio = null;
-    cancelarConfirmacion();
-  }
-  pintarDocumento();
-}
-
-function contarMensaje() {
-  const v = document.getElementById('mensaje').value;
-  document.getElementById('msg-cuenta').textContent = `${v.length} / 500`;
-}
-
-function irAOC() {
-  if (!Object.keys(qtys).length) return;
-  cambiarEntrega();
-  showScreen('screen-oc');
-}
-
-// Se separa del cambio de pantalla para poder redibujar el documento cuando
-// cambia la forma de entrega, sin salir de la pantalla.
-function pintarDocumento() {
-  if (!sess.folio) sess.folio = nuevoFolio();
-  cancelarConfirmacion();
-  avisoOC('');
-
-  let rows = '';
-  CATS.forEach(({label, items}) => {
-    const sel = items.filter(({n}) => qtys[n]);
-    if (!sel.length) return;
-    rows += `<tr class="doc-cat"><td colspan="3">${esc(label)}</td></tr>`;
-    sel.forEach(({n,f}) => {
-      rows += `<tr><td>${esc(n)}</td><td style="color:var(--textl);font-size:12px">${esc(f)}</td><td>${qtys[n]}</td></tr>`;
+  clientes = []; sucursales = [];
+  let ci = 0, si = 0;
+  // Los grupos sin RUT válido entran solo si tienen 2+ pedidos: así los
+  // clientes de mostrador de una sola compra no ensucian el directorio.
+  [...g.values()].filter(c => c.clave.startsWith('R:') || c.n >= 2).forEach(c => {
+    fusionarDirs(c.dirs);
+    const emp = nombreCanonico(c.nombres);
+    const otros = [...new Set(c.nombres.filter(x => nombreNorm(x) !== nombreNorm(emp)))];
+    const cli = {
+      id: 'C' + (ci++), clave: c.clave, emp, rut: c.rut,
+      contacto: c.contacto, telefono: c.telefono, email: c.email,
+      alias: otros.join('|'), notas: '', _local: true
+    };
+    clientes.push(cli);
+    const varias = c.dirs.size > 1;
+    c.dirs.forEach(sc => {
+      // se muestra la dirección mejor escrita del grupo
+      const dir = sc.dirs.slice().sort((a, b) =>
+        ((b !== b.toUpperCase()) - (a !== a.toUpperCase())) ||
+        (b.split(',').length - a.split(',').length) || (b.length - a.length))[0];
+      const com = comunaDe(dir);
+      sucursales.push({
+        id: 'S' + (si++), cliente_id: cli.id,
+        nombre: varias ? (com || nombreDesdeDir(dir)) : 'Casa Matriz',
+        dir, comuna: com, zona: sc.zona, contacto: sc.contacto, telefono: sc.telefono,
+        horario: '', notas: '', _local: true
+      });
     });
   });
 
-  document.getElementById('oc-doc').innerHTML = `
-    <div class="doc-header">
-      <div><div class="doc-logo">nativo<small>nativoacaichile.cl</small></div></div>
-      <div class="doc-titulo">
-        <h1>Orden de Compra</h1>
-        <p class="doc-num">${esc(sess.folio)}</p>
-        <p style="font-size:11px;color:var(--textl);font-weight:600;margin-top:3px">${esc(sess.fecha)}</p>
+  // Numera las sucursales que quedaron con el mismo nombre
+  const cnt = new Map();
+  sucursales.forEach(x => {
+    const k = x.cliente_id + '|' + x.nombre;
+    cnt.set(k, (cnt.get(k) || 0) + 1);
+  });
+  const vis = new Map();
+  sucursales.forEach(x => {
+    const k = x.cliente_id + '|' + x.nombre;
+    if (cnt.get(k) > 1) {
+      const i = (vis.get(k) || 0) + 1; vis.set(k, i);
+      x.nombre = x.nombre + ' ' + i;
+    }
+  });
+
+  // Reincorpora los puntuales que aún no tienen pedidos registrados
+  tempC.forEach(c => { if (!clientes.some(x => claveCliente(x) === claveCliente(c))) clientes.push(c); });
+  tempS.forEach(x => {
+    if (!sucursales.some(y => String(y.cliente_id) === String(x.cliente_id) && dirKeyF(y.dir) === dirKeyF(x.dir)))
+      sucursales.push(x);
+  });
+  clientes.sort((a, b) => a.emp.localeCompare(b.emp, 'es'));
+  indexar();
+  resyncWz();
+}
+
+// Vuelve a apuntar la selección del wizard a los objetos recién reconstruidos
+function resyncWz() {
+  if (wz.cliente) {
+    const c = clientes.find(x => claveCliente(x) === claveCliente(wz.cliente));
+    if (c) wz.cliente = c;
+  }
+  if (wz.cliente && wz.sucursal) {
+    const s = sucsDe(wz.cliente).find(x => dirKeyF(x.dir) === dirKeyF(wz.sucursal.dir));
+    if (s) wz.sucursal = s;
+  }
+}
+
+function bannerModo() {
+  if (dirOK) return '';
+  return '<div class="alert ai" style="margin-bottom:12px">' +
+    '📚 <b>Modo historial.</b> Los clientes y sucursales se están leyendo del historial de pedidos. ' +
+    'Puedes crear pedidos normalmente, pero para guardar clientes, sucursales, horarios y notas de despacho ' +
+    'hay que ejecutar una vez el script <b>directorio.sql</b> en Supabase.</div>';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  WIZARD — NAVEGACIÓN
+// ══════════════════════════════════════════════════════════════
+function wzGo(n) {
+  if (n >= 2 && !wz.cliente)  n = 1;
+  if (n >= 3 && !wz.sucursal) n = wz.cliente ? 2 : 1;
+  wz.paso = n;
+  [1, 2, 3].forEach(i => {
+    document.getElementById('wstep' + i).style.display = (i === n ? 'block' : 'none');
+  });
+  renderWzPills();
+  if (n === 1) renderPaso1();
+  if (n === 2) renderPaso2();
+  if (n === 3) renderPaso3();
+}
+
+function renderWzPills() {
+  const c = wz.cliente, s = wz.sucursal;
+  const nProd = Object.keys(wz.qtys).length;
+  const pills = [
+    { n:1, t:'Cliente',  sub: c ? c.emp : 'Selecciona un cliente',
+      ok: !!c, dis: false },
+    { n:2, t:'Sucursal', sub: s ? s.nombre : (c ? 'Selecciona el destino' : '—'),
+      ok: !!s, dis: !c },
+    { n:3, t:'Pedido',   sub: nProd ? nProd + ' producto' + (nProd > 1 ? 's' : '') : 'Arma el pedido',
+      ok: nProd > 0, dis: !s }
+  ];
+  document.getElementById('wz-pills').innerHTML = pills.map(p => {
+    const cls = wz.paso === p.n ? 'on' : (p.ok ? 'done' : '');
+    return `<button class="wz-pill ${cls}" ${p.dis ? 'disabled' : ''} onclick="wzGo(${p.n})">
+      <span class="wz-num">${p.ok && wz.paso !== p.n ? '✓' : p.n}</span>
+      <span>${p.t}<span class="wz-sub">${hesc(p.sub)}</span></span>
+    </button>`;
+  }).join('');
+}
+
+function togManual() {
+  const b = document.getElementById('manual-box');
+  b.style.display = b.style.display === 'none' ? 'block' : 'none';
+  if (b.style.display === 'block') b.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  PASO 1 — CLIENTE
+// ══════════════════════════════════════════════════════════════
+function renderPaso1() {
+  const el = document.getElementById('wz-clientes');
+  const q  = normTxt(document.getElementById('wq').value);
+  const qr = q.replace(/[^0-9k]/g, '');
+
+  if (!clientes.length) {
+    el.innerHTML = bannerModo() +
+      '<div class="empty">Todavía no hay clientes guardados.<br>Crea uno con “＋ Cliente nuevo”.</div>';
+    return;
+  }
+
+  const lista = clientes.filter(c => coincide(c, q, qr)).slice(0, 200);
+
+  if (!lista.length) { el.innerHTML = bannerModo() + '<div class="empty">Sin coincidencias.</div>'; return; }
+
+  el.innerHTML = bannerModo() + lista.map(c => {
+    const n  = sucsDe(c).length;
+    const up = ultPedidoCli(c);
+    return `<div class="pick ${wz.cliente && String(wz.cliente.id) === String(c.id) ? 'sel' : ''}"
+                 onclick="pickCliente('${c.id}')">
+      <div style="flex:1;min-width:0">
+        <div class="pick-t">${hesc(c.emp)}</div>
+        <div class="pick-s">${hesc(c.rut || 'sin RUT')}${c.contacto ? ' · 👤 ' + hesc(c.contacto) : ''}</div>
+        ${c.alias && q ? `<div class="pick-s" style="opacity:.75">antes: ${hesc(c.alias.split('|').slice(0,3).join(' · '))}</div>` : ''}
       </div>
-    </div>
-    <div class="doc-datos">
-      <div class="doc-dato"><label>Empresa</label><p>${esc(sess.emp)}</p></div>
-      <div class="doc-dato"><label>RUT</label><p>${esc(sess.rut)}</p></div>
-      <div class="doc-dato"><label>Forma de entrega</label>
-        ${esRetiro()
-          ? `<div class="doc-retiro"><b>🏢 Retiro en nuestra oficina</b>
-               <span>Te contactamos para coordinar día, hora y dirección</span></div>`
-          : `<p>🚚 Despacho a domicilio</p>`}
+      <div class="pick-r">
+        <span class="chip">${n} sucursal${n === 1 ? '' : 'es'}</span>
+        <div class="pick-s">${up ? 'Últ. pedido ' + hesc(up.fecha || '—') : 'Sin pedidos'}</div>
       </div>
-      <div class="doc-dato"><label>${esRetiro() ? 'Dirección registrada' : 'Dirección de Despacho'}</label><p>${esc(sess.dir)}</p></div>
-      <div class="doc-dato"><label>Fecha del Pedido</label><p>${esc(sess.fecha)}</p></div>
-      <div class="doc-dato"><label>Email</label><p>${esc(sess.email)}</p></div>
-      <div class="doc-dato"><label>Nombre de Contacto</label><p>${esc(sess.contacto)}</p></div>
-      <div class="doc-dato"><label>Teléfono de Contacto</label><p>${esc(sess.tel)}</p></div>
-    </div>
-    <table class="doc-table">
-      <thead><tr><th style="width:55%">Producto</th><th>Formato</th><th>Cant.</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <div class="doc-footer">
-      <p>nativo — Documento generado electrónicamente</p>
-      <p class="doc-num">${esc(sess.folio)}</p>
     </div>`;
+  }).join('');
 }
 
-function volverCatalogo() { cancelarConfirmacion(); showScreen('screen-catalogo'); }
+function pickCliente(id) {
+  const c = findCli(id);
+  if (!c) return;
+  if (!wz.cliente || String(wz.cliente.id) !== String(c.id)) {
+    wz.sucursal = null;
+    wz.qtys = {};
+  }
+  wz.cliente = c;
+  const s = sucsDe(c);
+  if (s.length === 1) { wz.sucursal = s[0]; wzGo(3); return; }   // atajo: una sola sucursal
+  wzGo(2);
+}
 
 // ══════════════════════════════════════════════════════════════
-//  ENVÍO
+//  PASO 2 — SUCURSAL
 // ══════════════════════════════════════════════════════════════
-function avisoOC(html) {
-  const el = document.getElementById('oc-alert');
-  el.innerHTML = html || '';
-  if (html) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
+function renderPaso2() {
+  const c = wz.cliente;
+  if (!c) return wzGo(1);
 
-function cancelarConfirmacion() {
-  confirmando = false;
-  const b = document.getElementById('btn-enviar');
-  b.classList.remove('confirmar');
-  b.textContent = 'Enviar Pedido';
-  b.disabled = false;
-}
+  document.getElementById('wz-head2').innerHTML =
+    `<div style="flex:1;min-width:0">
+       <div class="hb">${hesc(c.emp)}</div>
+       <div class="hs">${hesc(c.rut || 'sin RUT')}${c.contacto ? ' · ' + hesc(c.contacto) : ''}</div>
+     </div>
+     <button class="btn bol bsm" onclick="abrirCli('${c.id}','wz')">Editar cliente</button>`;
 
-function textoWhatsapp(lineas) {
-  const msg = String(document.getElementById('mensaje').value || '').trim();
-  return `*Pedido nativo* ${sess.folio || ''}\n\n` +
-    `Empresa: ${sess.emp}\nRUT: ${sess.rut}\n` +
-    `Entrega: ${esRetiro() ? 'RETIRO EN OFICINA' : 'Despacho a domicilio'}\n` +
-    `Dirección: ${sess.dir}\nContacto: ${sess.contacto}\n` +
-    `Teléfono: ${sess.tel}\nEmail: ${sess.email}\nFecha: ${sess.fecha}\n` +
-    (msg ? `\nMensaje: ${msg}\n` : '') +
-    `\n*Productos*\n` + lineas.map(l => '• ' + l).join('\n');
-}
+  const q  = normTxt(document.getElementById('wqs').value);
+  const el = document.getElementById('wz-sucursales');
+  const lista = sucsDe(c).filter(s => !q || normTxt(s.nombre).includes(q) || normTxt(s.dir).includes(q));
 
-function falloEnvio(motivo, lineas) {
-  const wa = /^\d{10,15}$/.test(WHATSAPP) && WHATSAPP !== '56900000000'
-    ? `<a class="btn-wa" target="_blank" rel="noopener"
-         href="https://wa.me/${WHATSAPP}?text=${encodeURIComponent(textoWhatsapp(lineas))}">Enviar por WhatsApp</a>`
-    : '';
-  avisoOC(
-    `<div class="alert alert-error" style="line-height:1.55">
-       <b>No pudimos enviar el pedido.</b><br>
-       Tu pedido no se perdió: sigue aquí abajo. Aprieta <b>Reintentar envío</b>${wa ? ', o mándanoslo por WhatsApp' : ''}.
-       Reintentar no crea un pedido duplicado.
-       <div class="err-detalle">Detalle técnico: ${esc(motivo)}</div>
-       ${wa}
-     </div>`);
-}
-
-async function enviarPedido() {
-  const btn = document.getElementById('btn-enviar');
-
-  // Confirmación en la misma página. Antes había un confirm() del navegador:
-  // en el navegador de WhatsApp y de Instagram esa ventana no aparece, devuelve
-  // "no" y el pedido nunca se enviaba, sin error ni rastro.
-  if (!confirmando) {
-    confirmando = true;
-    btn.classList.add('confirmar');
-    btn.textContent = '¿Confirmar envío?';
-    setTimeout(() => { if (confirmando) cancelarConfirmacion(); }, 8000);
+  if (!lista.length) {
+    el.innerHTML = '<div class="empty">Este cliente no tiene sucursales guardadas.<br>Agrega una con “＋ Nueva sucursal”.</div>';
     return;
   }
 
-  const lineas = lineasPedido();
-  if (!lineas.length) {
-    cancelarConfirmacion();
-    avisoOC('<div class="alert alert-error">No hay productos seleccionados.</div>');
+  el.innerHTML = lista.map(s => {
+    const up = ultPedidoSuc(c, s);
+    const nq = nPedidosSuc(c, s);
+    return `<div class="pick ${wz.sucursal && String(wz.sucursal.id) === String(s.id) ? 'sel' : ''}"
+                 onclick="pickSucursal('${s.id}')">
+      <div style="flex:1;min-width:0">
+        <div class="pick-t">${hesc(s.nombre)} ${s.zona ? zbadge(s.zona) : ''}</div>
+        <div class="pick-s">📍 ${hesc(s.dir)}</div>
+        ${s.horario ? `<div class="pick-s">🕒 ${hesc(s.horario)}</div>` : ''}
+        ${s.notas   ? `<div class="pick-s">📝 ${hesc(s.notas)}</div>` : ''}
+      </div>
+      <div class="pick-r">
+        <span class="chip">${nq} pedido${nq === 1 ? '' : 's'}</span>
+        <div class="pick-s">${up ? 'Últ. ' + hesc(up.fecha || '—') : '—'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function pickSucursal(id) {
+  const s = findSuc(id);
+  if (!s) return;
+  wz.sucursal = s;
+  document.getElementById('wzona').value = s.zona || '';
+  if (!s.zona) proponerZona('wzona', null, s.dir || '');
+  wzGo(3);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  PASO 3 — PEDIDO
+// ══════════════════════════════════════════════════════════════
+function wzEntregaCambio() {
+  const ret = document.getElementById('wentrega').value === 'retiro';
+  document.getElementById('wzona-req').style.display = ret ? 'none' : '';
+}
+
+function renderPaso3() {
+  const c = wz.cliente, s = wz.sucursal;
+  if (!c || !s) return wzGo(c ? 2 : 1);
+
+  document.getElementById('wz-head3').innerHTML =
+    `<div style="flex:1;min-width:0">
+       <div class="hb">${hesc(c.emp)} — ${hesc(s.nombre)}</div>
+       <div class="hs">📍 ${hesc(s.dir)}${s.notas ? ' · 📝 ' + hesc(s.notas) : ''}</div>
+     </div>
+     <button class="btn bol bsm" onclick="wzGo(2)">Cambiar sucursal</button>`;
+
+  if (!document.getElementById('wzona').value)
+    document.getElementById('wzona').value = s.zona || '';
+  if (!document.getElementById('wfecha').value)
+    document.getElementById('wfecha').value = hoy();
+
+  const up = ultPedidoSuc(c, s);
+  document.getElementById('brepetir').style.display = up ? '' : 'none';
+
+  wzEntregaCambio();
+  renderCatalogo();
+  updWzBar();
+}
+
+function renderCatalogo() {
+  const q  = normTxt(document.getElementById('pq').value);
+  const el = document.getElementById('cat-wrap');
+  const html = CATS.map(cat => {
+    const items = PRODS.filter(p => p.cat === cat.id && (!q || normTxt(p.n).includes(q)));
+    if (!items.length) return '';
+    const sel  = items.filter(p => wz.qtys[p.n]).length;
+    const open = (q || sel) ? 'open' : '';
+    return `<div class="cat ${open}" id="cat-${cat.id}">
+      <div class="cat-h" onclick="document.getElementById('cat-${cat.id}').classList.toggle('open')">
+        <span>${cat.icon}</span><span>${hesc(cat.label)}</span>
+        <span class="cn">${sel ? sel + ' sel · ' : ''}${items.length} ítems</span>
+      </div>
+      <div class="cat-b">${items.map(prodRow).join('')}</div>
+    </div>`;
+  }).join('');
+  el.innerHTML = html || '<div class="empty">Sin coincidencias en el catálogo.</div>';
+}
+
+function prodRow(p) {
+  const q = wz.qtys[p.n] || 0;
+  return `<div class="prod ${q ? 'on' : ''}" id="pr-${p.id}">
+    <div class="prod-n">${hesc(p.n)}<div class="prod-f">${hesc(p.f)}</div></div>
+    <div class="stp">
+      <button type="button" onclick="qChg('${p.id}',-1)">−</button>
+      <input type="number" min="0" id="qi-${p.id}" value="${q}" oninput="qSet('${p.id}',this.value)">
+      <button type="button" onclick="qChg('${p.id}',1)">+</button>
+    </div>
+  </div>`;
+}
+
+function qChg(id, d) {
+  const p = prodById(id); if (!p) return;
+  qApply(p, Math.max(0, (wz.qtys[p.n] || 0) + d));
+}
+function qSet(id, val) {
+  const p = prodById(id); if (!p) return;
+  qApply(p, Math.max(0, parseInt(val, 10) || 0), true);
+}
+function qApply(p, v, skipInput) {
+  if (v > 0) wz.qtys[p.n] = v; else delete wz.qtys[p.n];
+  const inp = document.getElementById('qi-' + p.id);
+  if (inp && !skipInput) inp.value = v;
+  const row = document.getElementById('pr-' + p.id);
+  if (row) row.classList.toggle('on', v > 0);
+  updWzBar(); renderWzPills();
+}
+
+function limpiarProds() {
+  wz.qtys = {};
+  document.getElementById('wextra').value = '';
+  renderCatalogo(); updWzBar(); renderWzPills();
+}
+
+function updWzBar() {
+  const e  = Object.entries(wz.qtys);
+  const un = e.reduce((a, [, q]) => a + q, 0);
+  document.getElementById('wz-bar-info').textContent = e.length
+    ? `${e.length} producto${e.length > 1 ? 's' : ''} · ${un} unidad${un > 1 ? 'es' : ''}`
+    : 'Sin productos seleccionados';
+  document.getElementById('wz-prev').textContent =
+    e.length ? e.map(([k, q]) => `${k} ×${q}`).join(', ') : '';
+}
+
+function repetirUltimo() {
+  const p = ultPedidoSuc(wz.cliente, wz.sucursal);
+  if (!p) return;
+  wz.qtys = {};
+  const sobra = [];
+  splitDet(p.detalle).forEach(it => {
+    const m = it.match(/^(.*?)\s*\(([^)]*)\)\s*[x×]\s*(\d+)$/i);
+    if (m) {
+      const prod = PRODS.find(x => normTxt(x.n) === normTxt(m[1]));
+      if (prod) { wz.qtys[prod.n] = parseInt(m[3], 10) || 1; return; }
+    }
+    sobra.push(it);
+  });
+  document.getElementById('wextra').value = sobra.join('\n');
+  renderCatalogo(); updWzBar(); renderWzPills();
+  alerta('wz-alert',
+    `Cargado el último pedido (${hesc(p.fecha || 's/fecha')}).` +
+    (sobra.length ? ` ${sobra.length} ítem(s) fuera de catálogo quedaron en “otros”.` : ''), 'ai');
+}
+
+function buildDetalle() {
+  const cat = PRODS.filter(p => wz.qtys[p.n]).map(p => `${p.n} (${p.f}) x${wz.qtys[p.n]}`);
+  const extra = (document.getElementById('wextra').value || '')
+    .split('\n').map(s => s.trim().replace(/,$/, '')).filter(Boolean);
+  return [...cat, ...extra].join(', ');
+}
+
+async function guardarWz() {
+  const c = wz.cliente, s = wz.sucursal;
+  if (!c || !s) return wzGo(1);
+
+  const entrega = document.getElementById('wentrega').value === 'retiro' ? 'retiro' : 'despacho';
+  const ret  = entrega === 'retiro';
+  const zona = document.getElementById('wzona').value;
+  const det  = buildDetalle();
+  if (!ret && !zona) return alerta('wz-alert', 'Asigna una zona antes de guardar.', 'ae');
+  if (!det)  return alerta('wz-alert', 'Selecciona al menos un producto.', 'ae');
+
+  const btn = document.getElementById('bwzguardar');
+  btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
+
+  const row = {
+    emp: c.emp, rut: c.rut || '', dir: s.dir, zona: ret ? '' : zona,
+    detalle: det, entrega,
+    contacto: s.contacto || c.contacto || '',
+    telefono: s.telefono || c.telefono || '',
+    factura_num: document.getElementById('wfact').value.trim(),
+    factura_nombre: '',
+    estado: 'pendiente',
+    fecha: document.getElementById('wfecha').value.trim() || hoy(),
+    fecha_entrega: '', recibe: '',
+    comentario: document.getElementById('wcom').value.trim()
+  };
+  if (dirOK && !c._local && !s._local) { row.cliente_id = c.id; row.sucursal_id = s.id; }
+
+  try {
+    try {
+      await sbPost(row);
+    } catch (e1) {
+      // Respaldo: si aún no existen las columnas de enlace en `pedidos`
+      if (row.cliente_id !== undefined) {
+        delete row.cliente_id; delete row.sucursal_id;
+        await sbPost(row);
+      } else throw e1;
+    }
+    wz.qtys = {};
+    ['wfact','wcom','wextra','pq'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('wfecha').value = hoy();
+    renderCatalogo(); updWzBar(); renderWzPills();
+    alerta('wz-alert', `✅ Pedido guardado para ${hesc(c.emp)} — ${hesc(s.nombre)}.`, 'as');
+    await cargar();
+  } catch (e) {
+    alerta('wz-alert', 'Error guardando el pedido: ' + hesc(e.message), 'ae');
+  }
+  btn.innerHTML = 'Guardar Pedido'; btn.disabled = false;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  DIRECTORIO — LISTADO
+// ══════════════════════════════════════════════════════════════
+let cliOpen = [];
+
+function renderClientes() {
+  document.getElementById('cl-banner').innerHTML = bannerModo();
+  const nd = buscarDuplicados().length;
+  const bd = document.getElementById('bdups');
+  bd.textContent = nd ? `⚠️ Revisar ${nd} duplicado${nd > 1 ? 's' : ''}` : '🔍 Revisar duplicados';
+  bd.className = 'btn bsm ' + (nd ? 'bam2' : 'bol');
+  document.getElementById('bsync').style.display = dirOK ? '' : 'none';
+
+  const q  = normTxt(document.getElementById('clq').value);
+  const qr = q.replace(/[^0-9k]/g, '').toUpperCase();
+  const el = document.getElementById('cl-list');
+
+  const lista = clientes.filter(c => coincide(c, q, qr) ||
+    (q && sucsDe(c).some(s => normTxt(s.dir).includes(q) || normTxt(s.nombre).includes(q))));
+
+  if (!lista.length) {
+    el.innerHTML = '<div class="empty">' +
+      (clientes.length ? 'Sin coincidencias.' : 'Todavía no hay clientes en el directorio.') + '</div>';
     return;
   }
-  if (!sess.emp) {
-    cancelarConfirmacion();
-    avisoOC('<div class="alert alert-error">Se perdieron los datos de la empresa. Vuelve a ingresarlos.</div>');
-    return;
-  }
-  if (!sess.folio) sess.folio = nuevoFolio();
 
-  confirmando = false;
-  btn.classList.remove('confirmar');
-  btn.textContent = 'Enviando...';
-  btn.disabled = true;
-  avisoOC('');
+  el.innerHTML = lista.map(c => {
+    const sucs = sucsDe(c);
+    const up   = ultPedidoCli(c);
+    const open = cliOpen.includes(String(c.id)) ? 'open' : '';
+    return `<div class="cli ${open}" id="cli-${c.id}">
+      <div class="cli-h" onclick="togCli('${c.id}')">
+        <div style="flex:1;min-width:0">
+          <div class="pick-t">${hesc(c.emp)}</div>
+          <div class="pick-s">${hesc(c.rut || 'sin RUT')}${c.contacto ? ' · 👤 ' + hesc(c.contacto) : ''}${c.telefono ? ' · 📞 ' + hesc(c.telefono) : ''}</div>
+          ${c.alias ? `<div class="pick-s" style="opacity:.8">también: ${hesc(c.alias.split('|').join(' · '))}</div>` : ''}
+        </div>
+        <div class="pick-r">
+          <span class="chip">${sucs.length} sucursal${sucs.length === 1 ? '' : 'es'}</span>
+          <div class="pick-s">${up ? 'Últ. pedido ' + hesc(up.fecha || '—') : 'Sin pedidos'}</div>
+        </div>
+      </div>
+      <div class="cli-b">
+        ${sucs.length ? sucs.map(s => `
+          <div class="suc">
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:800;font-size:12px;color:var(--mora-d)">${hesc(s.nombre)} ${s.zona ? zbadge(s.zona) : ''}</div>
+              <div class="pick-s">📍 ${hesc(s.dir)}</div>
+              ${s.horario ? `<div class="pick-s">🕒 ${hesc(s.horario)}</div>` : ''}
+              ${s.notas   ? `<div class="pick-s">📝 ${hesc(s.notas)}</div>` : ''}
+            </div>
+            <div class="suc-a">
+              <button class="btn bam2 bsm" onclick="pedirDesde('${c.id}','${s.id}')">Pedido</button>
+              <button class="btn bol bsm"  onclick="abrirSuc('${s.id}','list','${c.id}')">Editar</button>
+              ${dirOK ? `<button class="btn bdng bsm" onclick="borrarSuc('${s.id}')">✕</button>` : ''}
+            </div>
+          </div>`).join('')
+          : '<div class="pick-s" style="padding:4px 2px 8px">Sin sucursales registradas.</div>'}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+          <button class="btn bol bsm"  onclick="abrirSuc(null,'list','${c.id}')">＋ Sucursal</button>
+          <button class="btn bgray bsm" onclick="abrirCli('${c.id}','list')">Editar cliente</button>
+          ${dirOK ? `<button class="btn bdng bsm" onclick="borrarCli('${c.id}')">Eliminar cliente</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
 
-  const cuerpo = {
-    emp: sess.emp, rut: sess.rut, dir: sess.dir, email: sess.email,
-    contacto: sess.contacto, telefono: sess.tel,
-    detalle: lineas.join(', '), fecha: sess.fecha, folio: sess.folio,
-    entrega,
-    mensaje: document.getElementById('mensaje').value.trim().slice(0, 500)
+function togCli(id) {
+  const k = String(id);
+  cliOpen = cliOpen.includes(k) ? cliOpen.filter(x => x !== k) : [...cliOpen, k];
+  const el = document.getElementById('cli-' + id);
+  if (el) el.classList.toggle('open', cliOpen.includes(k));
+}
+
+function pedirDesde(cid, sid) {
+  const c = findCli(cid), s = findSuc(sid);
+  if (!c || !s) return;
+  wz.cliente = c; wz.sucursal = s; wz.qtys = {};
+  ['wfact','wcom','wextra','pq'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('wzona').value  = s.zona || '';
+  document.getElementById('wentrega').value = 'despacho';
+  document.getElementById('wfecha').value = hoy();
+  const btn = [...document.querySelectorAll('.tb')].find(b => b.textContent.includes('Agregar'));
+  goTab('nuevo', btn);
+  wzGo(3);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  DIRECTORIO — MODAL CLIENTE
+// ══════════════════════════════════════════════════════════════
+function abrirCli(id, ctx) {
+  cliEdit = id ? String(id) : null;
+  cliCtx  = ctx || 'list';
+  const c = id ? findCli(id) : null;
+  document.getElementById('mc-title').textContent = c ? 'Editar Cliente' : 'Nuevo Cliente';
+  document.getElementById('mc-alert').innerHTML   = '';
+  document.getElementById('mcemp').value      = c ? c.emp      : '';
+  document.getElementById('mcrut').value      = c ? (c.rut||'')      : '';
+  document.getElementById('mccontacto').value = c ? (c.contacto||'') : '';
+  document.getElementById('mctel').value      = c ? (c.telefono||'') : '';
+  document.getElementById('mcemail').value    = c ? (c.email||'')    : '';
+  document.getElementById('mcalias').value    = c ? (c.alias||'')    : '';
+  document.getElementById('mcnotas').value    = c ? (c.notas||'')    : '';
+  document.getElementById('modal-cli').classList.add('open');
+}
+function cerrarCli() { document.getElementById('modal-cli').classList.remove('open'); }
+
+async function guardarCliente() {
+  const emp = document.getElementById('mcemp').value.trim();
+  if (!emp) return alerta('mc-alert', 'Ingresa el nombre de la empresa.', 'ae');
+
+  const row = {
+    emp,
+    rut:      document.getElementById('mcrut').value.trim(),
+    contacto: document.getElementById('mccontacto').value.trim(),
+    telefono: document.getElementById('mctel').value.trim(),
+    email:    document.getElementById('mcemail').value.trim(),
+    alias:    document.getElementById('mcalias').value.trim(),
+    notas:    document.getElementById('mcnotas').value.trim()
   };
 
-  let motivo = '';
-  for (let intento = 1; intento <= 2; intento++) {
-    try {
-      const r = await fetch(`${PROXY}/supabase/pedidos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cuerpo)
-      });
+  const btn = document.getElementById('bmc');
+  btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true;
 
-      if (r.ok) { pantallaConfirmacion(lineas); return; }
-
-      // 409 = la base rechazó el folio repetido. O sea: este mismo pedido ya
-      // estaba guardado. Para el cliente eso es un éxito, no un error.
-      if (r.status === 409) { pantallaConfirmacion(lineas, true); return; }
-
-      // El servidor explica qué pasó. Antes se descartaba y siempre se mostraba
-      // "verifica tu conexión", que casi nunca era el motivo.
-      let dice = '';
-      try { const d = await r.json(); dice = (d && (d.error || d.message)) || ''; } catch (_) {}
-      motivo = `${r.status} · ${dice || 'el servidor rechazó el pedido'}`;
-      if (r.status >= 400 && r.status < 500 && r.status !== 429) break;  // reintentar no cambia nada
-    } catch (e) {
-      motivo = 'no se pudo conectar con el servidor';
+  try {
+    if (!dirOK) {
+      // Modo historial: cliente puntual, vive solo en esta sesión
+      if (cliEdit) {
+        Object.assign(findCli(cliEdit) || {}, row);
+      } else {
+        const nc = { id: 'L' + Date.now(), ...row, _local: true, _temp: true };
+        clientes.push(nc);
+        clientes.sort((a, b) => a.emp.localeCompare(b.emp, 'es'));
+        if (cliCtx === 'wz') { wz.cliente = nc; wz.sucursal = null; wz.qtys = {}; }
+      }
+      indexar();
+    } else {
+      if (cliEdit) await sbSend(`clientes?id=eq.${cliEdit}`, 'PATCH', row);
+      else         await sbSend('clientes', 'POST', row);
+      await loadDirectorio();
+      if (!cliEdit) {
+        const nuevo = clientes.find(c =>
+          normTxt(c.emp) === normTxt(row.emp) && normRut(c.rut) === normRut(row.rut));
+        if (nuevo && cliCtx === 'wz') { wz.cliente = nuevo; wz.sucursal = null; wz.qtys = {}; }
+      } else if (wz.cliente && String(wz.cliente.id) === cliEdit) {
+        wz.cliente = findCli(cliEdit);
+      }
     }
-    if (intento === 1) await new Promise(res => setTimeout(res, 1500));
+
+    cerrarCli();
+    renderClientes();
+    if (cliCtx === 'wz') {
+      wzGo(2);
+      if (wz.cliente && !sucsDe(wz.cliente).length) abrirSuc(null, 'wz', wz.cliente.id);
+    }
+  } catch (e) {
+    alerta('mc-alert', 'Error guardando: ' + hesc(e.message), 'ae');
+  }
+  btn.innerHTML = 'Guardar'; btn.disabled = false;
+}
+
+async function borrarCli(id) {
+  const c = findCli(id); if (!c) return;
+  if (!confirm(`¿Eliminar "${c.emp}" y todas sus sucursales del directorio?\nLos pedidos ya registrados no se borran.`)) return;
+  try {
+    await sbSend(`clientes?id=eq.${id}`, 'DELETE');
+    if (wz.cliente && String(wz.cliente.id) === String(id)) { wz.cliente = null; wz.sucursal = null; }
+    await loadDirectorio();
+    renderClientes();
+    alerta('cl-alert', 'Cliente eliminado del directorio.', 'as');
+  } catch (e) {
+    alerta('cl-alert', 'Error eliminando: ' + hesc(e.message), 'ae');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  DIRECTORIO — MODAL SUCURSAL
+// ══════════════════════════════════════════════════════════════
+function abrirSuc(id, ctx, cliId) {
+  const s = id ? findSuc(id) : null;
+  sucEdit = id ? String(id) : null;
+  sucCtx  = ctx || 'list';
+  sucCli  = s ? findCli(s.cliente_id) : (cliId ? findCli(cliId) : wz.cliente);
+  if (!sucCli) { alert('Selecciona primero un cliente.'); return; }
+
+  document.getElementById('ms-title').textContent = (s ? 'Editar Sucursal' : 'Nueva Sucursal') + ' — ' + sucCli.emp;
+  document.getElementById('ms-alert').innerHTML   = '';
+  document.getElementById('msnombre').value   = s ? s.nombre : '';
+  document.getElementById('msdir').value      = s ? s.dir    : '';
+  document.getElementById('mszona').value     = s ? (s.zona||'')     : '';
+  document.getElementById('mscontacto').value = s ? (s.contacto||'') : (sucCli.contacto || '');
+  document.getElementById('mstel').value      = s ? (s.telefono||'') : (sucCli.telefono || '');
+  document.getElementById('mshorario').value  = s ? (s.horario||'')  : '';
+  document.getElementById('msnotas').value    = s ? (s.notas||'')    : '';
+  document.getElementById('mszona-nota').style.display = 'none';
+  if (s && !s.zona) proponerZona('mszona', 'mszona-nota', s.dir || '');
+  document.getElementById('modal-suc').classList.add('open');
+}
+function cerrarSuc() { document.getElementById('modal-suc').classList.remove('open'); }
+
+async function guardarSucursal() {
+  const dir = document.getElementById('msdir').value.trim();
+  let nombre = document.getElementById('msnombre').value.trim();
+  if (!dir) return alerta('ms-alert', 'Ingresa la dirección de despacho.', 'ae');
+  if (!nombre) nombre = nombreDesdeDir(dir);
+
+  const row = {
+    cliente_id: sucCli.id,
+    nombre, dir,
+    zona:     document.getElementById('mszona').value,
+    contacto: document.getElementById('mscontacto').value.trim(),
+    telefono: document.getElementById('mstel').value.trim(),
+    horario:  document.getElementById('mshorario').value.trim(),
+    notas:    document.getElementById('msnotas').value.trim()
+  };
+
+  const btn = document.getElementById('bms');
+  btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true;
+
+  try {
+    if (!dirOK || sucCli._local) {
+      if (sucEdit) {
+        Object.assign(findSuc(sucEdit) || {}, row);
+        if (wz.sucursal && String(wz.sucursal.id) === sucEdit) wz.sucursal = findSuc(sucEdit);
+      } else {
+        const ns = { id: 'LS' + Date.now(), ...row, _local: true, _temp: true };
+        sucursales.push(ns);
+        if (sucCtx === 'wz') wz.sucursal = ns;
+      }
+      indexar();
+    } else {
+      if (sucEdit) await sbSend(`sucursales?id=eq.${sucEdit}`, 'PATCH', row);
+      else         await sbSend('sucursales', 'POST', row);
+      await loadDirectorio();
+      if (wz.cliente) wz.cliente = findCli(wz.cliente.id) || wz.cliente;
+      const ref = sucursales.find(s =>
+        String(s.cliente_id) === String(row.cliente_id) && normTxt(s.dir) === normTxt(row.dir));
+      if (ref && (sucCtx === 'wz' || (wz.sucursal && String(wz.sucursal.id) === sucEdit))) wz.sucursal = ref;
+    }
+
+    cerrarSuc();
+    renderClientes();
+    if (sucCtx === 'wz' && wz.sucursal) { wzGo(3); }
+    else if (sucCtx === 'wz')           { wzGo(2); }
+  } catch (e) {
+    alerta('ms-alert', 'Error guardando: ' + hesc(e.message), 'ae');
+  }
+  btn.innerHTML = 'Guardar'; btn.disabled = false;
+}
+
+async function borrarSuc(id) {
+  const s = findSuc(id); if (!s) return;
+  if (!confirm(`¿Eliminar la sucursal "${s.nombre}" (${s.dir})?`)) return;
+  try {
+    await sbSend(`sucursales?id=eq.${id}`, 'DELETE');
+    if (wz.sucursal && String(wz.sucursal.id) === String(id)) wz.sucursal = null;
+    await loadDirectorio();
+    renderClientes();
+    alerta('cl-alert', 'Sucursal eliminada.', 'as');
+  } catch (e) {
+    alerta('cl-alert', 'Error eliminando: ' + hesc(e.message), 'ae');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  SINCRONIZAR DIRECTORIO DESDE EL HISTORIAL DE PEDIDOS
+// ══════════════════════════════════════════════════════════════
+async function sincronizar() {
+  if (!dirOK) { alerta('cl-alert', 'Primero hay que crear las tablas en Supabase.', 'ae'); return; }
+
+  const btn = document.getElementById('bsync');
+  btn.innerHTML = '<span class="sp"></span>Sincronizando...'; btn.disabled = true;
+
+  try {
+    n2r = mapaNombreRut();
+
+    // 1) Agrupar el historial por clave (RUT válido, o nombre)
+    const g = new Map();
+    pedidos.forEach(p => {
+      const k = clavePedido(p, n2r);
+      if (!k) return;
+      if (!g.has(k)) g.set(k, { nombres:[], rut:'', contacto:'', telefono:'', email:'', dirs:new Map(), n:0 });
+      const c = g.get(k);
+      c.n++;
+      if (p.emp && p.emp.trim()) c.nombres.push(p.emp.trim());
+      if (!c.rut && rutValido(p.rut)) c.rut = (p.rut || '').trim();
+      if (!c.contacto && p.contacto) c.contacto = p.contacto;
+      if (!c.telefono && p.telefono) c.telefono = p.telefono;
+      if (!c.email && p.email)       c.email    = p.email;
+      const dir = (p.dir || '').trim();
+      if (!dir) return;
+      const dk = dirKeyF(dir);
+      if (!c.dirs.has(dk)) c.dirs.set(dk, { dirs:[], zona:'', contacto:'', telefono:'' });
+      const sc = c.dirs.get(dk);
+      sc.dirs.push(dir);
+      if (!sc.zona && p.zona)         sc.zona     = p.zona;
+      if (!sc.contacto && p.contacto) sc.contacto = p.contacto;
+      if (!sc.telefono && p.telefono) sc.telefono = p.telefono;
+    });
+
+    g.forEach(c => fusionarDirs(c.dirs));
+
+    // 2) Crear los clientes que falten (los sin RUT solo si tienen 2+ pedidos)
+    const yaHay = new Set(clientes.map(claveCliente));
+    let nc = 0;
+    for (const [k, c] of g) {
+      if (yaHay.has(k)) continue;
+      if (!k.startsWith('R:') && c.n < 2) continue;
+      const emp = nombreCanonico(c.nombres);
+      const otros = [...new Set(c.nombres.filter(x => nombreNorm(x) !== nombreNorm(emp)))];
+      await sbSend('clientes', 'POST', {
+        emp, rut: c.rut, contacto: c.contacto, telefono: c.telefono,
+        email: c.email, alias: otros.join('|')
+      });
+      nc++;
+    }
+    if (nc) await loadDirectorio();
+
+    // 3) Crear las sucursales que falten
+    const porClave = new Map(clientes.map(c => [claveCliente(c), c]));
+    const yaSuc = new Set(sucursales.map(x => String(x.cliente_id) + '|' + dirKeyF(x.dir)));
+    let ns = 0;
+    for (const [k, c] of g) {
+      const cli = porClave.get(k);
+      if (!cli) continue;
+      const varias = c.dirs.size > 1;
+      for (const sc of c.dirs.values()) {
+        const dir = sc.dirs.slice().sort((a, b) =>
+          ((b !== b.toUpperCase()) - (a !== a.toUpperCase())) ||
+          (b.split(',').length - a.split(',').length) || (b.length - a.length))[0];
+        if (yaSuc.has(String(cli.id) + '|' + dirKeyF(dir))) continue;
+        const com = comunaDe(dir);
+        await sbSend('sucursales', 'POST', {
+          cliente_id: cli.id,
+          nombre: varias ? (com || nombreDesdeDir(dir)) : 'Casa Matriz',
+          dir, comuna: com, zona: sc.zona, contacto: sc.contacto, telefono: sc.telefono
+        });
+        ns++;
+      }
+    }
+
+    await loadDirectorio();
+    renderClientes();
+    alerta('cl-alert', `\u2705 Sincronizado: ${nc} cliente(s) y ${ns} sucursal(es) nuevas. ` +
+      'Los clientes de mostrador con un solo pedido no se agregan.', 'as');
+  } catch (e) {
+    alerta('cl-alert', 'Error sincronizando: ' + hesc(e.message), 'ae');
+  }
+  btn.innerHTML = '\ud83d\udd04 Sincronizar desde pedidos'; btn.disabled = false;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  REVISIÓN DE DUPLICADOS
+// ══════════════════════════════════════════════════════════════
+// Los datos comparables de cada cliente se calculan UNA vez, y el número de
+// pedidos se lee del índice en vez de recorrer la tabla dentro del bucle.
+function buscarDuplicados() {
+  const pares = [];
+
+  const meta = clientes.map(c => ({
+    c, nn: nombreNorm(c.emp), rn: normRut(c.rut), rv: rutValido(c.rut), n: nPedidosCli(c)
+  }));
+
+  // ── clientes ──
+  for (let i = 0; i < meta.length; i++) {
+    for (let j = i + 1; j < meta.length; j++) {
+      const A = meta[i], B = meta[j];
+      let motivo = '';
+      if (A.rv && B.rv && A.rn === B.rn)              motivo = 'mismo RUT';
+      else if (A.nn && A.nn === B.nn)                 motivo = 'mismo nombre';
+      else if (!A.rv && !B.rv && similar(A.nn, B.nn)) motivo = 'nombre casi igual';
+      else if ((A.rv !== B.rv) && similar(A.nn, B.nn)) motivo = 'nombre casi igual (uno sin RUT)';
+      if (!motivo) continue;
+      // el que tiene RUT válido y más pedidos se queda
+      const aGana = (A.rv !== B.rv) ? A.rv : (A.n >= B.n);
+      pares.push({ tipo:'cliente', motivo,
+                   keep: aGana ? A.c : B.c, dup: aGana ? B.c : A.c,
+                   nk: aGana ? A.n : B.n, nd: aGana ? B.n : A.n });
+    }
   }
 
-  btn.textContent = 'Reintentar envío';
-  btn.disabled = false;
-  falloEnvio(motivo, lineas);
+  // ── sucursales del mismo cliente ──
+  clientes.forEach(c => {
+    const ss = sucsDe(c).map(s => ({
+      s, kf: dirKeyF(s.dir), k: dirKey(s.dir), com: comunaDe(s.dir), n: nPedidosSuc(c, s)
+    }));
+    for (let i = 0; i < ss.length; i++) {
+      for (let j = i + 1; j < ss.length; j++) {
+        const A = ss[i], B = ss[j];
+        let motivo = '';
+        if (A.kf === B.kf) motivo = 'misma dirección';
+        else if (A.k && B.k && A.k.split('|')[1] === B.k.split('|')[1] &&
+                 similar(A.k.split('|')[0], B.k.split('|')[0])) motivo = 'misma calle con un tipeo';
+        else if ((!A.k || !B.k) && A.com && A.com === B.com)
+                 motivo = 'misma comuna, dirección incompleta';
+        if (!motivo) continue;
+        const punt = x => (x.dir !== x.dir.toUpperCase() ? 100 : 0) + x.dir.split(',').length * 10 + x.dir.length / 100;
+        const aGana = A.n !== B.n ? A.n > B.n : punt(A.s) >= punt(B.s);
+        pares.push({ tipo:'sucursal', motivo, cliente: c,
+                     keep: aGana ? A.s : B.s, dup: aGana ? B.s : A.s,
+                     nk: aGana ? A.n : B.n, nd: aGana ? B.n : A.n });
+      }
+    }
+  });
+  return pares;
 }
 
-function pantallaConfirmacion(lineas, yaEstaba) {
-  avisoOC('');
-  const folio = sess.folio;
-  const items = Object.entries(qtys);
-  document.getElementById('oc-doc').innerHTML = `
-    <div class="confirm-wrap">
-      <div class="confirm-emoji">🎉</div>
-      <div class="confirm-title">¡Listo!</div>
-      <div class="confirm-sub">${yaEstaba
-        ? 'Este pedido ya estaba registrado, no se duplicó.<br>'
-        : 'Tu pedido ha sido enviado correctamente.<br>'}${esRetiro()
-        ? 'Te contactamos para coordinar el día, la hora y la dirección de retiro.'
-        : 'Nos contactaremos pronto para confirmar el despacho.'}</div>
-      <div class="confirm-folio">
-        <span>Número de pedido</span>
-        <b>${esc(folio)}</b>
-      </div>
-    </div>
-    <div class="confirm-box">
-      <div class="confirm-box-title">Datos del pedido</div>
-      <div class="confirm-row"><span>Empresa</span><span>${esc(sess.emp)}</span></div>
-      <div class="confirm-row"><span>Forma de entrega</span><span>${esRetiro() ? '🏢 Retiro en nuestra oficina' : '🚚 Despacho a domicilio'}</span></div>
-      <div class="confirm-row"><span>${esRetiro() ? 'Dirección registrada' : 'Dirección de despacho'}</span><span>${esc(sess.dir)}</span></div>
-      <div class="confirm-row"><span>Email</span><span>${esc(sess.email)}</span></div>
-      <div class="confirm-row"><span>Contacto</span><span>${esc(sess.contacto)}</span></div>
-      <div class="confirm-row"><span>Teléfono</span><span>${esc(sess.tel)}</span></div>
-      <div class="confirm-row" style="margin-bottom:0"><span>Fecha</span><span>${esc(sess.fecha)}</span></div>
-    </div>
-    ${String(document.getElementById('mensaje').value || '').trim()
-      ? `<div class="doc-msg" style="margin:0 0 16px">💬 <b>Tu mensaje:</b> ${esc(document.getElementById('mensaje').value.trim())}</div>`
-      : ''}
-    <div class="confirm-products">
-      <div class="confirm-box-title" style="margin-bottom:10px">Productos pedidos</div>
-      ${items.map(([n,q]) => `
-        <div class="confirm-prod-item">
-          <span class="confirm-prod-name">${esc(n)}</span>
-          <span class="confirm-prod-qty">×${q}</span>
-        </div>`).join('')}
-    </div>
-    <div style="text-align:center">
-      <button class="btn-nuevo" onclick="nuevosPedido()">Hacer otro pedido</button>
-    </div>`;
+let dups = [];
 
-  const btn = document.getElementById('btn-enviar');
-  btn.textContent = 'Enviado ✓';
-  btn.disabled = true;
-  btn.classList.remove('confirmar');
+function renderDuplicados() {
+  dups = buscarDuplicados();
+  const el = document.getElementById('cl-dups');
+  const seguro = dups.filter(d => d.motivo === 'mismo RUT' || d.motivo === 'misma dirección').length;
+
+  if (!dups.length) {
+    el.innerHTML = '<div class="alert as">\u2705 No se detectaron duplicados en el directorio.</div>';
+    return;
+  }
+
+  el.innerHTML =
+    `<div class="alert ai" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+       <span style="flex:1">\u26a0\ufe0f ${dups.length} posible(s) duplicado(s)${seguro ? ` \u00b7 ${seguro} son coincidencia exacta` : ''}.</span>
+       ${dirOK && seguro ? `<button class="btn bam2 bsm" onclick="fusionarSeguros()">Fusionar los ${seguro} exactos</button>` : ''}
+       <button class="btn bgray bsm" onclick="document.getElementById('cl-dups').innerHTML=''">Ocultar</button>
+     </div>` +
+    dups.map((d, i) => `
+      <div class="suc" style="align-items:flex-start">
+        <div style="flex:1;min-width:0">
+          <span class="chip">${d.tipo}</span><span class="chip">${hesc(d.motivo)}</span>
+          ${d.cliente ? `<span class="pick-s" style="display:inline">${hesc(d.cliente.emp)}</span>` : ''}
+          <div class="pick-s" style="margin-top:4px">
+            \u2705 <b>Se queda:</b> ${hesc(d.tipo === 'cliente' ? d.keep.emp + ' — ' + (d.keep.rut || 'sin RUT') : d.keep.dir)} (${d.nk} pedidos)
+          </div>
+          <div class="pick-s">
+            \u274c <b>Se absorbe:</b> ${hesc(d.tipo === 'cliente' ? d.dup.emp + ' — ' + (d.dup.rut || 'sin RUT') : d.dup.dir)} (${d.nd} pedidos)
+          </div>
+        </div>
+        <div class="suc-a">
+          ${dirOK ? `<button class="btn bam2 bsm" onclick="fusionar(${i})">Fusionar</button>` : ''}
+          <button class="btn bgray bsm" onclick="descartarDup(${i})">No son</button>
+        </div>
+      </div>`).join('');
 }
 
-function nuevosPedido() {
-  qtys = {};
-  sess.folio = null;                       // pedido nuevo, folio nuevo
-  entrega = 'despacho';
-  document.querySelector('input[name=entrega][value=despacho]').checked = true;
-  document.getElementById('mensaje').value = '';
-  contarMensaje();
-  document.querySelectorAll('.qty-inp').forEach(i => i.value = 0);
-  document.querySelectorAll('.prod-card').forEach(c => c.classList.remove('sel'));
-  cancelarConfirmacion();
-  avisoOC('');
-  updateCart();
-  showScreen('screen-catalogo');
+function descartarDup(i) {
+  dups.splice(i, 1);
+  const el = document.getElementById('cl-dups');
+  const guardar = dups;
+  renderDuplicados();
+  dups = guardar;
 }
 
-// ── INIT ──
-showScreen('screen-login');
+async function fusionar(i, silencioso) {
+  const d = dups[i];
+  if (!d || !dirOK) return;
+  if (d.keep._local || d.dup._local) return;
+  if (!silencioso && !confirm(
+      `Se van a unir estos dos registros.\n\nSe queda: ${d.tipo === 'cliente' ? d.keep.emp : d.keep.dir}\n` +
+      `Se absorbe: ${d.tipo === 'cliente' ? d.dup.emp : d.dup.dir}\n\nLos pedidos no se borran, se reasignan.`)) return;
+
+  if (d.tipo === 'sucursal') {
+    await sbSend(`pedidos?sucursal_id=eq.${d.dup.id}`, 'PATCH', { sucursal_id: d.keep.id });
+    const parche = {};
+    ['zona','contacto','telefono','horario','notas'].forEach(k => {
+      if (!d.keep[k] && d.dup[k]) parche[k] = d.dup[k];
+    });
+    if (Object.keys(parche).length) await sbSend(`sucursales?id=eq.${d.keep.id}`, 'PATCH', parche);
+    await sbSend(`sucursales?id=eq.${d.dup.id}`, 'DELETE');
+  } else {
+    // Sucursales del duplicado: si la dirección ya existe en el que se queda,
+    // se reasignan sus pedidos; si no, se traspasa la sucursal.
+    const destino = sucsDe(d.keep);
+    for (const sd of sucsDe(d.dup)) {
+      const igual = destino.find(x => dirKeyF(x.dir) === dirKeyF(sd.dir));
+      if (igual) {
+        await sbSend(`pedidos?sucursal_id=eq.${sd.id}`, 'PATCH', { sucursal_id: igual.id });
+        await sbSend(`sucursales?id=eq.${sd.id}`, 'DELETE');
+      } else {
+        await sbSend(`sucursales?id=eq.${sd.id}`, 'PATCH', { cliente_id: d.keep.id });
+      }
+    }
+    await sbSend(`pedidos?cliente_id=eq.${d.dup.id}`, 'PATCH', { cliente_id: d.keep.id });
+
+    const alias = [...new Set(
+      (d.keep.alias || '').split('|').concat((d.dup.alias || '').split('|'), [d.dup.emp])
+        .map(x => x.trim()).filter(Boolean)
+        .filter(x => nombreNorm(x) !== nombreNorm(d.keep.emp))
+    )].join('|');
+    const parche = { alias };
+    ['rut','contacto','telefono','email','notas'].forEach(k => {
+      if (!d.keep[k] && d.dup[k]) parche[k] = d.dup[k];
+    });
+    await sbSend(`clientes?id=eq.${d.keep.id}`, 'PATCH', parche);
+    await sbSend(`clientes?id=eq.${d.dup.id}`, 'DELETE');
+  }
+
+  if (!silencioso) {
+    await cargarTodo();
+    alerta('cl-alert', '\u2705 Registros fusionados.', 'as');
+  }
+}
+
+async function fusionarSeguros() {
+  const idxs = dups.map((d, i) => i)
+    .filter(i => dups[i].motivo === 'mismo RUT' || dups[i].motivo === 'misma dirección');
+  if (!idxs.length) return;
+  if (!confirm(`Se van a fusionar ${idxs.length} duplicado(s) exacto(s). Los pedidos se reasignan, no se borran.`)) return;
+  try {
+    // de atrás hacia adelante para no invalidar índices
+    for (const i of idxs.slice().reverse()) await fusionar(i, true);
+    await cargarTodo();
+    alerta('cl-alert', `\u2705 ${idxs.length} duplicado(s) fusionado(s).`, 'as');
+  } catch (e) {
+    await cargarTodo();
+    alerta('cl-alert', 'Se interrumpió la fusión: ' + hesc(e.message), 'ae');
+  }
+}
+
+async function cargarTodo() {
+  await cargar();
+  await loadDirectorio();
+  renderClientes();
+}
+
+// Al volver desde planner.html, abre la pestaña que venía en la dirección
+(function irAHash(){
+  const id = (location.hash || '').slice(1);
+  if (!['pedidos','nuevo','clientes','rutas'].includes(id)) return;
+  const b = [...document.querySelectorAll('.tb')]
+    .find(x => (x.getAttribute('onclick') || '').includes("goTab('" + id + "'"));
+  if (!b) return;
+  goTab(id, b);
+  setTimeout(() => goTab(id, b), 1500);   // repinta cuando ya llegaron los datos
+})();
 </script>
 </body>
 </html>
