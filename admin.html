@@ -173,6 +173,12 @@ input[type=checkbox]{
 .nota-acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:5px}
 .nota-hint{font-size:10px;color:var(--textl);font-weight:700}
 
+/* ── ENTREGAS SIN VENTA ── */
+.hint-man{font-size:11px;font-weight:700;color:var(--textl);margin-top:4px;line-height:1.45}
+.bcort{background:#e0e7ff;color:#3730a3;border:1px solid #a5b4fc}
+.chip-razon{display:inline-block;background:#eef2ff;border:1px solid #c7d2fe;border-radius:20px;
+  padding:2px 9px;font-size:10px;font-weight:800;color:#3730a3;margin-top:3px}
+
 /* ── DESCARGO DE BODEGA ── */
 .ds-cab{display:flex;gap:18px;flex-wrap:wrap;background:var(--crema);border-radius:10px;
   padding:11px 14px;margin-bottom:14px}
@@ -381,6 +387,7 @@ input[type=checkbox]{
 
   <!-- ── PEDIDOS ── -->
   <div id="page-pedidos" class="page act">
+    <div id="aviso-corte"></div>
     <div class="stats">
       <div class="stat"><div class="sn" id="st">0</div><div class="sl">Total</div></div>
       <div class="stat pulsa" id="stat-sf" onclick="verSinFacturar()" title="Todo lo que no se ha facturado">
@@ -396,6 +403,10 @@ input[type=checkbox]{
       <div class="stat pulsa" id="stat-nods" onclick="verSinDescargo()"
            title="Ya salieron pero nadie descontó el stock" style="display:none">
         <div class="sn" id="snods">0</div><div class="sl">Sin descargar bodega</div>
+      </div>
+      <div class="stat pulsa" id="stat-cort" onclick="verCortesias()"
+           title="Muestras y regalos por entregar" style="display:none">
+        <div class="sn" id="scort">0</div><div class="sl">Muestras por entregar</div>
       </div>
     </div>
     <div class="card">
@@ -417,6 +428,7 @@ input[type=checkbox]{
         <select id="festado" onchange="render()">
           <option value="">Todos los estados</option>
           <option value="sf">▸ Todo lo que falta facturar</option>
+          <option value="cortesia">🎁 Entregas sin venta</option>
           <option value="pendiente">Sin facturar</option>
           <option value="facturado">Facturado</option>
           <option value="en-ruta">En ruta</option>
@@ -425,6 +437,8 @@ input[type=checkbox]{
         </select>
         <button class="btn bol bsm" onclick="cargar()">🔄 Actualizar</button>
         <button class="btn bgreen bsm" onclick="exportCSV()">⬇️ Exportar CSV</button>
+        <button class="btn bol bsm" id="b-corte" onclick="abrirCorte()"
+          style="display:none" title="Poner una raya en el suelo: de acá para atrás no se reclama">🪧 Corte de bodega</button>
       </div>
       <div class="tw">
         <table>
@@ -463,8 +477,9 @@ input[type=checkbox]{
           <button class="btn bam2 bsm" onclick="abrirCli(null,'wz')">＋ Cliente nuevo</button>
         </div>
         <div class="picks" id="wz-clientes"></div>
-        <div style="margin-top:12px;border-top:1px solid var(--crema-d);padding-top:12px">
+        <div style="margin-top:12px;border-top:1px solid var(--crema-d);padding-top:12px;display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn bol bsm" onclick="togManual()">✏️ Entrada manual (pedido puntual)</button>
+          <button class="btn bol bsm" onclick="togCortesia()">🎁 Entrega sin venta</button>
         </div>
       </div>
 
@@ -571,9 +586,20 @@ input[type=checkbox]{
         <label>Dirección <span id="ndir-req">*</span></label>
         <input id="ndir" type="text" placeholder="Av. Ejemplo 1234, Santiago" onblur="proponerZonaManual()">
       </div>
-      <div style="margin-bottom:12px">
-        <label>Detalle del Pedido *</label>
-        <textarea id="ndet" placeholder="Ej: Balde Acai Nativo (3,6 L) x2, Granola Avena Miel x3"></textarea>
+      <div class="modal-section">Productos</div>
+      <div class="fb">
+        <input type="text" id="npq" placeholder="🔍 Buscar producto..." oninput="pintarCat('man')">
+        <button class="btn bgray bsm" onclick="catLimpiar('man')">Limpiar</button>
+        <div style="flex:1"></div>
+        <span style="font-size:12px;font-weight:800;color:var(--mora)" id="man-resumen">Sin productos seleccionados</span>
+      </div>
+      <div id="cat-man"></div>
+      <div style="margin:12px 0">
+        <label>Otros productos fuera del catálogo</label>
+        <textarea id="ndet" placeholder="Un ítem por línea. Solo para lo que no está arriba." style="min-height:52px"></textarea>
+        <div class="hint-man">Lo que escribas acá <b>no se puede descontar de bodega</b>:
+          el descargo solo reconoce los productos del catálogo. Úsalo solo cuando de verdad
+          no exista arriba.</div>
       </div>
 
       <div class="modal-section">Facturación</div>
@@ -585,6 +611,70 @@ input[type=checkbox]{
         Guardar Pedido
       </button>
     </div>
+  </div>
+
+  <!-- ── ENTREGA SIN VENTA ── -->
+  <div class="card" id="cortesia-box" style="max-width:760px;margin:16px auto 0;display:none">
+    <h2>🎁 Entrega sin venta</h2>
+    <div class="alert ai" style="margin-bottom:16px;line-height:1.6">
+      Para muestras, regalos, degustaciones, activaciones y reposiciones por reclamo.
+      <b>No pide RUT ni factura</b> y no aparece en lo que falta cobrar: sale de la
+      bodega y no se cobra nunca. El costo de lo entregado queda medido igual.
+    </div>
+    <div id="co-alert"></div>
+
+    <div class="fg">
+      <div><label>Para quién *</label>
+        <input id="co-emp" type="text" placeholder="Persona, local o empresa">
+        <div class="hint-man">Basta un nombre reconocible. No se agrega al directorio de clientes.</div></div>
+      <div><label>Razón de la entrega *</label>
+        <select id="co-razon" onchange="coRazonCambio()"></select></div>
+    </div>
+
+    <div class="fg">
+      <div><label>Tipo de entrega</label>
+        <select id="co-entrega" onchange="coEntregaCambio()">
+          <option value="despacho">Despacho a domicilio</option>
+          <option value="retiro">Lo vienen a buscar</option>
+        </select></div>
+      <div><label>Zona <span id="co-zona-req">*</span></label>
+        <select id="co-zona">
+          <option value="">— Asignar zona —</option>
+          <option value="norte">Norte</option>
+          <option value="sur">Sur</option>
+          <option value="santiago">Santiago</option>
+          <option value="litoral">Litoral</option>
+        </select>
+        <div class="nota-campo" id="co-zona-nota"></div></div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label>Dirección <span id="co-dir-req">*</span></label>
+      <input id="co-dir" type="text" placeholder="Av. Ejemplo 1234, Comuna" onblur="coProponerZona()">
+    </div>
+
+    <div class="modal-section">Qué se entrega</div>
+    <div class="fb">
+      <input type="text" id="co-pq" placeholder="🔍 Buscar producto..." oninput="pintarCat('co')">
+      <button class="btn bgray bsm" onclick="catLimpiar('co')">Limpiar</button>
+      <div style="flex:1"></div>
+      <span style="font-size:12px;font-weight:800;color:var(--mora)" id="co-resumen">Sin productos seleccionados</span>
+    </div>
+    <div id="cat-co"></div>
+
+    <div class="fg" style="margin-top:14px">
+      <div><label>Contacto</label><input id="co-contacto" type="text" placeholder="Opcional"></div>
+      <div><label>Teléfono</label><input id="co-tel" type="text" placeholder="Opcional"></div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label>Comentario</label>
+      <textarea id="co-com" placeholder="Para qué es, quién lo pidió, qué se espera de vuelta..." style="min-height:52px"></textarea>
+    </div>
+    <div class="fg">
+      <div><label>Fecha</label><input id="co-fecha" type="text" placeholder="DD/MM/AAAA"></div>
+      <div></div>
+    </div>
+    <button class="btn bmora" id="co-guardar" onclick="guardarCortesia()">Registrar entrega</button>
   </div>
 
   <!-- ── CLIENTES ── -->
@@ -770,6 +860,15 @@ input[type=checkbox]{
   </div>
 </div>
 
+<!-- ══ MODAL CERRAR EL PASADO ══ -->
+<div class="mbg" id="modal-corte">
+  <div class="modal" style="max-width:620px">
+    <h3>🪧 Cerrar el historial anterior</h3>
+    <div id="ct-cuerpo"></div>
+    <div class="mact" id="ct-acciones"></div>
+  </div>
+</div>
+
 <!-- ══ MODAL DESCARGO DE BODEGA ══ -->
 <div class="mbg" id="modal-ds">
   <div class="modal" style="max-width:820px">
@@ -898,6 +997,7 @@ function goTab(id, btn) {
   if (id === 'rutas')    renderChecksRuta();
   if (id === 'clientes') renderClientes();
   if (id === 'nuevo') {
+    pintarCat('man');
     document.getElementById('nfecha').value = hoy();
     if (!document.getElementById('wfecha').value)
       document.getElementById('wfecha').value = hoy();
@@ -966,10 +1066,23 @@ const ESTADOS = {
 
 // Ya salió de la bodega, esté facturado o no
 const yaEntregado = e => e === 'entregado' || e === 'entregado-sin-facturar';
-// Todavía no se cobró
-const sinFacturar = e => e === 'pendiente' || e === 'entregado-sin-facturar';
+// Todavía no se cobró. Recibe el pedido completo, no solo el estado: una
+// cortesía nunca se va a cobrar, así que contarla como "falta facturar" es
+// contar plata que no existe.
+const sinFacturar = p => {
+  if (typeof p === 'string') return p === 'pendiente' || p === 'entregado-sin-facturar';
+  if (esCortesia(p)) return false;
+  return p.estado === 'pendiente' || p.estado === 'entregado-sin-facturar';
+};
 
-function ebadge(e) {
+function ebadge(e, p) {
+  // En una cortesía, "sin facturar" no significa nada: no hay nada que
+  // facturar. Lo que importa es si ya salió o no.
+  if (p && esCortesia(p)) {
+    const salio = yaEntregado(e);
+    return `<span class="badge bcort">🎁 ${salio ? 'Entregada' : 'Por entregar'}</span>` +
+      (p.razon ? `<div class="chip-razon">${hesc(p.razon)}</div>` : '');
+  }
   if (!e || !tiene(ESTADOS, e)) return `<span class="badge bpend">${hesc(e) || 'Sin estado'}</span>`;
   return `<span class="badge ${ESTADOS[e].cls}">${hesc(ESTADOS[e].lbl)}</span>`;
 }
@@ -1082,7 +1195,9 @@ function filtrados() {
              (p.folio||'').toLowerCase().includes(q)) &&
     (!fz || p.zona === fz) &&
     // 'sf' no es un estado: es "falta facturar", que son dos estados distintos
-    (!fe || (fe === 'sf' ? sinFacturar(p.estado) : p.estado === fe)) &&
+    (!fe || (fe === 'sf' ? sinFacturar(p)
+           : fe === 'cortesia' ? esCortesia(p)
+           : p.estado === fe)) &&
     (!fn || (p.entrega || 'despacho') === fn) &&
     (!filtroSinDescargo || (
       ['en-ruta','entregado','entregado-sin-facturar'].includes(p.estado) &&
@@ -1095,6 +1210,10 @@ function filtrados() {
 // con un tilde.
 const retirosPendientes = () => pedidos.filter(p =>
   esRetiro(p) && !String(p.fecha_entrega || '').trim() && !yaEntregado(p.estado));
+
+// Cortesías que todavía no salen: es la lista de trabajo de las muestras.
+const cortesiasPendientes = () => pedidos.filter(p =>
+  esCortesia(p) && !yaEntregado(p.estado));
 
 // Los contadores pinchables llevan la tabla a lo que representan
 function verSinFacturar() {
@@ -1132,9 +1251,9 @@ function render() {
   // que un entregado sin facturar aparece en ambas: salió de la bodega Y falta
   // cobrarlo. El contador propio destaca justamente ese cruce, que es el
   // accionable: mercadería entregada que todavía no se factura.
-  const nEsf = pedidos.filter(p => p.estado === 'entregado-sin-facturar').length;
+  const nEsf = pedidos.filter(p => p.estado === 'entregado-sin-facturar' && !esCortesia(p)).length;
   document.getElementById('st').textContent   = pedidos.length;
-  document.getElementById('sp').textContent   = pedidos.filter(p => sinFacturar(p.estado)).length;
+  document.getElementById('sp').textContent   = pedidos.filter(p => sinFacturar(p)).length;
   document.getElementById('sr').textContent   = pedidos.filter(p => p.estado === 'en-ruta').length;
   document.getElementById('se').textContent   = pedidos.filter(p => yaEntregado(p.estado)).length;
   document.getElementById('sesf').textContent = nEsf;
@@ -1146,11 +1265,40 @@ function render() {
 
   // Solo se muestra si bodega está andando: sin el módulo instalado, este
   // indicador diría que todo está pendiente y no significaría nada.
+  const bc = document.getElementById('b-corte');
+  if (bc) {
+    bc.style.display = bodListo ? '' : 'none';
+    bc.textContent = bodCorte
+      ? '🪧 Corte: ' + String(bodCorte).slice(0, 10)
+      : '🪧 Corte de bodega';
+  }
+
+  const ncort = cortesiasPendientes().length;
+  const cajaCort = document.getElementById('stat-cort');
+  cajaCort.style.display = pedidos.some(esCortesia) ? '' : 'none';
+  document.getElementById('scort').textContent = ncort;
+
   const nods = pedidosSinDescargo().length;
   const cajaNods = document.getElementById('stat-nods');
   cajaNods.style.display = bodListo ? '' : 'none';
   document.getElementById('snods').textContent = nods;
   cajaNods.classList.toggle('aviso', nods > 0);
+
+  // Con muchos pendientes de golpe no es que el equipo esté atrasado: es que
+  // el módulo se instaló sobre un historial que nunca pasó por bodega. Ahí
+  // pedir que se descarguen uno por uno es pedir lo imposible.
+  const avisoC = document.getElementById('aviso-corte');
+  if (bodListo && nods >= 10) {
+    avisoC.innerHTML = `<div class="alert an" style="line-height:1.6;display:flex;
+        gap:12px;align-items:center;flex-wrap:wrap">
+      <span style="flex:1">📦 <b>${nods} pedidos despachados sin descargar bodega.</b>
+        Si vienen de antes de instalar el módulo, ese producto ya salió y el conteo
+        físico lo tiene descontado: no hay que anotarlos uno por uno.</span>
+      <button class="btn bam2 bsm" onclick="abrirCorte()">Cerrar el historial anterior</button>
+    </div>`;
+  } else {
+    avisoC.innerHTML = '';
+  }
 
   const chkAll = document.getElementById('chk-all');
   if (chkAll) chkAll.checked = false;
@@ -1209,11 +1357,13 @@ function render() {
       <td style="font-size:12px;font-weight:600;max-width:210px">${hesc(p.dir)}</td>
       <td>${entregaBadge(p)}</td>
       <td>
-        ${ebadge(p.estado)}
+        ${ebadge(p.estado, p)}
         ${recibeHtml}
         ${entregaHtml}
       </td>
-      <td style="font-size:12px;color:var(--textl);font-weight:600">${hesc(p.factura_num)||'—'}</td>
+      <td style="font-size:12px;color:var(--textl);font-weight:600">${
+        esCortesia(p) ? '<span style="color:#3730a3;font-weight:800">sin venta</span>'
+                      : (hesc(p.factura_num) || '—')}</td>
       <td><button class="btn bol bsm" onclick="abrir(${p.id})">Editar</button>
         ${bodListo && ['en-ruta','entregado','entregado-sin-facturar'].includes(p.estado)
           ? (bodPedidosConMov.has(String(p.id))
@@ -1391,7 +1541,12 @@ let ds = { pedido: null, lineas: [], tras: null };   // tras = qué hacer al ter
 
 const T_BOD_B = 'bod_bodegas', T_BOD_P = 'bod_productos',
       T_BOD_MO = 'bod_motivos', T_BOD_MV = 'bod_movimientos',
-      T_BOD_S = 'bod_saldos';
+      T_BOD_S = 'bod_saldos', T_BOD_C = 'bod_config';
+
+// Fecha desde la que se exige descargar stock. Lo anterior no se reclama:
+// ese producto ya salió y el conteo físico de apertura ya lo descontó.
+let bodCorte = null;         // texto ISO o null
+let bodCorteQuien = '';
 
 // El saldo se lee de la vista bod_saldos en vez de traer el libro completo:
 // son unas cientos de filas en vez de miles, y el número lo calcula Postgres
@@ -1399,13 +1554,18 @@ const T_BOD_B = 'bod_bodegas', T_BOD_P = 'bod_productos',
 async function cargarBodega(forzar) {
   if (bodListo && !forzar) return true;
   try {
-    const [b, p, mo, s, mv] = await Promise.all([
+    const [b, p, mo, s, mv, cfg] = await Promise.all([
       sbJson(`${T_BOD_B}?select=*&order=nombre.asc`),
       sbJson(`${T_BOD_P}?select=*&order=nombre.asc`),
       sbJson(`${T_BOD_MO}?select=*&order=orden.asc,nombre.asc`),
       sbJson(`${T_BOD_S}?select=bodega_id,producto_id,saldo,minimo`),
-      sbJson(`${T_BOD_MV}?select=id,pedido_id&pedido_id=not.is.null`)
+      sbJson(`${T_BOD_MV}?select=id,pedido_id&pedido_id=not.is.null`),
+      // Si la tabla de ajustes todavía no existe, no es un problema: significa
+      // que no hay corte puesto y se reclama por todo.
+      sbJson(`${T_BOD_C}?select=*&clave=eq.corte_pedidos`).catch(() => [])
     ]);
+    bodCorte = cfg.length ? cfg[0].valor : null;
+    bodCorteQuien = cfg.length ? (cfg[0].quien || '') : '';
     bodBodegas = b; bodProductos = p; bodMotivos = mo; bodSaldos = s;
     bodPedidosConMov = new Map();
     mv.forEach(x => {
@@ -1469,6 +1629,28 @@ function bodPreparar(p) {
   return { lineas, fuera };
 }
 
+// Qué motivo proponer. En una cortesía la razón ya lo dice —"Muestra
+// comercial", "Regalo"— así que se busca el motivo de bodega que calce con
+// ese texto en vez de hacer elegir dos veces lo mismo. En una venta, depende
+// de si hay factura: proponer venta sin factura sería proponer algo que la
+// base va a rechazar.
+function bodMotivoPropuesto(p) {
+  const salidas = bodSalidas();
+  if (!salidas.length) return null;
+  const noVenta = salidas.filter(m => !m.es_venta);
+
+  if (esCortesia(p)) {
+    const razon = normTxt(p.razon || '');
+    const calza = noVenta.find(m => normTxt(m.nombre) === razon) ||
+                  noVenta.find(m => razon && (normTxt(m.nombre).includes(razon.split(' ')[0]) ||
+                                              razon.includes(normTxt(m.nombre).split(' ')[0])));
+    return calza || noVenta[0] || null;
+  }
+  const conFactura = !!String(p.factura_num || '').trim();
+  return conFactura ? (salidas.find(m => m.es_venta) || noVenta[0] || null)
+                    : (noVenta[0] || null);
+}
+
 // ── ABRIR ────────────────────────────────────────────────────
 // `tras` es lo que se hace cuando el descargo termina bien: normalmente
 // guardar el pedido con su nuevo estado.
@@ -1498,12 +1680,7 @@ async function abrirDescargo(pedidoId, tras) {
     const prep = bodPreparar(p);
     ds.lineas = prep.lineas;
     ds.fuera  = prep.fuera;
-    // Motivo por omisión: venta si hay factura; si no, el primero que no
-    // exija factura. Así la pantalla no propone algo que la base rechazaría.
-    const conFactura = !!String(p.factura_num || '').trim();
-    const venta   = bodSalidas().find(m => m.es_venta);
-    const noVenta = bodSalidas().find(m => !m.es_venta);
-    const def = conFactura ? (venta || noVenta) : (noVenta || null);
+    const def = bodMotivoPropuesto(p);
     ds.lineas.forEach(l => { l.motivo_id = def ? def.id : ''; });
   }
   document.getElementById('ds-alert').innerHTML = '';
@@ -1558,8 +1735,12 @@ function pintarDescargo() {
     `<option value="${x.id}" ${String(x.id) === String(pid) ? 'selected' : ''}>${hesc(x.nombre)}${x.formato ? ' · ' + hesc(x.formato) : ''}</option>`).join('');
   const opsBod = bid => `<option value="">— bodega —</option>` + bodVivas().map(b =>
     `<option value="${b.id}" ${String(b.id) === String(bid) ? 'selected' : ''}>${hesc(b.nombre)}</option>`).join('');
-  const opsMot = mid => `<option value="">— motivo —</option>` + bodSalidas().map(m =>
-    `<option value="${m.id}" ${String(m.id) === String(mid) ? 'selected' : ''}>${hesc(m.nombre)}${m.es_venta ? ' · venta' : ''}</option>`).join('');
+  // En una cortesía los motivos de venta no se ofrecen: no hay nada que
+  // cobrar, y ofrecerlos solo invita a un error que la base rechazaría.
+  const cort = esCortesia(ds.pedido);
+  const opsMot = mid => `<option value="">— motivo —</option>` +
+    bodSalidas().filter(m => !(cort && m.es_venta)).map(m =>
+      `<option value="${m.id}" ${String(m.id) === String(mid) ? 'selected' : ''}>${hesc(m.nombre)}${m.es_venta ? ' · venta' : ''}</option>`).join('');
 
   const filas = ds.lineas.map((l, i) => {
     const saldo = l.bodega_id ? bodSaldo(l.bodega_id, l.producto_id) : null;
@@ -1619,18 +1800,24 @@ function pintarDescargo() {
         <span>Cliente</span><b>${hesc(p.emp)}</b>
       </div>
       <div>
-        <span>Factura</span>
-        <b class="${factura ? '' : 'ds-sinfact'}">${factura ? hesc(factura) : 'sin número'}</b>
+        <span>${esCortesia(p) ? 'Razón' : 'Factura'}</span>
+        <b class="${esCortesia(p) ? '' : (factura ? '' : 'ds-sinfact')}">${
+          esCortesia(p) ? hesc(p.razon || 'sin venta')
+                        : (factura ? hesc(factura) : 'sin número')}</b>
       </div>
       <div>
         <span>Entrega</span><b>${esRetiro(p) ? '🏢 Retiro' : '🚚 Despacho'}</b>
       </div>
     </div>
 
-    ${factura ? '' : `<div class="alert an" style="line-height:1.55">
+    ${esCortesia(p)
+      ? `<div class="alert ai" style="line-height:1.55">🎁 <b>Entrega sin venta</b> —
+           ${hesc(p.razon || 'cortesía')}. El stock se descuenta igual; lo que no hay
+           es factura ni cobro. El costo queda medido para saber cuánto se regaló.</div>`
+      : (factura ? '' : `<div class="alert an" style="line-height:1.55">
       Este pedido <b>no tiene número de factura</b>, así que nada puede marcarse como venta.
       Escríbelo en el pedido y vuelve, o elige un motivo que no sea de venta —una muestra,
-      por ejemplo— y el stock igual se descuenta.</div>`}
+      por ejemplo— y el stock igual se descuenta.</div>`)}
 
     ${filas || '<div class="empty">No se reconoció ningún producto del pedido. Puedes agregar las líneas a mano.</div>'}
     ${fueraHtml}
@@ -1673,7 +1860,9 @@ function dsProblemas() {
     if (!l.bodega_id)   out.push(`Línea ${i + 1}: falta la bodega`);
     if (!l.motivo_id)   out.push(`Línea ${i + 1}: falta decir qué pasó`);
     if (!(Number(l.cantidad) > 0)) out.push(`Línea ${i + 1}: la cantidad tiene que ser mayor que cero`);
-    if (esMotivoVenta(l.motivo_id) && !factura)
+    if (esMotivoVenta(l.motivo_id) && esCortesia(ds.pedido))
+      out.push(`Línea ${i + 1}: esta entrega es sin venta, elige otro motivo`);
+    else if (esMotivoVenta(l.motivo_id) && !factura)
       out.push(`Línea ${i + 1}: una venta necesita número de factura`);
   });
   return out;
@@ -1698,10 +1887,7 @@ function dsAgregar() {
   const p = bodVigentes()[0];
   if (!p) { alert('No hay productos cargados en bodega.'); return; }
   const b = bodMejor(p.id);
-  const factura = String((ds.pedido || {}).factura_num || '').trim();
-  const venta = bodSalidas().find(m => m.es_venta);
-  const noVenta = bodSalidas().find(m => !m.es_venta);
-  const def = factura ? (venta || noVenta) : (noVenta || null);
+  const def = bodMotivoPropuesto(ds.pedido || {});
   ds.lineas.push({ producto_id: p.id, bodega_id: b ? b.id : '', cantidad: 1,
                    motivo_id: def ? def.id : '', texto: '' });
   pintarDescargo();
@@ -1734,7 +1920,8 @@ async function guardarDescargo() {
     // El número de factura viaja en `doc` incluso cuando el motivo no es venta:
     // si mañana se reclasifica, el dato ya está.
     doc: factura || null,
-    nota: 'Pedido #' + p.id + (p.folio ? ' · ' + p.folio : ''),
+    nota: (esCortesia(p) ? 'Sin venta · ' + (p.razon || 'cortesía') + ' · ' : '') +
+          'Pedido #' + p.id + (p.folio ? ' · ' + p.folio : ''),
     usuario: quienDescarga(),
     pedido_id: Number(p.id)
   }));
@@ -1797,7 +1984,133 @@ function pedidosSinDescargo() {
   if (!bodListo) return [];
   return pedidos.filter(p =>
     ['en-ruta', 'entregado', 'entregado-sin-facturar'].includes(p.estado) &&
+    !bodPedidosConMov.has(String(p.id)) &&
+    !antesDelCorte(p));
+}
+
+// Se compara con created_at y no con `fecha`, que es texto escrito a mano en
+// formato chileno: "3/8/2026" y "03-08-2026" son la misma fecha y ninguna
+// se puede ordenar como texto.
+function antesDelCorte(p) {
+  if (!bodCorte) return false;
+  const t = p.created_at || p.creado;
+  if (!t) return false;
+  return String(t) < String(bodCorte);
+}
+
+// Cuántos pedidos quedarían cerrados si el corte fuera ahora mismo.
+function pendientesTodos() {
+  if (!bodListo) return [];
+  return pedidos.filter(p =>
+    ['en-ruta', 'entregado', 'entregado-sin-facturar'].includes(p.estado) &&
     !bodPedidosConMov.has(String(p.id)));
+}
+
+// ── CERRAR EL PASADO ─────────────────────────────────────────────────
+function abrirCorte() {
+  const todos = pendientesTodos();
+  const quedan = pedidosSinDescargo();
+  const yaCerrados = todos.length - quedan.length;
+  const masViejo = todos.slice().sort((a, b) =>
+    String(a.created_at || '').localeCompare(String(b.created_at || '')))[0];
+
+  document.getElementById('ct-cuerpo').innerHTML = `
+    <div class="alert ai" style="line-height:1.6">
+      Esto <b>no crea movimientos ni toca el stock</b>. Solo pone una raya en el suelo:
+      de acá para atrás, la plataforma deja de reclamar que falta descargar bodega.
+      <div style="font-size:12px;font-weight:700;margin-top:8px">
+        Es lo correcto para el historial viejo: ese producto ya salió de la repisa
+        hace meses. Anotar hoy una salida de marzo descontaría de nuevo algo que
+        ya no está, y dejaría el saldo de hoy en negativo.
+      </div>
+    </div>
+
+    <div class="ds-cab">
+      <div><span>Quedan pendientes</span><b>${quedan.length} pedido${quedan.length === 1 ? '' : 's'}</b></div>
+      <div><span>El más antiguo</span><b>${masViejo ? hesc(String(masViejo.created_at || '').slice(0, 10)) : '—'}</b></div>
+      <div><span>Corte actual</span><b>${bodCorte ? hesc(String(bodCorte).slice(0, 10)) : 'ninguno'}</b></div>
+    </div>
+
+    ${yaCerrados ? `<div class="hint-man" style="margin-bottom:10px">
+      ${yaCerrados} pedido${yaCerrados === 1 ? '' : 's'} ya ${yaCerrados === 1 ? 'está' : 'están'}
+      cerrado${yaCerrados === 1 ? '' : 's'} por el corte vigente.</div>` : ''}
+
+    <div class="alert an" style="line-height:1.6">
+      <b>El orden importa.</b> El corte silencia la lista; lo que cuadra el stock es
+      el conteo físico. Haz el conteo en <b>Bodega → Conteo físico</b> el mismo día
+      que cierres el pasado, así el saldo del sistema queda igual a lo que hay en la
+      repisa y de ahí en adelante cada despacho lo mantiene al día.
+    </div>
+
+    <div class="f1" style="margin-top:12px">
+      <label for="ct-nota">Por qué se cierra (queda anotado)</label>
+      <input type="text" id="ct-nota" placeholder="Ej: arranque del control de bodega, conteo hecho hoy">
+    </div>`;
+
+  document.getElementById('ct-acciones').innerHTML = `
+    <button class="btn bgray" onclick="cerrarModalCorte()">Cancelar</button>
+    ${bodCorte ? `<button class="btn bol" onclick="quitarCorte()"
+        title="Volver a reclamar por todo el historial">Quitar el corte</button>` : ''}
+    <button class="btn bmora" id="ct-ok" onclick="guardarCorte()">
+      Cerrar ${quedan.length} pedido${quedan.length === 1 ? '' : 's'}</button>`;
+
+  document.getElementById('modal-corte').classList.add('open');
+}
+
+function cerrarModalCorte() {
+  document.getElementById('modal-corte').classList.remove('open');
+}
+
+async function guardarCorte() {
+  const b = document.getElementById('ct-ok');
+  b.disabled = true; b.innerHTML = '<span class="sp"></span>Guardando…';
+  const ahora = new Date().toISOString();
+  const nota = document.getElementById('ct-nota').value.trim();
+  const quien = quienDescarga() + (nota ? ' · ' + nota : '');
+  try {
+    // Alta y modificación por separado: un upsert necesitaría la cabecera
+    // Prefer, que el Worker no reenvía.
+    const hay = await sbJson(`${T_BOD_C}?select=clave&clave=eq.corte_pedidos`);
+    if (hay.length)
+      await sbSend(`${T_BOD_C}?clave=eq.corte_pedidos`, 'PATCH',
+        { valor: ahora, quien, actualizado: ahora });
+    else
+      await sbSend(T_BOD_C, 'POST',
+        { clave: 'corte_pedidos', valor: ahora, quien, actualizado: ahora });
+    cerrarModalCorte();
+    await cargarBodega(true);
+    render();
+    alert('Listo. El historial anterior a hoy queda cerrado.\n\n' +
+          'Ahora anda a Bodega → Conteo físico y cuadra el stock con lo que hay ' +
+          'de verdad en la repisa. De ahí en adelante, cada despacho lo mantiene al día.');
+  } catch (e) {
+    const msg = String(e.message);
+    alert('No se pudo guardar el corte: ' + msg +
+      (/bod_config|404|403/i.test(msg)
+        ? '\n\nPuede faltar correr bodega-corte.sql en Supabase, o permitir ' +
+          'bod_config en la lista de tablas del Worker.' : ''));
+  } finally {
+    b.disabled = false; b.innerHTML = 'Cerrar pedidos';
+  }
+}
+
+async function quitarCorte() {
+  if (!confirm('Se vuelve a reclamar por todo el historial de pedidos. ¿Seguro?')) return;
+  try {
+    await sbSend(`${T_BOD_C}?clave=eq.corte_pedidos`, 'DELETE');
+    cerrarModalCorte();
+    await cargarBodega(true);
+    render();
+  } catch (e) { alert('No se pudo quitar: ' + e.message); }
+}
+
+function verCortesias() {
+  filtroSinDescargo = false;
+  document.getElementById('festado').value = 'cortesia';
+  document.getElementById('fentrega').value = '';
+  document.getElementById('buscar').value = '';
+  render();
+  document.getElementById('tbody').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function verSinDescargo() {
@@ -1882,7 +2195,7 @@ async function agregar() {
   const rut      = document.getElementById('nrut').value.trim();
   const dir      = document.getElementById('ndir').value.trim();
   const zona     = document.getElementById('nzona').value;
-  const det      = document.getElementById('ndet').value.trim();
+  const det      = catDetalle('man', 'ndet');
   const fact     = document.getElementById('nfact').value.trim();
   const fecha    = document.getElementById('nfecha').value.trim() || hoy();
   const contacto = document.getElementById('ncontacto').value.trim();
@@ -1892,8 +2205,8 @@ async function agregar() {
 
   if (!emp || !rut || !det || (!ret && (!dir || !zona)))
     return alerta('anv', ret
-      ? 'Completa empresa, RUT y detalle.'
-      : 'Completa los campos obligatorios (empresa, RUT, dirección, zona y detalle).', 'ae');
+      ? 'Completa empresa, RUT y elige al menos un producto.'
+      : 'Completa los campos obligatorios: empresa, RUT, dirección, zona y al menos un producto.', 'ae');
 
   const btn = document.getElementById('bagregar');
   btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
@@ -1910,6 +2223,7 @@ async function agregar() {
     ['nemp','nrut','ndir','ndet','nfact','ncontacto','ntel'].forEach(id =>
       document.getElementById(id).value = ''
     );
+    catLimpiar('man');
     document.getElementById('nzona').value = '';
     document.getElementById('nzona-nota').style.display = 'none';
     document.getElementById('nfecha').value = hoy();
@@ -1919,6 +2233,106 @@ async function agregar() {
   }
   btn.innerHTML = 'Guardar Pedido'; btn.disabled = false;
 }
+
+// ══════════════════════════════════════════
+//  ENTREGAS SIN VENTA
+// ══════════════════════════════════════════
+//  Una muestra, un regalo o una reposición por reclamo no tienen RUT ni
+//  factura. Obligar a inventarlos ensuciaba dos cosas: el directorio de
+//  clientes se llenaba de RUT falsos, y el contador de "sin facturar"
+//  contaba plata que nunca se iba a cobrar.
+//
+//  El texto de cada razón calza con el nombre de un motivo de bodega, para
+//  que al descargar el stock el motivo venga ya elegido.
+const RAZONES = [
+  'Muestra comercial',
+  'Degustación o activación',
+  'Regalo',
+  'Reposición por reclamo',
+  'Marketing y activaciones',
+  'Consumo interno',
+  'Otro (explicar en el comentario)'
+];
+
+const coQ = {};   // cantidades del formulario de cortesía
+
+function togCortesia() {
+  const b = document.getElementById('cortesia-box');
+  const abriendo = b.style.display === 'none';
+  b.style.display = abriendo ? 'block' : 'none';
+  if (!abriendo) return;
+  document.getElementById('manual-box').style.display = 'none';   // uno a la vez
+  const sel = document.getElementById('co-razon');
+  if (!sel.options.length)
+    sel.innerHTML = RAZONES.map(r => `<option value="${hesc(r)}">${hesc(r)}</option>`).join('');
+  if (!document.getElementById('co-fecha').value)
+    document.getElementById('co-fecha').value = hoy();
+  pintarCat('co');
+  coEntregaCambio();
+  b.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function coEntregaCambio() {
+  const ret = document.getElementById('co-entrega').value === 'retiro';
+  document.getElementById('co-zona-req').style.display = ret ? 'none' : '';
+  document.getElementById('co-dir-req').style.display  = ret ? 'none' : '';
+}
+
+function coRazonCambio() { /* la razón no cambia el formulario, pero sí el motivo de bodega */ }
+
+const coProponerZona = () =>
+  proponerZona('co-zona', 'co-zona-nota', document.getElementById('co-dir').value);
+
+async function guardarCortesia() {
+  const dato = id => document.getElementById(id).value.trim();
+  const emp   = dato('co-emp');
+  const razon = dato('co-razon');
+  const ret   = document.getElementById('co-entrega').value === 'retiro';
+  const dir   = dato('co-dir');
+  const zona  = document.getElementById('co-zona').value;
+  const det   = catDetalle('co');
+
+  if (!emp)  return alerta('co-alert', 'Pon para quién es la entrega.', 'ae');
+  if (!det)  return alerta('co-alert', 'Elige al menos un producto.', 'ae');
+  if (!ret && !dir)  return alerta('co-alert', 'Falta la dirección de despacho.', 'ae');
+  if (!ret && !zona) return alerta('co-alert', 'Asigna una zona para poder armar la ruta.', 'ae');
+
+  const btn = document.getElementById('co-guardar');
+  btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
+
+  const fila = {
+    emp, rut: '', dir, zona: ret ? '' : zona,
+    detalle: det, entrega: ret ? 'retiro' : 'despacho',
+    contacto: dato('co-contacto'), telefono: dato('co-tel'),
+    // Sin factura, por definición y por restricción de la base.
+    factura_num: '', factura_nombre: '',
+    estado: 'pendiente',
+    fecha: dato('co-fecha') || hoy(),
+    fecha_entrega: '', recibe: '',
+    comentario: dato('co-com'),
+    tipo: 'cortesia', razon
+  };
+
+  try {
+    await sbPost(fila);
+    alerta('co-alert', '✅ Entrega registrada. Descarga el stock cuando salga.', 'as');
+    ['co-emp', 'co-dir', 'co-contacto', 'co-tel', 'co-com'].forEach(id =>
+      document.getElementById(id).value = '');
+    document.getElementById('co-zona').value = '';
+    document.getElementById('co-zona-nota').style.display = 'none';
+    document.getElementById('co-fecha').value = hoy();
+    catLimpiar('co');
+    await cargar();
+  } catch (e) {
+    const msg = String(e.message);
+    alerta('co-alert', 'Error guardando: ' + hesc(msg) +
+      (/tipo|column/i.test(msg)
+        ? '<br>Puede faltar correr <b>pedidos-cortesias.sql</b> en Supabase.' : ''), 'ae');
+  }
+  btn.innerHTML = 'Registrar entrega'; btn.disabled = false;
+}
+
+const esCortesia = p => (p.tipo || 'venta') === 'cortesia';
 
 // ══════════════════════════════════════════
 //  MODAL EDITAR
@@ -2037,7 +2451,7 @@ function exportCSV() {
 
   const headers = [
     'ID','Folio','Fecha','Empresa','RUT','Contacto','Teléfono',
-    'Entrega','Dirección','Zona','Detalle','Mensaje del cliente','Estado','Factura N°',
+    'Tipo','Razón','Entrega','Dirección','Zona','Detalle','Mensaje del cliente','Estado','Factura N°',
     'Fecha Entrega/Retiro','Recibe/Retira','Comentario interno'
   ];
 
@@ -2051,6 +2465,7 @@ function exportCSV() {
   const rows = data.map(p => [
     p.id, p.folio||'', p.fecha||'', p.emp, p.rut,
     p.contacto||'', p.telefono||'',
+    esCortesia(p) ? 'Sin venta' : 'Venta', p.razon||'',
     esRetiro(p) ? 'Retiro en oficina' : 'Despacho',
     p.dir, p.zona||'', p.detalle||'', p.mensaje||'',
     estadoLabel(p.estado), p.factura_num||'',
@@ -2075,9 +2490,13 @@ function exportCSV() {
 // Los retiros NO entran: el cliente los viene a buscar. Si entraran, podrías
 // despachar algo que ya estaba coordinado para retiro.
 function renderChecksRuta() {
-  const facturados = pedidos.filter(p => p.estado === 'facturado');
-  const f = facturados.filter(p => !esRetiro(p));
-  const nret = facturados.length - f.length;
+  // Una cortesía nunca va a estar "facturada", así que si se pidiera solo ese
+  // estado, las muestras no entrarían nunca en la ruta y habría que llevarlas
+  // aparte, anotadas en un papel.
+  const listos = pedidos.filter(p =>
+    p.estado === 'facturado' || (esCortesia(p) && p.estado === 'pendiente'));
+  const f = listos.filter(p => !esRetiro(p));
+  const nret = listos.length - f.length;
 
   document.getElementById('ruta-aviso').innerHTML = nret
     ? `<div class="alert an">🏢 ${nret} pedido${nret > 1 ? 's' : ''} facturado${nret > 1 ? 's' : ''}
@@ -2100,6 +2519,7 @@ function renderChecksRuta() {
       <div style="flex:1">
         <div style="font-weight:800;font-size:13px;color:var(--mora-d)">
           ${hesc(p.emp)} ${zbadge(p.zona)}
+          ${esCortesia(p) ? `<span class="badge bcort">🎁 ${hesc(p.razon || 'sin venta')}</span>` : ''}
         </div>
         <div style="font-size:12px;color:var(--textl);margin-top:2px;font-weight:600">📍 ${hesc(p.dir)}</div>
         ${p.telefono ? `<div style="font-size:12px;color:var(--textl);font-weight:600">📞 ${hesc(p.telefono)}</div>` : ''}
@@ -2136,7 +2556,8 @@ function genPrompt() {
   const lista = s.map((p, i) =>
     `\nPEDIDO ${i+1}:\n` +
     `- Cliente: ${p.emp}\n` +
-    `- RUT: ${p.rut}\n` +
+    (esCortesia(p) ? `- ENTREGA SIN VENTA: ${p.razon || 'cortesía'} — no se cobra\n` : '') +
+    (p.rut ? `- RUT: ${p.rut}\n` : '') +
     (p.folio ? `- Folio: ${p.folio}\n` : '') +
     (p.contacto ? `- Contacto: ${p.contacto}\n` : '') +
     (p.telefono ? `- Teléfono: ${p.telefono}\n` : '') +
@@ -2166,11 +2587,35 @@ function genPrompt() {
 }
 
 function copiar() {
-  navigator.clipboard.writeText(document.getElementById('pout').textContent).then(() => {
-    const b = document.querySelector('.bcopy');
+  const txt = document.getElementById('pout').textContent;
+  const b = document.querySelector('.bcopy');
+  const listo = () => {
     b.textContent = '✅ ¡Copiado! Pégalo en Claude';
     setTimeout(() => b.textContent = '📋 Copiar y pegar en Claude', 3000);
-  });
+  };
+  // El portapapeles del navegador no existe en todas partes. Antes esto
+  // reventaba en silencio y el botón se quedaba mudo, sin decir que había
+  // que seleccionar el texto a mano.
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(listo).catch(seleccionar);
+      return;
+    }
+  } catch (_) {}
+  seleccionar();
+
+  function seleccionar() {
+    try {
+      const r = document.createRange();
+      r.selectNodeContents(document.getElementById('pout'));
+      const sel = window.getSelection();
+      sel.removeAllRanges(); sel.addRange(r);
+      b.textContent = '👆 Texto seleccionado · copia con Ctrl+C';
+      setTimeout(() => b.textContent = '📋 Copiar y pegar en Claude', 5000);
+    } catch (_) {
+      b.textContent = 'Selecciona el texto y cópialo a mano';
+    }
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2678,7 +3123,11 @@ function renderWzPills() {
 function togManual() {
   const b = document.getElementById('manual-box');
   b.style.display = b.style.display === 'none' ? 'block' : 'none';
-  if (b.style.display === 'block') b.scrollIntoView({ behavior:'smooth', block:'start' });
+  if (b.style.display === 'block') {
+    document.getElementById('cortesia-box').style.display = 'none';
+    pintarCat('man');
+    b.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2813,71 +3262,133 @@ function renderPaso3() {
   updWzBar();
 }
 
-function renderCatalogo() {
-  const q  = normTxt(document.getElementById('pq').value);
-  const el = document.getElementById('cat-wrap');
+// ══════════════════════════════════════════
+//  CATÁLOGO REUTILIZABLE
+// ══════════════════════════════════════════
+//  Antes esto estaba amarrado al asistente de pedidos: usaba sus cantidades,
+//  su buscador y su contenedor, todos fijos. Ahora lo usan tres pantallas —el
+//  asistente, la entrada manual y las entregas sin venta— y por eso recibe
+//  dónde pintarse y sobre qué cantidades trabajar.
+//
+//  Que la entrada manual use el catálogo no es cosmético: un producto escrito
+//  a mano no se puede descontar de bodega, porque el descargo no lo reconoce.
+//  Escribir el pedido a mano dejaba un agujero en el stock.
+const CTX = {};   // prefijo -> { qtys, cont, busca, alCambiar }
+
+function catRegistrar(pre, cfg) { CTX[pre] = cfg; return cfg; }
+
+function pintarCat(pre) {
+  const c = CTX[pre];
+  if (!c) return;
+  const q  = c.busca ? normTxt(document.getElementById(c.busca).value) : '';
+  const el = document.getElementById(c.cont);
+  if (!el) return;
   const html = CATS.map(cat => {
     const items = PRODS.filter(p => p.cat === cat.id && (!q || normTxt(p.n).includes(q)));
     if (!items.length) return '';
-    const sel  = items.filter(p => wz.qtys[p.n]).length;
+    const sel  = items.filter(p => c.qtys[p.n]).length;
     const open = (q || sel) ? 'open' : '';
-    return `<div class="cat ${open}" id="cat-${cat.id}">
-      <div class="cat-h" onclick="document.getElementById('cat-${cat.id}').classList.toggle('open')">
+    const idCaja = `cat-${pre}-${cat.id}`;
+    return `<div class="cat ${open}" id="${idCaja}">
+      <div class="cat-h" onclick="document.getElementById('${idCaja}').classList.toggle('open')">
         <span>${cat.icon}</span><span>${hesc(cat.label)}</span>
         <span class="cn">${sel ? sel + ' sel · ' : ''}${items.length} ítems</span>
       </div>
-      <div class="cat-b">${items.map(prodRow).join('')}</div>
+      <div class="cat-b">${items.map(p => prodRow(p, pre)).join('')}</div>
     </div>`;
   }).join('');
   el.innerHTML = html || '<div class="empty">Sin coincidencias en el catálogo.</div>';
 }
 
-function prodRow(p) {
-  const q = wz.qtys[p.n] || 0;
-  return `<div class="prod ${q ? 'on' : ''}" id="pr-${p.id}">
+function prodRow(p, pre) {
+  const q = CTX[pre].qtys[p.n] || 0;
+  return `<div class="prod ${q ? 'on' : ''}" id="pr-${pre}-${p.id}">
     <div class="prod-n">${hesc(p.n)}<div class="prod-f">${hesc(p.f)}</div></div>
     <div class="stp">
-      <button type="button" onclick="qChg('${p.id}',-1)">−</button>
-      <input type="number" min="0" id="qi-${p.id}" value="${q}" oninput="qSet('${p.id}',this.value)">
-      <button type="button" onclick="qChg('${p.id}',1)">+</button>
+      <button type="button" onclick="qChg('${pre}','${p.id}',-1)">−</button>
+      <input type="number" min="0" id="qi-${pre}-${p.id}" value="${q}"
+        oninput="qSet('${pre}','${p.id}',this.value)">
+      <button type="button" onclick="qChg('${pre}','${p.id}',1)">+</button>
     </div>
   </div>`;
 }
 
-function qChg(id, d) {
-  const p = prodById(id); if (!p) return;
-  qApply(p, Math.max(0, (wz.qtys[p.n] || 0) + d));
+function qChg(pre, id, d) {
+  const p = prodById(id); if (!p || !CTX[pre]) return;
+  qApply(pre, p, Math.max(0, (CTX[pre].qtys[p.n] || 0) + d));
 }
-function qSet(id, val) {
-  const p = prodById(id); if (!p) return;
-  qApply(p, Math.max(0, parseInt(val, 10) || 0), true);
+function qSet(pre, id, val) {
+  const p = prodById(id); if (!p || !CTX[pre]) return;
+  qApply(pre, p, Math.max(0, parseInt(val, 10) || 0), true);
 }
-function qApply(p, v, skipInput) {
-  if (v > 0) wz.qtys[p.n] = v; else delete wz.qtys[p.n];
-  const inp = document.getElementById('qi-' + p.id);
-  if (inp && !skipInput) inp.value = v;
-  const row = document.getElementById('pr-' + p.id);
+function qApply(pre, p, v, saltarInput) {
+  const c = CTX[pre];
+  if (v > 0) c.qtys[p.n] = v; else delete c.qtys[p.n];
+  const inp = document.getElementById(`qi-${pre}-${p.id}`);
+  if (inp && !saltarInput) inp.value = v;
+  const row = document.getElementById(`pr-${pre}-${p.id}`);
   if (row) row.classList.toggle('on', v > 0);
-  updWzBar(); renderWzPills();
+  if (c.alCambiar) c.alCambiar();
 }
 
+// Arma el texto del detalle en el formato que el resto de la plataforma
+// entiende: "Nombre (formato) xCantidad". De ese formato viven "Repetir
+// último pedido" y el descargo de bodega.
+function catDetalle(pre, extraId) {
+  const c = CTX[pre];
+  const del = PRODS.filter(p => c.qtys[p.n]).map(p => `${p.n} (${p.f}) x${c.qtys[p.n]}`);
+  const extra = extraId
+    ? (document.getElementById(extraId).value || '')
+        .split('\n').map(x => x.trim().replace(/,$/, '')).filter(Boolean)
+    : [];
+  return [...del, ...extra].join(', ');
+}
+
+function catResumen(pre) {
+  const e = Object.entries(CTX[pre].qtys);
+  const un = e.reduce((a, [, q]) => a + q, 0);
+  return { n: e.length, unidades: un,
+    texto: e.length ? `${e.length} producto${e.length > 1 ? 's' : ''} · ${un} unidad${un > 1 ? 'es' : ''}`
+                    : 'Sin productos seleccionados',
+    lista: e.map(([k, q]) => `${k} ×${q}`).join(', ') };
+}
+
+function catLimpiar(pre) {
+  Object.keys(CTX[pre].qtys).forEach(k => delete CTX[pre].qtys[k]);
+  pintarCat(pre);
+  if (CTX[pre].alCambiar) CTX[pre].alCambiar();
+}
+
+// El asistente sigue funcionando igual: solo pasa por el mismo motor.
+catRegistrar('wz', { qtys: wz.qtys, cont: 'cat-wrap', busca: 'pq',
+                     alCambiar: () => { updWzBar(); renderWzPills(); } });
+catRegistrar('man', { qtys: {}, cont: 'cat-man', busca: 'npq',
+                      alCambiar: () => {
+                        document.getElementById('man-resumen').textContent = catResumen('man').texto;
+                      } });
+catRegistrar('co', { qtys: coQ, cont: 'cat-co', busca: 'co-pq',
+                     alCambiar: () => {
+                       document.getElementById('co-resumen').textContent = catResumen('co').texto;
+                     } });
+function renderCatalogo() { CTX.wz.qtys = wz.qtys; pintarCat('wz'); }
+
 function limpiarProds() {
-  wz.qtys = {};
+  wz.qtys = {}; CTX.wz.qtys = wz.qtys;
   document.getElementById('wextra').value = '';
   renderCatalogo(); updWzBar(); renderWzPills();
 }
 
 function updWzBar() {
-  const e  = Object.entries(wz.qtys);
-  const un = e.reduce((a, [, q]) => a + q, 0);
-  document.getElementById('wz-bar-info').textContent = e.length
-    ? `${e.length} producto${e.length > 1 ? 's' : ''} · ${un} unidad${un > 1 ? 'es' : ''}`
-    : 'Sin productos seleccionados';
-  document.getElementById('wz-prev').textContent =
-    e.length ? e.map(([k, q]) => `${k} ×${q}`).join(', ') : '';
+  CTX.wz.qtys = wz.qtys;
+  const r = catResumen('wz');
+  document.getElementById('wz-bar-info').textContent = r.texto;
+  document.getElementById('wz-prev').textContent = r.lista;
 }
 
 function repetirUltimo() {
+  // El botón se esconde cuando no hay nada que repetir, pero esconder no es
+  // impedir: basta un atajo de teclado o un clic a destiempo.
+  if (!wz.cliente || !wz.sucursal) return;
   const p = ultPedidoSuc(wz.cliente, wz.sucursal);
   if (!p) return;
   wz.qtys = {};
@@ -2890,6 +3401,7 @@ function repetirUltimo() {
     }
     sobra.push(it);
   });
+  CTX.wz.qtys = wz.qtys;
   document.getElementById('wextra').value = sobra.join('\n');
   renderCatalogo(); updWzBar(); renderWzPills();
   alerta('wz-alert',
@@ -2897,12 +3409,7 @@ function repetirUltimo() {
     (sobra.length ? ` ${sobra.length} ítem(s) fuera de catálogo quedaron en “otros”.` : ''), 'ai');
 }
 
-function buildDetalle() {
-  const cat = PRODS.filter(p => wz.qtys[p.n]).map(p => `${p.n} (${p.f}) x${wz.qtys[p.n]}`);
-  const extra = (document.getElementById('wextra').value || '')
-    .split('\n').map(s => s.trim().replace(/,$/, '')).filter(Boolean);
-  return [...cat, ...extra].join(', ');
-}
+function buildDetalle() { CTX.wz.qtys = wz.qtys; return catDetalle('wz', 'wextra'); }
 
 async function guardarWz() {
   const c = wz.cliente, s = wz.sucursal;
