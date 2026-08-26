@@ -151,6 +151,22 @@ tbody tr:hover td{background:#faf6ff}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
 .d-ok{background:var(--ok)}.d-medio{background:var(--medio)}.d-alto{background:var(--alto)}.d-nada{background:var(--nada)}
 
+/* ══ CONGELADOS ══
+   No es decoración: el color y el hielo son lo que permite saber en qué
+   lista estás parado sin leer el encabezado. */
+.frio{--acento:#2563eb}
+.grupo-cab{display:flex;align-items:center;gap:9px;margin:4px 0 10px;padding-bottom:7px;
+  border-bottom:2px solid var(--crema-d)}
+.grupo-cab.frio{border-bottom-color:#bfdbfe}
+.grupo-t{font-family:'DM Serif Display',serif;font-size:16px;color:var(--mora-d)}
+.grupo-cab.frio .grupo-t{color:#1e40af}
+.grupo-s{font-size:11px;font-weight:700;color:var(--textl)}
+.badge-frio{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}
+.mtz.frio th{background:#eff6ff;color:#1e40af;border-bottom-color:#bfdbfe}
+.mtz.frio tr.fila-alerta td:first-child{box-shadow:inset 3px 0 0 #1e40af}
+.al.frio-crit{background:#eff6ff;border-color:#60a5fa}
+.al.frio-crit .al-n{color:#1e40af}
+
 /* ══ MATRIZ DE SALDOS ══ */
 .mtz td{padding:8px 12px}
 .mtz .cel-bod{min-width:170px}
@@ -159,6 +175,23 @@ tbody tr:hover td{background:#faf6ff}
 .mtz tr.fila-aviso td:first-child{box-shadow:inset 3px 0 0 var(--medio)}
 .celda{cursor:pointer;border-radius:6px}
 .celda:hover .med{border-color:var(--mora-l)}
+
+/* ══ VISTA POR BODEGA ══
+   Con las bodegas en las filas y los productos en columnas, el número tiene
+   que leerse solo: no cabe una barra por celda. El color hace el trabajo. */
+.pbod td{text-align:center;padding:10px 8px;min-width:96px}
+.pbod td.nom{text-align:left;min-width:150px}
+.pbod th{text-align:center;font-size:10px;line-height:1.3;white-space:normal;min-width:96px;vertical-align:bottom}
+.pbod th.nom{text-align:left}
+.pbod .cifra{font-size:19px;font-weight:900;line-height:1.1}
+.pbod .bajo{font-size:10px;font-weight:700;color:var(--textl);margin-top:1px}
+.pbod .c-ok{color:var(--ok)}
+.pbod .c-medio{color:var(--medio)}
+.pbod .c-alto{color:var(--alto)}
+.pbod .c-nada{color:var(--alto);background:#fff1f1;border-radius:7px}
+.pbod .c-sinmin{color:var(--text)}
+.pbod tr.tot td{border-top:2px solid var(--crema-d);background:var(--crema);font-weight:900}
+.pbod .celda:hover{background:#faf6ff}
 
 /* ══ ALERTAS ══ */
 .al-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
@@ -316,6 +349,7 @@ tbody tr:hover td{background:#faf6ff}
           <div class="crece"></div>
           <span class="chip" id="alertas-cuenta"></span>
         </div>
+        <div id="alertas-frio"></div>
         <div class="al-lista" id="alertas"></div>
       </div>
 
@@ -324,6 +358,21 @@ tbody tr:hover td{background:#faf6ff}
           <h2>📦 Stock por bodega</h2>
           <div class="crece"></div>
           <button class="btn bol bsm" onclick="exportarStock()">⬇ CSV</button>
+        </div>
+        <div class="fb" style="margin-bottom:10px">
+          <div class="segs" role="group" aria-label="Qué mostrar">
+            <button id="g-todo"   onclick="verGrupo('')">Todo</button>
+            <button id="g-frio"   onclick="verGrupo('frio')">❄️ Congelados</button>
+            <button id="g-noFrio" onclick="verGrupo('noFrio')">📦 El resto</button>
+          </div>
+          <div class="sep"></div>
+          <div class="segs" role="group" aria-label="Cómo ordenar la tabla">
+            <button id="v-prod" onclick="verComo('producto')">Por producto</button>
+            <button id="v-bod"  onclick="verComo('bodega')">Por bodega</button>
+          </div>
+          <div class="crece"></div>
+          <button class="btn bol bsm" id="b-columnas" onclick="abrirColumnas()"
+            style="display:none">🎚 Elegir productos</button>
         </div>
         <div class="fb">
           <input type="text" id="f-buscar" placeholder="Buscar producto…" oninput="renderMatriz()">
@@ -337,7 +386,8 @@ tbody tr:hover td{background:#faf6ff}
           </select>
           <label class="chk" style="margin:0"><input type="checkbox" id="f-inactivas" onchange="renderMatriz()"> Ver bodegas inactivas</label>
         </div>
-        <div class="tw"><table class="mtz" id="matriz"></table></div>
+        <div id="matriz-frio"></div>
+        <div id="matriz-resto"></div>
         <div id="matriz-vacia"></div>
       </div>
 
@@ -651,6 +701,30 @@ tbody tr:hover td{background:#faf6ff}
   </div>
 </div>
 
+<!-- ══ MODAL ELEGIR PRODUCTOS ══ -->
+<div class="mbg" id="mod-columnas" role="dialog" aria-modal="true" aria-labelledby="cl-title">
+  <div class="modal ancho">
+    <h3 id="cl-title">Qué productos quiero ver</h3>
+    <div class="hint" style="margin-bottom:12px">
+      En la vista por bodega cada producto es una columna, así que mostrarlos todos
+      no se puede leer. Elige los que miras a diario; la elección queda guardada.
+    </div>
+    <div class="fb">
+      <input type="text" id="cl-buscar" placeholder="Buscar…" oninput="renderColumnas()">
+      <button class="btn bol bsm" onclick="clAtajo('frio')">❄️ Los congelados</button>
+      <button class="btn bol bsm" onclick="clAtajo('alerta')">Los que tienen alerta</button>
+      <button class="btn bol bsm" onclick="clAtajo('conmov')">Los que se mueven</button>
+      <button class="btn bgray bsm" onclick="clAtajo('nada')">Ninguno</button>
+      <div class="crece"></div><span class="chip" id="cl-cuenta"></span>
+    </div>
+    <div class="tw" style="max-height:46vh;overflow-y:auto"><table id="tabla-columnas"></table></div>
+    <div class="mact">
+      <button class="btn bgray" onclick="cerrar('mod-columnas')">Cancelar</button>
+      <button class="btn bmora" onclick="guardarColumnas()">Ver estos</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MODAL DETALLE PRODUCTO×BODEGA ══ -->
 <div class="mbg" id="mod-detalle" role="dialog" aria-modal="true" aria-labelledby="dt-title">
   <div class="modal ancho">
@@ -686,7 +760,7 @@ tbody tr:hover td{background:#faf6ff}
     <h3 id="pr-title">Nuevo producto</h3>
     <div id="pr-alert"></div>
     <div class="f1"><label for="pr-nombre">Nombre *</label>
-      <input type="text" id="pr-nombre" placeholder="Ej: Balde Acai Nativo"></div>
+      <input type="text" id="pr-nombre" placeholder="Ej: Balde Acai Nativo" oninput="prSugerirFrio()"></div>
     <div class="fg">
       <div><label for="pr-formato">Formato</label>
         <input type="text" id="pr-formato" placeholder="Ej: 3,6 L"></div>
@@ -700,12 +774,16 @@ tbody tr:hover td{background:#faf6ff}
     </div>
     <div class="fg">
       <div><label for="pr-familia">Familia</label>
-        <input type="text" id="pr-familia" list="familias" placeholder="Ej: Baldes Congelados">
+        <input type="text" id="pr-familia" list="familias" placeholder="Ej: Baldes Congelados"
+          oninput="prSugerirFrio()">
         <datalist id="familias"></datalist></div>
       <div><label for="pr-costo">Costo unitario (CLP)</label>
         <input type="number" id="pr-costo" min="0" step="1" placeholder="Opcional">
         <div class="hint">Solo para valorizar el inventario y las pérdidas.</div></div>
     </div>
+    <div class="f1"><label class="chk"><input type="checkbox" id="pr-frio" onchange="prFrioManual()"> ❄️ Requiere cadena de frío</label>
+      <div class="hint">Los congelados se muestran y se alertan aparte, y avisan
+        cuando llegan a cero aunque no tengan mínimo definido.</div></div>
     <div class="f1"><label class="chk"><input type="checkbox" id="pr-activo" checked> Producto vigente</label></div>
     <div class="mact">
       <button class="btn bgray" onclick="cerrar('mod-producto')">Cancelar</button>
@@ -833,7 +911,7 @@ tbody tr:hover td{background:#faf6ff}
 // Sube con cada entrega. Se ve arriba a la derecha y en el diagnóstico:
 // sirve para saber en dos segundos si el navegador está sirviendo el archivo
 // nuevo o el viejo que tiene guardado.
-const VERSION = 'v10 · 2026-08-26';
+const VERSION = 'v12 · 2026-08-26';
 
 const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
 let TOKEN = '';
@@ -881,6 +959,7 @@ async function doLogin() {
 }
 
 function entrar() {
+  cargarPreferencias();
   document.getElementById('ver-chip').textContent = VERSION;
   document.getElementById('login').style.display = 'none';
   document.getElementById('app').style.display   = 'block';
@@ -1405,6 +1484,8 @@ function llenarSelects() {
 // ══════════════════════════════════════════════════════════════
 // Se recalcula una vez por carga y se guarda: pintar la tabla de bodegas
 // la pedía una vez por fila.
+const esFrio = p => !!(p && p.congelado);
+
 let _alertas = null;
 function listaAlertas() {
   if (_alertas) return _alertas;
@@ -1412,11 +1493,20 @@ function listaAlertas() {
   for (const b of bodegasVivas()) {
     for (const p of productosVivos()) {
       const min = minimoDe(b.id, p.id);
-      if (min === null || !(min > 0)) continue;
       const s = saldoDe(b.id, p.id);
-      if (s > min) continue;
-      out.push({ bodega: b, producto: p, saldo: s, minimo: min,
-        falta: Math.round((min - s) * 1000) / 1000,
+      const bajoMinimo = min !== null && min > 0 && s <= min;
+
+      // Un congelado en cero avisa aunque nadie le haya puesto mínimo.
+      // Quedarse sin baldes no es un descuido de compras: es una venta
+      // perdida hoy y un local parado mañana. Con el resto no aplica: sin
+      // mínimo definido, decir que "falta" sería inventar una urgencia.
+      const frioEnCero = esFrio(p) && s <= 0;
+
+      if (!bajoMinimo && !frioEnCero) continue;
+      out.push({ bodega: b, producto: p, saldo: s,
+        minimo: min !== null && min > 0 ? min : null,
+        frio: esFrio(p), sinMinimo: !bajoMinimo,
+        falta: min !== null && min > 0 ? Math.round((min - s) * 1000) / 1000 : null,
         dias: coberturaDias(b.id, p.id) });
     }
   }
@@ -1425,8 +1515,10 @@ function listaAlertas() {
   // dos días. Lo que no tiene consumo medible va al final: no hay urgencia
   // que calcular.
   _alertas = out.sort((x, y) => {
+    // Los congelados primero, siempre. Después, lo que se acaba antes.
+    if (x.frio !== y.frio) return x.frio ? -1 : 1;
     const a = x.dias === null ? 9e9 : x.dias, b = y.dias === null ? 9e9 : y.dias;
-    return a - b || y.falta - x.falta;
+    return a - b || (y.falta || 0) - (x.falta || 0);
   });
   return _alertas;
 }
@@ -1502,7 +1594,18 @@ function renderKPIs() {
     : `<div class="sn">${productosVivos().length}</div><div class="sl">Productos vigentes</div>
        <div class="sx">${conMin} con mínimo definido</div>`;
 
+  // Congelados en cero: el número que no puede pasar de cero nunca.
+  const frioCero = [];
+  for (const b of bodegasVivas())
+    for (const p of productosVivos())
+      if (esFrio(p) && saldoDe(b.id, p.id) <= 0) frioCero.push({ b, p });
+
   document.getElementById('kpis').innerHTML = `
+    <div class="stat ${frioCero.length ? 'grave' : ''} pulsa" onclick="verSoloFrio()">
+      <div class="sn">${frioCero.length}</div><div class="sl">❄️ Congelados en cero</div>
+      <div class="sx">${frioCero.length
+        ? esc([...new Set(frioCero.map(x => x.b.nombre))].join(' · '))
+        : 'ninguno, todo con stock'}</div></div>
     <div class="stat ${criticas ? 'grave' : ''} pulsa" onclick="irAlertas()">
       <div class="sn">${criticas}</div><div class="sl">Agotados</div>
       <div class="sx">Con mínimo definido y saldo en cero</div></div>
@@ -1516,13 +1619,22 @@ function renderKPIs() {
       <div class="sx">Al ritmo al que están saliendo</div></div>`;
 }
 
+function verSoloFrio() {
+  irA('panorama');
+  document.getElementById('f-buscar').value = '';
+  document.getElementById('f-familia').value = '';
+  document.getElementById('f-estado').value = '';
+  verGrupo('frio');
+  document.getElementById('matriz-frio').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function verSeAcaban() {
   irA('panorama');
   document.getElementById('f-estado').value = 'pronto';
   document.getElementById('f-buscar').value = '';
   document.getElementById('f-familia').value = '';
   renderMatriz();
-  document.getElementById('matriz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('matriz-frio').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function irAlertas() {
@@ -1534,25 +1646,56 @@ function irAlertas() {
 // ══════════════════════════════════════════════════════════════
 //  ALERTAS
 // ══════════════════════════════════════════════════════════════
+function tarjetaAlerta(a) {
+  const cls = a.frio && a.saldo <= 0 ? 'frio-crit' : (a.saldo <= 0 ? 'crit' : 'baja');
+  const pie = a.minimo === null
+    ? `<b>sin stock</b> · ${esc(a.bodega.nombre)} · sin mínimo definido`
+    : `<b>${coberturaTexto(a.dias)}</b> · ${esc(a.bodega.nombre)}
+       · mínimo ${num(a.minimo)} · faltan ${num(a.falta)}`;
+  return `<div class="al ${cls}" tabindex="0" role="button"
+      onclick="verDetalle(${a.bodega.id},${a.producto.id})"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();verDetalle(${a.bodega.id},${a.producto.id})}">
+      <div class="al-n">${num(a.saldo)}</div>
+      <div>
+        <div class="al-t">${a.frio ? '❄️ ' : ''}${esc(a.producto.nombre)}${
+          a.producto.formato ? ' <span class="chip">' + esc(a.producto.formato) + '</span>' : ''}</div>
+        <div class="al-s">${pie}</div>
+      </div>
+    </div>`;
+}
+
 function renderAlertas() {
   const al = listaAlertas();
   const card = document.getElementById('card-alertas');
   if (!al.length) { card.style.display = 'none'; return; }
   card.style.display = 'block';
+
+  const frio  = al.filter(a => a.frio);
+  const resto = al.filter(a => !a.frio);
   document.getElementById('alertas-cuenta').textContent =
     al.length + (al.length === 1 ? ' aviso' : ' avisos');
-  document.getElementById('alertas').innerHTML = al.slice(0, 40).map(a => `
-    <div class="al ${a.saldo <= 0 ? 'crit' : 'baja'}" tabindex="0" role="button"
-      onclick="verDetalle(${a.bodega.id},${a.producto.id})"
-      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();verDetalle(${a.bodega.id},${a.producto.id})}">
-      <div class="al-n">${num(a.saldo)}</div>
-      <div>
-        <div class="al-t">${esc(a.producto.nombre)}${a.producto.formato ? ' <span class="chip">' + esc(a.producto.formato) + '</span>' : ''}</div>
-        <div class="al-s"><b>${coberturaTexto(a.dias)}</b> · ${esc(a.bodega.nombre)}
-          · mínimo ${num(a.minimo)} · faltan ${num(a.falta)}</div>
-      </div>
-    </div>`).join('') +
-    (al.length > 40 ? `<div class="empty">y ${al.length - 40} más</div>` : '');
+
+  // Los congelados van en su propio bloque y arriba. Si están mezclados con
+  // veinte avisos de vasos, el que importa se pierde y la lista deja de
+  // mirarse, que es la peor forma de que una alerta falle.
+  document.getElementById('alertas-frio').innerHTML = frio.length
+    ? `<div class="grupo-cab frio">
+         <span style="font-size:17px">❄️</span>
+         <span class="grupo-t">Congelados</span>
+         <span class="grupo-s">${frio.length} aviso${frio.length === 1 ? '' : 's'} · lo que no puede estar en cero</span>
+       </div>
+       <div class="al-lista" style="margin-bottom:18px">${frio.slice(0, 30).map(tarjetaAlerta).join('')}</div>`
+    : '';
+
+  document.getElementById('alertas').innerHTML = resto.length
+    ? (frio.length ? `<div class="grupo-cab">
+           <span style="font-size:15px">📦</span>
+           <span class="grupo-t">Resto del catálogo</span>
+           <span class="grupo-s">${resto.length} aviso${resto.length === 1 ? '' : 's'}</span>
+         </div><div class="al-lista">` : '<div class="al-lista" style="display:contents">')
+      + resto.slice(0, 40).map(tarjetaAlerta).join('') + '</div>'
+      + (resto.length > 40 ? `<div class="empty">y ${resto.length - 40} más</div>` : '')
+    : '';
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1589,6 +1732,8 @@ function filtrarProductos() {
       });
       if (!hay) return false;
     }
+    if (grupoMatriz === 'frio'   && !esFrio(p)) return false;
+    if (grupoMatriz === 'noFrio' && esFrio(p)) return false;
     if (es === 'conmov' && !conMov.has(p.id)) return false;
     if (es === 'cero'   && totalDe(p.id) > 0) return false;
     if (es === 'alerta') {
@@ -1602,24 +1747,175 @@ function filtrarProductos() {
   });
 }
 
+// ══════════════════════════════════════════════════════════════
+//  CÓMO SE MIRA EL STOCK
+//  Dos preguntas distintas necesitan dos tablas distintas:
+//    "¿dónde está este producto?"  → producto en filas, bodegas en columnas
+//    "¿qué tiene esta bodega?"     → bodega en filas, productos en columnas
+//  La segunda solo sirve con pocos productos a la vez, porque cada uno es una
+//  columna. Por eso viene con una selección explícita y no con el catálogo
+//  entero: setenta y ocho columnas no se leen.
+// ══════════════════════════════════════════════════════════════
+let vistaMatriz = 'producto';
+let grupoMatriz = '';
+let columnas = null;          // ids elegidos para la vista por bodega
+
+function cargarPreferencias() {
+  try {
+    vistaMatriz = localStorage.getItem('nativo_bod_vista') || 'producto';
+    grupoMatriz = localStorage.getItem('nativo_bod_grupo') || '';
+    const c = localStorage.getItem('nativo_bod_columnas');
+    columnas = c ? JSON.parse(c).map(Number) : null;
+  } catch (_) { vistaMatriz = 'producto'; grupoMatriz = ''; columnas = null; }
+}
+
+function guardarPreferencia(k, v) {
+  try { localStorage.setItem('nativo_bod_' + k, v); } catch (_) {}
+}
+
+function verGrupo(g) {
+  grupoMatriz = g;
+  guardarPreferencia('grupo', g);
+  renderMatriz();
+}
+
+function verComo(v) {
+  vistaMatriz = v;
+  guardarPreferencia('vista', v);
+  renderMatriz();
+}
+
+function pintarSegmentos() {
+  ['', 'frio', 'noFrio'].forEach(g =>
+    document.getElementById('g-' + (g || 'todo'))
+      .setAttribute('aria-pressed', String(grupoMatriz === g)));
+  document.getElementById('v-prod').setAttribute('aria-pressed', String(vistaMatriz === 'producto'));
+  document.getElementById('v-bod').setAttribute('aria-pressed', String(vistaMatriz === 'bodega'));
+  document.getElementById('b-columnas').style.display = vistaMatriz === 'bodega' ? '' : 'none';
+}
+
+// Qué productos son columnas. Sin elección guardada se parte por los
+// congelados: son los pocos que no pueden estar en cero, y es la respuesta
+// correcta para casi todo el mundo el primer día.
+function productosColumna() {
+  const vivos = productosVivos();
+  if (columnas && columnas.length) {
+    const s = new Set(columnas);
+    const elegidos = vivos.filter(p => s.has(p.id));
+    if (elegidos.length) return aplicarGrupo(elegidos);
+  }
+  const frio = vivos.filter(esFrio);
+  return aplicarGrupo(frio.length ? frio : vivos.slice(0, 12));
+}
+
+function aplicarGrupo(lista) {
+  if (grupoMatriz === 'frio')   return lista.filter(esFrio);
+  if (grupoMatriz === 'noFrio') return lista.filter(p => !esFrio(p));
+  return lista;
+}
+
 function renderMatriz() {
+  pintarSegmentos();
   const bods = document.getElementById('f-inactivas').checked ? bodegas : bodegasVivas();
   const lista = filtrarProductos();
-  const t = document.getElementById('matriz');
+  const cFrio = document.getElementById('matriz-frio');
+  const cResto = document.getElementById('matriz-resto');
   const vacia = document.getElementById('matriz-vacia');
 
   if (!bods.length) {
-    t.innerHTML = '';
+    cFrio.innerHTML = ''; cResto.innerHTML = '';
     vacia.innerHTML = '<div class="empty">No hay bodegas en uso. Crea una en Configuración.</div>';
     return;
   }
   if (!lista.length) {
-    t.innerHTML = '';
+    cFrio.innerHTML = ''; cResto.innerHTML = '';
     vacia.innerHTML = '<div class="empty">Ningún producto calza con el filtro.</div>';
     return;
   }
   vacia.innerHTML = '';
 
+  if (vistaMatriz === 'bodega') {
+    cResto.innerHTML = '';
+    cFrio.innerHTML = tablaPorBodega(bods);
+    return;
+  }
+
+  const frio  = lista.filter(esFrio);
+  const resto = lista.filter(p => !esFrio(p));
+
+  // Dos tablas y no una con las filas ordenadas: la separación tiene que
+  // verse antes de leer, no después. Con un encabezado propio se sabe en qué
+  // lista estás parado sin buscar dónde cambió el color.
+  cFrio.innerHTML = frio.length
+    ? `<div class="grupo-cab frio">
+         <span style="font-size:17px">❄️</span>
+         <span class="grupo-t">Congelados</span>
+         <span class="grupo-s">${frio.length} producto${frio.length === 1 ? '' : 's'} · cadena de frío</span>
+       </div>
+       <div class="tw" style="margin-bottom:20px">${tablaMatriz(bods, frio, true)}</div>`
+    : '';
+  cResto.innerHTML = resto.length
+    ? (frio.length ? `<div class="grupo-cab">
+           <span style="font-size:15px">📦</span>
+           <span class="grupo-t">Resto del catálogo</span>
+           <span class="grupo-s">${resto.length} producto${resto.length === 1 ? '' : 's'}</span>
+         </div>` : '')
+      + `<div class="tw">${tablaMatriz(bods, resto, false)}</div>`
+    : '';
+}
+
+// Bodegas en las filas, productos en las columnas: responde "qué tiene esta
+// bodega" de un vistazo, que es la pregunta de quien está parado frente al
+// freezer y no la de quien busca un producto.
+function tablaPorBodega(bods) {
+  const cols = productosColumna();
+  if (!cols.length) {
+    return `<div class="empty">
+      No hay productos elegidos para mostrar.<br>
+      Usa <b>🎚 Elegir productos</b> para armar tu vista.</div>`;
+  }
+
+  const cab = `<thead><tr>
+    <th scope="col" class="nom">Bodega</th>
+    ${cols.map(p => `<th scope="col" title="${esc(p.nombre)}${p.formato ? ' · ' + esc(p.formato) : ''}">
+        ${esFrio(p) ? '❄️<br>' : ''}${esc(p.nombre.length > 26 ? p.nombre.slice(0, 24) + '…' : p.nombre)}
+        ${p.formato ? `<div class="sub" style="margin:1px 0 0">${esc(p.formato)}</div>` : ''}
+      </th>`).join('')}
+  </tr></thead>`;
+
+  const filas = bods.map(b => {
+    const celdas = cols.map(p => {
+      const s = saldoDe(b.id, p.id);
+      const min = minimoDe(b.id, p.id);
+      const e = estado(s, min);
+      return `<td class="celda c-${e}" tabindex="0" role="button"
+        onclick="verDetalle(${b.id},${p.id})"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();verDetalle(${b.id},${p.id})}"
+        title="${esc(p.nombre)} en ${esc(b.nombre)} · ${ESTADO_TXT[e]}">
+        <div class="cifra">${num(s)}</div>
+        <div class="bajo">${min !== null && min > 0 ? 'mín ' + num(min) : esc(p.unidad || 'un')}</div>
+      </td>`;
+    }).join('');
+    return `<tr>
+      <td class="nom"><div style="font-weight:800">${esc(b.nombre)}</div>
+        ${b.ubicacion ? `<div class="sub">${esc(b.ubicacion)}</div>` : ''}</td>
+      ${celdas}</tr>`;
+  }).join('');
+
+  // La fila de totales evita tener que sumar dos columnas con el dedo.
+  const totales = cols.map(p => {
+    let t = 0;
+    for (const b of bods) t += saldoDe(b.id, p.id);
+    t = Math.round(t * 1000) / 1000;
+    return `<td><div class="cifra">${num(t)}</div>
+      <div class="bajo">${esc(p.unidad || 'un')}</div></td>`;
+  }).join('');
+
+  return `<table class="mtz pbod">${cab}<tbody>${filas}
+    <tr class="tot"><td class="nom">Total</td>${totales}</tr></tbody></table>`;
+}
+
+function tablaMatriz(bods, lista, frio) {
   const cab = `<thead><tr>
     <th scope="col" style="min-width:210px">Producto</th>
     ${bods.map(b => `<th scope="col" class="cel-bod">${esc(b.nombre)}${b.activa === false ? ' <span class="chip">fuera de uso</span>' : ''}</th>`).join('')}
@@ -1652,7 +1948,7 @@ function renderMatriz() {
       <td class="num">${pintarCobertura(bods, p)}</td></tr>`;
   }).join('');
 
-  t.innerHTML = cab + '<tbody>' + filas + '</tbody>';
+  return `<table class="mtz ${frio ? 'frio' : ''}">${cab}<tbody>${filas}</tbody></table>`;
 }
 
 // La cobertura de un producto es la de la bodega que primero se queda sin él,
@@ -1668,6 +1964,70 @@ function pintarCobertura(bods, p) {
   if (peor === null) return '<span class="sub" style="margin:0">—</span>';
   const col = peor <= 7 ? 'var(--alto)' : (peor <= 21 ? 'var(--medio)' : 'var(--textl)');
   return `<b style="color:${col}">${peor > 180 ? '6+ m' : peor + ' d'}</b>`;
+}
+
+let clSel = new Set();
+
+function abrirColumnas() {
+  clSel = new Set(productosColumna().map(p => p.id));
+  document.getElementById('cl-buscar').value = '';
+  renderColumnas();
+  abrir('mod-columnas');
+}
+
+function renderColumnas() {
+  const q = document.getElementById('cl-buscar').value.trim().toLowerCase();
+  const lista = productosVivos().filter(p =>
+    !q || (p.nombre + ' ' + (p.formato || '') + ' ' + (p.familia || '')).toLowerCase().includes(q));
+  document.getElementById('cl-cuenta').textContent =
+    clSel.size + (clSel.size === 1 ? ' elegido' : ' elegidos');
+  const t = document.getElementById('tabla-columnas');
+  if (!lista.length) {
+    t.innerHTML = '<tbody><tr><td><div class="empty">Nada que mostrar.</div></td></tr></tbody>';
+    return;
+  }
+  t.innerHTML = `<thead><tr><th style="width:40px"></th><th>Producto</th>
+      <th>Familia</th><th class="num">Total</th></tr></thead>
+    <tbody>${lista.map(p => `<tr>
+      <td><input type="checkbox" ${clSel.has(p.id) ? 'checked' : ''}
+        onchange="clMarcar(${p.id},this.checked)"></td>
+      <td><div style="font-weight:800">${esFrio(p) ? '❄️ ' : ''}${esc(p.nombre)}</div>
+        <div class="sub">${esc(p.formato || '')}</div></td>
+      <td>${p.familia ? `<span class="chip">${esc(p.familia)}</span>` : '—'}</td>
+      <td class="num">${num(totalDe(p.id))}</td></tr>`).join('')}</tbody>`;
+}
+
+function clMarcar(id, on) {
+  if (on) clSel.add(id); else clSel.delete(id);
+  document.getElementById('cl-cuenta').textContent =
+    clSel.size + (clSel.size === 1 ? ' elegido' : ' elegidos');
+}
+
+function clAtajo(cual) {
+  const vivos = productosVivos();
+  if (cual === 'nada') clSel = new Set();
+  else if (cual === 'frio') clSel = new Set(vivos.filter(esFrio).map(p => p.id));
+  else if (cual === 'alerta') clSel = new Set(listaAlertas().map(a => a.producto.id));
+  else if (cual === 'conmov') {
+    const con = new Set(movs.map(m => m.producto_id));
+    clSel = new Set(vivos.filter(p => con.has(p.id)).map(p => p.id));
+  }
+  renderColumnas();
+}
+
+function guardarColumnas() {
+  // Guardar cero productos deja dos malas opciones: una tabla vacía que no
+  // sirve, o volver a los congelados sin avisar, que confunde a quien acaba
+  // de desmarcarlos. Se pide elegir al menos uno y listo.
+  if (!clSel.size) {
+    toast('Elige al menos un producto para ver', true);
+    return;
+  }
+  columnas = [...clSel];
+  try { localStorage.setItem('nativo_bod_columnas', JSON.stringify(columnas)); } catch (_) {}
+  cerrar('mod-columnas');
+  renderMatriz();
+  toast(`${columnas.length} producto${columnas.length === 1 ? '' : 's'} a la vista`);
 }
 
 function exportarStock() {
@@ -2635,9 +2995,10 @@ function renderProductos() {
   t.innerHTML = `<thead><tr><th>Producto</th><th>Familia</th><th>Unidad</th>
       <th class="num">Costo</th><th class="num">Total en bodegas</th><th></th></tr></thead>
     <tbody>${lista.map(p => `<tr style="${p.activo === false ? 'opacity:.55' : ''}">
-      <td><div style="font-weight:800">${esc(p.nombre)}</div>
+      <td><div style="font-weight:800">${esFrio(p) ? '❄️ ' : ''}${esc(p.nombre)}</div>
         <div class="sub">${esc(p.formato || '')}${p.activo === false ? ' · inactivo' : ''}</div></td>
-      <td>${p.familia ? `<span class="chip">${esc(p.familia)}</span>` : '—'}</td>
+      <td>${p.familia ? `<span class="chip">${esc(p.familia)}</span>` : '—'}
+        ${esFrio(p) ? '<span class="badge badge-frio" style="margin-left:4px">frío</span>' : ''}</td>
       <td>${esc(p.unidad || 'un')}</td>
       <td class="num">${Number(p.costo) > 0 ? pesos(p.costo) : '—'}</td>
       <td class="num"><b>${num(totalDe(p.id))}</b></td>
@@ -2656,8 +3017,23 @@ function abrirProducto(id) {
   document.getElementById('pr-unidad').value  = p ? p.unidad || 'un' : 'un';
   document.getElementById('pr-costo').value   = p && Number(p.costo) > 0 ? p.costo : '';
   document.getElementById('pr-activo').checked = p ? p.activo !== false : true;
+  document.getElementById('pr-frio').checked = p ? !!p.congelado : false;
+  frioTocado = !!p;    // en uno existente manda lo guardado, no la sugerencia
   alerta('pr-alert', 'ae', '');
   abrir('mod-producto');
+}
+
+// La familia se escribe después de abrir el modal, así que la sugerencia
+// tiene que reaccionar a lo que se escribe y no al estado inicial. Y deja de
+// sugerir en cuanto la persona toca la casilla: su decisión manda.
+let frioTocado = false;
+function prFrioManual() { frioTocado = true; }
+function prSugerirFrio() {
+  if (frioTocado) return;
+  const fam = document.getElementById('pr-familia').value || '';
+  const nom = document.getElementById('pr-nombre').value || '';
+  document.getElementById('pr-frio').checked =
+    /congelad/i.test(fam) || /^balde /i.test(nom.trim());
 }
 
 async function guardarProducto() {
@@ -2674,6 +3050,7 @@ async function guardarProducto() {
     familia: document.getElementById('pr-familia').value.trim() || null,
     unidad: document.getElementById('pr-unidad').value,
     costo: costo > 0 ? costo : null,
+    congelado: document.getElementById('pr-frio').checked,
     activo: document.getElementById('pr-activo').checked };
 
   const b = document.getElementById('pr-guardar');
@@ -3118,7 +3495,9 @@ async function guardarImportar() {
   if (!imSel.size) return alerta('im-alert', 'ae', 'No hay nada marcado.');
   const filas = catalogoPlano()
     .filter(x => imSel.has(x.i) && !existeYa(x.n, x.f))
-    .map(x => ({ nombre: x.n, formato: x.f, familia: x.fam, unidad: x.un, costo: null, activo: true }));
+    .map(x => ({ nombre: x.n, formato: x.f, familia: x.fam, unidad: x.un, costo: null,
+                 congelado: /congelad/i.test(x.fam) || /^balde /i.test(x.n),
+                 activo: true }));
   if (!filas.length) return alerta('im-alert', 'ae', 'Todo lo marcado ya existía.');
 
   const b = document.getElementById('im-guardar');
