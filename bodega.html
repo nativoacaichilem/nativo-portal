@@ -442,6 +442,22 @@ tbody tr:hover td{background:#faf6ff}
 
       <div class="card">
         <div class="card-head">
+          <h2>🎁 Entregado sin cobrar</h2>
+          <div class="crece"></div>
+          <span class="chip" id="v-cort-cuenta"></span>
+          <button class="btn bol bsm" onclick="exportarCortesias()">⬇ CSV</button>
+        </div>
+        <div class="hint" style="margin-bottom:12px">
+          Muestras, regalos, degustaciones y reposiciones: producto que salió de la
+          bodega y no se cobró. Es gasto de marketing que hasta ahora no estaba medido
+          en ninguna parte. El motivo lo pone quien despacha, en el panel.
+        </div>
+        <div class="stats" id="v-cort-kpis"></div>
+        <div class="tw"><table id="tabla-cortesias"></table></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
           <h2>⚠️ Salidas sin factura</h2>
           <div class="crece"></div>
           <span class="chip" id="v-sin-cuenta"></span>
@@ -796,7 +812,7 @@ tbody tr:hover td{background:#faf6ff}
 // Sube con cada entrega. Se ve arriba a la derecha y en el diagnóstico:
 // sirve para saber en dos segundos si el navegador está sirviendo el archivo
 // nuevo o el viejo que tiene guardado.
-const VERSION = 'v8 · 2026-08-25';
+const VERSION = 'v9 · 2026-08-25';
 
 const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
 let TOKEN = '';
@@ -3063,6 +3079,7 @@ function renderVentas() {
       ? 'Ninguna venta calza con el filtro.'
       : 'Todavía no hay salidas marcadas como venta. Se registran solas al despachar un pedido desde el panel.'}</div>`;
     renderSinFactura();
+    renderCortesias();
     return;
   }
   vacio.innerHTML = '';
@@ -3107,6 +3124,89 @@ function renderVentas() {
         <th scope="col">Motivo</th></tr></thead><tbody>${filas}</tbody>`;
   }
   renderSinFactura();
+  renderCortesias();
+}
+
+// Lo que salió sin cobrarse. Se reconoce por el motivo: no es venta y
+// tampoco es pérdida. Una merma es plata botada; una muestra es plata
+// invertida, y confundirlas hace que una de las dos parezca lo que no es.
+function lineasCortesia() {
+  const noVentaNoPerdida = new Set(motivos
+    .filter(m => !m.es_venta && !m.es_perdida).map(m => m.id));
+  return movsVigentes()
+    .filter(m => m.tipo === 'salida' && noVentaNoPerdida.has(m.motivo_id))
+    .map(m => {
+      const p = productos.find(x => x.id === m.producto_id);
+      const cant = Math.abs(Number(m.cantidad) || 0);
+      const costo = p ? Number(p.costo) || 0 : 0;
+      return { fecha: String(m.fecha).slice(0, 10),
+               motivo: nombreMotivo(m.motivo_id),
+               bodega: nombreBodega(m.bodega_id), bodega_id: m.bodega_id,
+               producto: p ? p.nombre : '—', formato: p ? p.formato || '' : '',
+               unidad: p ? p.unidad || 'un' : 'un',
+               pedido: m.pedido_id || null, nota: m.nota || '',
+               cantidad: cant, costo, total: Math.round(cant * costo * 100) / 100 };
+    });
+}
+
+function cortesiasFiltradas() {
+  const me = document.getElementById('v-mes').value;
+  const bo = document.getElementById('v-bodega').value;
+  const q  = document.getElementById('v-buscar').value.trim().toLowerCase();
+  return lineasCortesia().filter(l => {
+    if (me && l.fecha.slice(0, 7) !== me) return false;
+    if (bo && String(l.bodega_id) !== bo) return false;
+    if (q && !(l.producto + ' ' + l.motivo + ' ' + l.nota).toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderCortesias() {
+  const l = cortesiasFiltradas();
+  const t = document.getElementById('tabla-cortesias');
+  const total = l.reduce((s, x) => s + x.total, 0);
+  document.getElementById('v-cort-cuenta').textContent =
+    l.length ? `${l.length} entrega${l.length === 1 ? '' : 's'}` : 'ninguna';
+
+  const porMotivo = new Map();
+  for (const x of l) porMotivo.set(x.motivo, (porMotivo.get(x.motivo) || 0) + x.total);
+  const top = [...porMotivo.entries()].sort((a, b) => b[1] - a[1])[0];
+
+  document.getElementById('v-cort-kpis').innerHTML = l.length ? `
+    <div class="stat"><div class="sn">${pesos(total)}</div><div class="sl">Costo entregado</div>
+      <div class="sx">sin cobrar, al costo de cada producto</div></div>
+    <div class="stat"><div class="sn">${l.length}</div><div class="sl">Entregas</div>
+      <div class="sx">${porMotivo.size} motivo${porMotivo.size === 1 ? '' : 's'} distinto${porMotivo.size === 1 ? '' : 's'}</div></div>
+    <div class="stat"><div class="sn" style="font-size:16px;padding:7px 0">${esc(top ? top[0] : '—')}</div>
+      <div class="sl">Lo que más pesa</div>
+      <div class="sx">${top ? pesos(top[1]) : ''}</div></div>` : '';
+
+  if (!l.length) {
+    t.innerHTML = '<tbody><tr><td><div class="empty">Todavía no hay entregas sin cobrar registradas.</div></td></tr></tbody>';
+    return;
+  }
+  t.innerHTML = `<thead><tr><th scope="col">Fecha</th><th scope="col">Motivo</th>
+      <th scope="col">Producto</th><th scope="col">Bodega</th>
+      <th scope="col" class="num">Cantidad</th><th scope="col" class="num">Costo</th></tr></thead>
+    <tbody>${l.slice().sort((a, b) => b.fecha.localeCompare(a.fecha)).map(x => `
+      <tr><td class="mono">${fechaCorta(x.fecha)}</td>
+        <td><span class="chip">${esc(x.motivo)}</span>
+          ${x.pedido ? `<div class="sub">pedido #${esc(x.pedido)}</div>` : ''}</td>
+        <td><div style="font-weight:800">${esc(x.producto)}</div>
+          <div class="sub">${esc(x.nota)}</div></td>
+        <td>${esc(x.bodega)}</td>
+        <td class="num"><b>${num(x.cantidad)}</b> <span class="sub" style="display:inline">${esc(x.unidad)}</span></td>
+        <td class="num">${x.costo ? pesos(x.total) : '<span class="sub" style="margin:0">sin costo</span>'}</td>
+      </tr>`).join('')}</tbody>`;
+}
+
+function exportarCortesias() {
+  const filas = [['Fecha', 'Motivo', 'Producto', 'Formato', 'Bodega', 'Cantidad',
+    'Unidad', 'Costo unitario', 'Costo total', 'Pedido', 'Nota']];
+  for (const l of cortesiasFiltradas())
+    filas.push([l.fecha, l.motivo, l.producto, l.formato, l.bodega, l.cantidad,
+      l.unidad, l.costo || '', l.total, l.pedido || '', l.nota]);
+  bajarCSV(filas, 'entregado-sin-cobrar-' + HOY() + '.csv');
 }
 
 function renderSinFactura() {
