@@ -611,7 +611,6 @@ input[type=checkbox]{
         Guardar Pedido
       </button>
     </div>
-  </div>
 
   <!-- ── ENTREGA SIN VENTA ── -->
   <div class="card" id="cortesia-box" style="max-width:760px;margin:16px auto 0;display:none">
@@ -675,6 +674,7 @@ input[type=checkbox]{
       <div></div>
     </div>
     <button class="btn bmora" id="co-guardar" onclick="guardarCortesia()">Registrar entrega</button>
+  </div>
   </div>
 
   <!-- ── CLIENTES ── -->
@@ -742,6 +742,12 @@ input[type=checkbox]{
         </select>
       </div>
     </div>
+    <div style="margin-bottom:12px;display:none" id="mrazon-box">
+      <label>Razón de la entrega</label>
+      <select id="mrazon"></select>
+      <div class="hint-man">Esta entrega no se cobra. Cambiar la razón cambia también
+        el motivo que se propone al descargar bodega.</div>
+    </div>
     <div style="margin-bottom:12px" id="mzona-box">
       <label>Zona</label>
       <select id="mzona">
@@ -781,7 +787,7 @@ input[type=checkbox]{
       </div>
     </div>
 
-    <div class="modal-section">Facturación y Entrega</div>
+    <div class="modal-section" id="m-titulo-fact">Facturación y Entrega</div>
     <div class="fg" style="margin-bottom:12px">
       <div><label>N° Factura</label><input id="mfact" type="text"></div>
       <div><label>Fecha Pedido</label><input id="mfecha" type="text"></div>
@@ -1051,6 +1057,34 @@ function entregaBadge(p) {
   const falta = !String(p.fecha_entrega || '').trim() && !yaEntregado(p.estado);
   return '<span class="badge bret">🏢 Retiro</span>' +
     (falta ? '<div class="coord">⏳ coordinar horario</div>' : '');
+}
+
+// En una entrega sin venta, "facturado" y "entregado sin facturar" no
+// significan nada: no hay nada que facturar. Ofrecerlos solo invita a un
+// estado que después nadie sabe leer. Los tres que sí aplican son: todavía
+// no sale, va en camino, ya se entregó.
+const ESTADOS_CORTESIA = [
+  ['pendiente', 'Por entregar'],
+  ['en-ruta',   'En ruta'],
+  ['entregado', 'Entregada']
+];
+
+function llenarEstadoModal(p) {
+  const sel = document.getElementById('mestado');
+  const actual = p.estado || 'pendiente';
+  if (esCortesia(p)) {
+    sel.innerHTML = ESTADOS_CORTESIA
+      .map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
+    // Si venía en un estado de facturación —por un cambio masivo, por
+    // ejemplo— se muestra el equivalente en vez de dejar el campo en blanco.
+    const equiv = { facturado: 'pendiente', 'entregado-sin-facturar': 'entregado' };
+    sel.value = ESTADOS_CORTESIA.some(([v]) => v === actual)
+      ? actual : (equiv[actual] || 'pendiente');
+  } else {
+    sel.innerHTML = Object.entries(ESTADOS)
+      .map(([v, o]) => `<option value="${v}">${hesc(o.lbl)}</option>`).join('');
+    sel.value = actual;
+  }
 }
 
 // Los estados mezclan dos cosas: si está facturado y si está despachado.
@@ -2358,7 +2392,7 @@ function abrir(id) {
 
   document.getElementById('mentrega').value  = ret ? 'retiro' : 'despacho';
   document.getElementById('mzona').value     = p.zona          || '';
-  document.getElementById('mestado').value   = p.estado        || 'pendiente';
+  llenarEstadoModal(p);
   document.getElementById('memp').value      = p.emp           || '';
   document.getElementById('mdir').value      = p.dir           || '';
   document.getElementById('mdet').value      = p.detalle       || '';
@@ -2373,6 +2407,22 @@ function abrir(id) {
   const msg = String(p.mensaje || '').trim();
   document.getElementById('m-mensaje-box').style.display = msg ? '' : 'none';
   document.getElementById('m-mensaje').textContent = msg;
+
+  // En una entrega sin venta no hay factura que escribir —la base la rechaza—
+  // así que esos campos se esconden en vez de quedar ahí invitando a llenarlos.
+  const cort = esCortesia(p);
+  const razonBox = document.getElementById('mrazon-box');
+  razonBox.style.display = cort ? '' : 'none';
+  if (cort) {
+    const sr = document.getElementById('mrazon');
+    const actual = p.razon || '';
+    const lista = RAZONES.includes(actual) || !actual ? RAZONES : [actual, ...RAZONES];
+    sr.innerHTML = lista.map(r => `<option value="${hesc(r)}">${hesc(r)}</option>`).join('');
+    sr.value = actual || RAZONES[0];
+  }
+  document.getElementById('mfact').closest('div').style.display = cort ? 'none' : '';
+  document.getElementById('m-titulo-fact').textContent =
+    cort ? 'Entrega' : 'Facturación y Entrega';
 
   modalEntregaCambio();
   // Los pedidos del portal llegan sin zona. Si la dirección permite deducirla,
@@ -2403,6 +2453,8 @@ async function guardar() {
 
   btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true;
 
+  const orig = pedidos.find(x => String(x.id) === String(eid)) || {};
+  const cort = esCortesia(orig);
   const entrega = document.getElementById('mentrega').value === 'retiro' ? 'retiro' : 'despacho';
   const row = {
     entrega,
@@ -2411,7 +2463,9 @@ async function guardar() {
     emp:           document.getElementById('memp').value.trim(),
     dir:           document.getElementById('mdir').value.trim(),
     detalle:       document.getElementById('mdet').value.trim(),
-    factura_num:   document.getElementById('mfact').value.trim(),
+    // En una cortesía la factura va vacía siempre: la base tiene una
+    // restricción que la rechazaría, y con razón.
+    factura_num:   cort ? '' : document.getElementById('mfact').value.trim(),
     fecha:         document.getElementById('mfecha').value.trim(),
     contacto:      document.getElementById('mcontacto').value.trim(),
     telefono:      document.getElementById('mtel').value.trim(),
@@ -2420,6 +2474,7 @@ async function guardar() {
     comentario:    document.getElementById('mcom').value.trim()
     // `mensaje` no se envía a propósito: lo escribió el cliente y no se toca.
   };
+  if (cort) row.razon = document.getElementById('mrazon').value;
 
   try {
     await sbPatch(eid, row);
