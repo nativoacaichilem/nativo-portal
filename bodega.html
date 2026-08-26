@@ -396,10 +396,17 @@ tbody tr:hover td{background:#faf6ff}
           Al guardar se registra un ajuste por cada diferencia, con la explicación que escribas,
           y el saldo del sistema queda igual al conteo.
         </div>
+        <div class="f1">
+          <label for="c-nombre">Nombre de esta cuadratura</label>
+          <input type="text" id="c-nombre" placeholder="Cuadratura Bodega Oficina 26-08-2026">
+          <div class="hint">Con este nombre quedan agrupados los ajustes en el libro de
+            movimientos, y con él se puede volver a bajar el archivo del antes y después
+            cuando alguien pregunte de dónde salió una diferencia.</div>
+        </div>
         <div class="fb">
           <input type="text" id="c-buscar" placeholder="Buscar producto…" oninput="renderConteo()">
           <select id="c-familia" onchange="renderConteo()"><option value="">Todas las familias</option></select>
-          <label class="chk" style="margin:0"><input type="checkbox" id="c-solostock" checked onchange="renderConteo()"> Solo productos con saldo o mínimo</label>
+          <label class="chk" style="margin:0"><input type="checkbox" id="c-solostock" onchange="renderConteo()"> Solo productos con saldo o mínimo</label>
           <div class="crece"></div>
           <button class="btn bol bsm" onclick="imprimirHojaConteo()">🖨 Hoja para anotar</button>
           <button class="btn bgray bsm" onclick="limpiarConteo()">Borrar lo escrito</button>
@@ -410,6 +417,20 @@ tbody tr:hover td{background:#faf6ff}
           <span class="chip" id="c-resumen"></span>
           <button class="btn bmora" id="b-conteo" onclick="guardarConteo()">Registrar ajustes</button>
         </div>
+      </div>
+
+      <div class="card" id="card-cuadraturas">
+        <div class="card-head">
+          <h2>📋 Cuadraturas anteriores</h2>
+          <div class="crece"></div>
+          <span class="chip" id="cu-cuenta"></span>
+        </div>
+        <div class="hint" style="margin-bottom:12px">
+          Cada conteo guardado queda acá con su archivo del antes y después. El archivo
+          se reconstruye del libro de movimientos, así que no depende de que alguien
+          haya guardado el CSV en su momento.
+        </div>
+        <div class="tw"><table id="tabla-cuadraturas"></table></div>
       </div>
     </div>
 
@@ -812,7 +833,7 @@ tbody tr:hover td{background:#faf6ff}
 // Sube con cada entrega. Se ve arriba a la derecha y en el diagnóstico:
 // sirve para saber en dos segundos si el navegador está sirviendo el archivo
 // nuevo o el viejo que tiene guardado.
-const VERSION = 'v9 · 2026-08-25';
+const VERSION = 'v10 · 2026-08-26';
 
 const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
 let TOKEN = '';
@@ -1319,7 +1340,8 @@ function irA(s) {
     document.getElementById('s-' + x).setAttribute('aria-pressed', String(x === s));
   });
   if (location.hash.slice(1) !== s) history.replaceState(null, '', '#' + s);
-  if (s === 'conteo') renderConteo();
+  if (s === 'conteo') { nombreCuadraturaPorOmision(); ajustarFiltroConteo();
+                       renderConteo(); renderCuadraturas(); }
   window.scrollTo({ top: 0, behavior: 'auto' });
 }
 
@@ -1337,6 +1359,7 @@ function pintarTodo() {
   renderMinimos();
   renderMotivos();
   renderConteo();
+  renderCuadraturas();
 }
 
 function bodegasVivas() { return bodegas.filter(b => b.activa !== false); }
@@ -2266,7 +2289,32 @@ function cambiarBodegaConteo() {
     toast('Se borró lo que habías anotado: era de ' + nombreBodega(Number(bodegaContada)));
   }
   bodegaContada = nueva;
+  nombreCuadraturaPorOmision();
+  ajustarFiltroConteo();
   renderConteo();
+}
+
+// El primer conteo de una bodega es el peor caso del filtro: si todo está en
+// cero y sin mínimos, "solo los que tienen saldo o mínimo" no muestra nada y
+// parece que la pantalla estuviera rota. Cuando no hay nada que filtrar, se
+// muestran todos.
+function ajustarFiltroConteo() {
+  const bid = Number(document.getElementById('c-bodega').value);
+  if (!bid) return;
+  const hayAlgo = productosVivos().some(p =>
+    saldoDe(bid, p.id) !== 0 || minimoDe(bid, p.id) !== null);
+  document.getElementById('c-solostock').checked = hayAlgo;
+}
+
+function nombreCuadraturaPorOmision() {
+  const campo = document.getElementById('c-nombre');
+  const bid = Number(document.getElementById('c-bodega').value);
+  if (!bid) return;
+  const sugerido = 'Cuadratura ' + nombreBodega(bid) + ' ' + fechaCorta(HOY());
+  // Solo se pisa si está vacío o si trae un nombre sugerido de otra bodega:
+  // lo que la persona escribió a mano no se toca.
+  if (!campo.value.trim() || /^Cuadratura .+ \d{2}-\d{2}-\d{4}$/.test(campo.value.trim()))
+    campo.value = sugerido;
 }
 
 // Contar con el celular en la mano y las manos frías es incómodo. Esta hoja
@@ -2342,24 +2390,135 @@ async function guardarConteo() {
     finales.some(f => { const o = dif.find(x => x.producto_id === f.producto_id); return !o || o.delta !== f.delta; });
 
   b.innerHTML = '<span class="sp"></span>Guardando…';
-  const nota = 'Conteo físico ' + fechaCorta(HOY());
-  const filas = finales.map(f => ({
-    fecha: HOY(), tipo: 'ajuste', producto_id: f.producto_id, bodega_id: bid,
-    bodega_destino_id: null, cantidad: f.delta, motivo_id: null,
-    doc: null, nota: nota + ' · contado ' + num(f.contado), usuario: operadorNombre()
+  nombreCuadraturaPorOmision();
+  const nombre = document.getElementById('c-nombre').value.trim() ||
+                 ('Cuadratura ' + nombreBodega(bid) + ' ' + fechaCorta(HOY()));
+
+  // El antes y el después van escritos en la nota de cada ajuste. Así el
+  // archivo se puede reconstruir del libro meses después, sin depender de que
+  // alguien haya guardado el CSV en su momento.
+  const filas = finales.map(f => {
+    const antes = Math.round((f.contado - f.delta) * 1000) / 1000;
+    return {
+      fecha: HOY(), tipo: 'ajuste', producto_id: f.producto_id, bodega_id: bid,
+      bodega_destino_id: null, cantidad: f.delta, motivo_id: null,
+      doc: nombre,
+      nota: 'antes ' + num(antes) + ' → contado ' + num(f.contado),
+      usuario: operadorNombre()
+    };
+  });
+
+  // Se guarda una copia de lo que se va a mandar, para poder bajar el archivo
+  // aunque la recarga posterior cambie los números en pantalla.
+  const paraArchivo = finales.map(f => ({
+    producto_id: f.producto_id, contado: f.contado, delta: f.delta,
+    antes: Math.round((f.contado - f.delta) * 1000) / 1000
   }));
 
   try {
     await sbSend(T_MOV, 'POST', filas);
     conteo = {};
+    bajarArchivoCuadratura(nombre, bid, paraArchivo);
     toast(`${filas.length} ajuste${filas.length === 1 ? '' : 's'} registrado${filas.length === 1 ? '' : 's'}` +
-      (cambiaron ? ' (hubo movimientos durante el conteo, se recalculó)' : ''));
+      (cambiaron ? ' · se recalculó por movimientos durante el conteo' : '') +
+      ' · se bajó el archivo del antes y después');
     await cargarTodo();
   } catch (e) {
     toast('No se pudieron guardar los ajustes: ' + e.message, true);
   } finally {
     b.disabled = false; b.innerHTML = 'Registrar ajustes';
   }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CUADRATURAS
+// ══════════════════════════════════════════════════════════════
+function bajarArchivoCuadratura(nombre, bid, lineas) {
+  const filas = [['Cuadratura', nombre], ['Bodega', nombreBodega(bid)],
+                 ['Fecha', fechaCorta(HOY())], ['Anotó', operadorNombre()], [],
+                 ['Producto', 'Formato', 'Unidad', 'Antes', 'Contado',
+                  'Diferencia', 'Costo unitario', 'Valor de la diferencia']];
+  let valor = 0;
+  for (const l of lineas) {
+    const p = productos.find(x => x.id === l.producto_id);
+    const costo = p ? Number(p.costo) || 0 : 0;
+    const v = Math.round(l.delta * costo * 100) / 100;
+    valor += v;
+    filas.push([p ? p.nombre : '—', p ? p.formato || '' : '', p ? p.unidad || 'un' : 'un',
+      l.antes, l.contado, l.delta, costo || '', costo ? v : '']);
+  }
+  filas.push([]);
+  filas.push(['Líneas con diferencia', lineas.length]);
+  filas.push(['Valor neto del descuadre', Math.round(valor * 100) / 100]);
+  bajarCSV(filas, nombre.replace(/[^\w áéíóúñÁÉÍÓÚÑ-]/g, '').replace(/\s+/g, '-') + '.csv');
+}
+
+// Cada conteo guardado queda identificado por el nombre en `doc`. Se agrupan
+// desde el libro, así que el historial existe aunque nadie haya guardado nada.
+function listaCuadraturas() {
+  const g = new Map();
+  for (const m of movs) {
+    if (m.tipo !== 'ajuste' || !m.doc) continue;
+    const k = m.doc;
+    if (!g.has(k)) g.set(k, { nombre: k, fecha: String(m.fecha).slice(0, 10),
+      bodega_id: m.bodega_id, quien: m.usuario || '', lineas: [] });
+    const c = g.get(k);
+    if (String(m.fecha).slice(0, 10) < c.fecha) c.fecha = String(m.fecha).slice(0, 10);
+    const mm = /antes ([\d.,-]+) → contado ([\d.,-]+)/.exec(m.nota || '');
+    const num0 = t => Number(String(t).replace(/\./g, '').replace(',', '.'));
+    const delta = Number(m.cantidad) || 0;
+    const contado = mm ? num0(mm[2]) : null;
+    c.lineas.push({ producto_id: m.producto_id, delta,
+      antes: mm ? num0(mm[1]) : Math.round((contado - delta) * 1000) / 1000,
+      contado: contado === null ? null : contado, id: m.id });
+  }
+  return [...g.values()].sort((a, b) => b.fecha.localeCompare(a.fecha));
+}
+
+function valorCuadratura(c) {
+  let v = 0;
+  for (const l of c.lineas) {
+    const p = productos.find(x => x.id === l.producto_id);
+    v += l.delta * (p ? Number(p.costo) || 0 : 0);
+  }
+  return Math.round(v * 100) / 100;
+}
+
+function renderCuadraturas() {
+  const lista = listaCuadraturas();
+  const t = document.getElementById('tabla-cuadraturas');
+  document.getElementById('cu-cuenta').textContent =
+    lista.length ? lista.length + (lista.length === 1 ? ' cuadratura' : ' cuadraturas') : 'ninguna';
+  if (!lista.length) {
+    t.innerHTML = `<tbody><tr><td><div class="empty">
+      Todavía no hay conteos guardados. El primero deja acá su archivo.</div></td></tr></tbody>`;
+    return;
+  }
+  t.innerHTML = `<thead><tr><th scope="col">Cuadratura</th><th scope="col">Bodega</th>
+      <th scope="col" class="num">Diferencias</th><th scope="col" class="num">Valor</th>
+      <th scope="col"></th></tr></thead>
+    <tbody>${lista.map((c, i) => {
+      const v = valorCuadratura(c);
+      const faltó = c.lineas.filter(l => l.delta < 0).length;
+      const sobró = c.lineas.length - faltó;
+      return `<tr>
+        <td><div style="font-weight:800">${esc(c.nombre)}</div>
+          <div class="sub">${fechaCorta(c.fecha)}${c.quien ? ' · ' + esc(c.quien) : ''}</div></td>
+        <td>${esc(nombreBodega(c.bodega_id))}</td>
+        <td class="num"><b>${c.lineas.length}</b>
+          <div class="sub">${faltó} faltó${sobró ? ' · ' + sobró + ' sobró' : ''}</div></td>
+        <td class="num"><b class="${v < 0 ? 'neg' : (v > 0 ? 'pos' : '')}">${
+          hayCostos() ? pesos(v) : '—'}</b></td>
+        <td class="num"><button class="btn bol bsm" onclick="rebajarCuadratura(${i})">⬇ Archivo</button></td>
+      </tr>`;
+    }).join('')}</tbody>`;
+}
+
+function rebajarCuadratura(i) {
+  const c = listaCuadraturas()[i];
+  if (!c) return;
+  bajarArchivoCuadratura(c.nombre, c.bodega_id, c.lineas);
+  toast('Archivo de « ' + c.nombre + ' » descargado');
 }
 
 // ══════════════════════════════════════════════════════════════
