@@ -349,8 +349,18 @@ tbody tr:hover td{background:#faf6ff}
           <div class="crece"></div>
           <span class="chip" id="alertas-cuenta"></span>
         </div>
+        <div class="fb">
+          <select id="al-bodega" onchange="alGuardarPref()" style="min-width:180px;font-weight:800"></select>
+          <select id="al-orden" onchange="alGuardarPref()">
+            <option value="urgencia">Lo que se acaba primero</option>
+            <option value="masStock">Más stock primero</option>
+            <option value="menosStock">Menos stock primero</option>
+            <option value="nombre">Por nombre</option>
+          </select>
+        </div>
         <div id="alertas-frio"></div>
         <div class="al-lista" id="alertas"></div>
+        <div id="alertas-nunca"></div>
       </div>
 
       <div class="card">
@@ -911,7 +921,7 @@ tbody tr:hover td{background:#faf6ff}
 // Sube con cada entrega. Se ve arriba a la derecha y en el diagnóstico:
 // sirve para saber en dos segundos si el navegador está sirviendo el archivo
 // nuevo o el viejo que tiene guardado.
-const VERSION = 'v12 · 2026-08-26';
+const VERSION = 'v13 · 2026-08-26';
 
 const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
 let TOKEN = '';
@@ -1619,6 +1629,11 @@ function renderKPIs() {
       <div class="sx">Al ritmo al que están saliendo</div></div>`;
 }
 
+function alVerNunca() {
+  const c = document.getElementById('alertas-nunca-lista');
+  if (c) c.style.display = c.style.display === 'none' ? 'block' : 'none';
+}
+
 function verSoloFrio() {
   irA('panorama');
   document.getElementById('f-buscar').value = '';
@@ -1646,6 +1661,62 @@ function irAlertas() {
 // ══════════════════════════════════════════════════════════════
 //  ALERTAS
 // ══════════════════════════════════════════════════════════════
+// Un producto que nunca tuvo un movimiento en esta bodega y está en cero no
+// es una alerta: es carga inicial pendiente. Ponerlo en la misma lista que
+// los baldes que se están acabando ahoga lo que sí hay que mirar hoy.
+function nuncaTuvo(bodegaId, productoId) {
+  return !movs.some(m => m.producto_id === productoId &&
+    (m.bodega_id === bodegaId || m.bodega_destino_id === bodegaId));
+}
+
+function alBodegaElegida() {
+  const sel = document.getElementById('al-bodega');
+  const v = sel ? Number(sel.value) : 0;
+  if (v) return v;
+  const vivas = bodegasVivas();
+  if (!vivas.length) return 0;
+  // Por omisión, la oficina: es donde se despacha todos los días.
+  const of = vivas.find(b => /oficina/i.test(b.nombre));
+  return (of || vivas[0]).id;
+}
+
+function llenarSelectAlertas() {
+  const sel = document.getElementById('al-bodega');
+  if (!sel) return;
+  const vivas = bodegasVivas();
+  const prev = sel.value;
+  sel.innerHTML = vivas.map(b => `<option value="${b.id}">${esc(b.nombre)}</option>`).join('') +
+    '<option value="0">Todas las bodegas</option>';
+  let guardada = '';
+  try { guardada = localStorage.getItem('nativo_bod_al_bodega') || ''; } catch (_) {}
+  const valido = v => v === '0' || vivas.some(b => String(b.id) === v);
+  sel.value = valido(prev) ? prev
+            : (valido(guardada) ? guardada : String(alBodegaElegida()));
+  const so = document.getElementById('al-orden');
+  try {
+    const g = localStorage.getItem('nativo_bod_al_orden');
+    if (g && [...so.options].some(o => o.value === g)) so.value = g;
+  } catch (_) {}
+}
+
+function alGuardarPref() {
+  try {
+    localStorage.setItem('nativo_bod_al_bodega', document.getElementById('al-bodega').value);
+    localStorage.setItem('nativo_bod_al_orden', document.getElementById('al-orden').value);
+  } catch (_) {}
+  renderAlertas();
+}
+
+function ordenarAlertas(lista) {
+  const modo = (document.getElementById('al-orden') || {}).value || 'urgencia';
+  const l = lista.slice();
+  if (modo === 'masStock')   return l.sort((a, b) => b.saldo - a.saldo);
+  if (modo === 'menosStock') return l.sort((a, b) => a.saldo - b.saldo);
+  if (modo === 'nombre')     return l.sort((a, b) =>
+    a.producto.nombre.localeCompare(b.producto.nombre, 'es'));
+  return l;   // ya viene por urgencia desde listaAlertas()
+}
+
 function tarjetaAlerta(a) {
   const cls = a.frio && a.saldo <= 0 ? 'frio-crit' : (a.saldo <= 0 ? 'crit' : 'baja');
   const pie = a.minimo === null
@@ -1665,15 +1736,43 @@ function tarjetaAlerta(a) {
 }
 
 function renderAlertas() {
-  const al = listaAlertas();
+  llenarSelectAlertas();
+  const todas = listaAlertas();
   const card = document.getElementById('card-alertas');
-  if (!al.length) { card.style.display = 'none'; return; }
+  if (!todas.length) { card.style.display = 'none'; return; }
   card.style.display = 'block';
+
+  const bid = Number(document.getElementById('al-bodega').value);
+  const enBodega = bid ? todas.filter(a => a.bodega.id === bid) : todas;
+
+  // Se aparta lo que nunca entró a esa bodega. Sigue estando —abajo y
+  // plegado— pero deja de competir con lo que se está acabando hoy.
+  const nunca = enBodega.filter(a => a.saldo <= 0 && nuncaTuvo(a.bodega.id, a.producto.id));
+  const al = ordenarAlertas(enBodega.filter(a => !nunca.includes(a)));
 
   const frio  = al.filter(a => a.frio);
   const resto = al.filter(a => !a.frio);
   document.getElementById('alertas-cuenta').textContent =
-    al.length + (al.length === 1 ? ' aviso' : ' avisos');
+    al.length + (al.length === 1 ? ' aviso' : ' avisos') +
+    (nunca.length ? ` · ${nunca.length} sin carga inicial` : '');
+
+  document.getElementById('alertas-nunca').innerHTML = nunca.length
+    ? `<div class="alert ai" style="margin-top:14px;line-height:1.6;cursor:pointer"
+         onclick="alVerNunca()">
+         📥 <b>${nunca.length} producto${nunca.length === 1 ? '' : 's'} con mínimo definido
+         que nunca ${nunca.length === 1 ? 'ha' : 'han'} tenido stock en ${esc(nombreBodega(bid) || 'las bodegas')}.</b>
+         No es que falten: es que todavía no se cargan. Se dejan aparte para que no tapen
+         lo que se está acabando hoy. <u>Ver la lista</u>
+       </div>
+       <div id="alertas-nunca-lista" style="display:none">
+         <div class="grupo-cab" style="margin-top:14px">
+           <span style="font-size:15px">📥</span>
+           <span class="grupo-t">Sin carga inicial</span>
+           <span class="grupo-s">nunca entraron a esta bodega</span>
+         </div>
+         <div class="al-lista">${ordenarAlertas(nunca).slice(0, 60).map(tarjetaAlerta).join('')}</div>
+       </div>`
+    : '';
 
   // Los congelados van en su propio bloque y arriba. Si están mezclados con
   // veinte avisos de vasos, el que importa se pierde y la lista deja de
@@ -1686,6 +1785,14 @@ function renderAlertas() {
        </div>
        <div class="al-lista" style="margin-bottom:18px">${frio.slice(0, 30).map(tarjetaAlerta).join('')}</div>`
     : '';
+
+  if (!al.length) {
+    document.getElementById('alertas-frio').innerHTML = '';
+    document.getElementById('alertas').innerHTML = nunca.length
+      ? ''
+      : '<div class="empty">Nada bajo el mínimo en esta bodega.</div>';
+    return;
+  }
 
   document.getElementById('alertas').innerHTML = resto.length
     ? (frio.length ? `<div class="grupo-cab">
