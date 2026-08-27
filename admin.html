@@ -374,10 +374,10 @@ input[type=checkbox]{
     <div class="ntabs">
       <button class="tb act" onclick="goTab('pedidos',this)">📋 Pedidos</button>
       <button class="tb"     onclick="goTab('nuevo',this)">➕ Agregar</button>
-      <button class="tb"     onclick="goTab('clientes',this)">👥 Clientes</button>
       <button class="tb"     onclick="goTab('rutas',this)">🚚 Ruta</button>
-      <button class="tb"     onclick="location.href='planner.html'">📅 Planner</button>
       <button class="tb"     onclick="location.href='bodega.html'">📦 Bodega</button>
+      <button class="tb"     onclick="goTab('clientes',this)">👥 Clientes</button>
+      <button class="tb"     onclick="location.href='planner.html'">📅 Planner</button>
     </div>
     <div class="nlogo">nativo</div>
     <div class="nright">
@@ -1134,13 +1134,43 @@ function alerta(id, msg, cls) {
 // ══════════════════════════════════════════
 //  SUPABASE API
 // ══════════════════════════════════════════
+// PostgREST corta en 1000 filas por respuesta y el Worker no reenvía la
+// cabecera Range, así que hay que pedir por tandas con limit y offset en la
+// dirección. Sin esto, al pasar los mil pedidos el panel muestra los mil más
+// recientes y nada más: sin error y sin aviso, con los contadores, el
+// directorio y el CSV trabajando sobre un historial cortado.
+//
+// El Set de claves es el cinturón: si una tanda repitiera filas, el ciclo
+// corta en vez de inflar la lista con copias.
+async function sbPagina(tabla, query, clave) {
+  const paso = 1000, vistos = new Set(), out = [];
+  const k = clave || (f => f.id);
+  for (let desde = 0; desde < 60000; desde += paso) {
+    const r = revisarAuth(await fetch(
+      `${PROXY}/supabase/${tabla}?${query}&limit=${paso}&offset=${desde}`,
+      { headers: cabeceras(false) }));
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' en ' + tabla);
+    const d = await r.json();
+    if (!Array.isArray(d)) throw new Error('Respuesta inválida en ' + tabla);
+    let nuevos = 0;
+    for (const f of d) {
+      const kk = k(f);
+      if (!vistos.has(kk)) { vistos.add(kk); out.push(f); nuevos++; }
+    }
+    if (d.length < paso || nuevos === 0) break;
+  }
+  return out;
+}
+
+// Se pagina por id ascendente porque es único y estable entre tandas.
+// Ordenar por created_at para paginar es una trampa: dos pedidos del mismo
+// instante no tienen orden garantizado y una fila puede salir dos veces o
+// ninguna. El orden que espera indexar() se arma acá, ya con todo a la vista.
 async function sbGet() {
-  const r = revisarAuth(await fetch(`${PROXY}/supabase/pedidos?order=created_at.desc`,
-    { headers: cabeceras(false) }));
-  if (!r.ok) throw new Error('HTTP ' + r.status);
-  const d = await r.json();
-  if (!Array.isArray(d)) throw new Error('Respuesta inválida');
-  return d;
+  const filas = await sbPagina('pedidos', 'select=*&order=id.asc');
+  return filas.sort((a, b) =>
+    String(b.created_at || '').localeCompare(String(a.created_at || '')) ||
+    Number(b.id) - Number(a.id));
 }
 
 // Envío genérico: lanza error si la respuesta no es OK (antes fallaba en silencio)
@@ -1592,8 +1622,13 @@ async function cargarBodega(forzar) {
       sbJson(`${T_BOD_B}?select=*&order=nombre.asc`),
       sbJson(`${T_BOD_P}?select=*&order=nombre.asc`),
       sbJson(`${T_BOD_MO}?select=*&order=orden.asc,nombre.asc`),
-      sbJson(`${T_BOD_S}?select=bodega_id,producto_id,saldo,minimo`),
-      sbJson(`${T_BOD_MV}?select=id,pedido_id&pedido_id=not.is.null`),
+      // Estas dos crecen sin techo, así que van paginadas. La de movimientos
+      // es la crítica: si viene incompleta, un pedido ya descargado pierde su
+      // marca, vuelve a ofrecer el botón y se descuenta dos veces.
+      sbPagina(T_BOD_S,
+        'select=bodega_id,producto_id,saldo,minimo,unidades_caja&order=bodega_id.asc,producto_id.asc',
+        f => f.bodega_id + '|' + f.producto_id),
+      sbPagina(T_BOD_MV, 'select=id,pedido_id&pedido_id=not.is.null&order=id.asc'),
       // Si la tabla de ajustes todavía no existe, no es un problema: significa
       // que no hay corte puesto y se reclama por todo.
       sbJson(`${T_BOD_C}?select=*&clave=eq.corte_pedidos`).catch(() => [])
@@ -1618,6 +1653,29 @@ async function cargarBodega(forzar) {
 function bodVivas()    { return bodBodegas.filter(b => b.activa !== false); }
 function bodVigentes() { return bodProductos.filter(p => p.activo !== false); }
 function bodSalidas()  { return bodMotivos.filter(m => m.activo !== false && m.tipo === 'salida'); }
+
+// Cuántas unidades trae una caja de este producto. bod_saldos ya devuelve el
+// saldo en unidades base, así que sin esto el descargo restaría cajas de un
+// número que está en unidades: diría "hay 106, quedarán 103" cuando quedan 70.
+function bodFactor(pid) {
+  const p = bodProductos.find(x => String(x.id) === String(pid));
+  const f = p ? Number(p.unidades_caja) || 1 : 1;
+  return f >= 1 ? Math.floor(f) : 1;
+}
+
+// Unidades base → "8 cj + 10", que es como se lee la repisa.
+function bodLeer(pid, v) {
+  const f = bodFactor(pid);
+  const q = Number(v) || 0;
+  if (f <= 1) return String(Math.round(q * 1000) / 1000);
+  const signo = q < 0 ? '−' : '';
+  const a = Math.abs(q);
+  const cj = Math.floor(a / f);
+  const su = Math.round((a - cj * f) * 1000) / 1000;
+  if (cj && su) return `${signo}${cj} cj + ${su}`;
+  if (cj)       return `${signo}${cj} cj`;
+  return signo + su;
+}
 
 function bodSaldo(bid, pid) {
   const f = bodSaldos.find(x => String(x.bodega_id) === String(bid) &&
@@ -1778,7 +1836,10 @@ function pintarDescargo() {
 
   const filas = ds.lineas.map((l, i) => {
     const saldo = l.bodega_id ? bodSaldo(l.bodega_id, l.producto_id) : null;
-    const queda = saldo === null ? null : Math.round((saldo - (Number(l.cantidad) || 0)) * 1000) / 1000;
+    // La cantidad del pedido está en cajas; el saldo, en unidades base.
+    const fac = bodFactor(l.producto_id);
+    const baja = (Number(l.cantidad) || 0) * fac;
+    const queda = saldo === null ? null : Math.round((saldo - baja) * 1000) / 1000;
     const prod = bodProductos.find(x => String(x.id) === String(l.producto_id));
     const un = prod ? prod.unidad || 'un' : 'un';
     const esVenta = esMotivoVenta(l.motivo_id);
@@ -1810,7 +1871,10 @@ function pintarDescargo() {
       <div class="ds-pie">
         ${saldo === null
           ? '<span style="color:var(--nd)">Elige la bodega para ver el saldo</span>'
-          : `En bodega hay <b>${saldo}</b> ${hesc(un)} <span style="color:var(--mora-l)">→</span> quedarán <b style="color:${queda < 0 ? 'var(--rd)' : 'inherit'}">${queda}</b>`}
+          : `En bodega hay <b>${hesc(bodLeer(l.producto_id, saldo))}</b> ${hesc(un)}
+             <span style="color:var(--mora-l)">→</span>
+             quedarán <b style="color:${queda < 0 ? 'var(--rd)' : 'inherit'}">${hesc(bodLeer(l.producto_id, queda))}</b>` +
+            (fac > 1 ? ` · se descuentan <b>${baja}</b> ${hesc(un)} (${l.cantidad} caja${Number(l.cantidad) === 1 ? '' : 's'} de ${fac})` : '')}
         ${queda !== null && queda < 0
           ? ' · <b style="color:var(--rd)">queda negativo, revisa la bodega o el conteo</b>' : ''}
         ${faltaFact
@@ -1950,6 +2014,9 @@ async function guardarDescargo() {
     bodega_id: Number(l.bodega_id),
     bodega_destino_id: null,
     cantidad: Math.round((Number(l.cantidad) || 0) * 1000) / 1000,
+    // El panel despacha cajas cerradas. Decirlo explícitamente evita depender
+    // del valor por omisión de la columna.
+    medida: 'caja',
     motivo_id: Number(l.motivo_id),
     // El número de factura viaja en `doc` incluso cuando el motivo no es venta:
     // si mañana se reclasifica, el dato ya está.
