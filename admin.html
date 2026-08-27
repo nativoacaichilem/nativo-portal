@@ -323,6 +323,9 @@ input[type=checkbox]{
 .stp button{width:26px;height:26px;border-radius:6px;border:1.5px solid var(--crema-d);background:var(--white);font-weight:900;cursor:pointer;color:var(--mora);font-size:15px;line-height:1;padding:0;font-family:'Nunito',sans-serif}
 .stp button:hover{border-color:var(--mora);background:var(--mora-xl)}
 .stp input{width:48px;text-align:center;padding:4px 2px;font-weight:800;font-size:12px}
+.stp .med-sel{width:auto;min-width:62px;padding:4px 6px;font-size:11px;font-weight:800;
+  border-radius:6px;background:var(--white);color:var(--mora)}
+.bweb{background:#e0f2fe;color:#075985;border:1px solid #7dd3fc}
 
 /* ── BARRA RESUMEN ── */
 .wz-bar{position:sticky;bottom:0;background:var(--white);border-top:2px solid var(--crema-d);padding:12px 0 2px;margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
@@ -429,6 +432,7 @@ input[type=checkbox]{
           <option value="">Todos los estados</option>
           <option value="sf">▸ Todo lo que falta facturar</option>
           <option value="cortesia">🎁 Entregas sin venta</option>
+          <option value="web">🌐 Ventas página web</option>
           <option value="pendiente">Sin facturar</option>
           <option value="facturado">Facturado</option>
           <option value="en-ruta">En ruta</option>
@@ -514,12 +518,21 @@ input[type=checkbox]{
 
         <div class="modal-section">Despacho y facturación</div>
         <div class="fg">
+          <div><label>De dónde viene la venta</label>
+            <select id="wcanal" onchange="canalCambio('wz')">
+              <option value="b2b">Cliente mayorista</option>
+              <option value="web">🌐 Página web</option>
+            </select>
+            <div class="nota-campo" id="wcanal-nota"></div>
+          </div>
           <div><label>Tipo de entrega</label>
             <select id="wentrega" onchange="wzEntregaCambio()">
               <option value="despacho">Despacho a domicilio</option>
               <option value="retiro">Retiro en oficina</option>
             </select>
           </div>
+        </div>
+        <div class="fg">
           <div><label>Zona <span id="wzona-req">*</span></label>
             <select id="wzona">
               <option value="">— Asignar zona —</option>
@@ -564,6 +577,14 @@ input[type=checkbox]{
       </div>
 
       <div class="modal-section">Entrega</div>
+      <div style="margin-bottom:12px">
+        <label>De dónde viene la venta</label>
+        <select id="ncanal" onchange="canalCambio('man')">
+          <option value="b2b">Cliente mayorista</option>
+          <option value="web">🌐 Página web</option>
+        </select>
+        <div class="nota-campo" id="ncanal-nota"></div>
+      </div>
       <div class="fg">
         <div><label>Tipo de entrega</label>
           <select id="nentrega" onchange="manualEntregaCambio()">
@@ -731,6 +752,15 @@ input[type=checkbox]{
           <option value="retiro">Retiro en oficina</option>
         </select>
       </div>
+      <div>
+        <label>De dónde vino</label>
+        <select id="mcanal">
+          <option value="b2b">Cliente mayorista</option>
+          <option value="web">🌐 Página web</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
       <div>
         <label>Estado</label>
         <select id="mestado">
@@ -924,7 +954,13 @@ let clientes   = [];    // catálogo de clientes
 let sucursales = [];    // catálogo de sucursales
 let dirOK      = false; // true = tablas clientes/sucursales disponibles en Supabase
 let dirLoaded  = false;
-let wz         = { paso:1, cliente:null, sucursal:null, qtys:{} };
+let wz         = { paso:1, cliente:null, sucursal:null, qtys:{}, meds:{} };
+
+// Lee un selector de canal. Si el elemento no existe todavía, es b2b.
+function canalDe(id) {
+  const e = document.getElementById(id);
+  return !!(e && e.value === 'web');
+}
 let cliEdit    = null, cliCtx = 'list';
 let dsSaltar   = false;   // evita que el descargo se vuelva a ofrecer en bucle
 let sucEdit    = null, sucCtx = 'list', sucCli = null;
@@ -1215,7 +1251,20 @@ async function sbJson(path) {
   return d;
 }
 
-async function sbPost(row)      { return sbSend('pedidos', 'POST', row); }
+async function sbPost(row) {
+  try {
+    return await sbSend('pedidos', 'POST', row);
+  } catch (e) {
+    // Si todavía no se corrió pedidos-canal.sql, la columna no existe. Un
+    // pedido no se puede perder por una columna que falta: se reintenta sin
+    // ella y el canal se corrige después.
+    if (row && row.canal !== undefined && /canal/i.test(String(e.message))) {
+      const sinCanal = { ...row }; delete sinCanal.canal;
+      return sbSend('pedidos', 'POST', sinCanal);
+    }
+    throw e;
+  }
+}
 async function sbPatch(id, row) { return sbSend(`pedidos?id=eq.${id}`, 'PATCH', row); }
 async function sbDelete(id)     { return sbSend(`pedidos?id=eq.${id}`, 'DELETE'); }
 
@@ -1261,6 +1310,7 @@ function filtrados() {
     // 'sf' no es un estado: es "falta facturar", que son dos estados distintos
     (!fe || (fe === 'sf' ? sinFacturar(p)
            : fe === 'cortesia' ? esCortesia(p)
+           : fe === 'web' ? esWeb(p)
            : p.estado === fe)) &&
     (!fn || (p.entrega || 'despacho') === fn) &&
     (!filtroSinDescargo || (
@@ -1388,8 +1438,8 @@ function render() {
            ${p.telefono ? `<span style="font-size:11px;color:var(--textl);font-weight:700">📞 ${hesc(p.telefono)}</span>` : ''}
          </div>` : '';
 
-    const folioHtml = p.folio
-      ? `<div class="folio">${hesc(p.folio)}</div>` : '';
+    const folioHtml = (p.folio ? `<div class="folio">${hesc(p.folio)}</div>` : '') +
+      (esWeb(p) ? '<div style="margin-top:3px"><span class="badge bweb">🌐 página web</span></div>' : '');
 
     // El mensaje lo escribió el cliente; la nota, tú. Cada uno con su marca y su
     // color, para que nunca se confunda quién lo escribió.
@@ -1703,20 +1753,26 @@ function esMotivoVenta(id) { const m = bodMotivo(id); return !!(m && m.es_venta)
 function bodPreparar(p) {
   const lineas = [], fuera = [];
   splitDet(p.detalle).forEach(it => {
-    const m = it.match(/^(.*?)\s*\(([^)]*)\)\s*[x×]\s*([\d.,]+)$/i);
-    const nombre = m ? m[1].trim() : it.trim();
-    const cant   = m ? Number(String(m[3]).replace(',', '.')) || 1 : null;
-    const fmt    = m ? m[2].trim() : '';
+    const L = leerLinea(it);
+    const nombre = L ? L.nombre : it.trim();
+    const cant   = L ? L.cantidad : null;
+    const fmt    = L ? L.formato : '';
+
+    // Un pedido viejo dice "Scoopable Acai (caja)". El producto en bodega ya
+    // se llama "Scoopable Acai". El mapa de nombres antiguos los une.
+    const alias = NOMBRES_ANTIGUOS[normTxt(nombre)] || nombre;
 
     // Se busca por nombre y formato; si el formato no calza, basta el nombre.
-    let prod = bodVigentes().find(x => normTxt(x.nombre) === normTxt(nombre) &&
+    const calza = n => x => normTxt(x.nombre) === normTxt(n);
+    let prod = bodVigentes().find(x => calza(nombre)(x) &&
                                        normTxt(x.formato || '') === normTxt(fmt));
-    if (!prod) prod = bodVigentes().find(x => normTxt(x.nombre) === normTxt(nombre));
+    if (!prod) prod = bodVigentes().find(calza(nombre));
+    if (!prod) prod = bodVigentes().find(calza(alias));
 
-    if (!prod || cant === null) { fuera.push(it); return; }
+    if (!prod || cant === null || !(cant > 0)) { fuera.push(it); return; }
     const b = bodMejor(prod.id);
     lineas.push({ producto_id: prod.id, bodega_id: b ? b.id : '', cantidad: cant,
-                  motivo_id: '', texto: it });
+                  medida: L ? L.medida : 'caja', motivo_id: '', texto: it });
   });
   return { lineas, fuera };
 }
@@ -1837,7 +1893,7 @@ function pintarDescargo() {
   const filas = ds.lineas.map((l, i) => {
     const saldo = l.bodega_id ? bodSaldo(l.bodega_id, l.producto_id) : null;
     // La cantidad del pedido está en cajas; el saldo, en unidades base.
-    const fac = bodFactor(l.producto_id);
+    const fac = l.medida === 'unidad' ? 1 : bodFactor(l.producto_id);
     const baja = (Number(l.cantidad) || 0) * fac;
     const queda = saldo === null ? null : Math.round((saldo - baja) * 1000) / 1000;
     const prod = bodProductos.find(x => String(x.id) === String(l.producto_id));
@@ -1874,7 +1930,8 @@ function pintarDescargo() {
           : `En bodega hay <b>${hesc(bodLeer(l.producto_id, saldo))}</b> ${hesc(un)}
              <span style="color:var(--mora-l)">→</span>
              quedarán <b style="color:${queda < 0 ? 'var(--rd)' : 'inherit'}">${hesc(bodLeer(l.producto_id, queda))}</b>` +
-            (fac > 1 ? ` · se descuentan <b>${baja}</b> ${hesc(un)} (${l.cantidad} caja${Number(l.cantidad) === 1 ? '' : 's'} de ${fac})` : '')}
+            (fac > 1 ? ` · se descuentan <b>${baja}</b> ${hesc(un)} (${l.cantidad} caja${Number(l.cantidad) === 1 ? '' : 's'} de ${fac})`
+                     : (bodFactor(l.producto_id) > 1 ? ` · <b>${l.cantidad}</b> ${hesc(un)} sueltas` : ''))}
         ${queda !== null && queda < 0
           ? ' · <b style="color:var(--rd)">queda negativo, revisa la bodega o el conteo</b>' : ''}
         ${faltaFact
@@ -2014,9 +2071,9 @@ async function guardarDescargo() {
     bodega_id: Number(l.bodega_id),
     bodega_destino_id: null,
     cantidad: Math.round((Number(l.cantidad) || 0) * 1000) / 1000,
-    // El panel despacha cajas cerradas. Decirlo explícitamente evita depender
-    // del valor por omisión de la columna.
-    medida: 'caja',
+    // La medida sale de cómo se pidió la línea: un pedido web puede traer
+    // potes sueltos y un B2B trae cajas cerradas.
+    medida: l.medida === 'unidad' ? 'unidad' : 'caja',
     motivo_id: Number(l.motivo_id),
     // El número de factura viaja en `doc` incluso cuando el motivo no es venta:
     // si mañana se reclasifica, el dato ya está.
@@ -2315,6 +2372,7 @@ async function agregar() {
   try {
     await sbPost({
       emp, rut, dir, zona: ret ? '' : zona, detalle: det,
+      canal: canalDe('ncanal') ? 'web' : 'b2b',
       factura_num: fact, factura_nombre: '',
       estado: 'pendiente', fecha, entrega,
       contacto, telefono: tel,
@@ -2434,6 +2492,7 @@ async function guardarCortesia() {
 }
 
 const esCortesia = p => (p.tipo || 'venta') === 'cortesia';
+const esWeb = p => (p.canal || 'b2b') === 'web';
 
 // ══════════════════════════════════════════
 //  MODAL EDITAR
@@ -2458,6 +2517,7 @@ function abrir(id) {
     : '';
 
   document.getElementById('mentrega').value  = ret ? 'retiro' : 'despacho';
+  document.getElementById('mcanal').value    = esWeb(p) ? 'web' : 'b2b';
   document.getElementById('mzona').value     = p.zona          || '';
   llenarEstadoModal(p);
   document.getElementById('memp').value      = p.emp           || '';
@@ -2525,6 +2585,7 @@ async function guardar() {
   const entrega = document.getElementById('mentrega').value === 'retiro' ? 'retiro' : 'despacho';
   const row = {
     entrega,
+    canal:         document.getElementById('mcanal').value === 'web' ? 'web' : 'b2b',
     zona:          entrega === 'retiro' ? '' : document.getElementById('mzona').value,
     estado:        document.getElementById('mestado').value,
     emp:           document.getElementById('memp').value.trim(),
@@ -2548,6 +2609,12 @@ async function guardar() {
     await cargar();
     cerrar();
   } catch(e) {
+    // Mismo caso que en el alta: si falta la columna, se guarda el resto.
+    if (/canal/i.test(String(e.message))) {
+      const sinCanal = { ...row }; delete sinCanal.canal;
+      try { await sbPatch(eid, sinCanal); await cargar(); cerrar(); return; }
+      catch (e2) { alert('Error guardando: ' + e2.message); return; }
+    }
     alert('Error guardando: ' + e.message);
   }
   btn.innerHTML = 'Guardar'; btn.disabled = false;
@@ -2573,7 +2640,7 @@ function exportCSV() {
 
   const headers = [
     'ID','Folio','Fecha','Empresa','RUT','Contacto','Teléfono',
-    'Tipo','Razón','Entrega','Dirección','Zona','Detalle','Mensaje del cliente','Estado','Factura N°',
+    'Tipo','Canal','Razón','Entrega','Dirección','Zona','Detalle','Mensaje del cliente','Estado','Factura N°',
     'Fecha Entrega/Retiro','Recibe/Retira','Comentario interno'
   ];
 
@@ -2587,7 +2654,8 @@ function exportCSV() {
   const rows = data.map(p => [
     p.id, p.folio||'', p.fecha||'', p.emp, p.rut,
     p.contacto||'', p.telefono||'',
-    esCortesia(p) ? 'Sin venta' : 'Venta', p.razon||'',
+    esCortesia(p) ? 'Sin venta' : 'Venta',
+    esWeb(p) ? 'Página web' : 'Mayorista', p.razon||'',
     esRetiro(p) ? 'Retiro en oficina' : 'Despacho',
     p.dir, p.zona||'', p.detalle||'', p.mensaje||'',
     estadoLabel(p.estado), p.factura_num||'',
@@ -2679,6 +2747,7 @@ function genPrompt() {
     `\nPEDIDO ${i+1}:\n` +
     `- Cliente: ${p.emp}\n` +
     (esCortesia(p) ? `- ENTREGA SIN VENTA: ${p.razon || 'cortesía'} — no se cobra\n` : '') +
+    (esWeb(p) ? `- Venta de la página web\n` : '') +
     (p.rut ? `- RUT: ${p.rut}\n` : '') +
     (p.folio ? `- Folio: ${p.folio}\n` : '') +
     (p.contacto ? `- Contacto: ${p.contacto}\n` : '') +
@@ -2752,10 +2821,12 @@ const CATS = [
     {n:'Balde Acai Riva', f:'3,6 L'},
     {n:'Balde Yoghurt Griego Soft Blue Monkey', f:'5 L'}
   ]},
+  // `u` es cuántas unidades trae la caja. Los productos con u > 1 se pueden
+  // pedir por unidad suelta, que es como los vende la página web.
   {id:'retail', icon:'🛒', label:'Congelados Retail', items:[
-    {n:'Scoopable Acai (caja)', f:'500 ml — caja 12 un'},
-    {n:'Acai Fused (caja)', f:'4×100 g — caja 15 un'},
-    {n:'Acai Puro (caja)', f:'4×100 g — caja 15 un'}
+    {n:'Scoopable Acai', f:'500 ml', u:12},
+    {n:'Acai Fused', f:'4×100 g', u:15},
+    {n:'Acai Puro', f:'4×100 g', u:15}
   ]},
   {id:'toppings', icon:'🌰', label:'Frutos Secos & Toppings', items:[
     {n:'Cacao Nibs', f:'0,1 kg'},
@@ -2842,9 +2913,63 @@ const CATS = [
 
 const PRODS = [];
 CATS.forEach(c => c.items.forEach((it, i) =>
-  PRODS.push({ id: c.id + '-' + i, cat: c.id, n: it.n, f: it.f })
+  PRODS.push({ id: c.id + '-' + i, cat: c.id, n: it.n, f: it.f, u: it.u || 1 })
 ));
 const prodById = id => PRODS.find(p => p.id === id) || null;
+
+// ══════════════════════════════════════════════════════════════
+//  NOMBRES ANTIGUOS
+//  Los tres retail se llamaban "Scoopable Acai (caja)" cuando solo se
+//  vendían por caja. El nombre se limpió para poder vender suelto, pero los
+//  pedidos ya guardados dicen el nombre viejo. No se corrige la historia:
+//  se le enseña al buscador a reconocerla, igual que los alias de clientes.
+// ══════════════════════════════════════════════════════════════
+const NOMBRES_ANTIGUOS = {
+  'scoopable acai (caja)': 'Scoopable Acai',
+  'acai fused (caja)':     'Acai Fused',
+  'acai puro (caja)':      'Acai Puro'
+};
+
+// Busca un producto del catálogo por su nombre, aceptando los nombres viejos
+function prodPorNombre(nombre) {
+  const n = normTxt(nombre);
+  const directo = PRODS.find(x => normTxt(x.n) === n);
+  if (directo) return directo;
+  const nuevo = NOMBRES_ANTIGUOS[n];
+  return nuevo ? PRODS.find(x => normTxt(x.n) === normTxt(nuevo)) || null : null;
+}
+
+// Cuántas unidades trae la caja, según el catálogo
+function factorCat(nombre) {
+  const p = prodPorNombre(nombre);
+  return p ? (Number(p.u) || 1) : 1;
+}
+
+// ── CÓMO SE ESCRIBE UNA LÍNEA DEL PEDIDO ─────────────────────
+//  "Nombre (formato) x3"       → 3 cajas (es el formato histórico)
+//  "Nombre (formato) x3 cajas" → 3 cajas, dicho explícitamente
+//  "Nombre (formato) x5 un"    → 5 unidades sueltas
+//
+//  Una línea sin sufijo son cajas, así que los 400 y tantos pedidos que ya
+//  existen se leen exactamente igual que antes.
+const RE_LINEA = /^(.*?)\s*\(([^)]*)\)\s*[x×]\s*([\d.,]+)\s*(cajas?|un|unidades?)?\s*$/i;
+
+function leerLinea(texto) {
+  const m = String(texto || '').match(RE_LINEA);
+  if (!m) return null;
+  const suf = (m[4] || '').toLowerCase();
+  return {
+    nombre:   m[1].trim(),
+    formato:  m[2].trim(),
+    cantidad: Number(String(m[3]).replace(',', '.')) || 0,
+    medida:   suf.startsWith('un') ? 'unidad' : 'caja'
+  };
+}
+
+function escribirLinea(prod, cantidad, medida) {
+  const suf = medida === 'unidad' ? ' un' : (Number(prod.u) > 1 ? ' cajas' : '');
+  return `${prod.n} (${prod.f}) x${cantidad}${suf}`;
+}
 
 // ══════════════════════════════════════════════════════════════
 //  HELPERS DIRECTORIO
@@ -3355,6 +3480,21 @@ function pickSucursal(id) {
 // ══════════════════════════════════════════════════════════════
 //  PASO 3 — PEDIDO
 // ══════════════════════════════════════════════════════════════
+// Cambiar el canal no toca lo ya elegido: solo cambia la medida por omisión
+// de las filas que todavía no se han tocado a mano, y lo dice.
+function canalCambio(pre) {
+  const web = pre === 'wz' ? canalDe('wcanal') : canalDe('ncanal');
+  const nota = document.getElementById(pre === 'wz' ? 'wcanal-nota' : 'ncanal-nota');
+  if (nota) {
+    nota.textContent = web
+      ? 'Los productos que vienen en caja se piden por unidad salvo que digas lo contrario.'
+      : '';
+    nota.style.display = web ? 'block' : 'none';
+  }
+  pintarCat(pre);
+  if (CTX[pre] && CTX[pre].alCambiar) CTX[pre].alCambiar();
+}
+
 function wzEntregaCambio() {
   const ret = document.getElementById('wentrega').value === 'retiro';
   document.getElementById('wzona-req').style.display = ret ? 'none' : '';
@@ -3424,15 +3564,48 @@ function pintarCat(pre) {
 
 function prodRow(p, pre) {
   const q = CTX[pre].qtys[p.n] || 0;
+  const md = medDe(pre, p.n);
+  // El selector solo aparece en los productos que vienen en caja y se venden
+  // sueltos. En el resto estorbaría: no hay nada que elegir.
+  const selMed = Number(p.u) > 1
+    ? `<select class="med-sel" onchange="qMedida('${pre}','${p.id}',this.value)"
+         title="¿Se pide por caja o por unidad?">
+         <option value="caja"${md === 'caja' ? ' selected' : ''}>caja</option>
+         <option value="unidad"${md === 'unidad' ? ' selected' : ''}>un</option>
+       </select>` : '';
+  const pie = Number(p.u) > 1
+    ? `<div class="prod-f">${hesc(p.f)} · caja de ${p.u}${
+        q && md === 'caja' ? ` · son ${q * p.u} un` : ''}</div>`
+    : `<div class="prod-f">${hesc(p.f)}</div>`;
   return `<div class="prod ${q ? 'on' : ''}" id="pr-${pre}-${p.id}">
-    <div class="prod-n">${hesc(p.n)}<div class="prod-f">${hesc(p.f)}</div></div>
+    <div class="prod-n">${hesc(p.n)}${pie}</div>
     <div class="stp">
+      ${selMed}
       <button type="button" onclick="qChg('${pre}','${p.id}',-1)">−</button>
       <input type="number" min="0" id="qi-${pre}-${p.id}" value="${q}"
         oninput="qSet('${pre}','${p.id}',this.value)">
       <button type="button" onclick="qChg('${pre}','${p.id}',1)">+</button>
     </div>
   </div>`;
+}
+
+// La medida elegida para un producto en un formulario. Por omisión, caja:
+// la unidad se elige a propósito. En un pedido de la página web la omisión
+// se da vuelta, porque ahí lo normal es lo suelto.
+function medDe(pre, nombre) {
+  const c = CTX[pre];
+  if (!c) return 'caja';
+  if (c.meds && c.meds[nombre]) return c.meds[nombre];
+  return (c.canalWeb && c.canalWeb()) ? 'unidad' : 'caja';
+}
+
+function qMedida(pre, id, valor) {
+  const p = prodById(id); const c = CTX[pre];
+  if (!p || !c) return;
+  if (!c.meds) c.meds = {};
+  c.meds[p.n] = valor === 'unidad' ? 'unidad' : 'caja';
+  pintarCat(pre);                 // el pie de la fila cambia con la medida
+  if (c.alCambiar) c.alCambiar();
 }
 
 function qChg(pre, id, d) {
@@ -3450,6 +3623,13 @@ function qApply(pre, p, v, saltarInput) {
   if (inp && !saltarInput) inp.value = v;
   const row = document.getElementById(`pr-${pre}-${p.id}`);
   if (row) row.classList.toggle('on', v > 0);
+  // En un producto con caja, el pie dice a cuántas unidades equivale lo
+  // pedido, así que hay que repintarlo al cambiar la cantidad.
+  if (Number(p.u) > 1) {
+    const cel = row && row.querySelector('.prod-f');
+    if (cel) cel.textContent = `${p.f} · caja de ${p.u}` +
+      (v && medDe(pre, p.n) === 'caja' ? ` · son ${v * p.u} un` : '');
+  }
   if (c.alCambiar) c.alCambiar();
 }
 
@@ -3458,7 +3638,8 @@ function qApply(pre, p, v, saltarInput) {
 // último pedido" y el descargo de bodega.
 function catDetalle(pre, extraId) {
   const c = CTX[pre];
-  const del = PRODS.filter(p => c.qtys[p.n]).map(p => `${p.n} (${p.f}) x${c.qtys[p.n]}`);
+  const del = PRODS.filter(p => c.qtys[p.n])
+                   .map(p => escribirLinea(p, c.qtys[p.n], medDe(pre, p.n)));
   const extra = extraId
     ? (document.getElementById(extraId).value || '')
         .split('\n').map(x => x.trim().replace(/,$/, '')).filter(Boolean)
@@ -3468,34 +3649,46 @@ function catDetalle(pre, extraId) {
 
 function catResumen(pre) {
   const e = Object.entries(CTX[pre].qtys);
-  const un = e.reduce((a, [, q]) => a + q, 0);
-  return { n: e.length, unidades: un,
-    texto: e.length ? `${e.length} producto${e.length > 1 ? 's' : ''} · ${un} unidad${un > 1 ? 'es' : ''}`
-                    : 'Sin productos seleccionados',
-    lista: e.map(([k, q]) => `${k} ×${q}`).join(', ') };
+  // Se cuentan bultos, no unidades: sumar cajas con potes sueltos daría un
+  // número que no significa nada. Lo que importa acá es cuántas líneas hay.
+  const bultos = e.reduce((a, [, q]) => a + q, 0);
+  const sueltos = e.filter(([k]) => medDe(pre, k) === 'unidad' && factorCat(k) > 1).length;
+  return { n: e.length, unidades: bultos,
+    texto: e.length
+      ? `${e.length} producto${e.length > 1 ? 's' : ''} · ${bultos} bulto${bultos > 1 ? 's' : ''}` +
+        (sueltos ? ` · ${sueltos} por unidad` : '')
+      : 'Sin productos seleccionados',
+    lista: e.map(([k, q]) => `${k} ×${q}${
+      medDe(pre, k) === 'unidad' && factorCat(k) > 1 ? ' un' : ''}`).join(', ') };
 }
 
 function catLimpiar(pre) {
   Object.keys(CTX[pre].qtys).forEach(k => delete CTX[pre].qtys[k]);
+  if (CTX[pre].meds) Object.keys(CTX[pre].meds).forEach(k => delete CTX[pre].meds[k]);
   pintarCat(pre);
   if (CTX[pre].alCambiar) CTX[pre].alCambiar();
 }
 
 // El asistente sigue funcionando igual: solo pasa por el mismo motor.
-catRegistrar('wz', { qtys: wz.qtys, cont: 'cat-wrap', busca: 'pq',
+// `canalWeb` decide la medida por omisión de cada fila: en un pedido de la
+// página web lo normal es el pote suelto, no la caja.
+catRegistrar('wz', { qtys: wz.qtys, meds: wz.meds, cont: 'cat-wrap', busca: 'pq',
+                     canalWeb: () => canalDe('wcanal'),
                      alCambiar: () => { updWzBar(); renderWzPills(); } });
-catRegistrar('man', { qtys: {}, cont: 'cat-man', busca: 'npq',
+catRegistrar('man', { qtys: {}, meds: {}, cont: 'cat-man', busca: 'npq',
+                      canalWeb: () => canalDe('ncanal'),
                       alCambiar: () => {
                         document.getElementById('man-resumen').textContent = catResumen('man').texto;
                       } });
-catRegistrar('co', { qtys: coQ, cont: 'cat-co', busca: 'co-pq',
+catRegistrar('co', { qtys: coQ, meds: {}, cont: 'cat-co', busca: 'co-pq',
                      alCambiar: () => {
                        document.getElementById('co-resumen').textContent = catResumen('co').texto;
                      } });
-function renderCatalogo() { CTX.wz.qtys = wz.qtys; pintarCat('wz'); }
+function renderCatalogo() { CTX.wz.qtys = wz.qtys; CTX.wz.meds = wz.meds; pintarCat('wz'); }
 
 function limpiarProds() {
   wz.qtys = {}; CTX.wz.qtys = wz.qtys;
+  wz.meds = {}; CTX.wz.meds = wz.meds;
   document.getElementById('wextra').value = '';
   renderCatalogo(); updWzBar(); renderWzPills();
 }
@@ -3515,11 +3708,17 @@ function repetirUltimo() {
   if (!p) return;
   wz.qtys = {};
   const sobra = [];
+  if (!CTX.wz.meds) CTX.wz.meds = {};
+  Object.keys(CTX.wz.meds).forEach(k => delete CTX.wz.meds[k]);
   splitDet(p.detalle).forEach(it => {
-    const m = it.match(/^(.*?)\s*\(([^)]*)\)\s*[x×]\s*(\d+)$/i);
-    if (m) {
-      const prod = PRODS.find(x => normTxt(x.n) === normTxt(m[1]));
-      if (prod) { wz.qtys[prod.n] = parseInt(m[3], 10) || 1; return; }
+    const L = leerLinea(it);
+    if (L) {
+      const prod = prodPorNombre(L.nombre);   // reconoce los nombres viejos
+      if (prod && L.cantidad > 0) {
+        wz.qtys[prod.n] = L.cantidad;
+        if (Number(prod.u) > 1) CTX.wz.meds[prod.n] = L.medida;
+        return;
+      }
     }
     sobra.push(it);
   });
@@ -3549,7 +3748,7 @@ async function guardarWz() {
 
   const row = {
     emp: c.emp, rut: c.rut || '', dir: s.dir, zona: ret ? '' : zona,
-    detalle: det, entrega,
+    detalle: det, entrega, canal: canalDe('wcanal') ? 'web' : 'b2b',
     contacto: s.contacto || c.contacto || '',
     telefono: s.telefono || c.telefono || '',
     factura_num: document.getElementById('wfact').value.trim(),
