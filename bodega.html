@@ -293,10 +293,10 @@ tbody tr:hover td{background:#faf6ff}
     <div class="ntabs">
       <button class="tb" onclick="location.href='admin.html#pedidos'">📋 Pedidos</button>
       <button class="tb" onclick="location.href='admin.html#nuevo'">➕ Agregar</button>
-      <button class="tb" onclick="location.href='admin.html#clientes'">👥 Clientes</button>
       <button class="tb" onclick="location.href='admin.html#rutas'">🚚 Ruta</button>
-      <button class="tb" onclick="location.href='planner.html'">📅 Planner</button>
       <button class="tb act">📦 Bodega</button>
+      <button class="tb" onclick="location.href='admin.html#clientes'">👥 Clientes</button>
+      <button class="tb" onclick="location.href='planner.html'">📅 Planner</button>
     </div>
     <div class="nlogo">nativo</div>
     <div class="nright"><button class="bout" onclick="salir()">Salir</button></div>
@@ -683,7 +683,15 @@ tbody tr:hover td{background:#faf6ff}
     <div class="fg">
       <div>
         <label for="mv-cantidad">Cantidad *</label>
-        <input type="number" id="mv-cantidad" min="0" step="0.001" placeholder="0" oninput="mvPintarSaldo()">
+        <div style="display:flex;gap:7px">
+          <input type="number" id="mv-cantidad" min="0" step="0.001" placeholder="0"
+            oninput="mvPintarSaldo()" style="flex:1 1 auto">
+          <select id="mv-medida" onchange="mvPintarSaldo()"
+            style="flex:0 0 118px;display:none" title="En qué se está contando">
+            <option value="caja">cajas</option>
+            <option value="unidad">unidades</option>
+          </select>
+        </div>
       </div>
       <div>
         <label for="mv-fecha">Fecha</label>
@@ -771,7 +779,7 @@ tbody tr:hover td{background:#faf6ff}
     <div id="pr-alert"></div>
     <div class="f1"><label for="pr-nombre">Nombre *</label>
       <input type="text" id="pr-nombre" placeholder="Ej: Balde Acai Nativo" oninput="prSugerirFrio()"></div>
-    <div class="fg">
+    <div class="fg3">
       <div><label for="pr-formato">Formato</label>
         <input type="text" id="pr-formato" placeholder="Ej: 3,6 L"></div>
       <div><label for="pr-unidad">Se cuenta en</label>
@@ -781,6 +789,11 @@ tbody tr:hover td{background:#faf6ff}
           <option value="L">Litros</option>
           <option value="caja">Cajas</option>
         </select></div>
+      <div><label for="pr-factor">Unidades por caja</label>
+        <input type="number" id="pr-factor" min="1" max="1000" step="1" placeholder="1">
+        <div class="hint">Deja <b>1</b> si solo se mueve por caja cerrada.
+          Pon <b>12</b> o <b>15</b> cuando también se venda suelto: el saldo pasa a
+          contarse en unidades y la caja se calcula dividiendo.</div></div>
     </div>
     <div class="fg">
       <div><label for="pr-familia">Familia</label>
@@ -921,7 +934,7 @@ tbody tr:hover td{background:#faf6ff}
 // Sube con cada entrega. Se ve arriba a la derecha y en el diagnóstico:
 // sirve para saber en dos segundos si el navegador está sirviendo el archivo
 // nuevo o el viejo que tiene guardado.
-const VERSION = 'v13 · 2026-08-26';
+const VERSION = 'v14 · 2026-08-27';
 
 const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
 let TOKEN = '';
@@ -1138,7 +1151,8 @@ let saldos = new Map();          // "bodegaId|productoId" -> cantidad
 let seccion = 'panorama';
 let operador = '';
 let movsVisibles = 60;
-let conteo = {};                 // productoId -> valor escrito
+let conteo = {};                 // productoId -> lo contado, en unidades base
+let conteoCj = {}, conteoSu = {};  // lo escrito en cada casilla, tal cual
 let cargando = false;
 let _preguntado = false;
 
@@ -1217,6 +1231,51 @@ function nombreProducto(id) {
 }
 function nombreMotivo(id) { const m = motivos.find(x => x.id === id); return m ? m.nombre : ''; }
 function unidadDe(id) { const p = productos.find(x => x.id === id); return p && p.unidad ? p.unidad : 'un'; }
+
+// ══════════════════════════════════════════════════════════════
+//  CAJAS Y UNIDADES
+//  El libro está escrito en dos medidas: hay movimientos anotados en
+//  cajas y otros en unidades sueltas. El saldo SIEMPRE se calcula en
+//  unidades base, así que la caja es solo una forma de escribir la
+//  cantidad, no una segunda contabilidad. Por eso no existe ninguna
+//  regla de "cuando junte doce, descuenta una caja": el saldo se
+//  divide y ya está.
+// ══════════════════════════════════════════════════════════════
+function factorDe(id) {
+  const p = productos.find(x => x.id === id);
+  const f = p ? Number(p.unidades_caja) || 1 : 1;
+  return f >= 1 ? Math.floor(f) : 1;
+}
+// true cuando el producto se puede vender suelto
+const porUnidad = id => factorDe(id) > 1;
+
+// Cantidad escrita en una medida → unidades base
+function aBase(id, cantidad, medida) {
+  const q = Number(cantidad) || 0;
+  return (medida || 'caja') === 'caja' ? q * factorDe(id) : q;
+}
+
+// Unidades base → texto de repisa. "11 cj + 5" en vez de "137" o "11,42",
+// porque nadie cuenta 11,42 cajas. Con factor 1 se comporta como antes.
+function fmtBase(id, valor) {
+  const f = factorDe(id);
+  const q = Number(valor) || 0;
+  if (f <= 1) return num(q);
+  const signo = q < 0 ? '−' : '';
+  const a = Math.abs(q);
+  const cj = Math.floor(a / f);
+  const su = Math.round((a - cj * f) * 1000) / 1000;
+  if (cj && su) return signo + num(cj) + ' cj + ' + num(su);
+  if (cj)       return signo + num(cj) + ' cj';
+  return signo + num(su);
+}
+
+// Para tooltips y sitios donde hace falta el número crudo además del bonito
+function fmtBaseLargo(id, valor) {
+  const f = factorDe(id);
+  if (f <= 1) return num(valor);
+  return fmtBase(id, valor) + ' (' + num(valor) + ' ' + esc(unidadDe(id)) + ')';
+}
 
 function operadorNombre() { return operador || 'sin firma'; }
 function cargarOperador() {
@@ -1311,7 +1370,9 @@ function recalcularSaldos() {
     m.set(k, (m.get(k) || 0) + q);
   };
   for (const x of movs) {
-    const q = Number(x.cantidad) || 0;
+    // La cantidad se lleva a unidades base según la medida en que se anotó.
+    // Un movimiento sin medida es de antes de la migración: era en cajas.
+    const q = aBase(x.producto_id, x.cantidad, x.medida);
     if (x.tipo === 'entrada')       sumar(x.bodega_id, x.producto_id,  Math.abs(q));
     else if (x.tipo === 'salida')   sumar(x.bodega_id, x.producto_id, -Math.abs(q));
     else if (x.tipo === 'ajuste')   sumar(x.bodega_id, x.producto_id,  q);
@@ -1329,9 +1390,18 @@ function recalcularSaldos() {
 }
 
 function saldoDe(bodegaId, productoId) { return saldos.get(clave(bodegaId, productoId)) || 0; }
-function minimoDe(bodegaId, productoId) {
+// El mínimo se guarda en la misma medida en que se compra el producto: en
+// cajas para lo que viene en caja. Se convierte acá al comparar, en vez de
+// reescribir bod_minimos, así que los mínimos que ya definiste siguen
+// significando lo mismo.
+function minimoGuardado(bodegaId, productoId) {
   const m = minimos.find(x => x.bodega_id === bodegaId && x.producto_id === productoId);
   return m ? Number(m.minimo) : null;
+}
+// En unidades base: es contra esto que se mide el saldo.
+function minimoDe(bodegaId, productoId) {
+  const g = minimoGuardado(bodegaId, productoId);
+  return g === null ? null : g * factorDe(productoId);
 }
 function totalDe(productoId) {
   let t = 0;
@@ -1373,7 +1443,7 @@ function tablaConsumo() {
     const f = String(x.fecha).slice(0, 10);
     if (f < masViejo) masViejo = f;
     if (f < desde) continue;
-    const q = Math.abs(Number(x.cantidad) || 0);
+    const q = Math.abs(aBase(x.producto_id, x.cantidad, x.medida));
     if (x.tipo === 'salida') {
       const k = clave(x.bodega_id, x.producto_id);
       m.set(k, (m.get(k) || 0) + q);
@@ -1561,7 +1631,7 @@ function mermaPeriodo(dias) {
     lineas++;
     const p = productos.find(x => x.id === m.producto_id);
     const c = p ? Number(p.costo) || 0 : 0;
-    if (c > 0) clp += Math.abs(Number(m.cantidad) || 0) * c;
+    if (c > 0) clp += Math.abs(aBase(m.producto_id, m.cantidad, m.medida)) * c;
     else sinCosto.add(m.producto_id);
   }
   return { clp, sinCosto: sinCosto.size, lineas };
@@ -1722,11 +1792,11 @@ function tarjetaAlerta(a) {
   const pie = a.minimo === null
     ? `<b>sin stock</b> · ${esc(a.bodega.nombre)} · sin mínimo definido`
     : `<b>${coberturaTexto(a.dias)}</b> · ${esc(a.bodega.nombre)}
-       · mínimo ${num(a.minimo)} · faltan ${num(a.falta)}`;
+       · mínimo ${fmtBase(a.producto.id, a.minimo)} · faltan ${fmtBase(a.producto.id, a.falta)}`;
   return `<div class="al ${cls}" tabindex="0" role="button"
       onclick="verDetalle(${a.bodega.id},${a.producto.id})"
       onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();verDetalle(${a.bodega.id},${a.producto.id})}">
-      <div class="al-n">${num(a.saldo)}</div>
+      <div class="al-n" style="${porUnidad(a.producto.id) ? 'font-size:17px' : ''}">${fmtBase(a.producto.id, a.saldo)}</div>
       <div>
         <div class="al-t">${a.frio ? '❄️ ' : ''}${esc(a.producto.nombre)}${
           a.producto.formato ? ' <span class="chip">' + esc(a.producto.formato) + '</span>' : ''}</div>
@@ -1808,7 +1878,7 @@ function renderAlertas() {
 // ══════════════════════════════════════════════════════════════
 //  MATRIZ DE STOCK
 // ══════════════════════════════════════════════════════════════
-function medidor(saldo, minimo, unidad) {
+function medidor(saldo, minimo, unidad, pid) {
   const est = estado(saldo, minimo);
   // La escala llega hasta el doble del mínimo (o hasta el saldo si lo supera),
   // así la muesca del mínimo cae siempre a la mitad y se compara de un vistazo.
@@ -1818,7 +1888,7 @@ function medidor(saldo, minimo, unidad) {
   return `<div class="med" title="${ESTADO_TXT[est]}${minimo ? ' · mínimo ' + num(minimo) : ''}">
     <div class="fill f-${est === 'sinmin' ? 'ok' : est}" style="width:${ancho}%"></div>
     ${marca !== null ? `<div class="marca" style="left:${marca}%"></div>` : ''}
-    <div class="val">${num(saldo)} <span style="font-weight:700;color:var(--textl)">${esc(unidad)}</span></div>
+    <div class="val">${pid ? fmtBase(pid, saldo) : num(saldo)} <span style="font-weight:700;color:var(--textl)">${esc(unidad)}</span></div>
   </div>`;
 }
 
@@ -1999,8 +2069,8 @@ function tablaPorBodega(bods) {
         onclick="verDetalle(${b.id},${p.id})"
         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();verDetalle(${b.id},${p.id})}"
         title="${esc(p.nombre)} en ${esc(b.nombre)} · ${ESTADO_TXT[e]}">
-        <div class="cifra">${num(s)}</div>
-        <div class="bajo">${min !== null && min > 0 ? 'mín ' + num(min) : esc(p.unidad || 'un')}</div>
+        <div class="cifra">${fmtBase(p.id, s)}</div>
+        <div class="bajo">${min !== null && min > 0 ? 'mín ' + fmtBase(p.id, min) : esc(p.unidad || 'un')}</div>
       </td>`;
     }).join('');
     return `<tr>
@@ -2014,7 +2084,7 @@ function tablaPorBodega(bods) {
     let t = 0;
     for (const b of bods) t += saldoDe(b.id, p.id);
     t = Math.round(t * 1000) / 1000;
-    return `<td><div class="cifra">${num(t)}</div>
+    return `<td><div class="cifra">${fmtBase(p.id, t)}</div>
       <div class="bajo">${esc(p.unidad || 'un')}</div></td>`;
   }).join('');
 
@@ -2043,14 +2113,14 @@ function tablaMatriz(bods, lista, frio) {
       return `<td class="celda" tabindex="0" role="button"
         onclick="verDetalle(${b.id},${p.id})"
         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();verDetalle(${b.id},${p.id})}"
-        title="Ver detalle y mover">${medidor(s, min, un)}</td>`;
+        title="Ver detalle y mover">${medidor(s, min, un, p.id)}</td>`;
     }).join('');
     const cls = peor === 'nada' || peor === 'alto' ? 'fila-alerta' : (peor === 'medio' ? 'fila-aviso' : '');
     return `<tr class="${cls}">
       <td><div class="prod">${esc(p.nombre)}</div>
         <div class="sub">${esc(p.formato || '')}${p.familia ? ' · ' + esc(p.familia) : ''}</div></td>
       ${celdas}
-      <td class="num"><b style="font-size:14px">${num(totalDe(p.id))}</b>
+      <td class="num"><b style="font-size:14px">${fmtBase(p.id, totalDe(p.id))}</b>
         <div class="sub">${esc(un)}</div></td>
       <td class="num">${pintarCobertura(bods, p)}</td></tr>`;
   }).join('');
@@ -2139,13 +2209,13 @@ function guardarColumnas() {
 
 function exportarStock() {
   const bods = document.getElementById('f-inactivas').checked ? bodegas : bodegasVivas();
-  const filas = [['Producto', 'Formato', 'Familia', 'Unidad',
+  const filas = [['Producto', 'Formato', 'Familia', 'Unidad', 'Unidades por caja',
     ...bods.flatMap(b => [b.nombre, 'Mínimo ' + b.nombre, 'Días ' + b.nombre]),
     'Total', 'Consumo diario total']];
   for (const p of filtrarProductos()) {
     let cons = 0;
     for (const b of bods) cons += consumoDiario(b.id, p.id);
-    filas.push([p.nombre, p.formato || '', p.familia || '', p.unidad || 'un',
+    filas.push([p.nombre, p.formato || '', p.familia || '', p.unidad || 'un', factorDe(p.id),
       ...bods.flatMap(b => [saldoDe(b.id, p.id), minimoDe(b.id, p.id) ?? '',
         coberturaDias(b.id, p.id) ?? '']),
       totalDe(p.id), Math.round(cons * 100) / 100]);
@@ -2185,7 +2255,7 @@ function renderGrafico() {
     if (m.tipo !== 'salida') continue;
     const p = productos.find(x => x.id === m.producto_id);
     const c = p ? Number(p.costo) || 0 : 0;
-    const q = Math.abs(Number(m.cantidad) || 0);
+    const q = Math.abs(aBase(m.producto_id, m.cantidad, m.medida));
     const peso = conCosto ? q * c : 1;      // sin costos se cuentan registros
     if (conCosto && !c) { sinCosto++; continue; }
     const k = m.motivo_id || 0;
@@ -2341,7 +2411,10 @@ function renderMovs() {
         ${m.nota ? `<div class="sub">${esc(m.nota)}</div>` : ''}</td>
       <td>${donde}</td>
       <td class="num" style="font-size:14px">${cant}
-        <div class="sub">${esc(unidadDe(m.producto_id))}</div></td>
+        <div class="sub">${(m.medida || 'caja') === 'caja' && porUnidad(m.producto_id)
+          ? 'caja' + (Math.abs(Number(m.cantidad)) === 1 ? '' : 's') +
+            ' <span style="opacity:.7">= ' + num(Math.abs(aBase(m.producto_id, m.cantidad, 'caja'))) + '</span>'
+          : esc(unidadDe(m.producto_id))}</div></td>
       <td>${mot}${m.doc ? `<div class="sub mono">${esc(m.doc)}</div>` : ''}
         ${m.pedido_id ? `<div class="sub">pedido #${esc(m.pedido_id)}</div>` : ''}</td>
       <td><div class="sub" style="margin:0">${esc(m.usuario || '—')}</div></td>
@@ -2363,7 +2436,8 @@ function renderMovs() {
 function exportarMovs() {
   const rev = idsRevertidos();
   const filas = [['Fecha', 'Tipo', 'Producto', 'Formato', 'Unidad', 'Bodega', 'Destino',
-    'Cantidad', 'Motivo', 'Es pérdida', 'Documento', 'Nota', 'Anotó', 'Estado']];
+    'Cantidad', 'Medida', 'Cantidad en unidades', 'Motivo', 'Es pérdida',
+    'Documento', 'Nota', 'Anotó', 'Estado']];
   for (const m of movsFiltrados()) {
     const p = productos.find(x => x.id === m.producto_id);
     const mo = motivos.find(x => x.id === m.motivo_id);
@@ -2371,7 +2445,9 @@ function exportarMovs() {
       String(m.fecha).slice(0, 10), TIPO_TXT[m.tipo] || m.tipo,
       p ? p.nombre : '', p ? p.formato || '' : '', p ? p.unidad || 'un' : '',
       nombreBodega(m.bodega_id), m.bodega_destino_id ? nombreBodega(m.bodega_destino_id) : '',
-      Number(m.cantidad) || 0, mo ? mo.nombre : '', mo && mo.es_perdida ? 'sí' : '',
+      Number(m.cantidad) || 0, m.medida || 'caja',
+      Math.round(aBase(m.producto_id, m.cantidad, m.medida) * 1000) / 1000,
+      mo ? mo.nombre : '', mo && mo.es_perdida ? 'sí' : '',
       m.doc || '', m.nota || '', m.usuario || '',
       rev.has(Number(m.id)) ? 'revertido' : (m.revierte_a ? 'reverso' : 'vigente')
     ]);
@@ -2400,6 +2476,9 @@ function abrirMov(tipo, productoId, bodegaId) {
   if (bodegaId)   document.getElementById('mv-bodega').value = bodegaId;
 
   document.getElementById('mv-cantidad').value = '';
+  // Por omisión, cajas: es como llega y como sale casi todo. La unidad se
+  // elige a propósito, no por descuido.
+  document.getElementById('mv-medida').value = 'caja';
   document.getElementById('mv-fecha').value = HOY();
   document.getElementById('mv-doc').value = '';
   document.getElementById('mv-nota').value = '';
@@ -2436,39 +2515,66 @@ function mvTipo(t) {
   mvPintarSaldo();
 }
 
+// La medida elegida en el formulario. Con un producto que no se vende suelto
+// el selector no aparece y la respuesta es siempre 'caja'.
+function mvMedida() {
+  const p = Number(document.getElementById('mv-producto').value);
+  if (!porUnidad(p)) return 'caja';
+  return document.getElementById('mv-medida').value === 'unidad' ? 'unidad' : 'caja';
+}
+
 function mvPintarSaldo() {
   const pid = Number(document.getElementById('mv-producto').value);
   const bid = Number(document.getElementById('mv-bodega').value);
   const did = Number(document.getElementById('mv-destino').value);
-  const q   = Number(document.getElementById('mv-cantidad').value) || 0;
   const un  = unidadDe(pid);
   const r   = document.getElementById('mv-resumen');
+
+  // El selector solo tiene sentido en un producto que viene en caja y se
+  // vende suelto. En el resto estorba, así que se esconde.
+  const selM = document.getElementById('mv-medida');
+  const f = factorDe(pid);
+  selM.style.display = porUnidad(pid) ? '' : 'none';
+  selM.options[0].textContent = 'cajas de ' + num(f);
+
+  // Lo escrito se lleva a unidades base antes de cualquier cuenta: de aquí
+  // para abajo todo está en la misma medida.
+  const q = aBase(pid, document.getElementById('mv-cantidad').value, mvMedida());
+
   if (!pid || !bid) { r.innerHTML = ''; return; }
 
   const s = saldoDe(bid, pid);
   const min = minimoDe(bid, pid);
   let html = '';
 
+  // Con factor, el pie dice también en qué se traduce lo escrito: es la
+  // comprobación de que nadie puso 12 donde quería poner 1 caja.
+  const eq = porUnidad(pid) && q > 0
+    ? `<div class="sub" style="margin-top:6px">Se anotan <b>${num(q)} ${esc(un)}</b>
+       (${esc(fmtBase(pid, q))})</div>` : '';
+  const V = v => fmtBase(pid, v) + ' ' + esc(un);
+
   if (mvActual === 'entrada') {
-    html = `En <b>${esc(nombreBodega(bid))}</b> hay <b>${num(s)} ${esc(un)}</b>
-      <span class="flecha">→</span> quedarán <b>${num(s + q)} ${esc(un)}</b>`;
+    html = `En <b>${esc(nombreBodega(bid))}</b> hay <b>${V(s)}</b>
+      <span class="flecha">→</span> quedarán <b>${V(s + q)}</b>${eq}`;
   } else if (mvActual === 'salida') {
     const fin = s - q;
-    html = `En <b>${esc(nombreBodega(bid))}</b> hay <b>${num(s)} ${esc(un)}</b>
-      <span class="flecha">→</span> quedarán <b>${num(fin)} ${esc(un)}</b>`;
+    html = `En <b>${esc(nombreBodega(bid))}</b> hay <b>${V(s)}</b>
+      <span class="flecha">→</span> quedarán <b>${V(fin)}</b>${eq}`;
     if (q > 0 && fin < 0) html += `<div class="alert ae" style="margin:9px 0 0">
-      La bodega quedaría en <b>${num(fin)}</b>. Se puede registrar igual —a veces el error
+      La bodega quedaría en <b>${fmtBase(pid, fin)}</b>. Se puede registrar igual —a veces el error
       está en lo anotado antes— pero conviene revisar el conteo físico.</div>`;
     else if (min !== null && min > 0 && q > 0 && fin <= min) html += `<div class="alert aw" style="margin:9px 0 0">
-      Queda en el mínimo o por debajo (mínimo ${num(min)}). Va a aparecer en las alertas.</div>`;
+      Queda en el mínimo o por debajo (mínimo ${fmtBase(pid, min)}). Va a aparecer en las alertas.</div>`;
   } else {
     if (bid === did) { r.innerHTML = '<div class="alert ae" style="margin:0">Origen y destino son la misma bodega.</div>'; return; }
     const sd = saldoDe(did, pid);
-    html = `<b>${esc(nombreBodega(bid))}</b> ${num(s)} <span class="flecha">→</span> ${num(s - q)}
-      <br><b>${esc(nombreBodega(did))}</b> ${num(sd)} <span class="flecha">→</span> ${num(sd + q)}
+    html = `<b>${esc(nombreBodega(bid))}</b> ${fmtBase(pid, s)} <span class="flecha">→</span> ${fmtBase(pid, s - q)}
+      <br><b>${esc(nombreBodega(did))}</b> ${fmtBase(pid, sd)} <span class="flecha">→</span> ${fmtBase(pid, sd + q)}
+      ${eq}
       <div class="sub" style="margin-top:6px">El total de la empresa no cambia: el producto solo cambia de lugar.</div>`;
     if (q > 0 && s - q < 0) html += `<div class="alert ae" style="margin:9px 0 0">
-      El origen quedaría en <b>${num(s - q)}</b>.</div>`;
+      El origen quedaría en <b>${fmtBase(pid, s - q)}</b>.</div>`;
   }
   r.innerHTML = html;
 }
@@ -2481,6 +2587,10 @@ async function guardarMov() {
   // La columna es numeric(14,3): redondear acá evita que lo guardado sea
   // distinto de lo que la persona vio en pantalla.
   const q   = Math.round((Number(document.getElementById('mv-cantidad').value) || 0) * 1000) / 1000;
+  // La cantidad se guarda en la medida en que la escribió la persona, no
+  // convertida. Así el libro dice "3 cajas" y no "36", que es lo que
+  // permite entender la fila un año después.
+  const md  = mvMedida();
   const f   = document.getElementById('mv-fecha').value || HOY();
   const mo  = document.getElementById('mv-motivo').value;
 
@@ -2502,7 +2612,8 @@ async function guardarMov() {
   const fila = {
     fecha: f, tipo: mvActual, producto_id: pid, bodega_id: bid,
     bodega_destino_id: mvActual === 'traslado' ? did : null,
-    cantidad: q, motivo_id: mvActual === 'traslado' ? null : Number(mo),
+    cantidad: q, medida: md,
+    motivo_id: mvActual === 'traslado' ? null : Number(mo),
     doc: document.getElementById('mv-doc').value.trim() || null,
     nota: document.getElementById('mv-nota').value.trim() || null,
     usuario: operadorNombre()
@@ -2532,7 +2643,9 @@ function pedirRevertir(id) {
   document.getElementById('cf-title').textContent = 'Revertir movimiento';
   document.getElementById('cf-cuerpo').innerHTML =
     `Se anota el movimiento contrario de
-     <b>${TIPO_TXT[m.tipo]} de ${num(Math.abs(Number(m.cantidad)))} ${esc(unidadDe(m.producto_id))}</b>
+     <b>${TIPO_TXT[m.tipo]} de ${num(Math.abs(Number(m.cantidad)))} ${
+       (m.medida || 'caja') === 'unidad' ? esc(unidadDe(m.producto_id))
+                                         : (porUnidad(m.producto_id) ? 'caja(s)' : esc(unidadDe(m.producto_id)))}</b>
      de ${esc(nombreProducto(m.producto_id))}.
      <div class="sub" style="margin-top:8px">El original no se borra: quedan los dos en el libro,
      el error y la corrección.</div>`;
@@ -2562,7 +2675,11 @@ async function revertir(id) {
   let fila;
   const q = Math.abs(Number(orig.cantidad) || 0);
   const base = {
+    // La medida se hereda: si el original decía 3 cajas, el reverso dice
+    // 3 cajas. Convertirlo a unidades daría el mismo saldo pero volvería
+    // ilegible el par error/corrección en el libro.
     fecha: HOY(), producto_id: orig.producto_id, cantidad: q,
+    medida: orig.medida || 'caja',
     doc: orig.doc || null, usuario: operadorNombre(), revierte_a: Number(id),
     nota: 'Reverso' + (nota ? ': ' + nota : '')
   };
@@ -2632,13 +2749,17 @@ function verDetalle(bodegaId, productoId) {
   document.getElementById('dt-title').textContent = p.nombre;
   document.getElementById('dt-cuerpo').innerHTML = `
     <div class="stats" style="margin-bottom:16px">
-      <div class="stat"><div class="sn">${num(s)}</div><div class="sl">${esc(un)} en ${esc(b.nombre)}</div>
+      <div class="stat"><div class="sn" style="${porUnidad(productoId) ? 'font-size:21px' : ''}">${fmtBase(productoId, s)}</div>
+        <div class="sl">${porUnidad(productoId) ? esc(un) + ' · caja de ' + num(factorDe(productoId))
+                                                : esc(un)} en ${esc(b.nombre)}</div>
         <div class="sx"><span class="dot d-${est === 'sinmin' ? 'ok' : est}"></span>${ESTADO_TXT[est]}</div></div>
-      <div class="stat"><div class="sn">${min === null ? '—' : num(min)}</div><div class="sl">Mínimo aquí</div>
+      <div class="stat"><div class="sn">${min === null ? '—' : fmtBase(productoId, min)}</div>
+        <div class="sl">Mínimo aquí${porUnidad(productoId) ? ' (se fija en cajas)' : ''}</div>
         <div class="sx"><a href="#" onclick="event.preventDefault();cerrar('mod-detalle');irA('maestros');document.getElementById('min-bodega').value=${bodegaId};renderMinimos()"
           style="color:var(--mora);font-weight:800">cambiar</a></div></div>
-      <div class="stat"><div class="sn">${num(totalDe(productoId))}</div><div class="sl">Total empresa</div>
-        <div class="sx">${bodegasVivas().map(x => esc(x.nombre) + ': ' + num(saldoDe(x.id, productoId))).join(' · ')}</div></div>
+      <div class="stat"><div class="sn" style="${porUnidad(productoId) ? 'font-size:21px' : ''}">${fmtBase(productoId, totalDe(productoId))}</div>
+        <div class="sl">Total empresa</div>
+        <div class="sx">${bodegasVivas().map(x => esc(x.nombre) + ': ' + fmtBase(productoId, saldoDe(x.id, productoId))).join(' · ')}</div></div>
       <div class="stat ${cd !== null && cd <= 7 ? 'aviso' : ''}">
         <div class="sn">${cd === null ? '—' : (cd > 180 ? '6+ m' : cd)}</div>
         <div class="sl">${cd === null ? 'Sin salidas' : 'Días que alcanza'}</div>
@@ -2675,6 +2796,10 @@ function conteoProductos() {
 
 function renderConteo() {
   const bid = Number(document.getElementById('c-bodega').value);
+  // Se ancla acá lo que se está contando. Si queda en null, el guardia de
+  // cambiarBodegaConteo no dispara la primera vez que cambias de bodega y
+  // el conteo de una se aplicaría a la otra sin decir nada.
+  if (bodegaContada === null && bid) bodegaContada = String(bid);
   const t = document.getElementById('tabla-conteo');
   if (!bid) {
     t.innerHTML = '';
@@ -2690,28 +2815,43 @@ function renderConteo() {
   t.innerHTML = `<thead><tr>
       <th style="min-width:200px">Producto</th>
       <th class="num">Según el sistema</th>
-      <th class="num" style="width:130px">Contado</th>
+      <th class="num" style="width:170px">Contado</th>
       <th class="num">Diferencia</th></tr></thead>
     <tbody>${lista.map(p => {
       const s = saldoDe(bid, p.id);
       const v = conteo[p.id];
+      const f = factorDe(p.id);
+      // Nadie cuenta 137 potes: cuenta once cajas y cinco sueltos. Pedir un
+      // solo número obliga a multiplicar de cabeza, y ahí es donde el conteo
+      // se equivoca. Dos casillas, y la suma la hace la pantalla.
+      const casilla = f > 1
+        ? `<div style="display:flex;gap:5px;align-items:center;justify-content:flex-end">
+             <input type="number" step="1" min="0" id="cj-${p.id}" style="width:66px"
+               value="${conteoCj[p.id] === undefined ? '' : esc(conteoCj[p.id])}" placeholder="cj"
+               oninput="anotarConteoCaja(${p.id})" title="Cajas cerradas">
+             <span class="sub" style="margin:0">+</span>
+             <input type="number" step="0.001" min="0" id="cs-${p.id}" style="width:66px"
+               value="${conteoSu[p.id] === undefined ? '' : esc(conteoSu[p.id])}" placeholder="un"
+               oninput="anotarConteoCaja(${p.id})" title="Unidades sueltas">
+           </div>`
+        : `<input type="number" step="0.001" min="0" id="cn-${p.id}"
+             value="${v === undefined ? '' : esc(v)}" placeholder="—"
+             oninput="anotarConteo(${p.id},this.value)">`;
       return `<tr>
         <td><div style="font-weight:800">${esc(p.nombre)}</div>
-          <div class="sub">${esc(p.formato || '')}</div></td>
-        <td class="num">${num(s)} <span class="sub" style="display:inline">${esc(p.unidad || 'un')}</span></td>
-        <td class="num"><input type="number" step="0.001" min="0" id="cn-${p.id}"
-          value="${v === undefined ? '' : esc(v)}" placeholder="—"
-          oninput="anotarConteo(${p.id},this.value)"></td>
-        <td class="num cnt-dif" id="cd-${p.id}">${pintarDif(s, v)}</td></tr>`;
+          <div class="sub">${esc(p.formato || '')}${f > 1 ? ' · caja de ' + num(f) : ''}</div></td>
+        <td class="num">${fmtBase(p.id, s)} <span class="sub" style="display:inline">${esc(p.unidad || 'un')}</span></td>
+        <td class="num">${casilla}</td>
+        <td class="num cnt-dif" id="cd-${p.id}">${pintarDif(p.id, s, v)}</td></tr>`;
     }).join('')}</tbody>`;
   actualizarResumenConteo();
 }
 
-function pintarDif(saldo, valor) {
+function pintarDif(pid, saldo, valor) {
   if (valor === undefined || valor === '') return '<span style="color:var(--textl)">—</span>';
   const d = Math.round((Number(valor) - saldo) * 1000) / 1000;
   if (d === 0) return '<span style="color:var(--ok)">cuadra</span>';
-  return `<span class="${d > 0 ? 'pos' : 'neg'}">${d > 0 ? '+' : '−'}${num(Math.abs(d))}</span>`;
+  return `<span class="${d > 0 ? 'pos' : 'neg'}">${d > 0 ? '+' : '−'}${fmtBase(pid, Math.abs(d))}</span>`;
 }
 
 function anotarConteo(pid, valor) {
@@ -2719,7 +2859,30 @@ function anotarConteo(pid, valor) {
   if (valor === '') delete conteo[pid];
   else conteo[pid] = valor;
   const c = document.getElementById('cd-' + pid);
-  if (c) c.innerHTML = pintarDif(saldoDe(bid, pid), conteo[pid]);
+  if (c) c.innerHTML = pintarDif(pid, saldoDe(bid, pid), conteo[pid]);
+  actualizarResumenConteo();
+}
+
+// Cajas y sueltas se guardan como se escribieron, para que la casilla no se
+// borre sola al re-dibujar, y el conteo se guarda ya convertido a unidades.
+// Una fila con las dos casillas en blanco NO está contada: se deja intacta,
+// igual que antes. Cero cajas y cero sueltas sí es un conteo, y significa
+// que la repisa está vacía.
+function anotarConteoCaja(pid) {
+  const bid = Number(document.getElementById('c-bodega').value);
+  const ecj = document.getElementById('cj-' + pid);
+  const esu = document.getElementById('cs-' + pid);
+  const cj = ecj ? ecj.value.trim() : '';
+  const su = esu ? esu.value.trim() : '';
+  if (cj === '' && su === '') {
+    delete conteo[pid]; delete conteoCj[pid]; delete conteoSu[pid];
+  } else {
+    conteoCj[pid] = cj; conteoSu[pid] = su;
+    const base = (Number(cj) || 0) * factorDe(pid) + (Number(su) || 0);
+    conteo[pid] = String(Math.round(base * 1000) / 1000);
+  }
+  const c = document.getElementById('cd-' + pid);
+  if (c) c.innerHTML = pintarDif(pid, saldoDe(bid, pid), conteo[pid]);
   actualizarResumenConteo();
 }
 
@@ -2744,7 +2907,7 @@ function actualizarResumenConteo() {
   document.getElementById('b-conteo').disabled = dif.length === 0;
 }
 
-function limpiarConteo() { conteo = {}; renderConteo(); }
+function limpiarConteo() { conteo = {}; conteoCj = {}; conteoSu = {}; renderConteo(); }
 
 // Lo escrito pertenece a una bodega. Arrastrarlo al cambiar de selector
 // habría aplicado el conteo de la oficina a Pichilemu sin que nadie lo note.
@@ -2752,7 +2915,7 @@ let bodegaContada = null;
 function cambiarBodegaConteo() {
   const nueva = document.getElementById('c-bodega').value;
   if (bodegaContada && bodegaContada !== nueva && Object.keys(conteo).length) {
-    conteo = {};
+    conteo = {}; conteoCj = {}; conteoSu = {};
     toast('Se borró lo que habías anotado: era de ' + nombreBodega(Number(bodegaContada)));
   }
   bodegaContada = nueva;
@@ -2793,10 +2956,16 @@ function imprimirHojaConteo() {
   if (!lista.length) { toast('No hay productos que imprimir', true); return; }
   const w = window.open('', '_blank');
   if (!w) { toast('El navegador bloqueó la ventana de impresión', true); return; }
-  const filas = lista.map(p => `<tr>
-    <td>${esc(p.nombre)}<br><span class="f">${esc(p.formato || '')}</span></td>
-    <td class="c">${num(saldoDe(bid, p.id))} ${esc(p.unidad || 'un')}</td>
-    <td class="caja"></td></tr>`).join('');
+  const filas = lista.map(p => {
+    const f = factorDe(p.id);
+    return `<tr>
+      <td>${esc(p.nombre)}<br><span class="f">${esc(p.formato || '')}${
+        f > 1 ? ' · caja de ' + num(f) : ''}</span></td>
+      <td class="c">${fmtBase(p.id, saldoDe(bid, p.id))} ${esc(p.unidad || 'un')}</td>
+      ${f > 1
+        ? '<td class="caja" style="width:52px"></td><td class="caja" style="width:52px"></td>'
+        : '<td class="caja" colspan="2"></td>'}</tr>`;
+  }).join('');
   w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
     <title>Conteo ${esc(nombreBodega(bid))}</title><style>
     body{font-family:system-ui,sans-serif;padding:22px;color:#1e1226}
@@ -2813,7 +2982,8 @@ function imprimirHojaConteo() {
     <h1>Conteo físico · ${esc(nombreBodega(bid))}</h1>
     <div class="sub">${fechaCorta(HOY())} · contó: ______________________</div>
     <table><thead><tr><th>Producto</th><th class="c">Según el sistema</th>
-      <th style="width:110px">Contado</th></tr></thead><tbody>${filas}</tbody></table>
+      <th style="width:56px">Cajas</th><th style="width:56px">Sueltas</th></tr></thead>
+      <tbody>${filas}</tbody></table>
     <div class="pie">Anota solo lo que cuentes. Las filas en blanco no se tocan al pasarlo al sistema.</div>
     </body></html>`);
   w.document.close();
@@ -2848,7 +3018,7 @@ async function guardarConteo() {
     if (delta !== 0) finales.push({ producto_id: d.producto_id, delta, contado: d.contado });
   }
   if (!finales.length) {
-    conteo = {}; renderConteo(); pintarTodo();
+    conteo = {}; conteoCj = {}; conteoSu = {}; renderConteo(); pintarTodo();
     b.disabled = false; b.innerHTML = 'Registrar ajustes';
     toast('Al releer el libro ya no había diferencias');
     return;
@@ -2868,7 +3038,7 @@ async function guardarConteo() {
     const antes = Math.round((f.contado - f.delta) * 1000) / 1000;
     return {
       fecha: HOY(), tipo: 'ajuste', producto_id: f.producto_id, bodega_id: bid,
-      bodega_destino_id: null, cantidad: f.delta, motivo_id: null,
+      bodega_destino_id: null, cantidad: f.delta, medida: 'unidad', motivo_id: null,
       doc: nombre,
       nota: 'antes ' + num(antes) + ' → contado ' + num(f.contado),
       usuario: operadorNombre()
@@ -2884,7 +3054,7 @@ async function guardarConteo() {
 
   try {
     await sbSend(T_MOV, 'POST', filas);
-    conteo = {};
+    conteo = {}; conteoCj = {}; conteoSu = {};
     bajarArchivoCuadratura(nombre, bid, paraArchivo);
     toast(`${filas.length} ajuste${filas.length === 1 ? '' : 's'} registrado${filas.length === 1 ? '' : 's'}` +
       (cambiaron ? ' · se recalculó por movimientos durante el conteo' : '') +
@@ -3103,12 +3273,14 @@ function renderProductos() {
       <th class="num">Costo</th><th class="num">Total en bodegas</th><th></th></tr></thead>
     <tbody>${lista.map(p => `<tr style="${p.activo === false ? 'opacity:.55' : ''}">
       <td><div style="font-weight:800">${esFrio(p) ? '❄️ ' : ''}${esc(p.nombre)}</div>
-        <div class="sub">${esc(p.formato || '')}${p.activo === false ? ' · inactivo' : ''}</div></td>
+        <div class="sub">${esc(p.formato || '')}${
+          Number(p.unidades_caja) > 1 ? ' · caja de ' + num(p.unidades_caja) : ''
+        }${p.activo === false ? ' · inactivo' : ''}</div></td>
       <td>${p.familia ? `<span class="chip">${esc(p.familia)}</span>` : '—'}
         ${esFrio(p) ? '<span class="badge badge-frio" style="margin-left:4px">frío</span>' : ''}</td>
       <td>${esc(p.unidad || 'un')}</td>
       <td class="num">${Number(p.costo) > 0 ? pesos(p.costo) : '—'}</td>
-      <td class="num"><b>${num(totalDe(p.id))}</b></td>
+      <td class="num"><b>${fmtBase(p.id, totalDe(p.id))}</b></td>
       <td class="num">
         <button class="btn bol bsm" onclick="abrirProducto(${p.id})">Editar</button>
         <button class="btn bdng bsm" onclick="pedirBorrarProducto(${p.id})">Eliminar</button></td></tr>`).join('')}</tbody>`;
@@ -3122,6 +3294,7 @@ function abrirProducto(id) {
   document.getElementById('pr-formato').value = p ? p.formato || '' : '';
   document.getElementById('pr-familia').value = p ? p.familia || '' : '';
   document.getElementById('pr-unidad').value  = p ? p.unidad || 'un' : 'un';
+  document.getElementById('pr-factor').value  = p ? (Number(p.unidades_caja) || 1) : 1;
   document.getElementById('pr-costo').value   = p && Number(p.costo) > 0 ? p.costo : '';
   document.getElementById('pr-activo').checked = p ? p.activo !== false : true;
   document.getElementById('pr-frio').checked = p ? !!p.congelado : false;
@@ -3153,9 +3326,33 @@ async function guardarProducto() {
   if (dup) return alerta('pr-alert', 'ae', 'Ya existe ese producto con el mismo formato.');
 
   const costo = Number(document.getElementById('pr-costo').value);
+
+  // El factor es entero y manda sobre el saldo entero del producto: cambiarlo
+  // reinterpreta todo el libro, así que un valor raro no puede pasar.
+  const factor = Math.floor(Number(document.getElementById('pr-factor').value) || 1);
+  if (!(factor >= 1 && factor <= 1000))
+    return alerta('pr-alert', 'ae', 'Las unidades por caja tienen que ser un número entre 1 y 1000.');
+
+  // Cambiar el factor de un producto que ya tiene historia reinterpreta cada
+  // movimiento anotado en cajas. No es un error —es lo que hay que hacer al
+  // empezar a vender suelto— pero tiene que decirse en voz alta.
+  const antes = productoEdit ? factorDe(productoEdit) : 1;
+  if (productoEdit && antes !== factor) {
+    const enCajas = movs.filter(m => m.producto_id === productoEdit &&
+                                     (m.medida || 'caja') === 'caja').length;
+    if (enCajas && !confirm(
+        'Este producto tiene ' + enCajas + ' movimiento(s) anotados en cajas.\n\n' +
+        'Al pasar el factor de ' + antes + ' a ' + factor + ', esos movimientos se ' +
+        'reinterpretan y el saldo cambia de ' + num(totalDe(productoEdit)) + ' a ' +
+        num(Math.round(totalDe(productoEdit) / antes * factor * 1000) / 1000) + ' unidades.\n\n' +
+        'Es lo correcto si la caja siempre trajo ' + factor + ' unidades. ¿Seguir?'))
+      return;
+  }
+
   const fila = { nombre, formato: formato || null,
     familia: document.getElementById('pr-familia').value.trim() || null,
     unidad: document.getElementById('pr-unidad').value,
+    unidades_caja: factor,
     costo: costo > 0 ? costo : null,
     congelado: document.getElementById('pr-frio').checked,
     activo: document.getElementById('pr-activo').checked };
@@ -3213,7 +3410,7 @@ function renderMinimos() {
   const t = document.getElementById('tabla-minimos');
   if (!bid) { t.innerHTML = '<tbody><tr><td><div class="empty">Crea una bodega primero.</div></td></tr></tbody>'; return; }
   const conMin = productosVivos()
-    .map(p => ({ p, min: minimoDe(bid, p.id) }))
+    .map(p => ({ p, min: minimoGuardado(bid, p.id) }))
     .filter(x => x.min !== null);
   if (!conMin.length) {
     t.innerHTML = `<tbody><tr><td><div class="empty">
@@ -3224,11 +3421,13 @@ function renderMinimos() {
   t.innerHTML = `<thead><tr><th>Producto</th><th class="num">Mínimo</th>
       <th class="num">Ahora hay</th><th>Estado</th><th></th></tr></thead>
     <tbody>${conMin.map(({ p, min }) => {
-      const s = saldoDe(bid, p.id), e = estado(s, min);
+      const s = saldoDe(bid, p.id), e = estado(s, min * factorDe(p.id));
       return `<tr><td><div style="font-weight:800">${esc(p.nombre)}</div>
           <div class="sub">${esc(p.formato || '')}</div></td>
-        <td class="num"><b>${num(min)}</b> <span class="sub" style="display:inline">${esc(p.unidad || 'un')}</span></td>
-        <td class="num">${num(s)}</td>
+        <td class="num"><b>${num(min)}</b> <span class="sub" style="display:inline">${
+          porUnidad(p.id) ? 'caja(s) · ' + num(min * factorDe(p.id)) + ' ' + esc(p.unidad || 'un')
+                          : esc(p.unidad || 'un')}</span></td>
+        <td class="num">${fmtBase(p.id, s)}</td>
         <td><span class="dot d-${e === 'sinmin' ? 'ok' : e}"></span>${ESTADO_TXT[e]}</td>
         <td class="num"><button class="btn bdng bsm" onclick="quitarMinimo(${bid},${p.id})">Quitar</button></td></tr>`;
     }).join('')}</tbody>`;
@@ -3263,13 +3462,14 @@ function renderMinMasivo() {
       <th scope="col" class="num" title="Consumo diario × los días que quieres cubrir">Sugerido</th>
       <th scope="col" class="num" style="width:120px">Mínimo</th></tr></thead>
     <tbody>${lista.map(p => {
-      const min = minimoDe(bid, p.id);
+      const min = minimoGuardado(bid, p.id);
       const sug = minimoSugerido(bid, p.id, dias);
       const sem = consumoDiario(bid, p.id) * 7;
       return `<tr><td><div style="font-weight:800">${esc(p.nombre)}</div>
-          <div class="sub">${esc(p.formato || '')}</div></td>
-        <td class="num">${num(saldoDe(bid, p.id))} <span class="sub" style="display:inline">${esc(p.unidad || 'un')}</span></td>
-        <td class="num">${sem > 0 ? num(Math.round(sem * 10) / 10) : '<span class="sub" style="margin:0">—</span>'}</td>
+          <div class="sub">${esc(p.formato || '')}${
+            porUnidad(p.id) ? ' · el mínimo va en cajas de ' + num(factorDe(p.id)) : ''}</div></td>
+        <td class="num">${fmtBase(p.id, saldoDe(bid, p.id))} <span class="sub" style="display:inline">${esc(p.unidad || 'un')}</span></td>
+        <td class="num">${sem > 0 ? fmtBase(p.id, Math.round(sem * 10) / 10) : '<span class="sub" style="margin:0">—</span>'}</td>
         <td class="num">${sug === null ? '<span class="sub" style="margin:0">—</span>'
           : `<button class="btn bgray bsm" onclick="document.getElementById('mm-${p.id}').value=${sug}">${num(sug)}</button>`}</td>
         <td class="num"><input type="number" min="0" step="0.001" id="mm-${p.id}"
@@ -3284,7 +3484,7 @@ function renderMinMasivo() {
 function minimoSugerido(bid, pid, dias) {
   const c = consumoDiario(bid, pid);
   if (!(c > 0)) return null;
-  const v = c * dias;
+  const v = c * dias / factorDe(pid);   // el campo se escribe en cajas
   return v >= 10 ? Math.ceil(v) : Math.ceil(v * 10) / 10;
 }
 
@@ -3311,7 +3511,7 @@ async function guardarMinMasivo() {
     const inp = document.getElementById('mm-' + p.id);
     if (!inp) continue;                        // no está a la vista por el filtro
     const txt = inp.value.trim();
-    const actual = minimoDe(bid, p.id);
+    const actual = minimoGuardado(bid, p.id);
     if (txt === '') { if (actual !== null) borrar.push(p.id); continue; }
     const v = Number(txt);
     if (isNaN(v) || v < 0) return alerta('mm-alert', 'ae', `El mínimo de ${esc(p.nombre)} no es un número válido.`);
@@ -3449,8 +3649,11 @@ const CATALOGO = [
   ['Baldes Congelados', 'un', [['Balde Acai Nativo','3,6 L'],['Balde Pitaya Blue Monkey','3,6 L'],
     ['Balde Acai Blue Monkey','3,6 L'],['Balde Pistacho Soft Blue Monkey','5 L'],
     ['Balde Acai Riva','3,6 L'],['Balde Yoghurt Griego Soft Blue Monkey','5 L']]],
-  ['Congelados Retail', 'caja', [['Scoopable Acai (caja)','500 ml — caja 12 un'],
-    ['Acai Fused (caja)','4×100 g — caja 15 un'],['Acai Puro (caja)','4×100 g — caja 15 un']]],
+  // El tercer valor es cuántas unidades trae la caja. Estos tres se venden
+  // también suelto por la página web, así que la unidad base es el pote.
+  ['Congelados Retail', 'un', [['Scoopable Acai (caja)','500 ml — caja 12 un', 12],
+    ['Acai Fused (caja)','4×100 g — caja 15 un', 15],
+    ['Acai Puro (caja)','4×100 g — caja 15 un', 15]]],
   ['Frutos Secos & Toppings', 'un', [['Cacao Nibs','0,1 kg'],['Castañas de caju','2 kg'],
     ['Avellana europea tostada','2 kg'],['Nueces cuarto','2 kg'],['Almendra Laminada','2 kg'],
     ['Oreo molidas','4 kg'],['Avena integral','2 kg'],['Chia','2 kg'],['Coco laminado','2 kg'],
@@ -3561,7 +3764,7 @@ function catalogoPlano() {
   if (catPlano) return catPlano;
   const out = [];
   for (const [fam, un, items] of CATALOGO)
-    for (const [n, f] of items) out.push({ fam, un, n, f });
+    for (const [n, f, uc] of items) out.push({ fam, un, n, f, uc: uc || 1 });
   catPlano = out.map((x, i) => Object.assign({ i }, x));
   return catPlano;
 }
@@ -3602,7 +3805,8 @@ async function guardarImportar() {
   if (!imSel.size) return alerta('im-alert', 'ae', 'No hay nada marcado.');
   const filas = catalogoPlano()
     .filter(x => imSel.has(x.i) && !existeYa(x.n, x.f))
-    .map(x => ({ nombre: x.n, formato: x.f, familia: x.fam, unidad: x.un, costo: null,
+    .map(x => ({ nombre: x.n, formato: x.f, familia: x.fam, unidad: x.un,
+                 unidades_caja: x.uc || 1, costo: null,
                  congelado: /congelad/i.test(x.fam) || /^balde /i.test(x.n),
                  activo: true }));
   if (!filas.length) return alerta('im-alert', 'ae', 'Todo lo marcado ya existía.');
@@ -3642,7 +3846,7 @@ function lineasVenta() {
     .filter(m => m.tipo === 'salida' && motivoEsVenta(m.motivo_id))
     .map(m => {
       const p = productos.find(x => x.id === m.producto_id);
-      const cant = Math.abs(Number(m.cantidad) || 0);
+      const cant = Math.abs(aBase(m.producto_id, m.cantidad, m.medida));
       const costo = p ? Number(p.costo) || 0 : 0;
       return {
         id: m.id, fecha: String(m.fecha).slice(0, 10),
@@ -3782,7 +3986,7 @@ function lineasCortesia() {
     .filter(m => m.tipo === 'salida' && noVentaNoPerdida.has(m.motivo_id))
     .map(m => {
       const p = productos.find(x => x.id === m.producto_id);
-      const cant = Math.abs(Number(m.cantidad) || 0);
+      const cant = Math.abs(aBase(m.producto_id, m.cantidad, m.medida));
       const costo = p ? Number(p.costo) || 0 : 0;
       return { fecha: String(m.fecha).slice(0, 10),
                motivo: nombreMotivo(m.motivo_id),
@@ -3973,8 +4177,11 @@ function armarRespaldo() {
 
   partes.push('\n-- ── PRODUCTOS ──');
   partes.push(filasSQL('bod_productos',
-    ['id', 'nombre', 'formato', 'familia', 'unidad', 'costo', 'activo'], productos,
-    (c, v) => c === 'id' || c === 'costo' ? sqlNum(v) : c === 'activo' ? sqlBool(v) : sqlTxt(v)));
+    ['id', 'nombre', 'formato', 'familia', 'unidad', 'unidades_caja', 'costo',
+     'congelado', 'activo'], productos,
+    (c, v) => ['id', 'costo', 'unidades_caja'].includes(c) ? sqlNum(v)
+            : c === 'congelado' ? (v ? 'true' : 'false')
+            : c === 'activo' ? sqlBool(v) : sqlTxt(v)));
 
   partes.push('\n-- ── MOTIVOS ──');
   partes.push(filasSQL('bod_motivos',
@@ -3992,13 +4199,14 @@ function armarRespaldo() {
   // anteriores: al revés, la llave foránea fallaría a mitad de camino.
   const libro = movs.slice().sort((a, b) => Number(a.id) - Number(b.id));
   const colsMov = ['id', 'fecha', 'tipo', 'producto_id', 'bodega_id', 'bodega_destino_id',
-                   'cantidad', 'motivo_id', 'doc', 'nota', 'usuario', 'revierte_a', 'pedido_id'];
+                   'cantidad', 'medida', 'motivo_id', 'doc', 'nota', 'usuario',
+                   'revierte_a', 'pedido_id'];
   // Por tandas: una sentencia con veinte mil filas es difícil de digerir para
   // el editor de Supabase y para quien tenga que mirarla.
   for (let i = 0; i < libro.length; i += 500) {
     partes.push(filasSQL('bod_movimientos', colsMov, libro.slice(i, i + 500),
       (c, v) => c === 'fecha' ? sqlFecha(v)
-              : ['tipo', 'doc', 'nota', 'usuario'].includes(c) ? sqlTxt(v)
+              : ['tipo', 'medida', 'doc', 'nota', 'usuario'].includes(c) ? sqlTxt(v)
               : sqlNum(v)));
   }
 
@@ -4157,7 +4365,8 @@ async function correrDiag() {
   filas.length = 0; pinta();
 
   add('ok', 'Versión del archivo', esc(VERSION) +
-    ' — si esto no dice <b>v5</b>, el navegador está usando una copia guardada. ' +
+    ' — si esto no dice <b>' + esc(VERSION.split(' ')[0]) + '</b>, el navegador está ' +
+    'usando una copia guardada. ' +
     'Recarga con <b>Ctrl+F5</b> (Cmd+Shift+R en Mac).');
 
   // ── 1. Desde dónde se está sirviendo la página ──
@@ -4212,6 +4421,23 @@ async function correrDiag() {
         pista = ' — permiso denegado: revisa si la tabla tiene RLS activado.';
       add('mal', `No se puede leer ${t}`, esc(msg) + esc(pista));
     }
+  }
+
+  // ── 4b. La migración de unidades ──
+  //  Sin estas dos columnas la pantalla anda, pero cualquier producto con
+  //  factor devolvería saldos equivocados. Vale detectarlo acá y no cuando
+  //  un número no cuadre.
+  try {
+    await sbJson(`${T_PRO}?select=id,unidades_caja&limit=1`);
+    await sbJson(`${T_MOV}?select=id,medida&limit=1`);
+    const conFactor = productos.filter(p => Number(p.unidades_caja) > 1).length;
+    add('ok', 'La migración de unidades está corrida',
+      `${conFactor} producto${conFactor === 1 ? '' : 's'} con caja de más de una unidad` +
+      (conFactor ? '' : ' — todavía ninguno, el sistema se comporta como antes'));
+  } catch (e) {
+    add('mal', 'Falta la migración de unidades',
+      esc(e.message) + ' — corre <span class="mono">bodega-unidades.sql</span> en Supabase. ' +
+      'Mientras tanto, no le pongas factor a ningún producto.');
   }
 
   // ── 5. Escritura de prueba, que se limpia sola ──
