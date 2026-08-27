@@ -389,10 +389,13 @@ const CATS = [
     {n:'Balde Acai Riva', f:'3,6 L'},
     {n:'Balde Yoghurt Griego Soft Blue Monkey', f:'5 L'}
   ]},
-  {id:'retail', icon:'🛒', label:'Congelados Retail', items:[
-    {n:'Scoopable Acai (caja)', f:'500 ml — caja 12 un'},
-    {n:'Acai Fused (caja)', f:'4×100 g — caja 15 un'},
-    {n:'Acai Puro (caja)', f:'4×100 g — caja 15 un'}
+  // Estos tres se piden por CAJA en el portal. El nombre ya no lo dice
+  // —se sacó el "(caja)" para poder vender suelto por la página web— así
+  // que lo dice el encabezado de la sección.
+  {id:'retail', icon:'🛒', label:'Congelados Retail · por caja', items:[
+    {n:'Scoopable Acai', f:'500 ml'},
+    {n:'Acai Fused', f:'4×100 g'},
+    {n:'Acai Puro', f:'4×100 g'}
   ]},
   {id:'toppings', icon:'🌰', label:'Frutos Secos & Toppings', items:[
     {n:'Cacao Nibs', f:'0,1 kg'},
