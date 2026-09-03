@@ -692,11 +692,21 @@ function updateCart() {
 // ══════════════════════════════════════════════════════════════
 // El folio se guarda en la base con índice único. Reintentar el mismo pedido
 // no crea un duplicado: la base lo rechaza y el portal lo lee como "ya estaba".
+// El navegador embutido de WhatsApp y de Instagram no siempre expone `crypto`.
+// Cuando no lo expone, esta función reventaba antes de que el botón dijera
+// "Enviando...", así que el pedido no se enviaba, no aparecía ningún error y el
+// botón volvía solo a los ocho segundos por el temporizador de confirmación:
+// el cliente apretaba de nuevo sin entender nada. El folio no necesita ser
+// impredecible, solo distinto, así que Math.random() sirve de respaldo.
 function nuevoFolio() {
   const abc = '0123456789ABCDEFGHJKLMNPQRSTUVWXYZ';   // sin I ni O, se confunden
   let s = '';
-  const azar = crypto.getRandomValues(new Uint8Array(8));
-  azar.forEach(b => s += abc[b % abc.length]);
+  try {
+    const azar = crypto.getRandomValues(new Uint8Array(8));
+    azar.forEach(b => s += abc[b % abc.length]);
+  } catch (_) {
+    for (let i = 0; i < 8; i++) s += abc[Math.floor(Math.random() * abc.length)];
+  }
   return 'NTV-' + s;
 }
 
