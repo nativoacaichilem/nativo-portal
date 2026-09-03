@@ -1197,9 +1197,12 @@ function toast(msg, err) {
   clearTimeout(t._t);
   t._t = setTimeout(() => { t.className = ''; }, err ? 5200 : 3000);
 }
-function alerta(id, tipo, msg) {
+// Misma firma que en admin.html y planner.html: el texto va segundo y la
+// clase tercera. Estaba al revés y una llamada copiada de un archivo al otro
+// no fallaba: metía la clase CSS en el mensaje y el mensaje en la clase.
+function alerta(id, msg, cls) {
   const e = document.getElementById(id);
-  if (e) e.innerHTML = msg ? `<div class="alert ${tipo}">${msg}</div>` : '';
+  if (e) e.innerHTML = msg ? `<div class="alert ${cls}">${msg}</div>` : '';
 }
 
 // Los modales devuelven el foco a donde estaba y se cierran con Escape.
@@ -1310,7 +1313,7 @@ function guardarOperador() {
 async function cargarTodo(avisar) {
   if (cargando) return;
   cargando = true;
-  alerta('alert-global', 'ai', '<span class="sp"></span>Cargando bodega…');
+  alerta('alert-global', '<span class="sp"></span>Cargando bodega…', 'ai');
   try {
     const [b, p, mo, mi] = await Promise.all([
       sbJson(`${T_BOD}?select=*&order=nombre.asc`),
@@ -1321,7 +1324,7 @@ async function cargarTodo(avisar) {
     bodegas = b; productos = p; motivos = mo; minimos = mi;
     movs = await cargarLibro();
     recalcularSaldos();
-    alerta('alert-global', 'ai', '');
+    alerta('alert-global', '', 'ai');
     pintarTodo();
     if (avisar) toast('Datos actualizados');
     // Se pregunta una sola vez, y solo cuando ya hay algo que anotar: la
@@ -1340,13 +1343,13 @@ async function cargarTodo(avisar) {
       }, 400);
     }
     if (!bodegas.length) {
-      alerta('alert-global', 'aw',
-        'Todavía no hay ninguna bodega. Parte creando una en <b>Configuración</b>.');
+      alerta('alert-global',
+        'Todavía no hay ninguna bodega. Parte creando una en <b>Configuración</b>.', 'aw');
     }
   } catch (e) {
-    alerta('alert-global', 'ae',
+    alerta('alert-global',
       'No se pudieron cargar los datos: ' + esc(e.message) +
-      '. Revisa que las tablas estén creadas y permitidas en el Worker.');
+      '. Revisa que las tablas estén creadas y permitidas en el Worker.', 'ae');
   } finally {
     cargando = false;
   }
@@ -2482,7 +2485,7 @@ function abrirMov(tipo, productoId, bodegaId) {
   document.getElementById('mv-fecha').value = HOY();
   document.getElementById('mv-doc').value = '';
   document.getElementById('mv-nota').value = '';
-  alerta('mv-alert', 'ae', '');
+  alerta('mv-alert', '', 'ae');
   mvTipo(tipo || 'entrada');
   abrir('mod-mov');
 }
@@ -2594,19 +2597,19 @@ async function guardarMov() {
   const f   = document.getElementById('mv-fecha').value || HOY();
   const mo  = document.getElementById('mv-motivo').value;
 
-  alerta('mv-alert', 'ae', '');
-  if (!pid) return alerta('mv-alert', 'ae', 'Elige un producto.');
-  if (!bid) return alerta('mv-alert', 'ae', 'Elige una bodega.');
-  if (!(q > 0)) return alerta('mv-alert', 'ae', 'La cantidad tiene que ser mayor que cero.');
-  if (f > HOY()) return alerta('mv-alert', 'ae',
+  alerta('mv-alert', '', 'ae');
+  if (!pid) return alerta('mv-alert', 'Elige un producto.', 'ae');
+  if (!bid) return alerta('mv-alert', 'Elige una bodega.', 'ae');
+  if (!(q > 0)) return alerta('mv-alert', 'La cantidad tiene que ser mayor que cero.', 'ae');
+  if (f > HOY()) return alerta('mv-alert',
     'La fecha está en el futuro. El saldo se calcula con todo lo anotado, así que un movimiento ' +
-    'con fecha de mañana descuenta hoy igual. Corrige la fecha o déjala en blanco.');
+    'con fecha de mañana descuenta hoy igual. Corrige la fecha o déjala en blanco.', 'ae');
   if (mvActual === 'traslado') {
-    if (!did) return alerta('mv-alert', 'ae', 'Elige la bodega de destino.');
-    if (did === bid) return alerta('mv-alert', 'ae', 'El destino tiene que ser una bodega distinta al origen.');
+    if (!did) return alerta('mv-alert', 'Elige la bodega de destino.', 'ae');
+    if (did === bid) return alerta('mv-alert', 'El destino tiene que ser una bodega distinta al origen.', 'ae');
   } else if (!mo) {
-    return alerta('mv-alert', 'ae',
-      'Falta el motivo. Si no hay ninguno disponible, créalo en Configuración → Motivos.');
+    return alerta('mv-alert',
+      'Falta el motivo. Si no hay ninguno disponible, créalo en Configuración → Motivos.', 'ae');
   }
 
   const fila = {
@@ -2626,7 +2629,7 @@ async function guardarMov() {
     toast(TIPO_TXT[mvActual] + ' registrada');
     await cargarTodo();
   } catch (e) {
-    alerta('mv-alert', 'ae', 'No se pudo guardar: ' + esc(e.message));
+    alerta('mv-alert', 'No se pudo guardar: ' + esc(e.message), 'ae');
   } finally {
     b.disabled = false; b.innerHTML = 'Registrar';
   }
@@ -3192,15 +3195,15 @@ function abrirBodega(id) {
   document.getElementById('bd-nombre').value = b ? b.nombre : '';
   document.getElementById('bd-ubic').value   = b ? b.ubicacion || '' : '';
   document.getElementById('bd-activa').checked = b ? b.activa !== false : true;
-  alerta('bd-alert', 'ae', '');
+  alerta('bd-alert', '', 'ae');
   abrir('mod-bodega');
 }
 
 async function guardarBodega() {
   const nombre = document.getElementById('bd-nombre').value.trim();
-  if (!nombre) return alerta('bd-alert', 'ae', 'Ponle un nombre a la bodega.');
+  if (!nombre) return alerta('bd-alert', 'Ponle un nombre a la bodega.', 'ae');
   if (bodegas.some(b => b.nombre.toLowerCase() === nombre.toLowerCase() && b.id !== bodegaEdit))
-    return alerta('bd-alert', 'ae', 'Ya existe una bodega con ese nombre.');
+    return alerta('bd-alert', 'Ya existe una bodega con ese nombre.', 'ae');
 
   const fila = { nombre, ubicacion: document.getElementById('bd-ubic').value.trim() || null,
     activa: document.getElementById('bd-activa').checked };
@@ -3212,7 +3215,7 @@ async function guardarBodega() {
     cerrar('mod-bodega'); toast('Bodega guardada');
     await cargarTodo();
   } catch (e) {
-    alerta('bd-alert', 'ae', 'No se pudo guardar: ' + esc(e.message));
+    alerta('bd-alert', 'No se pudo guardar: ' + esc(e.message), 'ae');
   } finally { b.disabled = false; b.innerHTML = 'Guardar'; }
 }
 
@@ -3299,7 +3302,7 @@ function abrirProducto(id) {
   document.getElementById('pr-activo').checked = p ? p.activo !== false : true;
   document.getElementById('pr-frio').checked = p ? !!p.congelado : false;
   frioTocado = !!p;    // en uno existente manda lo guardado, no la sugerencia
-  alerta('pr-alert', 'ae', '');
+  alerta('pr-alert', '', 'ae');
   abrir('mod-producto');
 }
 
@@ -3319,11 +3322,11 @@ function prSugerirFrio() {
 async function guardarProducto() {
   const nombre = document.getElementById('pr-nombre').value.trim();
   const formato = document.getElementById('pr-formato').value.trim();
-  if (!nombre) return alerta('pr-alert', 'ae', 'Ponle un nombre al producto.');
+  if (!nombre) return alerta('pr-alert', 'Ponle un nombre al producto.', 'ae');
   const dup = productos.some(p => p.id !== productoEdit &&
     p.nombre.toLowerCase() === nombre.toLowerCase() &&
     (p.formato || '').toLowerCase() === formato.toLowerCase());
-  if (dup) return alerta('pr-alert', 'ae', 'Ya existe ese producto con el mismo formato.');
+  if (dup) return alerta('pr-alert', 'Ya existe ese producto con el mismo formato.', 'ae');
 
   const costo = Number(document.getElementById('pr-costo').value);
 
@@ -3331,7 +3334,7 @@ async function guardarProducto() {
   // reinterpreta todo el libro, así que un valor raro no puede pasar.
   const factor = Math.floor(Number(document.getElementById('pr-factor').value) || 1);
   if (!(factor >= 1 && factor <= 1000))
-    return alerta('pr-alert', 'ae', 'Las unidades por caja tienen que ser un número entre 1 y 1000.');
+    return alerta('pr-alert', 'Las unidades por caja tienen que ser un número entre 1 y 1000.', 'ae');
 
   // Cambiar el factor de un producto que ya tiene historia reinterpreta cada
   // movimiento anotado en cajas. No es un error —es lo que hay que hacer al
@@ -3365,7 +3368,7 @@ async function guardarProducto() {
     cerrar('mod-producto'); toast('Producto guardado');
     await cargarTodo();
   } catch (e) {
-    alerta('pr-alert', 'ae', 'No se pudo guardar: ' + esc(e.message));
+    alerta('pr-alert', 'No se pudo guardar: ' + esc(e.message), 'ae');
   } finally { b.disabled = false; b.innerHTML = 'Guardar'; }
 }
 
@@ -3444,7 +3447,7 @@ function abrirMinimosMasivo() {
   if (!bodegasVivas().length) { toast('Crea una bodega primero', true); return; }
   document.getElementById('mm-bodega').value = document.getElementById('min-bodega').value;
   document.getElementById('mm-buscar').value = '';
-  alerta('mm-alert', 'ae', '');
+  alerta('mm-alert', '', 'ae');
   renderMinMasivo();
   abrir('mod-minmasivo');
 }
@@ -3514,7 +3517,7 @@ async function guardarMinMasivo() {
     const actual = minimoGuardado(bid, p.id);
     if (txt === '') { if (actual !== null) borrar.push(p.id); continue; }
     const v = Number(txt);
-    if (isNaN(v) || v < 0) return alerta('mm-alert', 'ae', `El mínimo de ${esc(p.nombre)} no es un número válido.`);
+    if (isNaN(v) || v < 0) return alerta('mm-alert', `El mínimo de ${esc(p.nombre)} no es un número válido.`, 'ae');
     if (actual === null) nuevos.push({ bodega_id: bid, producto_id: p.id, minimo: v });
     else if (actual !== v) cambios.push({ producto_id: p.id, minimo: v });
   }
@@ -3535,7 +3538,7 @@ async function guardarMinMasivo() {
       (borrar.length ? `, ${borrar.length} quitado${borrar.length === 1 ? '' : 's'}` : ''));
     await cargarTodo();
   } catch (e) {
-    alerta('mm-alert', 'ae', 'No se pudo guardar: ' + esc(e.message));
+    alerta('mm-alert', 'No se pudo guardar: ' + esc(e.message), 'ae');
   } finally { b.disabled = false; b.innerHTML = 'Guardar mínimos'; }
 }
 
@@ -3576,7 +3579,7 @@ function abrirMotivo(id) {
   document.getElementById('mo-color').value = m && m.color ? m.color : PALETA[motivos.length % PALETA.length];
   document.getElementById('mo-perdida').checked = m ? !!m.es_perdida : false;
   document.getElementById('mo-activo').checked = m ? m.activo !== false : true;
-  alerta('mo-alert', 'ae', '');
+  alerta('mo-alert', '', 'ae');
   moPintar();
   abrir('mod-motivo');
 }
@@ -3589,9 +3592,9 @@ function moPintar() {
 
 async function guardarMotivo() {
   const nombre = document.getElementById('mo-nombre').value.trim();
-  if (!nombre) return alerta('mo-alert', 'ae', 'Ponle un nombre al motivo.');
+  if (!nombre) return alerta('mo-alert', 'Ponle un nombre al motivo.', 'ae');
   if (motivos.some(m => m.nombre.toLowerCase() === nombre.toLowerCase() && m.id !== motivoEdit))
-    return alerta('mo-alert', 'ae', 'Ya existe un motivo con ese nombre.');
+    return alerta('mo-alert', 'Ya existe un motivo con ese nombre.', 'ae');
 
   const fila = { nombre, tipo: document.getElementById('mo-tipo').value,
     es_perdida: document.getElementById('mo-perdida').checked,
@@ -3607,7 +3610,7 @@ async function guardarMotivo() {
     cerrar('mod-motivo'); toast('Motivo guardado');
     await cargarTodo();
   } catch (e) {
-    alerta('mo-alert', 'ae', 'No se pudo guardar: ' + esc(e.message));
+    alerta('mo-alert', 'No se pudo guardar: ' + esc(e.message), 'ae');
   } finally { b.disabled = false; b.innerHTML = 'Guardar'; }
 }
 
@@ -3749,7 +3752,7 @@ function existeYa(nombre, formato) {
 async function abrirImportar() {
   imSel = new Set();
   document.getElementById('im-buscar').value = '';
-  alerta('im-alert', 'ae', '');
+  alerta('im-alert', '', 'ae');
   catPlano = null;
   renderImportar();
   abrir('mod-importar');
@@ -3802,14 +3805,14 @@ function imTodos(on) {
 }
 
 async function guardarImportar() {
-  if (!imSel.size) return alerta('im-alert', 'ae', 'No hay nada marcado.');
+  if (!imSel.size) return alerta('im-alert', 'No hay nada marcado.', 'ae');
   const filas = catalogoPlano()
     .filter(x => imSel.has(x.i) && !existeYa(x.n, x.f))
     .map(x => ({ nombre: x.n, formato: x.f, familia: x.fam, unidad: x.un,
                  unidades_caja: x.uc || 1, costo: null,
                  congelado: /congelad/i.test(x.fam) || /^balde /i.test(x.n),
                  activo: true }));
-  if (!filas.length) return alerta('im-alert', 'ae', 'Todo lo marcado ya existía.');
+  if (!filas.length) return alerta('im-alert', 'Todo lo marcado ya existía.', 'ae');
 
   const b = document.getElementById('im-guardar');
   b.disabled = true; b.innerHTML = '<span class="sp"></span>Agregando…';
@@ -3819,7 +3822,7 @@ async function guardarImportar() {
     toast(`${filas.length} producto${filas.length === 1 ? '' : 's'} agregado${filas.length === 1 ? '' : 's'}`);
     await cargarTodo();
   } catch (e) {
-    alerta('im-alert', 'ae', 'No se pudieron agregar: ' + esc(e.message));
+    alerta('im-alert', 'No se pudieron agregar: ' + esc(e.message), 'ae');
   } finally { b.disabled = false; b.innerHTML = 'Agregar seleccionados'; }
 }
 
