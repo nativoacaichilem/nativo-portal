@@ -722,6 +722,10 @@ let bodegas     = [];       // bod_bodegas
 let motivos     = [];       // bod_motivos
 let saldos      = [];       // bod_saldos
 let movs        = [];       // bod_movimientos
+// false = las tablas com_* no responden todavía. La pantalla sigue sirviendo
+// para ver qué reponer; lo que no se puede es guardar solicitudes ni
+// proveedores, porque no hay dónde.
+let comprasOK   = false;
 let solEdit     = null;
 let provEdit    = null;
 let ppEdit      = null;
@@ -871,19 +875,50 @@ async function cargarTodo() {
   document.getElementById('pz-list').innerHTML =
     '<div style="text-align:center;padding:28px"><span class="sp"></span>Cargando...</div>';
   try {
-    const [piz, prov, vin, prod, bod, mot, sal] = await Promise.all([
-      sbJson(`${T_PIZ}?select=*&order=creada.desc`),
-      sbJson(`${T_PROV}?select=*&order=nombre.asc`),
-      sbJson(`${T_PP}?select=*`),
+    // Primero lo de bodega, que siempre existe. Si esto falla, el problema es
+    // de la instalación entera y no del módulo de compras.
+    const [prod, bod, mot, sal] = await Promise.all([
       sbJson('bod_productos?select=*&order=nombre.asc'),
       sbJson('bod_bodegas?select=*&order=nombre.asc'),
       sbJson('bod_motivos?select=*'),
       sbJson('bod_saldos?select=producto_id,bodega_id,saldo,bodega_activa')
     ]);
-    solicitudes = piz; proveedores = prov; vinculos = vin;
     productos = prod; bodegas = bod; motivos = mot; saldos = sal;
     // El libro se pide aparte porque es el único que puede venir por tandas.
     movs = await sbTodo('bod_movimientos', 'select=*&order=id.asc');
+
+    // Las tablas de compras van en su propio try. Si todavía no están creadas
+    // —el caso normal antes de correr PREPARADO_compras.sql—, el resto de la
+    // pantalla igual sirve: Reposición funciona completa, solo sin proveedores.
+    //
+    // Antes esto iba en el mismo Promise.all que lo de arriba y un 404 tumbaba
+    // la carga entera, dejando la pantalla en blanco con "HTTP 404 en
+    // com_producto_proveedor", que no le dice a nadie qué hacer.
+    try {
+      const [piz, prov, vin] = await Promise.all([
+        sbJson(`${T_PIZ}?select=*&order=creada.desc`),
+        sbJson(`${T_PROV}?select=*&order=nombre.asc`),
+        sbJson(`${T_PP}?select=*`)
+      ]);
+      solicitudes = piz; proveedores = prov; vinculos = vin;
+      comprasOK = true;
+      alerta('pz-alert', '', 'ai');
+    } catch (e) {
+      comprasOK = false;
+      solicitudes = []; proveedores = []; vinculos = [];
+      alerta('pz-alert',
+        '<b>Falta instalar el módulo de compras.</b><br>' +
+        'Las tablas <b>com_proveedores</b>, <b>com_producto_proveedor</b> y ' +
+        '<b>com_solicitudes</b> no responden.<br><br>' +
+        '1. Corre <b>PREPARADO_compras.sql</b> en Supabase.<br>' +
+        '2. Comprueba que las cuatro entradas <b>com_*</b> estén en TABLAS del ' +
+        'Worker, abriendo <b>/salud</b>.<br><br>' +
+        'Mientras tanto, la pestaña <b>Reposición</b> funciona igual: te dice qué ' +
+        'falta y cuánto pedir, solo que sin proveedor ni plazo de entrega.' +
+        '<br><span style="font-weight:400;font-size:11px">Detalle: ' +
+        esc(e.message) + '</span>', 'aw');
+    }
+
     pintarSelectores();
     repintarActiva();
   } catch (e) {
@@ -1018,6 +1053,12 @@ function saldoDe(prodId) {
 }
 
 function abrirSolicitud() {
+  // Sin las tablas no hay dónde guardar. Se avisa acá y no al apretar Guardar:
+  // llenar un formulario completo para que falle al final es peor que no
+  // dejarlo abrir.
+  if (!comprasOK) return alerta('pz-alert',
+    'Falta instalar el módulo de compras. Revisa el aviso de arriba.', 'ae');
+
   if (!quien) { pedirQuien(); if (!quien) return; }
   solEdit = null;
   document.getElementById('ms-alert').innerHTML = '';
@@ -1075,6 +1116,12 @@ async function recargarPizarra() {
 
 // ── atender ──
 function abrirAtender(id) {
+  // Sin las tablas no hay dónde guardar. Se avisa acá y no al apretar Guardar:
+  // llenar un formulario completo para que falle al final es peor que no
+  // dejarlo abrir.
+  if (!comprasOK) return alerta('pz-alert',
+    'Falta instalar el módulo de compras. Revisa el aviso de arriba.', 'ae');
+
   const s = solicitudes.find(x => String(x.id) === String(id));
   if (!s) return;
   if (!quien) { pedirQuien(); if (!quien) return; }
@@ -1350,6 +1397,12 @@ function renderProveedores() {
 }
 
 function abrirProveedor(id) {
+  // Sin las tablas no hay dónde guardar. Se avisa acá y no al apretar Guardar:
+  // llenar un formulario completo para que falle al final es peor que no
+  // dejarlo abrir.
+  if (!comprasOK) return alerta('pz-alert',
+    'Falta instalar el módulo de compras. Revisa el aviso de arriba.', 'ae');
+
   provEdit = id ? String(id) : null;
   const p = id ? provPorId(id) : null;
   document.getElementById('pv-title').textContent = p ? 'Editar proveedor' : 'Nuevo proveedor';
@@ -1424,6 +1477,12 @@ async function borrarProveedor() {
 
 // ── vínculo producto ↔ proveedor ──
 function abrirVinculo(id, provId) {
+  // Sin las tablas no hay dónde guardar. Se avisa acá y no al apretar Guardar:
+  // llenar un formulario completo para que falle al final es peor que no
+  // dejarlo abrir.
+  if (!comprasOK) return alerta('pz-alert',
+    'Falta instalar el módulo de compras. Revisa el aviso de arriba.', 'ae');
+
   ppEdit   = id ? String(id) : null;
   ppProvId = String(provId);
   const v = id ? vinculos.find(x => String(x.id) === String(id)) : null;
