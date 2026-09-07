@@ -1115,9 +1115,35 @@ async function sbJson(path) {
 // El Set de ids es el cinturón de seguridad: si por lo que sea una tanda
 // repitiera filas, el ciclo corta en vez de inflar el libro con copias, que es
 // la falla que haría que los saldos mientan.
+// El techo evita que un error de paginación deje al navegador pidiendo tandas
+// para siempre. Pero alcanzarlo tiene una consecuencia peor acá que en admin:
+// si el libro viene incompleto, un pedido que YA se descargó pierde su marca,
+// la pantalla vuelve a ofrecer el botón de descargar, y el stock se descuenta
+// dos veces. Antes eso pasaba en silencio. Ahora no.
+const TECHO_FILAS = 60000;
+
+function avisarTruncado(tabla, cuantas) {
+  let caja = document.getElementById('aviso-truncado');
+  if (!caja) {
+    caja = document.createElement('div');
+    caja.id = 'aviso-truncado';
+    caja.style.cssText =
+      'position:fixed;left:0;right:0;top:0;z-index:9999;background:#7f1d1d;' +
+      'color:#fff;padding:12px 16px;font-size:13px;font-weight:800;' +
+      'line-height:1.5;box-shadow:0 2px 12px rgba(0,0,0,.3)';
+    document.body.appendChild(caja);
+  }
+  caja.textContent =
+    '⚠ EL LIBRO ESTÁ INCOMPLETO — "' + tabla + '" tiene más de ' +
+    cuantas.toLocaleString('es-CL') + ' movimientos y solo se cargaron esos. ' +
+    'Los saldos que ves están MAL y un pedido ya descargado puede volver a ' +
+    'ofrecerse. No anotes movimientos ni descargues pedidos hasta resolverlo.';
+}
+
 async function sbTodo(tabla, query) {
   const paso = 1000, vistos = new Set(), out = [];
-  for (let desde = 0; desde < 60000; desde += paso) {
+  let completo = false;
+  for (let desde = 0; desde < TECHO_FILAS; desde += paso) {
     const url = `${PROXY}/supabase/${tabla}?${query}&limit=${paso}&offset=${desde}`;
     const r = revisarAuth(await pedir(url, { headers: cabeceras(false) }));
     if (!r.ok) throw new Error('HTTP ' + r.status + ' en ' + tabla);
@@ -1125,8 +1151,11 @@ async function sbTodo(tabla, query) {
     if (!Array.isArray(d)) throw new Error('Respuesta inválida en ' + tabla);
     let nuevos = 0;
     for (const f of d) { if (!vistos.has(f.id)) { vistos.add(f.id); out.push(f); nuevos++; } }
-    if (d.length < paso || nuevos === 0) break;
+    // Salir acá significa que se acabaron las filas: el libro está completo.
+    if (d.length < paso || nuevos === 0) { completo = true; break; }
   }
+  // Salir por agotar el for significa que se alcanzó el techo: falta data.
+  if (!completo) avisarTruncado(tabla, out.length);
   return out;
 }
 
