@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nativo · Indicadores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --mora:#6b35b8;--mora-d:#4a1f7a;--mora-l:#9b6fd4;--mora-xl:#f0e6ff;
+  --am:#f5c842;--am-l:#fef9c3;
+  --crema:#fdf8f0;--crema-d:#ede3d0;
+  --text:#1e1226;--textl:#8b7a9e;--white:#fff;
+  --vl:#d1fae5;--vd:#065f46;--rl:#fee2e2;--rd:#7f1d1d;
+  --nl:#ffedd5;--nd:#9a3412;
+  --shadow:0 2px 8px rgba(107,53,184,.07);
+  --linea:rgba(107,53,184,.14);--linea2:rgba(107,53,184,.07);
+  --ok:#2E8B6E;--medio:#D89A1E;--alto:#C0392B;--nada:#8A8494;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:#f0eaf8;color:var(--text);min-height:100vh}
+
+/* ══ LOGIN (idéntico al panel) ══ */
+#login{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,var(--mora-d),var(--mora));padding:20px}
+.login-logo{font-family:'DM Serif Display',serif;font-size:52px;color:var(--am);letter-spacing:2px;text-align:center;margin-bottom:6px}
+.login-sub{color:rgba(255,255,255,.45);font-size:12px;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-bottom:32px;font-weight:700}
+.lcard{background:var(--white);border-radius:20px;padding:28px;width:100%;max-width:340px;box-shadow:0 24px 64px rgba(0,0,0,.25)}
+.lcard h3{font-family:'DM Serif Display',serif;font-size:22px;color:var(--mora-d);margin-bottom:16px}
+.inp{width:100%;padding:11px 14px;border:1.5px solid var(--crema-d);border-radius:10px;font-size:14px;outline:none;font-family:'Nunito',sans-serif;margin-bottom:12px;background:var(--crema);color:var(--text)}
+.inp:focus{border-color:var(--mora);background:var(--white)}
+.bam-full{width:100%;padding:12px;border:none;border-radius:10px;background:var(--am);color:var(--mora-d);font-size:14px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif}
+
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:700;margin-bottom:12px}
+.ae{background:var(--rl);color:var(--rd)}
+.as{background:var(--vl);color:var(--vd)}
+.ai{background:var(--mora-xl);color:var(--mora-d)}
+.aw{background:var(--nl);color:var(--nd)}
+
+/* ══ NAV (idéntico al panel) ══ */
+nav{background:var(--mora);display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;position:sticky;top:0;z-index:40;box-shadow:0 2px 12px rgba(74,31,122,.25)}
+.nlogo{font-family:'DM Serif Display',serif;font-size:20px;color:var(--am);letter-spacing:1px}
+.ntabs{display:flex;overflow-x:auto}
+.tb{background:none;border:none;color:rgba(255,255,255,.5);padding:14px 15px;cursor:pointer;
+  font-size:13px;font-weight:800;border-bottom:2px solid transparent;font-family:'Nunito',sans-serif;white-space:nowrap}
+.tb.act{color:var(--am);border-bottom-color:var(--am);background:rgba(255,255,255,.06)}
+.tb:hover:not(.act){color:var(--white)}
+.nright{display:flex;align-items:center;gap:10px}
+.bout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--white);
+  padding:6px 14px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:800;font-family:'Nunito',sans-serif}
+
+/* ══ ESTRUCTURA ══ */
+.wrap{padding:20px;max-width:1320px;margin:0 auto}
+.card{background:var(--white);border-radius:14px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px;border:1px solid rgba(107,53,184,.08)}
+.card h2{font-family:'DM Serif Display',serif;font-size:20px;color:var(--mora-d);margin-bottom:14px}
+.card-head{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.card-head h2{margin:0}
+.crece{flex:1 1 auto}
+.sep{width:1px;height:24px;background:var(--crema-d);margin:0 3px}
+
+.btn{padding:9px 18px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:800;font-family:'Nunito',sans-serif;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.bmora{background:var(--mora);color:var(--white)}
+.bam2{background:var(--am);color:var(--mora-d)}
+.bsm{padding:5px 12px;font-size:12px;border-radius:6px}
+.bol{background:var(--white);color:var(--mora);border:1.5px solid var(--mora)}
+.bdng{background:var(--rl);color:var(--rd);border:1px solid #fca5a5}
+.bgray{background:var(--crema-d);color:var(--textl)}
+.bgreen{background:var(--vl);color:var(--vd);border:1px solid #6ee7b7}
+label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--mora);margin-bottom:4px}
+input,textarea,select{width:100%;padding:9px 12px;border:1.5px solid var(--crema-d);border-radius:8px;
+  font-size:13px;outline:none;font-family:'Nunito',sans-serif;color:var(--text);background:var(--crema)}
+input:focus,textarea:focus,select:focus{border-color:var(--mora);background:var(--white)}
+input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--mora-l);outline-offset:1px}
+textarea{resize:vertical;min-height:56px}
+input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--mora);flex-shrink:0}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text);text-transform:none;letter-spacing:0}
+.chk input{width:16px;height:16px}
+.fb{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.fb input,.fb select{width:auto;flex:0 1 auto;min-width:140px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.f1{margin-bottom:12px}
+.hint{font-size:11px;font-weight:700;color:var(--textl);margin-top:4px;line-height:1.45}
+.empty{color:var(--textl);font-size:13px;font-weight:700;padding:26px 6px;text-align:center}
+.sp{display:inline-block;width:14px;height:14px;border:2px solid rgba(107,53,184,.2);border-top-color:var(--mora);
+  border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ SEGMENTOS ══ */
+.segs{display:flex;gap:3px;background:var(--crema);padding:3px;border-radius:10px;flex-wrap:wrap}
+.segs button{border:0;background:transparent;padding:7px 16px;border-radius:8px;font-weight:800;
+  font-size:13px;color:var(--textl);cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap}
+.segs button[aria-pressed=true]{background:var(--white);color:var(--mora-d);box-shadow:0 1px 3px rgba(107,53,184,.18)}
+
+/* ══ KPI ══ */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--white);border-radius:12px;padding:16px;text-align:center;box-shadow:var(--shadow);border:1px solid rgba(107,53,184,.08)}
+.stat.aviso{border-color:#fdba74;background:#fffbf5}
+.stat.grave{border-color:#fca5a5;background:#fff7f7}
+.sn{font-size:30px;font-weight:900;color:var(--mora);line-height:1.1}
+.stat.aviso .sn{color:var(--nd)}
+.stat.grave .sn{color:var(--alto)}
+.sl{font-size:10px;color:var(--textl);margin-top:2px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.sx{font-size:10.5px;color:var(--textl);margin-top:5px;font-weight:700}
+.stat.pulsa{cursor:pointer}
+.stat.pulsa:hover{border-color:var(--mora-l)}
+
+/* ══ TABLAS ══ */
+.tw{overflow-x:auto;border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--crema);color:var(--mora);font-weight:800;padding:9px 12px;text-align:left;font-size:11px;
+  text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid var(--crema-d);white-space:nowrap}
+th.num,td.num{text-align:right}
+td{padding:9px 12px;border-bottom:1px solid var(--crema-d);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#faf6ff}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+.bent{background:var(--vl);color:var(--vd)}
+.bsal{background:var(--rl);color:var(--rd)}
+.btra{background:#dbeafe;color:#1e40af}
+.baju{background:var(--mora-xl);color:var(--mora-d)}
+.brev{background:#f3f4f6;color:#6b7280;border:1px dashed #d1d5db}
+.chip{display:inline-block;background:var(--crema);border:1px solid var(--crema-d);border-radius:20px;
+  padding:2px 9px;font-size:10px;font-weight:800;color:var(--mora);white-space:nowrap}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;font-weight:700;letter-spacing:.2px}
+.sub{font-size:11px;color:var(--textl);font-weight:700;margin-top:2px}
+.pos{color:var(--ok);font-weight:900}
+.neg{color:var(--alto);font-weight:900}
+
+/* ══ MEDIDOR DE STOCK — el elemento central de la pantalla ══
+   Una barra por producto y bodega: el relleno es lo que hay, la muesca
+   vertical es el mínimo que definiste. De un vistazo se ve si el saldo
+   está por debajo de la línea sin tener que comparar dos números. */
+.med{position:relative;height:24px;background:var(--crema);border-radius:6px;overflow:hidden;
+  border:1px solid var(--crema-d);min-width:110px}
+.med .fill{position:absolute;left:0;top:0;bottom:0;border-radius:5px 0 0 5px;transition:width .45s cubic-bezier(.4,0,.2,1)}
+.med .marca{position:absolute;top:-1px;bottom:-1px;width:2px;background:var(--mora-d);opacity:.55}
+.med .marca::after{content:'';position:absolute;top:-1px;left:-2px;border-left:3px solid transparent;
+  border-right:3px solid transparent;border-top:4px solid var(--mora-d);opacity:.85}
+.med .val{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;
+  padding-right:7px;font-size:11.5px;font-weight:900;color:var(--text);text-shadow:0 0 3px rgba(255,255,255,.9)}
+.f-ok{background:linear-gradient(90deg,#5cbfa0,#2E8B6E)}
+.f-medio{background:linear-gradient(90deg,#f0c368,#D89A1E)}
+.f-alto{background:linear-gradient(90deg,#e08279,#C0392B)}
+.f-nada{background:repeating-linear-gradient(135deg,#d9d4e0 0 5px,#efecf3 5px 10px)}
+
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.d-ok{background:var(--ok)}.d-medio{background:var(--medio)}.d-alto{background:var(--alto)}.d-nada{background:var(--nada)}
+
+/* ══ CONGELADOS ══
+   No es decoración: el color y el hielo son lo que permite saber en qué
+   lista estás parado sin leer el encabezado. */
+.frio{--acento:#2563eb}
+.grupo-cab{display:flex;align-items:center;gap:9px;margin:4px 0 10px;padding-bottom:7px;
+  border-bottom:2px solid var(--crema-d)}
+.grupo-cab.frio{border-bottom-color:#bfdbfe}
+.grupo-t{font-family:'DM Serif Display',serif;font-size:16px;color:var(--mora-d)}
+.grupo-cab.frio .grupo-t{color:#1e40af}
+.grupo-s{font-size:11px;font-weight:700;color:var(--textl)}
+.badge-frio{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}
+.mtz.frio th{background:#eff6ff;color:#1e40af;border-bottom-color:#bfdbfe}
+.mtz.frio tr.fila-alerta td:first-child{box-shadow:inset 3px 0 0 #1e40af}
+.al.frio-crit{background:#eff6ff;border-color:#60a5fa}
+.al.frio-crit .al-n{color:#1e40af}
+
+/* ══ MATRIZ DE SALDOS ══ */
+.mtz td{padding:8px 12px}
+.mtz .cel-bod{min-width:170px}
+.mtz .prod{font-weight:800}
+.mtz tr.fila-alerta td:first-child{box-shadow:inset 3px 0 0 var(--alto)}
+.mtz tr.fila-aviso td:first-child{box-shadow:inset 3px 0 0 var(--medio)}
+.celda{cursor:pointer;border-radius:6px}
+.celda:hover .med{border-color:var(--mora-l)}
+
+/* ══ VISTA POR BODEGA ══
+   Con las bodegas en las filas y los productos en columnas, el número tiene
+   que leerse solo: no cabe una barra por celda. El color hace el trabajo. */
+.pbod td{text-align:center;padding:10px 8px;min-width:96px}
+.pbod td.nom{text-align:left;min-width:150px}
+.pbod th{text-align:center;font-size:10px;line-height:1.3;white-space:normal;min-width:96px;vertical-align:bottom}
+.pbod th.nom{text-align:left}
+.pbod .cifra{font-size:19px;font-weight:900;line-height:1.1}
+.pbod .bajo{font-size:10px;font-weight:700;color:var(--textl);margin-top:1px}
+.pbod .c-ok{color:var(--ok)}
+.pbod .c-medio{color:var(--medio)}
+.pbod .c-alto{color:var(--alto)}
+.pbod .c-nada{color:var(--alto);background:#fff1f1;border-radius:7px}
+.pbod .c-sinmin{color:var(--text)}
+.pbod tr.tot td{border-top:2px solid var(--crema-d);background:var(--crema);font-weight:900}
+.pbod .celda:hover{background:#faf6ff}
+
+/* ══ ALERTAS ══ */
+.al-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.al{border-radius:10px;padding:11px 13px;border:1px solid;display:flex;gap:11px;align-items:center;cursor:pointer}
+.al:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(107,53,184,.12)}
+.al.crit{background:#fff7f7;border-color:#fca5a5}
+.al.baja{background:#fffbf5;border-color:#fdba74}
+.al-n{font-family:'DM Serif Display',serif;font-size:26px;line-height:1;min-width:44px;text-align:center}
+.al.crit .al-n{color:var(--alto)}
+.al.baja .al-n{color:var(--nd)}
+.al-t{font-weight:800;font-size:13px;line-height:1.3}
+.al-s{font-size:11px;color:var(--textl);font-weight:700;margin-top:2px}
+
+/* ══ ACCIONES RÁPIDAS ══ */
+.acc{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.acc button{background:var(--white);border:1.5px solid var(--crema-d);border-radius:12px;padding:14px 12px;
+  cursor:pointer;font-family:'Nunito',sans-serif;text-align:left;box-shadow:var(--shadow);transition:border .15s,transform .15s}
+.acc button:hover{border-color:var(--mora);transform:translateY(-1px)}
+.acc .ai-ico{font-size:20px;display:block;margin-bottom:5px}
+.acc .ai-t{font-weight:900;font-size:13.5px;color:var(--mora-d);display:block}
+.acc .ai-s{font-size:10.5px;color:var(--textl);font-weight:700;display:block;margin-top:1px}
+
+/* ══ GRÁFICO DE MERMAS ══ */
+.graf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px;align-items:center}
+@media(max-width:760px){.graf{grid-template-columns:1fr}}
+.leg{display:flex;flex-direction:column;gap:7px}
+.leg-i{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:700}
+.leg-c{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+.leg-v{margin-left:auto;font-weight:900;color:var(--mora-d)}
+.barra-mes{display:flex;align-items:flex-end;gap:3px;height:80px}
+.barra-mes div{flex:1;background:var(--mora-xl);border-radius:3px 3px 0 0;min-height:2px;position:relative}
+.barra-mes div span{position:absolute;bottom:-16px;left:0;right:0;text-align:center;font-size:9px;font-weight:800;color:var(--textl)}
+
+/* ══ MODAL ══ */
+.mbg{display:none;position:fixed;inset:0;background:rgba(74,31,122,.5);z-index:100;
+  justify-content:center;align-items:center;padding:16px}
+.mbg.open{display:flex}
+.modal{background:var(--white);border-radius:16px;padding:26px;max-width:560px;width:100%;
+  box-shadow:0 24px 64px rgba(0,0,0,.25);max-height:90vh;overflow-y:auto}
+.modal.ancho{max-width:820px}
+.modal h3{font-family:'DM Serif Display',serif;font-size:20px;color:var(--mora-d);margin-bottom:16px}
+.modal-section{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mora-l);
+  margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--crema-d)}
+.mact{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+
+/* ══ RESUMEN EN MODAL ══ */
+.res{background:var(--crema);border-radius:10px;padding:12px 14px;font-size:13px;font-weight:700;line-height:1.6}
+.res b{color:var(--mora-d)}
+.res .flecha{color:var(--mora-l);font-weight:900;margin:0 5px}
+
+/* ══ CONTEO ══ */
+.cnt-dif{font-weight:900;font-size:13px}
+.cnt input{width:96px;text-align:right}
+
+/* ══ TOAST ══ */
+#toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,120%);z-index:200;
+  background:var(--mora-d);color:var(--white);padding:12px 22px;border-radius:24px;font-weight:800;font-size:13.5px;
+  box-shadow:0 10px 34px rgba(74,31,122,.4);transition:transform .3s cubic-bezier(.4,0,.2,1);max-width:92vw;text-align:center}
+#toast.show{transform:translate(-50%,0)}
+#toast.err{background:var(--alto)}
+
+.page{display:none}
+.page.act{display:block}
+
+@media(max-width:640px){
+  .wrap{padding:12px}
+  .fg,.fg3{grid-template-columns:1fr}
+  .modal{padding:20px}
+  .sn{font-size:25px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+@media print{
+  nav,.acc,.fb,.btn,#toast{display:none!important}
+  body{background:#fff}
+  .card{box-shadow:none;border:1px solid #ddd;break-inside:avoid}
+}
+
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login">
+  <div class="login-logo">nativo</div>
+  <div class="login-sub">Indicadores de operación</div>
+  <div class="lcard">
+    <h3>Equipo nativo</h3>
+    <div id="lerr"></div>
+    <input class="inp" type="password" id="pin" placeholder="Clave de acceso"
+      autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="bam-full" id="bentrar" onclick="doLogin()">Ingresar →</button>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app" style="display:none">
+  <nav>
+    <div class="ntabs">
+      <button class="tb act" onclick="goTab('ventas',this)">📈 Ventas</button>
+      <button class="tb"     onclick="goTab('mermas',this)">🗑️ Mermas</button>
+      <button class="tb"     onclick="goTab('capital',this)">💰 Inventario</button>
+      <button class="tb"     onclick="goTab('zonas',this)">🚚 Zonas</button>
+      <button class="tb"     onclick="location.href='compras.html'">🛒 Compras</button>
+      <button class="tb"     onclick="location.href='bodega.html'">📦 Bodega</button>
+      <button class="tb"     onclick="location.href='admin.html#pedidos'">📋 Pedidos</button>
+    </div>
+    <div class="nlogo">nativo</div>
+    <div class="nright">
+      <button class="btn bol bsm" onclick="cargarTodo()">🔄 Actualizar</button>
+      <button class="bout" onclick="salir()">Salir</button>
+    </div>
+  </nav>
+
+  <div id="kp-alert" style="padding:0 16px"></div>
+
+  <!-- ── VENTAS ── -->
+  <div id="page-ventas" class="page act">
+    <div class="card">
+      <h2>📈 Ventas semanales por producto</h2>
+      <div class="alert ai" style="line-height:1.55;margin-bottom:12px">
+        Sale del libro de bodega: salidas con un motivo marcado como venta. No
+        son pesos facturados sino <b>unidades que salieron</b>, que es lo que
+        sirve para comprar y para planificar la producción. La semana empieza
+        el lunes.
+      </div>
+      <div class="fb">
+        <select id="vsem" onchange="renderVentas()">
+          <option value="8">Últimas 8 semanas</option>
+          <option value="13" selected>Últimas 13 semanas</option>
+          <option value="26">Últimas 26 semanas</option>
+        </select>
+        <input type="text" id="vq" placeholder="🔍 Filtrar producto..." oninput="renderVentas()">
+      </div>
+      <div id="v-stats" class="stats"></div>
+      <div id="v-list"></div>
+    </div>
+  </div>
+
+  <!-- ── MERMAS ── -->
+  <div id="page-mermas" class="page">
+    <div class="card">
+      <h2>🗑️ Mermas y pérdidas</h2>
+      <div class="alert ai" style="line-height:1.55;margin-bottom:12px">
+        Movimientos con un motivo marcado como pérdida, valorizados al
+        <b>costo</b> del producto. Un producto sin costo cargado suma unidades
+        pero no pesos, y eso se avisa: si falta, la cifra de abajo está
+        subestimada.
+      </div>
+      <div class="fb">
+        <select id="mmeses" onchange="renderMermas()">
+          <option value="3">Últimos 3 meses</option>
+          <option value="6" selected>Últimos 6 meses</option>
+          <option value="12">Últimos 12 meses</option>
+        </select>
+      </div>
+      <div id="m-stats" class="stats"></div>
+      <div id="m-list"></div>
+    </div>
+  </div>
+
+  <!-- ── INVENTARIO ── -->
+  <div id="page-capital" class="page">
+    <div class="card">
+      <h2>💰 Inventario inmovilizado</h2>
+      <div class="alert ai" style="line-height:1.55;margin-bottom:12px">
+        Cuánta plata hay parada en stock, y dónde. <b>Sin movimiento</b> es lo
+        que no entra ni sale hace tiempo: producto que ocupa espacio, cuesta
+        frío y en muchos casos vence.
+      </div>
+      <div id="c-stats" class="stats"></div>
+      <div id="c-list"></div>
+    </div>
+  </div>
+
+  <!-- ── ZONAS ── -->
+  <div id="page-zonas" class="page">
+    <div class="card">
+      <h2>🚚 Recurrencia de viaje por zona</h2>
+      <div class="alert ai" style="line-height:1.55;margin-bottom:12px">
+        Cada cuánto se despachó realmente a cada zona, contra el ciclo que tiene
+        declarado. <b>Pedidos por salida</b> es lo más importante de la tabla:
+        una zona con un pedido por salida es un camión que viaja casi vacío.
+        <br>
+        Se cuentan solo los despachos, no los retiros, y solo los pedidos que
+        tienen zona asignada.
+      </div>
+      <div class="fb">
+        <select id="zsem" onchange="renderZonasKPI()">
+          <option value="8">Últimas 8 semanas</option>
+          <option value="13" selected>Últimas 13 semanas</option>
+          <option value="26">Últimas 26 semanas</option>
+        </select>
+      </div>
+      <div id="z-stats" class="stats"></div>
+      <div id="z-list"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+async function pedir(url, opciones) {
+  try {
+    return await fetch(url, opciones);
+  } catch (e) {
+    throw new Error(explicarRed(e));
+  }
+}
+
+// El Worker declara qué cabeceras acepta:
+//   'Access-Control-Allow-Headers': 'Content-Type,X-Admin-Token'
+// Si el navegador ve una cabecera fuera de esa lista, hace una consulta previa,
+// el Worker no la autoriza y la petición NUNCA SALE. El error que llega es
+// "Failed to fetch", que parece un problema de red y no lo es.
+//
+// Por eso acá no se manda ninguna otra. Nada de `Prefer` ni de `Range`: el
+// Worker ya fuerza `Prefer: return=minimal` por su cuenta, y para paginar se
+// usan `limit` y `offset` en la dirección, que viajan como parte de la URL.
+const CABECERAS_PERMITIDAS = ['Content-Type', 'X-Admin-Token'];
+
+function cabeceras(conCuerpo) {
+  const h = { 'X-Admin-Token': TOKEN };
+  if (conCuerpo) h['Content-Type'] = 'application/json';
+  return h;
+}
+
+function revisarAuth(r) {
+  if (r.status === 401) {
+    TOKEN = '';
+    try { sessionStorage.removeItem('nativo_token'); } catch (_) {}
+    document.getElementById('app').style.display   = 'none';
+    document.getElementById('login').style.display = 'flex';
+    document.getElementById('lerr').innerHTML =
+      '<div class="alert ae">La sesión expiró o la clave cambió. Ingresa de nuevo.</div>';
+    throw new Error('Sesión no autorizada');
+  }
+  return r;
+}
+
+async function sbSend(path, method, body) {
+  const o = { method, headers: cabeceras(true) };
+  if (body !== undefined) o.body = JSON.stringify(body);
+  const r = revisarAuth(await pedir(`${PROXY}/supabase/${path}`, o));
+  if (!r.ok) {
+    let d = '';
+    try { d = (await r.text()).slice(0, 220); } catch (_) {}
+    throw new Error(`HTTP ${r.status}${d ? ' · ' + d : ''}`);
+  }
+  return r;
+}
+
+async function sbJson(path) {
+  const r = revisarAuth(await pedir(`${PROXY}/supabase/${path}`, { headers: cabeceras(false) }));
+  if (!r.ok) throw new Error('HTTP ' + r.status + ' en ' + path.split('?')[0]);
+  const d = await r.json();
+  if (!Array.isArray(d)) throw new Error('Respuesta inválida en ' + path.split('?')[0]);
+  return d;
+}
+
+
+// El libro de movimientos crece con los años y PostgREST corta en 1000 filas
+// por respuesta, así que se pide por tandas.
+//
+// La paginación va por `limit` y `offset` en la dirección, no por la cabecera
+// `Range`. El Worker arma sus propios headers hacia Supabase y descarta los del
+// navegador: un `Range` nunca llegaría, PostgREST devolvería siempre las mismas
+// mil filas y el libro quedaría cortado sin avisar. La dirección, en cambio, se
+// reenvía completa.
+//
+// El Set de ids es el cinturón de seguridad: si por lo que sea una tanda
+// repitiera filas, el ciclo corta en vez de inflar el libro con copias, que es
+// la falla que haría que los saldos mientan.
+// El techo evita que un error de paginación deje al navegador pidiendo tandas
+// para siempre. Pero alcanzarlo tiene una consecuencia peor acá que en admin:
+// si el libro viene incompleto, un pedido que YA se descargó pierde su marca,
+// la pantalla vuelve a ofrecer el botón de descargar, y el stock se descuenta
+// dos veces. Antes eso pasaba en silencio. Ahora no.
+const TECHO_FILAS = 60000;
+
+function avisarTruncado(tabla, cuantas) {
+  let caja = document.getElementById('aviso-truncado');
+  if (!caja) {
+    caja = document.createElement('div');
+    caja.id = 'aviso-truncado';
+    caja.style.cssText =
+      'position:fixed;left:0;right:0;top:0;z-index:9999;background:#7f1d1d;' +
+      'color:#fff;padding:12px 16px;font-size:13px;font-weight:800;' +
+      'line-height:1.5;box-shadow:0 2px 12px rgba(0,0,0,.3)';
+    document.body.appendChild(caja);
+  }
+  caja.textContent =
+    '⚠ EL LIBRO ESTÁ INCOMPLETO — "' + tabla + '" tiene más de ' +
+    cuantas.toLocaleString('es-CL') + ' movimientos y solo se cargaron esos. ' +
+    'Los saldos que ves están MAL y un pedido ya descargado puede volver a ' +
+    'ofrecerse. No anotes movimientos ni descargues pedidos hasta resolverlo.';
+}
+
+async function sbTodo(tabla, query) {
+  const paso = 1000, vistos = new Set(), out = [];
+  let completo = false;
+  for (let desde = 0; desde < TECHO_FILAS; desde += paso) {
+    const url = `${PROXY}/supabase/${tabla}?${query}&limit=${paso}&offset=${desde}`;
+    const r = revisarAuth(await pedir(url, { headers: cabeceras(false) }));
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' en ' + tabla);
+    const d = await r.json();
+    if (!Array.isArray(d)) throw new Error('Respuesta inválida en ' + tabla);
+    let nuevos = 0;
+    for (const f of d) { if (!vistos.has(f.id)) { vistos.add(f.id); out.push(f); nuevos++; } }
+    // Salir acá significa que se acabaron las filas: el libro está completo.
+    if (d.length < paso || nuevos === 0) { completo = true; break; }
+  }
+  // Salir por agotar el for significa que se alcanzó el techo: falta data.
+  if (!completo) avisarTruncado(tabla, out.length);
+  return out;
+}
+
+function esc(s) {
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Las cantidades pueden ser fraccionarias (kilos, litros). Se muestran sin
+// decimales cuando son enteras, para que 12 no se lea "12,000".
+function num(n) {
+  const v = Number(n) || 0;
+  const dec = Math.abs(v % 1) > 0.0005 ? 3 : 0;
+  return v.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: dec });
+}
+function pesos(n) {
+  return '$' + Math.round(Number(n) || 0).toLocaleString('es-CL');
+}
+function fechaCorta(f) {
+  if (!f) return '';
+  const p = String(f).slice(0, 10).split('-');
+  return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : String(f);
+}
+function toast(msg, err) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (err ? ' err' : '');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => { t.className = ''; }, err ? 5200 : 3000);
+}
+// Misma firma que en admin.html y planner.html: el texto va segundo y la
+// clase tercera. Estaba al revés y una llamada copiada de un archivo al otro
+// no fallaba: metía la clase CSS en el mensaje y el mensaje en la clase.
+function alerta(id, msg, cls) {
+  const e = document.getElementById(id);
+  if (e) e.innerHTML = msg ? `<div class="alert ${cls}">${msg}</div>` : '';
+}
+
+
+
+// ══════════════════════════════════════════════════════════════
+//  ESTADO
+// ══════════════════════════════════════════════════════════════
+let productos = [], bodegas = [], motivos = [], saldos = [], movs = [];
+let pedidos   = [], zonas   = [];
+
+const prodPorId = id => productos.find(p => String(p.id) === String(id)) || null;
+const zonaPorId = id => zonas.find(z => z.id === id) || null;
+
+// Cuarta copia de la conversión caja→unidad base. Ver pendiente 11 en
+// CAMBIOS.md: la regla vive en `factorDe` de bodega, `bodFactor` de admin, la
+// vista `bod_saldos` y acá. Se repite porque el Worker solo enruta tablas y no
+// puede llamar funciones de la base.
+function factorDe(prodId) {
+  const p = prodPorId(prodId);
+  const f = Number(p && p.unidades_caja) || 1;
+  return f >= 1 ? Math.floor(f) : 1;
+}
+function aBase(prodId, cant, medida) {
+  const q = Number(cant) || 0;
+  return (medida || 'caja') === 'caja' ? q * factorDe(prodId) : q;
+}
+
+// El lunes de la semana de una fecha, en formato AAAA-MM-DD. Se usa como clave
+// para agrupar: ordena como texto y se lee sin traducir.
+function lunesDe(f) {
+  const d = new Date(String(f).slice(0, 10) + 'T12:00:00');
+  if (isNaN(d)) return '';
+  const dow = (d.getDay() + 6) % 7;          // lunes = 0
+  d.setDate(d.getDate() - dow);
+  return d.toISOString().slice(0, 10);
+}
+function haceDias(n) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+// Las fechas de `pedidos` son texto en formato chileno y NO se pueden ordenar
+// ni comparar. Por eso acá se usa `created_at`, que sí es una marca de tiempo
+// real. Es la misma decisión que documenta `antesDelCorte()` en admin.html.
+const fechaPedido = p => String(p.created_at || '').slice(0, 10);
+
+// ══════════════════════════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════════════════════════
+async function doLogin() {
+  const clave = document.getElementById('pin').value;
+  const btn   = document.getElementById('bentrar');
+  if (!clave) return;
+  btn.innerHTML = '<span class="sp"></span>Verificando...'; btn.disabled = true;
+  document.getElementById('lerr').innerHTML = '';
+  try {
+    const r = await pedir(`${PROXY}/supabase/bod_productos?select=id&limit=1`, {
+      headers: { 'X-Admin-Token': clave }
+    });
+    if (r.status === 401) {
+      document.getElementById('lerr').innerHTML = '<div class="alert ae">Clave incorrecta.</div>';
+      btn.innerHTML = 'Ingresar →'; btn.disabled = false; return;
+    }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+  } catch (e) {
+    document.getElementById('lerr').innerHTML = `<div class="alert ae">${esc(e.message)}</div>`;
+    btn.innerHTML = 'Ingresar →'; btn.disabled = false; return;
+  }
+  TOKEN = clave;
+  try { sessionStorage.setItem('nativo_token', clave); } catch (_) {}
+  document.getElementById('pin').value = '';
+  entrar();
+  btn.innerHTML = 'Ingresar →'; btn.disabled = false;
+}
+function entrar() {
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display   = 'block';
+  cargarTodo();
+}
+function salir() {
+  TOKEN = '';
+  try { sessionStorage.removeItem('nativo_token'); } catch (_) {}
+  document.getElementById('app').style.display   = 'none';
+  document.getElementById('login').style.display = 'flex';
+  document.getElementById('pin').value = '';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  NAVEGACIÓN Y CARGA
+// ══════════════════════════════════════════════════════════════
+function goTab(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('act'));
+  document.querySelectorAll('.tb').forEach(b => b.classList.remove('act'));
+  document.getElementById('page-' + id).classList.add('act');
+  btn.classList.add('act');
+  pintarPestana(id);
+}
+function pintarPestana(id) {
+  if (id === 'ventas')  renderVentas();
+  if (id === 'mermas')  renderMermas();
+  if (id === 'capital') renderCapital();
+  if (id === 'zonas')   renderZonasKPI();
+}
+function repintarActiva() {
+  const p = document.querySelector('.page.act');
+  if (p) pintarPestana(p.id.replace(/^page-/, ''));
+}
+
+async function cargarTodo() {
+  alerta('kp-alert', '<span class="sp"></span>Cargando datos...', 'ai');
+  try {
+    const [prod, bod, mot, sal] = await Promise.all([
+      sbJson('bod_productos?select=*&order=nombre.asc'),
+      sbJson('bod_bodegas?select=*'),
+      sbJson('bod_motivos?select=*'),
+      sbJson('bod_saldos?select=*')
+    ]);
+    productos = prod; bodegas = bod; motivos = mot; saldos = sal;
+
+    // Las zonas pueden no existir todavía: la pantalla de zonas lo dice, el
+    // resto funciona igual. Mismo criterio que `zonasOK` en admin.
+    try { zonas = await sbJson('zonas?select=*&order=orden.asc'); }
+    catch (_) { zonas = []; }
+
+    movs    = await sbTodo('bod_movimientos', 'select=*&order=id.asc');
+    pedidos = await sbTodo('pedidos', 'select=id,created_at,zona,entrega,estado,tipo,emp,cliente_id&order=id.asc');
+
+    alerta('kp-alert', '', '');
+    repintarActiva();
+  } catch (e) {
+    alerta('kp-alert', 'No se pudo cargar: ' + esc(e.message), 'ae');
+  }
+}
+
+// Tabla de barras horizontales. Se dibuja con divs y no con una librería:
+// el proyecto no usa ninguna y meter una por cuatro gráficos sería la primera
+// dependencia externa de toda la plataforma.
+// El color termina dentro de un atributo style. Hoy todos los que llegan acá
+// son literales escritos en este archivo, así que no hay riesgo. Se valida
+// igual: el día que alguien pase `zonas.color`, que viene de la base y lo
+// escribe cualquiera con la clave del panel, esta función es lo único entre
+// ese dato y un atributo style. Es la misma defensa que `colorSeguro()` en
+// admin.html.
+//
+// Se aceptan hexadecimales y las variables CSS de la casa, que son las dos
+// formas que se usan.
+function colorBarra(c) {
+  const v = String(c || '').trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(v)) return v;
+  if (/^var\(--[a-z0-9-]{1,20}\)$/.test(v)) return v;
+  return 'var(--mora)';
+}
+
+function barras(filas, fmt) {
+  const max = Math.max(1, ...filas.map(f => Math.abs(f.valor)));
+  return filas.map(f => `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+      <div style="flex:0 0 190px;font-size:12px;font-weight:700;overflow:hidden;
+                  text-overflow:ellipsis;white-space:nowrap">${esc(f.lbl)}</div>
+      <div style="flex:1;background:var(--crema-d);border-radius:6px;height:20px;position:relative">
+        <div style="width:${(Math.abs(f.valor) / max * 100).toFixed(1)}%;height:100%;
+                    background:${colorBarra(f.color)};border-radius:6px"></div>
+      </div>
+      <div style="flex:0 0 110px;text-align:right;font-size:12px;font-weight:800">${fmt(f.valor)}</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  VENTAS SEMANALES POR PRODUCTO
+// ══════════════════════════════════════════════════════════════
+function renderVentas() {
+  const semanas = Number(document.getElementById('vsem').value) || 13;
+  const q = (document.getElementById('vq').value || '').trim().toLowerCase();
+  const corte = haceDias(semanas * 7);
+  const venta = new Set(motivos.filter(m => m.es_venta).map(m => String(m.id)));
+
+  if (!venta.size) {
+    document.getElementById('v-stats').innerHTML = '';
+    document.getElementById('v-list').innerHTML =
+      '<div class="alert an" style="line-height:1.55">Ningún motivo está marcado como ' +
+      '<b>venta</b> en bodega, así que no hay de dónde sacar las ventas.<br><br>' +
+      'Se arregla en Bodega → Motivos, marcando la casilla "es venta" en los ' +
+      'motivos que corresponda.</div>';
+    return;
+  }
+
+  // clave "productoId|lunes" -> unidades
+  const celdas = new Map();
+  const totalProd = new Map();
+  const totalSem  = new Map();
+  for (const m of movs) {
+    if (m.tipo !== 'salida' || !venta.has(String(m.motivo_id))) continue;
+    const f = String(m.fecha).slice(0, 10);
+    if (f < corte) continue;
+    const wk = lunesDe(f);
+    if (!wk) continue;
+    const u = Math.abs(aBase(m.producto_id, m.cantidad, m.medida));
+    const k = m.producto_id + '|' + wk;
+    celdas.set(k, (celdas.get(k) || 0) + u);
+    totalProd.set(String(m.producto_id), (totalProd.get(String(m.producto_id)) || 0) + u);
+    totalSem.set(wk, (totalSem.get(wk) || 0) + u);
+  }
+
+  // Las columnas son todas las semanas del rango, tengan o no ventas. Saltarse
+  // una semana vacía la esconde, y una semana sin ventas es justamente la que
+  // hay que mirar.
+  const cols = [];
+  for (let i = semanas - 1; i >= 0; i--) cols.push(lunesDe(haceDias(i * 7)));
+  const semUnicas = [...new Set(cols)];
+
+  const filas = productos
+    .filter(p => totalProd.has(String(p.id)))
+    .filter(p => !q || String(p.nombre).toLowerCase().includes(q))
+    .sort((a, b) => (totalProd.get(String(b.id)) || 0) - (totalProd.get(String(a.id)) || 0));
+
+  const total = [...totalProd.values()].reduce((a, b) => a + b, 0);
+  const prom  = total / Math.max(1, semUnicas.length);
+  const ult   = totalSem.get(semUnicas[semUnicas.length - 1]) || 0;
+  const penu  = totalSem.get(semUnicas[semUnicas.length - 2]) || 0;
+  const dif   = penu > 0 ? ((ult - penu) / penu * 100) : null;
+
+  document.getElementById('v-stats').innerHTML = `
+    <div class="stat"><div class="sn">${num(total)}</div><div class="sl">Unidades en el período</div></div>
+    <div class="stat"><div class="sn">${num(Math.round(prom))}</div><div class="sl">Promedio por semana</div></div>
+    <div class="stat"><div class="sn">${num(ult)}</div><div class="sl">Semana en curso</div></div>
+    <div class="stat"><div class="sn" style="color:${dif == null ? '' : dif < 0 ? 'var(--rd)' : 'var(--vd)'}">${
+      dif == null ? '—' : (dif > 0 ? '+' : '') + dif.toFixed(0) + '%'
+    }</div><div class="sl">vs semana anterior</div></div>`;
+
+  if (!filas.length) {
+    document.getElementById('v-list').innerHTML =
+      '<div class="alert ai">No hay ventas registradas en el período.</div>';
+    return;
+  }
+
+  // La semana en curso está incompleta y compararla con las cerradas engaña:
+  // siempre va a parecer una caída. Por eso va marcada.
+  const enCurso = semUnicas[semUnicas.length - 1];
+
+  document.getElementById('v-list').innerHTML = `<div class="tw"><table>
+    <thead><tr><th>Producto</th>${semUnicas.map(w =>
+      `<th style="text-align:right;font-size:10px">${fechaCorta(w).slice(0, 5)}${
+        w === enCurso ? '<br><span style="font-weight:400">en curso</span>' : ''}</th>`).join('')}
+      <th style="text-align:right">Total</th></tr></thead>
+    <tbody>${filas.map(p => {
+      const vals = semUnicas.map(w => celdas.get(p.id + '|' + w) || 0);
+      const mx = Math.max(1, ...vals);
+      return `<tr>
+        <td style="font-weight:700;font-size:12px">${esc(p.nombre)}
+          ${p.formato ? `<div class="sub" style="margin:1px 0 0">${esc(p.formato)}</div>` : ''}</td>
+        ${vals.map((v, i) => `<td style="text-align:right;font-size:12px;
+          background:${v ? `rgba(107,53,184,${(v / mx * 0.28).toFixed(2)})` : 'transparent'};
+          ${semUnicas[i] === enCurso ? 'opacity:.6' : ''}">${v ? num(v) : ''}</td>`).join('')}
+        <td style="text-align:right;font-weight:800;font-size:12px">${num(totalProd.get(String(p.id)))}</td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MERMAS
+// ══════════════════════════════════════════════════════════════
+function renderMermas() {
+  const meses = Number(document.getElementById('mmeses').value) || 6;
+  const corte = haceDias(meses * 30);
+  const perdida = new Set(motivos.filter(m => m.es_perdida).map(m => String(m.id)));
+
+  if (!perdida.size) {
+    document.getElementById('m-stats').innerHTML = '';
+    document.getElementById('m-list').innerHTML =
+      '<div class="alert an" style="line-height:1.55">Ningún motivo está marcado como ' +
+      '<b>pérdida</b> en bodega. Sin eso no hay forma de distinguir una merma de ' +
+      'una salida normal.<br><br>Se arregla en Bodega → Motivos.</div>';
+    return;
+  }
+
+  const porProd = new Map(), porMotivo = new Map(), porMes = new Map();
+  let unidades = 0, plata = 0, sinCosto = 0;
+
+  for (const m of movs) {
+    if (m.tipo !== 'salida' || !perdida.has(String(m.motivo_id))) continue;
+    const f = String(m.fecha).slice(0, 10);
+    if (f < corte) continue;
+    const p = prodPorId(m.producto_id);
+    const u = Math.abs(aBase(m.producto_id, m.cantidad, m.medida));
+    const c = p && p.costo != null ? Number(p.costo) * u : 0;
+    if (!p || p.costo == null) sinCosto += u;
+    unidades += u; plata += c;
+
+    const kp = String(m.producto_id);
+    porProd.set(kp, { u: (porProd.get(kp)?.u || 0) + u, c: (porProd.get(kp)?.c || 0) + c });
+    const mo = motivos.find(x => String(x.id) === String(m.motivo_id));
+    const km = mo ? mo.nombre : 'sin motivo';
+    porMotivo.set(km, (porMotivo.get(km) || 0) + c);
+    const kmes = f.slice(0, 7);
+    porMes.set(kmes, (porMes.get(kmes) || 0) + c);
+  }
+
+  // La tasa de merma se mide contra las ventas del mismo período: 200 unidades
+  // perdidas es poco si vendiste 20.000 y es gravísimo si vendiste 400.
+  const venta = new Set(motivos.filter(m => m.es_venta).map(m => String(m.id)));
+  let vendidas = 0;
+  for (const m of movs) {
+    if (m.tipo !== 'salida' || !venta.has(String(m.motivo_id))) continue;
+    if (String(m.fecha).slice(0, 10) < corte) continue;
+    vendidas += Math.abs(aBase(m.producto_id, m.cantidad, m.medida));
+  }
+  const tasa = vendidas > 0 ? unidades / (unidades + vendidas) * 100 : null;
+
+  document.getElementById('m-stats').innerHTML = `
+    <div class="stat"><div class="sn" style="color:var(--rd)">${pesos(plata)}</div><div class="sl">Perdido en el período</div></div>
+    <div class="stat"><div class="sn">${num(unidades)}</div><div class="sl">Unidades</div></div>
+    <div class="stat"><div class="sn">${tasa == null ? '—' : tasa.toFixed(1) + '%'}</div><div class="sl">Del total que salió</div></div>
+    <div class="stat"><div class="sn">${pesos(plata / Math.max(1, meses))}</div><div class="sl">Promedio mensual</div></div>`;
+
+  if (!unidades) {
+    document.getElementById('m-list').innerHTML =
+      '<div class="alert ai">✔ Ninguna merma registrada en el período.</div>';
+    return;
+  }
+
+  const avisoCosto = sinCosto
+    ? `<div class="alert an" style="margin-bottom:12px">${num(sinCosto)} unidad(es) perdidas ` +
+      'corresponden a productos <b>sin costo cargado</b>, así que suman unidades pero no pesos. ' +
+      'La cifra de arriba está subestimada.</div>'
+    : '';
+
+  const topProd = [...porProd.entries()]
+    .map(([id, v]) => ({ lbl: (prodPorId(id)?.nombre) || ('producto ' + id), valor: v.c, u: v.u }))
+    .sort((a, b) => b.valor - a.valor).slice(0, 12);
+  const topMot = [...porMotivo.entries()]
+    .map(([k, v]) => ({ lbl: k, valor: v, color: 'var(--rd)' }))
+    .sort((a, b) => b.valor - a.valor);
+  const meses12 = [...porMes.entries()].sort()
+    .map(([k, v]) => ({ lbl: k, valor: v, color: 'var(--nd)' }));
+
+  document.getElementById('m-list').innerHTML = avisoCosto + `
+    <h3 style="margin:6px 0 10px">Qué se pierde</h3>
+    ${barras(topProd, pesos)}
+    <h3 style="margin:18px 0 10px">Por qué se pierde</h3>
+    ${barras(topMot, pesos)}
+    <h3 style="margin:18px 0 10px">Mes a mes</h3>
+    ${barras(meses12, pesos)}`;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  INVENTARIO INMOVILIZADO
+// ══════════════════════════════════════════════════════════════
+function renderCapital() {
+  const vivos = saldos.filter(s => s.bodega_activa && s.producto_activo && Number(s.saldo) > 0);
+
+  let total = 0, sinCosto = 0, congelado = 0;
+  const porBodega = new Map(), porFamilia = new Map();
+
+  for (const s of vivos) {
+    const p = prodPorId(s.producto_id);
+    const val = p && p.costo != null ? Number(p.costo) * Number(s.saldo) : 0;
+    if (!p || p.costo == null) { sinCosto++; continue; }
+    total += val;
+    if (p.congelado) congelado += val;
+    porBodega.set(s.bodega, (porBodega.get(s.bodega) || 0) + val);
+    const fam = (p.familia || 'sin familia');
+    porFamilia.set(fam, (porFamilia.get(fam) || 0) + val);
+  }
+
+  // Producto sin movimiento: no entró ni salió en 60 días pero tiene saldo. Es
+  // plata parada que además ocupa frío y en muchos casos vence.
+  const corte = haceDias(60);
+  const ultimoMov = new Map();
+  for (const m of movs) {
+    const k = String(m.producto_id);
+    const f = String(m.fecha).slice(0, 10);
+    if (!ultimoMov.has(k) || f > ultimoMov.get(k)) ultimoMov.set(k, f);
+  }
+  const dormidos = [];
+  const porProducto = new Map();
+  for (const s of vivos) {
+    const k = String(s.producto_id);
+    porProducto.set(k, (porProducto.get(k) || 0) + Number(s.saldo));
+  }
+  for (const [k, saldo] of porProducto) {
+    const p = prodPorId(k);
+    const ult = ultimoMov.get(k) || '';
+    if (ult && ult >= corte) continue;
+    dormidos.push({
+      nombre: p ? p.nombre : 'producto ' + k,
+      formato: p ? p.formato : '',
+      saldo,
+      valor: p && p.costo != null ? Number(p.costo) * saldo : null,
+      ultimo: ult
+    });
+  }
+  dormidos.sort((a, b) => (b.valor || 0) - (a.valor || 0));
+  const platoDormida = dormidos.reduce((a, d) => a + (d.valor || 0), 0);
+
+  document.getElementById('c-stats').innerHTML = `
+    <div class="stat"><div class="sn">${pesos(total)}</div><div class="sl">Valor del inventario</div></div>
+    <div class="stat"><div class="sn">${pesos(congelado)}</div><div class="sl">En congelado</div></div>
+    <div class="stat"><div class="sn" style="color:${platoDormida ? 'var(--nd)' : ''}">${pesos(platoDormida)}</div><div class="sl">Sin movimiento 60 días</div></div>
+    <div class="stat"><div class="sn">${dormidos.length}</div><div class="sl">Productos dormidos</div></div>`;
+
+  const aviso = sinCosto
+    ? `<div class="alert an" style="margin-bottom:12px">${sinCosto} combinación(es) de producto y ` +
+      'bodega con saldo pero <b>sin costo cargado</b>. No suman al valor del inventario, ' +
+      'así que la cifra de arriba está subestimada.</div>'
+    : '';
+
+  const bod = [...porBodega.entries()].map(([k, v]) => ({ lbl: k || 'sin bodega', valor: v }))
+    .sort((a, b) => b.valor - a.valor);
+  const fam = [...porFamilia.entries()].map(([k, v]) => ({ lbl: k, valor: v, color: 'var(--mora-l)' }))
+    .sort((a, b) => b.valor - a.valor);
+
+  document.getElementById('c-list').innerHTML = aviso + `
+    <h3 style="margin:6px 0 10px">Dónde está la plata</h3>
+    ${barras(bod, pesos)}
+    <h3 style="margin:18px 0 10px">En qué está</h3>
+    ${barras(fam, pesos)}
+    <h3 style="margin:18px 0 10px">Sin movimiento hace más de 60 días</h3>
+    ${dormidos.length ? `<div class="tw"><table>
+      <thead><tr><th>Producto</th><th>Saldo</th><th>Valor</th><th>Último movimiento</th></tr></thead>
+      <tbody>${dormidos.slice(0, 30).map(d => `<tr>
+        <td style="font-size:12px;font-weight:700">${esc(d.nombre)}
+          ${d.formato ? `<div class="sub" style="margin:1px 0 0">${esc(d.formato)}</div>` : ''}</td>
+        <td style="font-size:12px">${num(d.saldo)}</td>
+        <td style="font-size:12px;font-weight:700">${d.valor == null
+          ? '<span class="sub" style="margin:0">sin costo</span>' : pesos(d.valor)}</td>
+        <td style="font-size:12px">${d.ultimo ? fechaCorta(d.ultimo) : '<span class="sub" style="margin:0">nunca</span>'}</td>
+      </tr>`).join('')}</tbody></table></div>`
+    : '<div class="alert ai">✔ Todo el stock tuvo movimiento en los últimos 60 días.</div>'}`;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RECURRENCIA POR ZONA
+// ══════════════════════════════════════════════════════════════
+function renderZonasKPI() {
+  const semanas = Number(document.getElementById('zsem').value) || 13;
+  const corte = haceDias(semanas * 7);
+
+  if (!zonas.length) {
+    document.getElementById('z-stats').innerHTML = '';
+    document.getElementById('z-list').innerHTML =
+      '<div class="alert an" style="line-height:1.55">La tabla <b>zonas</b> no está ' +
+      'disponible.<br><br>Falta correr <b>PREPARADO_zonas.sql</b> en Supabase, o agregar ' +
+      '<b>zonas</b> a la lista TABLAS del Worker.</div>';
+    return;
+  }
+
+  // Solo despachos: un retiro no es un viaje. Y solo pedidos con zona: los que
+  // no la tienen no se pueden atribuir a ningún recorrido, y contarlos aparte
+  // es más honesto que repartirlos.
+  const despachos = pedidos.filter(p =>
+    (p.entrega || 'despacho') !== 'retiro' &&
+    fechaPedido(p) >= corte &&
+    p.estado !== 'anulado');
+
+  const sinZona = despachos.filter(p => !p.zona).length;
+  const conZona = despachos.filter(p => p.zona);
+
+  // Una "salida" es un día en que se despachó a esa zona. Dos pedidos el mismo
+  // día a la misma zona son un viaje, no dos: por eso se cuentan días
+  // distintos y no pedidos.
+  const porZona = new Map();
+  for (const p of conZona) {
+    const z = String(p.zona);
+    if (!porZona.has(z)) porZona.set(z, { pedidos: 0, dias: new Set(), clientes: new Set(), ultimo: '' });
+    const g = porZona.get(z);
+    g.pedidos++;
+    const f = fechaPedido(p);
+    g.dias.add(f);
+    if (p.cliente_id != null) g.clientes.add(String(p.cliente_id));
+    else if (p.emp) g.clientes.add('n:' + String(p.emp).trim().toLowerCase());
+    if (f > g.ultimo) g.ultimo = f;
+  }
+
+  const hoy = new Date().toISOString().slice(0, 10);
+  const diasDesde = f => {
+    if (!f) return null;
+    return Math.round((new Date(hoy) - new Date(f)) / 86400000);
+  };
+
+  const filas = [...porZona.entries()].map(([id, g]) => {
+    const z = zonaPorId(id);
+    const salidas = g.dias.size;
+    // Cada cuántos días se fue realmente: el período dividido por las salidas.
+    const cadaCuanto = salidas > 0 ? (semanas * 7) / salidas : null;
+    const porSalida = salidas > 0 ? g.pedidos / salidas : 0;
+    const ciclo = z && z.dias_ciclo != null ? Number(z.dias_ciclo) : null;
+    return {
+      id, z, salidas, pedidos: g.pedidos, clientes: g.clientes.size,
+      cadaCuanto, porSalida, ciclo,
+      sinIr: diasDesde(g.ultimo), ultimo: g.ultimo,
+      // Va de menos a más: una zona con pocos pedidos por salida es un camión
+      // que viaja casi vacío, y ese es el costo que no se ve en ninguna parte.
+      flojo: porSalida > 0 && porSalida < 1.5
+    };
+  }).sort((a, b) => a.porSalida - b.porSalida);
+
+  const totalSalidas = filas.reduce((a, f) => a + f.salidas, 0);
+  const flojas = filas.filter(f => f.flojo).length;
+  const atrasadas = filas.filter(f => f.ciclo != null && f.sinIr != null && f.sinIr > f.ciclo).length;
+
+  document.getElementById('z-stats').innerHTML = `
+    <div class="stat"><div class="sn">${totalSalidas}</div><div class="sl">Salidas en el período</div></div>
+    <div class="stat"><div class="sn">${conZona.length}</div><div class="sl">Pedidos despachados</div></div>
+    <div class="stat"><div class="sn" style="color:${flojas ? 'var(--nd)' : ''}">${flojas}</div><div class="sl">Zonas con viajes flojos</div></div>
+    <div class="stat"><div class="sn" style="color:${atrasadas ? 'var(--rd)' : ''}">${atrasadas}</div><div class="sl">Zonas atrasadas</div></div>`;
+
+  const aviso = sinZona
+    ? `<div class="alert an" style="margin-bottom:12px">${sinZona} despacho(s) del período ` +
+      '<b>sin zona asignada</b>. No entran en ninguna fila de abajo, así que los números ' +
+      'están incompletos. Se arregla asignando la zona a esas sucursales en el panel.</div>'
+    : '';
+
+  if (!filas.length) {
+    document.getElementById('z-list').innerHTML = aviso +
+      '<div class="alert ai">No hay despachos con zona en el período.</div>';
+    return;
+  }
+
+  document.getElementById('z-list').innerHTML = aviso + `<div class="tw"><table>
+    <thead><tr>
+      <th>Zona</th><th>Salidas</th><th>Pedidos</th><th>Pedidos por salida</th>
+      <th>Cada cuánto</th><th>Clientes</th><th>Sin ir</th>
+    </tr></thead><tbody>${filas.map(f => {
+      const nom = f.z ? f.z.nombre : f.id + ' (no existe)';
+      const col = f.z ? f.z.color : '#8b7a9e';
+      const atrasada = f.ciclo != null && f.sinIr != null && f.sinIr > f.ciclo;
+      return `<tr>
+        <td><span class="badge" style="background:${esc(col)};color:#fff">${esc(nom)}</span></td>
+        <td style="font-size:13px;font-weight:700">${f.salidas}</td>
+        <td style="font-size:13px">${f.pedidos}</td>
+        <td style="font-size:13px;font-weight:800;color:${f.flojo ? 'var(--nd)' : 'inherit'}">
+          ${f.porSalida.toFixed(1)}${f.flojo ? ' ⚠️' : ''}</td>
+        <td style="font-size:12px">${f.cadaCuanto == null ? '—'
+          : `cada ${Math.round(f.cadaCuanto)} días` +
+            (f.ciclo != null ? `<div class="sub" style="margin:1px 0 0">meta: ${f.ciclo}</div>` : '')}</td>
+        <td style="font-size:13px">${f.clientes}</td>
+        <td style="font-size:12px;font-weight:${atrasada ? '800' : '400'};
+                   color:${atrasada ? 'var(--rd)' : 'inherit'}">
+          ${f.sinIr == null ? '—' : f.sinIr + ' días'}${atrasada ? ' ⏰' : ''}</td>
+      </tr>`;
+    }).join('')}</tbody></table></div>
+    <div class="sub" style="margin-top:10px;line-height:1.6">
+      <b>Salidas</b> son días distintos en que se despachó a esa zona: dos pedidos
+      el mismo día son un viaje, no dos.
+      <b>Pedidos por salida</b> bajo 1,5 marca un camión que viaja casi vacío;
+      conviene agrupar esa zona con otra o espaciar las visitas.
+      <b>Sin ir</b> se compara contra los días de ciclo declarados en la zona.
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ARRANQUE
+// ══════════════════════════════════════════════════════════════
+(function reanudar() {
+  let guardado = null;
+  try { guardado = sessionStorage.getItem('nativo_token'); } catch (_) { return; }
+  if (!guardado) return;
+  TOKEN = guardado;
+  entrar();
+})();
+
+</script>
+</body>
+</html>
