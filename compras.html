@@ -530,6 +530,33 @@ tbody tr:hover td{background:#faf6ff}
 <div id="toast"></div>
 
 <script>
+// ══════════════════════════════════════════════════════════════
+//  compras.html — pizarra de solicitudes, reposición y proveedores
+//
+//  DEPENDE de las tablas com_proveedores, com_producto_proveedor y
+//  com_solicitudes, y de que las entradas `com_*` estén en TABLAS del Worker.
+//  Si falta algo, la pantalla lo dice en vez de fallar en silencio.
+//
+//  LO QUE ESTA PANTALLA NO HACE: mover stock. Una solicitud marcada como
+//  recibida NO suma inventario. Eso se anota en bodega como una entrada
+//  normal, y es a propósito: con dos caminos para modificar el inventario no
+//  habría forma de cuadrarlos. La pizarra es una lista de intenciones; el
+//  libro de bodega es la verdad.
+// ══════════════════════════════════════════════════════════════
+
+const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
+let TOKEN = '';
+
+// "Failed to fetch" es lo que devuelve el navegador tanto si se cayó la red
+// como si el Worker rechazó una cabecera antes de que la petición saliera.
+// El mensaje crudo no distingue los dos casos y no le dice nada a nadie.
+function explicarRed(e) {
+  const m = String(e && e.message || e);
+  if (/Failed to fetch|NetworkError|Load failed/i.test(m))
+    return 'No se pudo contactar el servidor. Revisa la conexión.';
+  return m;
+}
+
 async function pedir(url, opciones) {
   try {
     return await fetch(url, opciones);
