@@ -433,6 +433,7 @@ input[type=checkbox]{
       <button class="tb"     onclick="goTab('rutas',this)">🚚 Ruta</button>
       <button class="tb"     onclick="location.href='bodega.html'">📦 Bodega</button>
       <button class="tb"     onclick="goTab('clientes',this)">👥 Clientes</button>
+      <button class="tb"     onclick="goTab('zonas',this)">🗺️ Zonas</button>
       <button class="tb"     onclick="location.href='planner.html'">📅 Planner</button>
     </div>
     <div class="nlogo">nativo</div>
@@ -756,6 +757,48 @@ input[type=checkbox]{
     </div>
   </div>
 
+  <!-- ── ZONAS ── -->
+  <div id="page-zonas" class="page">
+    <div class="card">
+      <h2>🗺️ Zonas de reparto</h2>
+      <div id="zn-alert"></div>
+      <div class="alert ai" style="line-height:1.55;margin-bottom:14px">
+        Una zona agrupa comunas para planificar viajes. <b>Los días de ciclo</b> son
+        cada cuántos días deberías recorrerla: sin ese número, saber cuántas veces
+        fuiste no dice si vas de más o de menos.
+        <br><br>
+        Si una zona te queda muy grande —Santiago con 51 comunas es un solo viaje
+        imposible— pártela en varias y reparte las comunas. Los pedidos ya
+        despachados <b>conservan la zona que tenían</b>, así que el historial no
+        se altera.
+      </div>
+      <div class="fb">
+        <button class="btn bam2 bsm" onclick="abrirZona(null)">＋ Nueva zona</button>
+        <button class="btn bol bsm" onclick="cargarZonas().then(()=>renderZonas())">🔄 Recargar</button>
+      </div>
+      <div id="zn-list"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom:6px">Comunas y su zona</h3>
+      <div class="sub" style="margin-bottom:10px">
+        Cambiar el selector guarda al instante. Una comuna sin zona no recibe
+        zona propuesta: hay que elegirla a mano en cada pedido.
+        <br>
+        <b>Para partir una zona grande:</b> crea la zona nueva arriba y después
+        mueve acá las comunas que le corresponden.
+      </div>
+      <div class="fb">
+        <input type="text" id="znq" placeholder="🔍 Filtrar comuna..." oninput="renderComunas()">
+        <select id="znfz" onchange="renderComunas()">
+          <option value="">Todas las zonas</option>
+          <option value="__sin">— Sin zona —</option>
+        </select>
+      </div>
+      <div id="zn-comunas"></div>
+    </div>
+  </div>
+
   <!-- ── RUTAS ── -->
   <div id="page-rutas" class="page">
     <div class="card">
@@ -898,6 +941,42 @@ input[type=checkbox]{
     <div class="mact">
       <button class="btn bgray bsm" onclick="cerrarCli()">Cancelar</button>
       <button class="btn bmora bsm" id="bmc" onclick="guardarCliente()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL ZONA ══ -->
+<div class="mbg" id="modal-zona">
+  <div class="modal">
+    <h3 id="mz-title">Nueva zona</h3>
+    <div id="mz-alert"></div>
+    <div style="margin-bottom:12px"><label>Nombre *</label>
+      <input id="mznombre" type="text" placeholder="Ej: Santiago Oriente" oninput="sugerirIdZona()"></div>
+    <div style="margin-bottom:12px"><label>Identificador *</label>
+      <input id="mzid" type="text" placeholder="santiago-oriente">
+      <div class="nota-campo" id="mzid-nota"></div></div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Color</label>
+        <input id="mzcolor" type="color" value="#6b35b8" style="height:44px;padding:4px"></div>
+      <div><label>Orden en las listas</label>
+        <input id="mzorden" type="number" min="1" max="999" value="99"></div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Días de ciclo</label>
+        <input id="mzciclo" type="number" min="1" max="365" placeholder="Ej: 7"></div>
+      <div><label>Estado</label>
+        <select id="mzactiva">
+          <option value="1">Activa</option>
+          <option value="0">Inactiva</option>
+        </select></div>
+    </div>
+    <div style="margin-bottom:4px"><label>Notas</label>
+      <input id="mznotas" type="text" placeholder="Opcional"></div>
+    <div class="mact">
+      <button class="btn bgray bsm" id="bmzdel" onclick="borrarZona()">Eliminar</button>
+      <div style="flex:1"></div>
+      <button class="btn bgray bsm" onclick="cerrarZona()">Cancelar</button>
+      <button class="btn bmora bsm" id="bmz" onclick="guardarZona()">Guardar</button>
     </div>
   </div>
 </div>
@@ -1091,21 +1170,48 @@ function salir() {
 // ══════════════════════════════════════════
 //  NAVEGACIÓN
 // ══════════════════════════════════════════
+// Dibuja el contenido de una pestaña. Está aparte de goTab porque hay dos
+// momentos en que hace falta: cuando el usuario cambia de pestaña, y cuando
+// termina de cargar y la pestaña ya estaba abierta.
+//
+// Antes esto último no existía y se cubría con un setTimeout de 1,5 segundos
+// en la IIFE del final del archivo. Era una carrera: si los datos tardaban
+// más, el asistente y la pantalla de clientes quedaban vacíos para siempre.
+// Viniendo de bodega, que ya hizo su propia carga, es cuando más tarda.
+function pintarPestana(id) {
+  if (id === 'pedidos')  { render(); return; }
+  if (id === 'rutas')    { renderChecksRuta(); return; }
+  if (id === 'clientes') { renderClientes(); return; }
+  if (id === 'zonas')    { renderZonas(); return; }
+  if (id === 'nuevo') {
+    pintarCat('man');
+    if (!document.getElementById('nfecha').value)
+      document.getElementById('nfecha').value = hoy();
+    if (!document.getElementById('wfecha').value)
+      document.getElementById('wfecha').value = hoy();
+    wzGo(wz.cliente ? wz.paso : 1);
+  }
+}
+
+// Qué pestaña está a la vista ahora mismo.
+function pestanaActiva() {
+  const p = document.querySelector('.page.act');
+  return p ? p.id.replace(/^page-/, '') : '';
+}
+
+function repintarPestanaActiva() {
+  const id = pestanaActiva();
+  // La de pedidos ya la repintó `render()`, y volver a llamarla no aporta.
+  if (id && id !== 'pedidos') pintarPestana(id);
+}
+
 function goTab(id, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('act'));
   document.querySelectorAll('.tb').forEach(b => b.classList.remove('act'));
   document.getElementById('page-' + id).classList.add('act');
   btn.classList.add('act');
-  if (id === 'pedidos')  cargar();
-  if (id === 'rutas')    renderChecksRuta();
-  if (id === 'clientes') renderClientes();
-  if (id === 'nuevo') {
-    pintarCat('man');
-    document.getElementById('nfecha').value = hoy();
-    if (!document.getElementById('wfecha').value)
-      document.getElementById('wfecha').value = hoy();
-    wzGo(wz.cliente ? wz.paso : 1);
-  }
+  if (id === 'pedidos') { cargar(); return; }   // cargar() repinta al terminar
+  pintarPestana(id);
 }
 
 // ══════════════════════════════════════════
@@ -1455,6 +1561,12 @@ async function cargar() {
     checked = []; updateActionBar();
     render();
     renderChecksRuta();
+    // `render()` solo repinta la tabla de pedidos. Si al terminar la carga
+    // estás en Agregar o en Clientes —porque llegaste con #nuevo o #clientes
+    // desde bodega, o porque cambiaste de pestaña mientras cargaba—, esas
+    // pantallas ya se dibujaron con las listas vacías y no se enteran de que
+    // los datos llegaron.
+    repintarPestanaActiva();
     // En segundo plano: si bodega no está instalada, el panel funciona igual
     // y el indicador simplemente no aparece.
     cargarBodega().then(() => render());
@@ -3988,6 +4100,268 @@ async function guardarWz() {
 }
 
 // ══════════════════════════════════════════════════════════════
+//  PESTAÑA DE ZONAS
+// ══════════════════════════════════════════════════════════════
+let zonaEdit = null;   // id de la zona en edición, o null si es nueva
+
+// Cuántos pedidos y cuántas sucursales usan cada zona. Se calcula acá y no en
+// la base porque los datos ya están cargados, y porque este número decide si
+// una zona se puede borrar: una zona en uso no se borra, se desactiva.
+function usosDeZona() {
+  const m = new Map();
+  const sumar = (z, campo) => {
+    const k = String(z || '');
+    if (!k) return;
+    if (!m.has(k)) m.set(k, { pedidos:0, sucursales:0 });
+    m.get(k)[campo]++;
+  };
+  pedidos.forEach(p => sumar(p.zona, 'pedidos'));
+  sucursales.forEach(s => sumar(s.zona, 'sucursales'));
+  return m;
+}
+
+function renderZonas() {
+  const cont = document.getElementById('zn-list');
+  if (!cont) return;
+
+  if (!zonasOK) {
+    cont.innerHTML =
+      '<div class="alert ae" style="line-height:1.55">Las tablas <b>zonas</b> y ' +
+      '<b>zona_comunas</b> no están disponibles, así que el panel está usando las ' +
+      'cuatro zonas de respaldo y no se pueden crear ni editar.<br><br>' +
+      'Revisa dos cosas: que <b>PREPARADO_zonas.sql</b> esté corrido en Supabase, ' +
+      'y que <b>zonas</b> y <b>zona_comunas</b> aparezcan en la lista de tablas del ' +
+      'Worker (se ve abriendo <b>/salud</b>).</div>';
+    renderComunas();
+    return;
+  }
+
+  const usos = usosDeZona();
+  const porZona = new Map();
+  zonaComunas.forEach((z, c) => {
+    if (!porZona.has(z)) porZona.set(z, []);
+    porZona.get(z).push(c);
+  });
+
+  cont.innerHTML = `<div class="tw"><table>
+    <thead><tr>
+      <th>Zona</th><th>Identificador</th><th>Ciclo</th>
+      <th>Comunas</th><th>En uso</th><th></th>
+    </tr></thead>
+    <tbody>${zonas.map(z => {
+      const u  = usos.get(z.id) || { pedidos:0, sucursales:0 };
+      const cs = (porZona.get(z.id) || []).sort();
+      return `<tr${z.activa ? '' : ' style="opacity:.55"'}>
+        <td>
+          <span class="badge" style="background:${z.color};color:#fff">${hesc(z.nombre)}</span>
+          ${z.activa ? '' : '<div class="sub" style="margin:4px 0 0">inactiva</div>'}
+          ${z.notas ? `<div class="sub" style="margin:4px 0 0">${hesc(z.notas)}</div>` : ''}
+        </td>
+        <td style="font-family:monospace;font-size:12px">${hesc(z.id)}</td>
+        <td style="font-size:12px;font-weight:700">${
+          z.dias_ciclo ? 'cada ' + z.dias_ciclo + ' días'
+                       : '<span class="sub" style="margin:0">sin definir</span>'}</td>
+        <td style="font-size:12px;max-width:340px">
+          <b>${cs.length}</b>${cs.length ? ': ' + hesc(cs.slice(0, 6).join(', ')) +
+            (cs.length > 6 ? ' y ' + (cs.length - 6) + ' más' : '') : ''}
+        </td>
+        <td style="font-size:12px;font-weight:700">
+          ${u.pedidos} pedido(s)<br>${u.sucursales} sucursal(es)
+        </td>
+        <td><button class="btn bol bsm" onclick="abrirZona('${hesc(z.id)}')">Editar</button></td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+
+  renderComunas();
+}
+
+// Todas las comunas que la plataforma reconoce dentro de una dirección, con su
+// zona actual y un selector para moverla.
+//
+// Se listan las 85, no solo las que están sin asignar. Ese era el punto ciego
+// de la primera versión: para partir una zona grande hay que MOVER comunas de
+// una zona a otra, y ofrecer solo las huérfanas obligaba a hacerlo por SQL. Con
+// 51 comunas en Santiago eso no es una alternativa.
+function renderComunas() {
+  const cont = document.getElementById('zn-comunas');
+  if (!cont) return;
+  if (!zonasOK) { cont.innerHTML = '<div class="sub">No disponible.</div>'; return; }
+
+  // El filtro de zonas se rellena acá porque depende de las zonas cargadas.
+  // Se rehace siempre, preservando lo elegido: es una lista corta y así no hay
+  // que adivinar si cambió.
+  const fz = document.getElementById('znfz');
+  if (fz) {
+    const antes = fz.value;
+    fz.innerHTML = '<option value="">Todas las zonas</option>' +
+      '<option value="__sin">— Sin zona —</option>' +
+      zonas.map(z => `<option value="${hesc(z.id)}">${hesc(z.nombre)}</option>`).join('');
+    fz.value = antes;
+  }
+
+  const q     = (document.getElementById('znq').value || '').trim().toLowerCase();
+  const filtZ = document.getElementById('znfz').value;
+
+  const lista = COMUNAS.filter(c => {
+    const z = zonaComunas.get(c) || '';
+    if (q && !c.includes(sinTilde(q))) return false;
+    if (filtZ === '__sin' && z) return false;
+    if (filtZ && filtZ !== '__sin' && z !== filtZ) return false;
+    return true;
+  }).sort();
+
+  const sinZona = COMUNAS.filter(c => !zonaComunas.has(c)).length;
+  const aviso = sinZona
+    ? `<div class="alert an" style="margin-bottom:10px">⚠️ ${sinZona} comuna(s) sin zona. ` +
+      'Una dirección en esas comunas no recibe zona propuesta.</div>'
+    : `<div class="alert ai" style="margin-bottom:10px">✔ Las ${COMUNAS.length} ` +
+      'comunas conocidas tienen zona asignada.</div>';
+
+  if (!lista.length) {
+    cont.innerHTML = aviso + '<div class="sub">Ninguna comuna calza con el filtro.</div>';
+    return;
+  }
+
+  const opciones = z0 => '<option value="">— Sin zona —</option>' +
+    zonas.map(z => `<option value="${hesc(z.id)}"${z.id === z0 ? ' selected' : ''}>` +
+      `${hesc(z.nombre)}${z.activa ? '' : ' (inactiva)'}</option>`).join('');
+
+  cont.innerHTML = aviso + `<div class="tw"><table>
+    <thead><tr><th>Comuna</th><th>Zona</th></tr></thead>
+    <tbody>${lista.map(c => {
+      const z0 = zonaComunas.get(c) || '';
+      return `<tr>
+        <td style="font-weight:700;font-size:13px">${hesc(c)}</td>
+        <td><select id="zc-${claveComuna(c)}" style="max-width:220px"
+              onchange="moverComuna('${hesc(c)}')">${opciones(z0)}</select></td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
+// Las comunas tienen espacios y no sirven como id de elemento tal cual.
+const claveComuna = c => String(c).replace(/[^a-z0-9]+/g, '_');
+
+// Mueve una comuna de zona. Tres casos distintos y cada uno es otro método:
+// crear el vínculo, cambiarlo, o quitarlo.
+async function moverComuna(comuna) {
+  const sel = document.getElementById('zc-' + claveComuna(comuna));
+  if (!sel) return;
+  const nueva  = sel.value;
+  const tenia  = zonaComunas.has(comuna);
+  sel.disabled = true;
+  try {
+    if (!nueva)      await sbSend(`zona_comunas?comuna=eq.${encodeURIComponent(comuna)}`, 'DELETE');
+    else if (tenia)  await sbSend(`zona_comunas?comuna=eq.${encodeURIComponent(comuna)}`, 'PATCH', { zona_id: nueva });
+    else             await sbSend('zona_comunas', 'POST', { comuna, zona_id: nueva });
+    await cargarZonas();
+    renderZonas();
+    const z = nueva ? zonaPorId(nueva) : null;
+    alerta('zn-alert',
+      `"${hesc(comuna)}" → ${z ? hesc(z.nombre) : 'sin zona'}.`, 'ai');
+  } catch (e) {
+    alerta('zn-alert', 'No se pudo mover: ' + hesc(e.message), 'ae');
+    renderZonas();   // vuelve el selector a lo que dice la base
+  }
+}
+
+// Propone el identificador a partir del nombre, sin pisar uno ya escrito.
+function sugerirIdZona() {
+  const idInp = document.getElementById('mzid');
+  if (zonaEdit) return;                       // editando no se toca
+  const n = document.getElementById('mznombre').value;
+  idInp.value = sinTilde(n).toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+}
+
+function abrirZona(id) {
+  zonaEdit = id ? String(id) : null;
+  const z = id ? zonaPorId(id) : null;
+  document.getElementById('mz-title').textContent = z ? 'Editar zona' : 'Nueva zona';
+  document.getElementById('mz-alert').innerHTML = '';
+  document.getElementById('mznombre').value = z ? z.nombre : '';
+  document.getElementById('mzid').value     = z ? z.id : '';
+  document.getElementById('mzid').disabled  = !!z;
+  document.getElementById('mzcolor').value  = z ? z.color : '#6b35b8';
+  document.getElementById('mzorden').value  = z ? z.orden : 99;
+  document.getElementById('mzciclo').value  = z && z.dias_ciclo ? z.dias_ciclo : '';
+  document.getElementById('mzactiva').value = (z && !z.activa) ? '0' : '1';
+  document.getElementById('mznotas').value  = z ? (z.notas || '') : '';
+
+  const nota = document.getElementById('mzid-nota');
+  nota.style.display = 'block';
+  nota.textContent = z
+    ? 'No se puede cambiar: es lo que quedó guardado en cada pedido de esta zona.'
+    : 'Solo minúsculas, números y guiones. Después de crearla no se puede cambiar.';
+
+  // Una zona con pedidos o sucursales no se ofrece para borrar: se desactiva.
+  // Borrarla dejaría esos registros apuntando a una zona que no existe, y la
+  // etiqueta pasaría a decir "no existe" en cada fila.
+  const u  = z ? (usosDeZona().get(z.id) || { pedidos:0, sucursales:0 }) : null;
+  document.getElementById('bmzdel').style.display =
+    (z && !u.pedidos && !u.sucursales) ? '' : 'none';
+
+  document.getElementById('modal-zona').classList.add('open');
+}
+
+function cerrarZona() {
+  document.getElementById('modal-zona').classList.remove('open');
+  zonaEdit = null;
+}
+
+async function guardarZona() {
+  const nombre = document.getElementById('mznombre').value.trim();
+  const id     = document.getElementById('mzid').value.trim().toLowerCase();
+  if (!nombre) return alerta('mz-alert', 'Ponle un nombre a la zona.', 'ae');
+  if (!/^[a-z0-9-]{2,40}$/.test(id))
+    return alerta('mz-alert', 'El identificador solo admite minúsculas, ' +
+      'números y guiones, entre 2 y 40 caracteres.', 'ae');
+  if (!zonaEdit && zonaPorId(id))
+    return alerta('mz-alert', 'Ya existe una zona con ese identificador.', 'ae');
+
+  const ciclo = document.getElementById('mzciclo').value.trim();
+  const row = {
+    nombre,
+    color:  document.getElementById('mzcolor').value,
+    orden:  Number(document.getElementById('mzorden').value) || 99,
+    // Nulo y no cero: cero significaría "se recorre cada cero días", y la base
+    // lo rechaza con el CHECK de dias_ciclo > 0.
+    dias_ciclo: ciclo === '' ? null : Number(ciclo),
+    activa: document.getElementById('mzactiva').value === '1',
+    notas:  document.getElementById('mznotas').value.trim()
+  };
+
+  const btn = document.getElementById('bmz');
+  btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
+  try {
+    if (zonaEdit) await sbSend(`zonas?id=eq.${encodeURIComponent(zonaEdit)}`, 'PATCH', row);
+    else          await sbSend('zonas', 'POST', { id, ...row });
+    await cargarZonas();
+    renderZonas();
+    render();                     // repinta las etiquetas de la lista de pedidos
+    cerrarZona();
+  } catch (e) {
+    alerta('mz-alert', 'No se pudo guardar: ' + hesc(e.message), 'ae');
+  }
+  btn.innerHTML = 'Guardar'; btn.disabled = false;
+}
+
+async function borrarZona() {
+  if (!zonaEdit) return;
+  const z = zonaPorId(zonaEdit);
+  if (!confirm(`¿Eliminar la zona "${z ? z.nombre : zonaEdit}"?\n\n` +
+    'Las comunas que tenga asignadas quedan sin zona.')) return;
+  try {
+    await sbSend(`zonas?id=eq.${encodeURIComponent(zonaEdit)}`, 'DELETE');
+    await cargarZonas();
+    renderZonas();
+    render();
+    cerrarZona();
+  } catch (e) {
+    alerta('mz-alert', 'No se pudo eliminar: ' + hesc(e.message), 'ae');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
 //  DIRECTORIO — LISTADO
 // ══════════════════════════════════════════════════════════════
 let cliOpen = [];
@@ -4512,15 +4886,16 @@ async function cargarTodo() {
   renderClientes();
 }
 
-// Al volver desde planner.html, abre la pestaña que venía en la dirección
+// Al volver desde planner.html o bodega.html, abre la pestaña que venía en la
+// dirección. Ya no hace falta reintentar el pintado: `cargar()` repinta la
+// pestaña activa cuando termina, sea cual sea.
 (function irAHash(){
   const id = (location.hash || '').slice(1);
-  if (!['pedidos','nuevo','clientes','rutas'].includes(id)) return;
+  if (!['pedidos','nuevo','clientes','rutas','zonas'].includes(id)) return;
   const b = [...document.querySelectorAll('.tb')]
     .find(x => (x.getAttribute('onclick') || '').includes("goTab('" + id + "'"));
   if (!b) return;
   goTab(id, b);
-  setTimeout(() => goTab(id, b), 1500);   // repinta cuando ya llegaron los datos
 })();
 </script>
 </body>
