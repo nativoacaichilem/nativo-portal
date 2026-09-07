@@ -132,10 +132,10 @@ input[type=checkbox]{
 
 /* ── BADGES ── */
 .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.3px}
-.bnorte{background:#dbeafe;color:#1e40af}
-.bsur{background:#d1fae5;color:#065f46}
-.bstgo{background:var(--am-l);color:#78350f}
-.blito{background:#fee2e2;color:#7f1d1d}
+/* Las zonas ya no tienen clase propia: el color viene de `zonas.color` en la
+   base y zbadge() lo pone en línea, validado como hexadecimal antes de
+   entrar al atributo style. Cuatro clases fijas no sobrevivirían a crear una
+   zona nueva. */
 .bsinz{background:#f3f4f6;color:#6b7280;border:1px dashed #d1d5db}
 .bret{background:var(--nl);color:var(--nd);border:1px solid #fdba74}
 .bpend{background:var(--am-l);color:#78350f}
@@ -352,6 +352,59 @@ input[type=checkbox]{
   .wz-sub{max-width:100%}
   .pick-r{margin-left:0;width:100%;text-align:left}
   .pick{flex-wrap:wrap}
+
+  /* ── LA LISTA DE PEDIDOS EN CELULAR ──
+     En pantalla ancha son ocho columnas y se leen de un vistazo. En un
+     teléfono esas ocho columnas obligaban a desplazar de lado para ver el
+     estado o la factura, y un pedido que se lee a medias es un pedido que se
+     despacha mal. Acá cada fila se convierte en una tarjeta y la información
+     baja en vez de irse al costado.
+
+     Cada celda lleva su rótulo delante, tomado del atributo data-rot que pone
+     render(). Sin eso, apilar celdas deja una lista de valores sin saber qué
+     es cada uno. Las celdas vacías se esconden para que la tarjeta no quede
+     con renglones en blanco.
+
+     Solo la tabla de pedidos: el resto de las tablas del panel siguen
+     igual, porque son de consulta y no de acción. */
+  .tabla-pedidos thead{display:none}
+  .tabla-pedidos, .tabla-pedidos tbody, .tabla-pedidos tr, .tabla-pedidos td{
+    display:block; width:100%;
+  }
+  .tabla-pedidos tr{
+    background:var(--white); border:1px solid var(--crema-d);
+    border-radius:12px; padding:12px 14px 10px; margin-bottom:12px;
+    box-shadow:var(--shadow); position:relative;
+  }
+  .tabla-pedidos tr.row-sel{border-color:var(--mora);background:var(--mora-xl)}
+  .tabla-pedidos td{
+    border:none; padding:5px 0; display:flex; gap:10px; align-items:flex-start;
+  }
+  .tabla-pedidos td:empty{display:none}
+  .tabla-pedidos td[data-rot]::before{
+    content:attr(data-rot); flex:0 0 78px;
+    font-size:10px; font-weight:800; text-transform:uppercase;
+    letter-spacing:.4px; color:var(--textl); padding-top:2px;
+  }
+  .tabla-pedidos td > *{min-width:0}
+  /* La empresa manda: va arriba, grande y sin rótulo. */
+  .tabla-pedidos td.td-emp{
+    display:block; padding:0 0 6px; border-bottom:1px solid var(--crema-d);
+    margin-bottom:6px; padding-right:34px;
+  }
+  .tabla-pedidos td.td-emp::before{content:none}
+  /* La casilla de selección se va a la esquina, fuera del flujo. */
+  .tabla-pedidos td.td-check{
+    position:absolute; top:12px; right:12px; padding:0; width:auto;
+  }
+  .tabla-pedidos td.td-check::before{content:none}
+  /* Los botones de acción, anchos y al final. */
+  .tabla-pedidos td.td-acc{display:block;padding-top:8px}
+  .tabla-pedidos td.td-acc::before{content:none}
+  .tabla-pedidos td.td-acc .btn{width:100%;margin-top:4px}
+  .tabla-pedidos td.td-acc .sub{text-align:center}
+  /* La dirección no tiene por qué recortarse en celular: hay alto de sobra. */
+  .tabla-pedidos td.td-dir{max-width:none}
 }
 </style>
 </head>
@@ -423,10 +476,7 @@ input[type=checkbox]{
         </select>
         <select id="fzona" onchange="render()">
           <option value="">Todas las zonas</option>
-          <option value="norte">Norte</option>
-          <option value="sur">Sur</option>
-          <option value="santiago">Santiago</option>
-          <option value="litoral">Litoral</option>
+          <!-- Las zonas las llena pintarZonas() desde la tabla `zonas`. -->
         </select>
         <select id="festado" onchange="render()">
           <option value="">Todos los estados</option>
@@ -445,7 +495,7 @@ input[type=checkbox]{
           style="display:none" title="Poner una raya en el suelo: de acá para atrás no se reclama">🪧 Corte de bodega</button>
       </div>
       <div class="tw">
-        <table>
+        <table class="tabla-pedidos">
           <thead>
             <tr>
               <th class="th-check">
@@ -536,10 +586,7 @@ input[type=checkbox]{
           <div><label>Zona <span id="wzona-req">*</span></label>
             <select id="wzona">
               <option value="">— Asignar zona —</option>
-              <option value="norte">Norte</option>
-              <option value="sur">Sur</option>
-              <option value="santiago">Santiago</option>
-              <option value="litoral">Litoral</option>
+              <!-- Las zonas las llena pintarZonas() desde la tabla `zonas`. -->
             </select>
           </div>
         </div>
@@ -595,10 +642,7 @@ input[type=checkbox]{
         <div><label>Zona <span id="nzona-req">*</span></label>
           <select id="nzona">
             <option value="">— Asignar zona —</option>
-            <option value="norte">Norte</option>
-            <option value="sur">Sur</option>
-            <option value="santiago">Santiago</option>
-            <option value="litoral">Litoral</option>
+            <!-- Las zonas las llena pintarZonas() desde la tabla `zonas`. -->
           </select>
           <div class="nota-campo" id="nzona-nota"></div>
         </div>
@@ -660,10 +704,7 @@ input[type=checkbox]{
       <div><label>Zona <span id="co-zona-req">*</span></label>
         <select id="co-zona">
           <option value="">— Asignar zona —</option>
-          <option value="norte">Norte</option>
-          <option value="sur">Sur</option>
-          <option value="santiago">Santiago</option>
-          <option value="litoral">Litoral</option>
+          <!-- Las zonas las llena pintarZonas() desde la tabla `zonas`. -->
         </select>
         <div class="nota-campo" id="co-zona-nota"></div></div>
     </div>
@@ -782,10 +823,7 @@ input[type=checkbox]{
       <label>Zona</label>
       <select id="mzona">
         <option value="">— Asignar zona —</option>
-        <option value="norte">Norte</option>
-        <option value="sur">Sur</option>
-        <option value="santiago">Santiago</option>
-        <option value="litoral">Litoral</option>
+        <!-- Las zonas las llena pintarZonas() desde la tabla `zonas`. -->
       </select>
       <div class="nota-campo" id="mzona-nota"></div>
     </div>
@@ -874,10 +912,7 @@ input[type=checkbox]{
       <div><label>Zona</label>
         <select id="mszona">
           <option value="">— Asignar zona —</option>
-          <option value="norte">Norte</option>
-          <option value="sur">Sur</option>
-          <option value="santiago">Santiago</option>
-          <option value="litoral">Litoral</option>
+          <!-- Las zonas las llena pintarZonas() desde la tabla `zonas`. -->
         </select>
         <div class="nota-campo" id="mszona-nota"></div>
       </div>
@@ -955,6 +990,32 @@ let sucursales = [];    // catálogo de sucursales
 let dirOK      = false; // true = tablas clientes/sucursales disponibles en Supabase
 let dirLoaded  = false;
 let wz         = { paso:1, cliente:null, sucursal:null, qtys:{}, meds:{} };
+
+// ── Zonas ──
+// Antes eran cuatro <option> repetidos en seis selectores del HTML más un
+// mapa comuna→zona en JavaScript: crear una zona era editar el archivo en
+// siete lugares y desplegarlo. Ahora vienen de la base.
+//
+// `zonasOK` en false significa que las tablas todavía no están creadas. En ese
+// caso se usan las cuatro de siempre y el panel funciona igual: es el mismo
+// criterio que `dirOK` y `bodListo`, para que subir este archivo antes de
+// correr el SQL no deje el panel sin zonas.
+let zonas       = [];          // [{id, nombre, color, orden, activa, dias_ciclo}]
+let zonaComunas = new Map();   // comuna normalizada -> id de zona
+let zonasOK     = false;
+let zonasPedidas = false;      // para pedirlas una sola vez por sesión
+
+// Las cuatro de siempre, como respaldo. No se borran: son lo que la pantalla
+// muestra si la base no responde o si las tablas no existen todavía.
+const ZONAS_RESPALDO = [
+  { id:'santiago', nombre:'Santiago', color:'#6b35b8', orden:1, activa:true },
+  { id:'litoral',  nombre:'Litoral',  color:'#0891b2', orden:2, activa:true },
+  { id:'norte',    nombre:'Norte',    color:'#ea580c', orden:3, activa:true },
+  { id:'sur',      nombre:'Sur',      color:'#16a34a', orden:4, activa:true }
+];
+
+const zonaPorId = id => zonas.find(z => z.id === id) || null;
+const zonasVivas = () => zonas.filter(z => z.activa);
 
 // Lee un selector de canal. Si el elemento no existe todavía, es b2b.
 function canalDe(id) {
@@ -1078,10 +1139,90 @@ const tiene = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
 
 const esRetiro = p => (p.entrega || 'despacho') === 'retiro';
 
+// ══════════════════════════════════════════
+//  ZONAS DESDE LA BASE
+// ══════════════════════════════════════════
+
+// Los seis selectores de zona del panel. Estaban con las opciones escritas a
+// mano en el HTML; ahora se llenan desde acá. El primero es el filtro de la
+// lista y lleva "Todas las zonas"; los otros cinco piden asignar una.
+const SELECTORES_ZONA = [
+  { id:'fzona',   vacio:'Todas las zonas' },
+  { id:'wzona',   vacio:'— Asignar zona —' },
+  { id:'nzona',   vacio:'— Asignar zona —' },
+  { id:'co-zona', vacio:'— Asignar zona —' },
+  { id:'mzona',   vacio:'— Asignar zona —' },
+  { id:'mszona',  vacio:'— Asignar zona —' }
+];
+
+async function cargarZonas() {
+  try {
+    const [z, c] = await Promise.all([
+      sbJson('zonas?select=*&order=orden.asc,nombre.asc'),
+      sbJson('zona_comunas?select=comuna,zona_id')
+    ]);
+    if (!Array.isArray(z) || !z.length) throw new Error('sin zonas');
+    zonas = z.map(f => ({
+      id:         String(f.id || ''),
+      nombre:     String(f.nombre || f.id || ''),
+      color:      colorSeguro(f.color),
+      orden:      Number(f.orden) || 99,
+      activa:     f.activa !== false,
+      dias_ciclo: f.dias_ciclo == null ? null : Number(f.dias_ciclo)
+    })).filter(f => f.id);
+    zonaComunas = new Map((Array.isArray(c) ? c : [])
+      .map(f => [String(f.comuna || '').toLowerCase(), String(f.zona_id || '')])
+      .filter(([k, v]) => k && v));
+    zonasOK = true;
+  } catch (e) {
+    // Las tablas no están creadas, o la base no respondió. El panel sigue
+    // funcionando con las cuatro de siempre.
+    zonas = ZONAS_RESPALDO.slice();
+    zonaComunas = new Map();
+    zonasOK = false;
+  }
+  pintarZonas();
+}
+
+// El color viene de la base y termina dentro de un atributo style, así que no
+// puede pasar sin revisar: solo se acepta un hexadecimal. Cualquier otra cosa
+// cae al morado de la casa.
+function colorSeguro(c) {
+  const v = String(c || '').trim();
+  return /^#[0-9a-fA-F]{6}$/.test(v) ? v : '#6b35b8';
+}
+
+// Rellena los selectores sin perder lo que el usuario ya tenía elegido. Eso
+// importa: `pintarZonas()` corre cuando llegan las zonas, y en ese momento
+// puede haber un modal abierto con una zona seleccionada.
+function pintarZonas() {
+  const vivas = zonasVivas();
+  SELECTORES_ZONA.forEach(({ id, vacio }) => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const antes = sel.value;
+    sel.innerHTML = `<option value="">${hesc(vacio)}</option>` +
+      vivas.map(z => `<option value="${hesc(z.id)}">${hesc(z.nombre)}</option>`).join('');
+    // Si la zona que estaba elegida ya no está activa, se agrega igual para no
+    // borrarla en silencio: un pedido viejo de una zona dada de baja tiene que
+    // seguir mostrando su zona.
+    if (antes && !vivas.some(z => z.id === antes)) {
+      const vieja = zonaPorId(antes);
+      sel.insertAdjacentHTML('beforeend',
+        `<option value="${hesc(antes)}">${hesc(vieja ? vieja.nombre : antes)} (inactiva)</option>`);
+    }
+    sel.value = antes;
+  });
+}
+
 function zbadge(z) {
-  const m = { norte:'bnorte', sur:'bsur', santiago:'bstgo', litoral:'blito' };
-  if (!z || !tiene(m, z)) return '<span class="badge bsinz">⚠️ Sin zona</span>';
-  return `<span class="badge ${m[z]}">${hesc(z)}</span>`;
+  if (!z) return '<span class="badge bsinz">⚠️ Sin zona</span>';
+  const zz = zonaPorId(z);
+  // Una zona guardada que ya no existe en la tabla no es "sin zona": es un
+  // dato que apunta a algo borrado, y conviene que se vea distinto para poder
+  // corregirlo en vez de confundirlo con un pedido sin asignar.
+  if (!zz) return `<span class="badge bsinz">⚠️ ${hesc(z)} (no existe)</span>`;
+  return `<span class="badge" style="background:${zz.color};color:#fff">${hesc(zz.nombre)}</span>`;
 }
 
 // Un retiro no tiene zona que asignar, así que reclamarla no tiene sentido:
@@ -1178,10 +1319,36 @@ function alerta(id, msg, cls) {
 //
 // El Set de claves es el cinturón: si una tanda repitiera filas, el ciclo
 // corta en vez de inflar la lista con copias.
+// El techo existe para que un error de paginación no deje al navegador
+// pidiendo tandas para siempre. Pero si se alcanza, la lista queda incompleta
+// y ANTES ESO NO SE NOTABA: la pantalla se dibujaba con lo que alcanzó, como
+// si fuera todo. Un pedido que no aparece en la lista es un pedido que nadie
+// despacha, y nada avisaba. Ahora se avisa, fuerte y sin poder cerrarse.
+const TECHO_FILAS = 60000;
+
+function avisarTruncado(tabla, cuantas) {
+  let caja = document.getElementById('aviso-truncado');
+  if (!caja) {
+    caja = document.createElement('div');
+    caja.id = 'aviso-truncado';
+    caja.style.cssText =
+      'position:fixed;left:0;right:0;top:0;z-index:9999;background:var(--rd);' +
+      'color:#fff;padding:12px 16px;font-size:13px;font-weight:800;' +
+      'line-height:1.5;box-shadow:0 2px 12px rgba(0,0,0,.3)';
+    document.body.appendChild(caja);
+  }
+  caja.textContent =
+    '⚠ DATOS INCOMPLETOS — la tabla "' + tabla + '" tiene más de ' +
+    cuantas.toLocaleString('es-CL') + ' filas y solo se cargaron esas. ' +
+    'Lo que ves en pantalla NO es todo. No despaches ni descargues stock ' +
+    'hasta resolverlo: hay que subir el tope de paginación o filtrar por fecha.';
+}
+
 async function sbPagina(tabla, query, clave) {
   const paso = 1000, vistos = new Set(), out = [];
   const k = clave || (f => f.id);
-  for (let desde = 0; desde < 60000; desde += paso) {
+  let completo = false;
+  for (let desde = 0; desde < TECHO_FILAS; desde += paso) {
     const r = revisarAuth(await fetch(
       `${PROXY}/supabase/${tabla}?${query}&limit=${paso}&offset=${desde}`,
       { headers: cabeceras(false) }));
@@ -1193,8 +1360,11 @@ async function sbPagina(tabla, query, clave) {
       const kk = k(f);
       if (!vistos.has(kk)) { vistos.add(kk); out.push(f); nuevos++; }
     }
-    if (d.length < paso || nuevos === 0) break;
+    // Salir acá significa que se acabaron las filas: la lista está completa.
+    if (d.length < paso || nuevos === 0) { completo = true; break; }
   }
+  // Salir por agotar el for significa que se alcanzó el techo: falta data.
+  if (!completo) avisarTruncado(tabla, out.length);
   return out;
 }
 
@@ -1251,20 +1421,15 @@ async function sbJson(path) {
   return d;
 }
 
-async function sbPost(row) {
-  try {
-    return await sbSend('pedidos', 'POST', row);
-  } catch (e) {
-    // Si todavía no se corrió pedidos-canal.sql, la columna no existe. Un
-    // pedido no se puede perder por una columna que falta: se reintenta sin
-    // ella y el canal se corrige después.
-    if (row && row.canal !== undefined && /canal/i.test(String(e.message))) {
-      const sinCanal = { ...row }; delete sinCanal.canal;
-      return sbSend('pedidos', 'POST', sinCanal);
-    }
-    throw e;
-  }
-}
+// Antes esto reintentaba sin la columna `canal` si el POST fallaba, porque en
+// su momento la columna podía no existir todavía. Se retiró el 3 de septiembre
+// de 2026 por dos razones. La primera es que ya existe: `pedidos.canal` es
+// `text NOT NULL DEFAULT 'b2b'`. La segunda es más grave: el reintento se
+// disparaba con /canal/i sobre el mensaje de error, y desde que la base tiene
+// `CHECK (canal IN ('b2b','web'))` el mensaje de una violación de ese CHECK
+// también contiene la palabra "canal". O sea que un canal inválido dejaba de
+// mostrar el error y se guardaba con el valor por omisión, en silencio.
+async function sbPost(row) { return sbSend('pedidos', 'POST', row); }
 async function sbPatch(id, row) { return sbSend(`pedidos?id=eq.${id}`, 'PATCH', row); }
 async function sbDelete(id)     { return sbSend(`pedidos?id=eq.${id}`, 'DELETE'); }
 
@@ -1276,7 +1441,14 @@ async function cargar() {
     '<tr><td colspan="8" style="text-align:center;padding:28px">' +
     '<span class="sp"></span>Cargando pedidos...</td></tr>';
   try {
-    pedidos = await sbGet();
+    // Las zonas se piden una sola vez por sesión y en paralelo con los
+    // pedidos, para no agregar una vuelta al servidor antes del primer dibujo.
+    // Van dentro del try porque `cargarZonas()` nunca lanza: si las tablas no
+    // existen, cae a las cuatro de respaldo por su cuenta.
+    const tareas = [sbGet()];
+    if (!zonasPedidas) { zonasPedidas = true; tareas.push(cargarZonas()); }
+    const [ped] = await Promise.all(tareas);
+    pedidos = ped;
     if (!dirLoaded)   await loadDirectorio();
     else if (!dirOK)  derivarDirectorio();   // modo historial: se recalcula local
     else              indexar();
@@ -1453,13 +1625,26 @@ function render() {
     const entregaHtml = p.fecha_entrega
       ? `<div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:2px">📅 ${esRetiro(p) ? 'Retiro' : 'Entrega'}: ${hesc(p.fecha_entrega)}</div>` : '';
 
+    // El nombre de la sucursal, cuando el pedido está asociado a una. Leer
+    // "Local Providencia" es mucho más rápido que reconocer una dirección, y
+    // en un cliente con varios locales la dirección sola obliga a recordar
+    // cuál es cuál. La dirección sigue abajo porque es la que se necesita
+    // para llegar.
+    const suc = p.sucursal_id != null ? findSuc(p.sucursal_id) : null;
+    const sucHtml = suc
+      ? `<div style="font-size:11px;font-weight:800;color:var(--mora);margin-bottom:2px">🏠 ${hesc(suc.nombre)}</div>`
+      : '';
+
+    // Los data-rot son los rótulos que el CSS de celular pone delante de cada
+    // celda. En pantalla ancha no se ven: los encabezados de la tabla ya
+    // dicen lo mismo.
     return `<tr class="${isChecked ? 'row-sel' : ''}">
       <td class="td-check">
         <input type="checkbox" ${isChecked ? 'checked' : ''}
           onchange="toggleRow(${p.id}, this.checked)">
       </td>
-      <td style="font-size:12px;color:var(--textl);font-weight:600;white-space:nowrap">${hesc(p.fecha)||'—'}</td>
-      <td>
+      <td data-rot="Fecha" style="font-size:12px;color:var(--textl);font-weight:600;white-space:nowrap">${hesc(p.fecha)||'—'}</td>
+      <td class="td-emp">
         <div style="font-weight:800;font-size:13px">${hesc(p.emp)}</div>
         <div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:1px">${hesc(p.rut)}</div>
         ${folioHtml}
@@ -1468,17 +1653,17 @@ function render() {
         ${msgHtml}
         ${notaHtml}
       </td>
-      <td style="font-size:12px;font-weight:600;max-width:210px">${hesc(p.dir)}</td>
-      <td>${entregaBadge(p)}</td>
-      <td>
+      <td class="td-dir" data-rot="Dirección" style="font-size:12px;font-weight:600;max-width:210px">${sucHtml}${hesc(p.dir)}</td>
+      <td data-rot="Entrega">${entregaBadge(p)}</td>
+      <td data-rot="Estado">
         ${ebadge(p.estado, p)}
         ${recibeHtml}
         ${entregaHtml}
       </td>
-      <td style="font-size:12px;color:var(--textl);font-weight:600">${
+      <td data-rot="Factura" style="font-size:12px;color:var(--textl);font-weight:600">${
         esCortesia(p) ? '<span style="color:#3730a3;font-weight:800">sin venta</span>'
                       : (hesc(p.factura_num) || '—')}</td>
-      <td><button class="btn bol bsm" onclick="abrir(${p.id})">Editar</button>
+      <td class="td-acc"><button class="btn bol bsm" onclick="abrir(${p.id})">Editar</button>
         ${bodListo && ['en-ruta','entregado','entregado-sin-facturar'].includes(p.estado)
           ? (bodPedidosConMov.has(String(p.id))
               ? '<div class="sub" style="font-size:10px;color:var(--vd);font-weight:800;margin-top:4px">✔ bodega descargada</div>'
@@ -2312,7 +2497,10 @@ const COMUNA_A_ZONA = (() => {
 function zonaDeDir(d) {
   const com = comunaDe(d);
   if (!com) return null;
-  const z = COMUNA_A_ZONA.get(sinTilde(com).toLowerCase());
+  const clave = sinTilde(com).toLowerCase();
+  // El mapa de la base manda. COMUNA_A_ZONA queda como respaldo para cuando
+  // `zona_comunas` no está creada todavía.
+  const z = zonasOK ? zonaComunas.get(clave) : COMUNA_A_ZONA.get(clave);
   return z ? { zona: z, comuna: com } : null;
 }
 
@@ -2609,12 +2797,10 @@ async function guardar() {
     await cargar();
     cerrar();
   } catch(e) {
-    // Mismo caso que en el alta: si falta la columna, se guarda el resto.
-    if (/canal/i.test(String(e.message))) {
-      const sinCanal = { ...row }; delete sinCanal.canal;
-      try { await sbPatch(eid, sinCanal); await cargar(); cerrar(); return; }
-      catch (e2) { alert('Error guardando: ' + e2.message); return; }
-    }
+    // Acá había el mismo reintento sin `canal` que en el alta. Se retiró por
+    // lo mismo: la columna ya existe y el filtro /canal/i confundía una
+    // violación de `pedidos_canal_valido` con una columna faltante, y en vez
+    // de mostrar el error guardaba el pedido con el canal por omisión.
     alert('Error guardando: ' + e.message);
   }
   btn.innerHTML = 'Guardar'; btn.disabled = false;
@@ -3026,7 +3212,7 @@ const COMUNAS = ['lo barnechea','las condes','vitacura','providencia','nunoa','l
  'valparaiso','quilpue','villa alemana','zapallar','maitencillo','cachagua','papudo','la serena','coquimbo',
  'iquique','antofagasta','concepcion','temuco','pucon','villarrica','valdivia','osorno','puerto varas',
  'puerto montt','rancagua','curico','talca','chillan','los angeles','san antonio','algarrobo','el quisco',
- 'el tabo','cartagena','casablanca','curacavi','melipilla'];
+ 'el tabo','cartagena','rocas de santo domingo','casablanca','curacavi','melipilla'];
 
 function comunaDe(d) {
   const s = ' ' + sinTilde(d).toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
@@ -3413,6 +3599,21 @@ function renderPaso1() {
   }).join('');
 }
 
+// Pone en el asistente la zona que tiene guardada la sucursal, y si no tiene,
+// la propone desde la dirección.
+//
+// Vive aparte porque hay dos caminos hasta el paso 3 y antes solo uno hacía
+// esto: `pickSucursal()` sí, pero el atajo de `pickCliente()` para clientes de
+// una sola sucursal saltaba directo y se lo perdía. O sea que justo en el caso
+// más común había que elegir la zona a mano, que es lo que se quería evitar.
+function traspasarZona(s) {
+  if (!s) return;
+  const sel = document.getElementById('wzona');
+  if (!sel) return;
+  sel.value = s.zona || '';
+  if (!s.zona) proponerZona('wzona', null, s.dir || '');
+}
+
 function pickCliente(id) {
   const c = findCli(id);
   if (!c) return;
@@ -3422,7 +3623,12 @@ function pickCliente(id) {
   }
   wz.cliente = c;
   const s = sucsDe(c);
-  if (s.length === 1) { wz.sucursal = s[0]; wzGo(3); return; }   // atajo: una sola sucursal
+  if (s.length === 1) {                       // atajo: una sola sucursal
+    wz.sucursal = s[0];
+    traspasarZona(s[0]);
+    wzGo(3);
+    return;
+  }
   wzGo(2);
 }
 
@@ -3472,8 +3678,7 @@ function pickSucursal(id) {
   const s = findSuc(id);
   if (!s) return;
   wz.sucursal = s;
-  document.getElementById('wzona').value = s.zona || '';
-  if (!s.zona) proponerZona('wzona', null, s.dir || '');
+  traspasarZona(s);
   wzGo(3);
 }
 
