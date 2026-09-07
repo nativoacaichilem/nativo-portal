@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nativo · Compras</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --mora:#6b35b8;--mora-d:#4a1f7a;--mora-l:#9b6fd4;--mora-xl:#f0e6ff;
+  --am:#f5c842;--am-l:#fef9c3;
+  --crema:#fdf8f0;--crema-d:#ede3d0;
+  --text:#1e1226;--textl:#8b7a9e;--white:#fff;
+  --vl:#d1fae5;--vd:#065f46;--rl:#fee2e2;--rd:#7f1d1d;
+  --nl:#ffedd5;--nd:#9a3412;
+  --shadow:0 2px 8px rgba(107,53,184,.07);
+  --linea:rgba(107,53,184,.14);--linea2:rgba(107,53,184,.07);
+  --ok:#2E8B6E;--medio:#D89A1E;--alto:#C0392B;--nada:#8A8494;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:#f0eaf8;color:var(--text);min-height:100vh}
+
+/* ══ LOGIN (idéntico al panel) ══ */
+#login{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,var(--mora-d),var(--mora));padding:20px}
+.login-logo{font-family:'DM Serif Display',serif;font-size:52px;color:var(--am);letter-spacing:2px;text-align:center;margin-bottom:6px}
+.login-sub{color:rgba(255,255,255,.45);font-size:12px;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-bottom:32px;font-weight:700}
+.lcard{background:var(--white);border-radius:20px;padding:28px;width:100%;max-width:340px;box-shadow:0 24px 64px rgba(0,0,0,.25)}
+.lcard h3{font-family:'DM Serif Display',serif;font-size:22px;color:var(--mora-d);margin-bottom:16px}
+.inp{width:100%;padding:11px 14px;border:1.5px solid var(--crema-d);border-radius:10px;font-size:14px;outline:none;font-family:'Nunito',sans-serif;margin-bottom:12px;background:var(--crema);color:var(--text)}
+.inp:focus{border-color:var(--mora);background:var(--white)}
+.bam-full{width:100%;padding:12px;border:none;border-radius:10px;background:var(--am);color:var(--mora-d);font-size:14px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif}
+
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:700;margin-bottom:12px}
+.ae{background:var(--rl);color:var(--rd)}
+.as{background:var(--vl);color:var(--vd)}
+.ai{background:var(--mora-xl);color:var(--mora-d)}
+.aw{background:var(--nl);color:var(--nd)}
+
+/* ══ NAV (idéntico al panel) ══ */
+nav{background:var(--mora);display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;position:sticky;top:0;z-index:40;box-shadow:0 2px 12px rgba(74,31,122,.25)}
+.nlogo{font-family:'DM Serif Display',serif;font-size:20px;color:var(--am);letter-spacing:1px}
+.ntabs{display:flex;overflow-x:auto}
+.tb{background:none;border:none;color:rgba(255,255,255,.5);padding:14px 15px;cursor:pointer;
+  font-size:13px;font-weight:800;border-bottom:2px solid transparent;font-family:'Nunito',sans-serif;white-space:nowrap}
+.tb.act{color:var(--am);border-bottom-color:var(--am);background:rgba(255,255,255,.06)}
+.tb:hover:not(.act){color:var(--white)}
+.nright{display:flex;align-items:center;gap:10px}
+.bout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--white);
+  padding:6px 14px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:800;font-family:'Nunito',sans-serif}
+
+/* ══ ESTRUCTURA ══ */
+.wrap{padding:20px;max-width:1320px;margin:0 auto}
+.card{background:var(--white);border-radius:14px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px;border:1px solid rgba(107,53,184,.08)}
+.card h2{font-family:'DM Serif Display',serif;font-size:20px;color:var(--mora-d);margin-bottom:14px}
+.card-head{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.card-head h2{margin:0}
+.crece{flex:1 1 auto}
+.sep{width:1px;height:24px;background:var(--crema-d);margin:0 3px}
+
+.btn{padding:9px 18px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:800;font-family:'Nunito',sans-serif;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.bmora{background:var(--mora);color:var(--white)}
+.bam2{background:var(--am);color:var(--mora-d)}
+.bsm{padding:5px 12px;font-size:12px;border-radius:6px}
+.bol{background:var(--white);color:var(--mora);border:1.5px solid var(--mora)}
+.bdng{background:var(--rl);color:var(--rd);border:1px solid #fca5a5}
+.bgray{background:var(--crema-d);color:var(--textl)}
+.bgreen{background:var(--vl);color:var(--vd);border:1px solid #6ee7b7}
+label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--mora);margin-bottom:4px}
+input,textarea,select{width:100%;padding:9px 12px;border:1.5px solid var(--crema-d);border-radius:8px;
+  font-size:13px;outline:none;font-family:'Nunito',sans-serif;color:var(--text);background:var(--crema)}
+input:focus,textarea:focus,select:focus{border-color:var(--mora);background:var(--white)}
+input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--mora-l);outline-offset:1px}
+textarea{resize:vertical;min-height:56px}
+input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--mora);flex-shrink:0}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text);text-transform:none;letter-spacing:0}
+.chk input{width:16px;height:16px}
+.fb{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.fb input,.fb select{width:auto;flex:0 1 auto;min-width:140px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.f1{margin-bottom:12px}
+.hint{font-size:11px;font-weight:700;color:var(--textl);margin-top:4px;line-height:1.45}
+.empty{color:var(--textl);font-size:13px;font-weight:700;padding:26px 6px;text-align:center}
+.sp{display:inline-block;width:14px;height:14px;border:2px solid rgba(107,53,184,.2);border-top-color:var(--mora);
+  border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ SEGMENTOS ══ */
+.segs{display:flex;gap:3px;background:var(--crema);padding:3px;border-radius:10px;flex-wrap:wrap}
+.segs button{border:0;background:transparent;padding:7px 16px;border-radius:8px;font-weight:800;
+  font-size:13px;color:var(--textl);cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap}
+.segs button[aria-pressed=true]{background:var(--white);color:var(--mora-d);box-shadow:0 1px 3px rgba(107,53,184,.18)}
+
+/* ══ KPI ══ */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--white);border-radius:12px;padding:16px;text-align:center;box-shadow:var(--shadow);border:1px solid rgba(107,53,184,.08)}
+.stat.aviso{border-color:#fdba74;background:#fffbf5}
+.stat.grave{border-color:#fca5a5;background:#fff7f7}
+.sn{font-size:30px;font-weight:900;color:var(--mora);line-height:1.1}
+.stat.aviso .sn{color:var(--nd)}
+.stat.grave .sn{color:var(--alto)}
+.sl{font-size:10px;color:var(--textl);margin-top:2px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.sx{font-size:10.5px;color:var(--textl);margin-top:5px;font-weight:700}
+.stat.pulsa{cursor:pointer}
+.stat.pulsa:hover{border-color:var(--mora-l)}
+
+/* ══ TABLAS ══ */
+.tw{overflow-x:auto;border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--crema);color:var(--mora);font-weight:800;padding:9px 12px;text-align:left;font-size:11px;
+  text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid var(--crema-d);white-space:nowrap}
+th.num,td.num{text-align:right}
+td{padding:9px 12px;border-bottom:1px solid var(--crema-d);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#faf6ff}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+.bent{background:var(--vl);color:var(--vd)}
+.bsal{background:var(--rl);color:var(--rd)}
+.btra{background:#dbeafe;color:#1e40af}
+.baju{background:var(--mora-xl);color:var(--mora-d)}
+.brev{background:#f3f4f6;color:#6b7280;border:1px dashed #d1d5db}
+.chip{display:inline-block;background:var(--crema);border:1px solid var(--crema-d);border-radius:20px;
+  padding:2px 9px;font-size:10px;font-weight:800;color:var(--mora);white-space:nowrap}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;font-weight:700;letter-spacing:.2px}
+.sub{font-size:11px;color:var(--textl);font-weight:700;margin-top:2px}
+.pos{color:var(--ok);font-weight:900}
+.neg{color:var(--alto);font-weight:900}
+
+/* ══ MEDIDOR DE STOCK — el elemento central de la pantalla ══
+   Una barra por producto y bodega: el relleno es lo que hay, la muesca
+   vertical es el mínimo que definiste. De un vistazo se ve si el saldo
+   está por debajo de la línea sin tener que comparar dos números. */
+.med{position:relative;height:24px;background:var(--crema);border-radius:6px;overflow:hidden;
+  border:1px solid var(--crema-d);min-width:110px}
+.med .fill{position:absolute;left:0;top:0;bottom:0;border-radius:5px 0 0 5px;transition:width .45s cubic-bezier(.4,0,.2,1)}
+.med .marca{position:absolute;top:-1px;bottom:-1px;width:2px;background:var(--mora-d);opacity:.55}
+.med .marca::after{content:'';position:absolute;top:-1px;left:-2px;border-left:3px solid transparent;
+  border-right:3px solid transparent;border-top:4px solid var(--mora-d);opacity:.85}
+.med .val{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;
+  padding-right:7px;font-size:11.5px;font-weight:900;color:var(--text);text-shadow:0 0 3px rgba(255,255,255,.9)}
+.f-ok{background:linear-gradient(90deg,#5cbfa0,#2E8B6E)}
+.f-medio{background:linear-gradient(90deg,#f0c368,#D89A1E)}
+.f-alto{background:linear-gradient(90deg,#e08279,#C0392B)}
+.f-nada{background:repeating-linear-gradient(135deg,#d9d4e0 0 5px,#efecf3 5px 10px)}
+
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.d-ok{background:var(--ok)}.d-medio{background:var(--medio)}.d-alto{background:var(--alto)}.d-nada{background:var(--nada)}
+
+/* ══ CONGELADOS ══
+   No es decoración: el color y el hielo son lo que permite saber en qué
+   lista estás parado sin leer el encabezado. */
+.frio{--acento:#2563eb}
+.grupo-cab{display:flex;align-items:center;gap:9px;margin:4px 0 10px;padding-bottom:7px;
+  border-bottom:2px solid var(--crema-d)}
+.grupo-cab.frio{border-bottom-color:#bfdbfe}
+.grupo-t{font-family:'DM Serif Display',serif;font-size:16px;color:var(--mora-d)}
+.grupo-cab.frio .grupo-t{color:#1e40af}
+.grupo-s{font-size:11px;font-weight:700;color:var(--textl)}
+.badge-frio{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}
+.mtz.frio th{background:#eff6ff;color:#1e40af;border-bottom-color:#bfdbfe}
+.mtz.frio tr.fila-alerta td:first-child{box-shadow:inset 3px 0 0 #1e40af}
+.al.frio-crit{background:#eff6ff;border-color:#60a5fa}
+.al.frio-crit .al-n{color:#1e40af}
+
+/* ══ MATRIZ DE SALDOS ══ */
+.mtz td{padding:8px 12px}
+.mtz .cel-bod{min-width:170px}
+.mtz .prod{font-weight:800}
+.mtz tr.fila-alerta td:first-child{box-shadow:inset 3px 0 0 var(--alto)}
+.mtz tr.fila-aviso td:first-child{box-shadow:inset 3px 0 0 var(--medio)}
+.celda{cursor:pointer;border-radius:6px}
+.celda:hover .med{border-color:var(--mora-l)}
+
+/* ══ VISTA POR BODEGA ══
+   Con las bodegas en las filas y los productos en columnas, el número tiene
+   que leerse solo: no cabe una barra por celda. El color hace el trabajo. */
+.pbod td{text-align:center;padding:10px 8px;min-width:96px}
+.pbod td.nom{text-align:left;min-width:150px}
+.pbod th{text-align:center;font-size:10px;line-height:1.3;white-space:normal;min-width:96px;vertical-align:bottom}
+.pbod th.nom{text-align:left}
+.pbod .cifra{font-size:19px;font-weight:900;line-height:1.1}
+.pbod .bajo{font-size:10px;font-weight:700;color:var(--textl);margin-top:1px}
+.pbod .c-ok{color:var(--ok)}
+.pbod .c-medio{color:var(--medio)}
+.pbod .c-alto{color:var(--alto)}
+.pbod .c-nada{color:var(--alto);background:#fff1f1;border-radius:7px}
+.pbod .c-sinmin{color:var(--text)}
+.pbod tr.tot td{border-top:2px solid var(--crema-d);background:var(--crema);font-weight:900}
+.pbod .celda:hover{background:#faf6ff}
+
+/* ══ ALERTAS ══ */
+.al-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.al{border-radius:10px;padding:11px 13px;border:1px solid;display:flex;gap:11px;align-items:center;cursor:pointer}
+.al:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(107,53,184,.12)}
+.al.crit{background:#fff7f7;border-color:#fca5a5}
+.al.baja{background:#fffbf5;border-color:#fdba74}
+.al-n{font-family:'DM Serif Display',serif;font-size:26px;line-height:1;min-width:44px;text-align:center}
+.al.crit .al-n{color:var(--alto)}
+.al.baja .al-n{color:var(--nd)}
+.al-t{font-weight:800;font-size:13px;line-height:1.3}
+.al-s{font-size:11px;color:var(--textl);font-weight:700;margin-top:2px}
+
+/* ══ ACCIONES RÁPIDAS ══ */
+.acc{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.acc button{background:var(--white);border:1.5px solid var(--crema-d);border-radius:12px;padding:14px 12px;
+  cursor:pointer;font-family:'Nunito',sans-serif;text-align:left;box-shadow:var(--shadow);transition:border .15s,transform .15s}
+.acc button:hover{border-color:var(--mora);transform:translateY(-1px)}
+.acc .ai-ico{font-size:20px;display:block;margin-bottom:5px}
+.acc .ai-t{font-weight:900;font-size:13.5px;color:var(--mora-d);display:block}
+.acc .ai-s{font-size:10.5px;color:var(--textl);font-weight:700;display:block;margin-top:1px}
+
+/* ══ GRÁFICO DE MERMAS ══ */
+.graf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px;align-items:center}
+@media(max-width:760px){.graf{grid-template-columns:1fr}}
+.leg{display:flex;flex-direction:column;gap:7px}
+.leg-i{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:700}
+.leg-c{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+.leg-v{margin-left:auto;font-weight:900;color:var(--mora-d)}
+.barra-mes{display:flex;align-items:flex-end;gap:3px;height:80px}
+.barra-mes div{flex:1;background:var(--mora-xl);border-radius:3px 3px 0 0;min-height:2px;position:relative}
+.barra-mes div span{position:absolute;bottom:-16px;left:0;right:0;text-align:center;font-size:9px;font-weight:800;color:var(--textl)}
+
+/* ══ MODAL ══ */
+.mbg{display:none;position:fixed;inset:0;background:rgba(74,31,122,.5);z-index:100;
+  justify-content:center;align-items:center;padding:16px}
+.mbg.open{display:flex}
+.modal{background:var(--white);border-radius:16px;padding:26px;max-width:560px;width:100%;
+  box-shadow:0 24px 64px rgba(0,0,0,.25);max-height:90vh;overflow-y:auto}
+.modal.ancho{max-width:820px}
+.modal h3{font-family:'DM Serif Display',serif;font-size:20px;color:var(--mora-d);margin-bottom:16px}
+.modal-section{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mora-l);
+  margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--crema-d)}
+.mact{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+
+/* ══ RESUMEN EN MODAL ══ */
+.res{background:var(--crema);border-radius:10px;padding:12px 14px;font-size:13px;font-weight:700;line-height:1.6}
+.res b{color:var(--mora-d)}
+.res .flecha{color:var(--mora-l);font-weight:900;margin:0 5px}
+
+/* ══ CONTEO ══ */
+.cnt-dif{font-weight:900;font-size:13px}
+.cnt input{width:96px;text-align:right}
+
+/* ══ TOAST ══ */
+#toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,120%);z-index:200;
+  background:var(--mora-d);color:var(--white);padding:12px 22px;border-radius:24px;font-weight:800;font-size:13.5px;
+  box-shadow:0 10px 34px rgba(74,31,122,.4);transition:transform .3s cubic-bezier(.4,0,.2,1);max-width:92vw;text-align:center}
+#toast.show{transform:translate(-50%,0)}
+#toast.err{background:var(--alto)}
+
+.page{display:none}
+.page.act{display:block}
+
+@media(max-width:640px){
+  .wrap{padding:12px}
+  .fg,.fg3{grid-template-columns:1fr}
+  .modal{padding:20px}
+  .sn{font-size:25px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+@media print{
+  nav,.acc,.fb,.btn,#toast{display:none!important}
+  body{background:#fff}
+  .card{box-shadow:none;border:1px solid #ddd;break-inside:avoid}
+}
+
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login">
+  <div class="login-logo">nativo</div>
+  <div class="login-sub">Compras y proveedores</div>
+  <div class="lcard">
+    <h3>Equipo nativo</h3>
+    <div id="lerr"></div>
+    <input class="inp" type="password" id="pin" placeholder="Clave de acceso"
+      autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="bam-full" id="bentrar" onclick="doLogin()">Ingresar →</button>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app" style="display:none">
+  <nav>
+    <div class="ntabs">
+      <button class="tb act" onclick="goTab('pizarra',this)">📌 Pizarra</button>
+      <button class="tb"     onclick="goTab('reponer',this)">📉 Qué reponer</button>
+      <button class="tb"     onclick="goTab('proveedores',this)">🏭 Proveedores</button>
+      <button class="tb"     onclick="location.href='bodega.html'">📦 Bodega</button>
+      <button class="tb"     onclick="location.href='kpi.html'">📊 Indicadores</button>
+      <button class="tb"     onclick="location.href='admin.html#pedidos'">📋 Pedidos</button>
+    </div>
+    <div class="nlogo">nativo</div>
+    <div class="nright">
+      <span class="chip" id="quien-chip" onclick="pedirQuien()" title="Cambiar quién eres">—</span>
+      <button class="bout" onclick="salir()">Salir</button>
+    </div>
+  </nav>
+
+  <!-- ── PIZARRA ── -->
+  <div id="page-pizarra" class="page act">
+    <div class="card">
+      <h2>📌 Pizarra de compras</h2>
+      <div id="pz-alert"></div>
+      <div class="stats" id="pz-stats"></div>
+      <div class="fb">
+        <button class="btn bam2 bsm" onclick="abrirSolicitud(null)">＋ Pedir algo</button>
+        <input type="text" id="pzq" placeholder="🔍 Buscar producto, quien pidió o nota..."
+          oninput="renderPizarra()">
+        <select id="pzf" onchange="renderPizarra()">
+          <option value="abiertas">Abiertas</option>
+          <option value="solicitado">Solo solicitadas</option>
+          <option value="cotizando">Solo cotizando</option>
+          <option value="pedido">Solo pedidas al proveedor</option>
+          <option value="todas">Todas, incluidas las cerradas</option>
+        </select>
+      </div>
+      <div id="pz-list"></div>
+    </div>
+  </div>
+
+  <!-- ── QUÉ REPONER ── -->
+  <div id="page-reponer" class="page">
+    <div class="card">
+      <h2>📉 Qué reponer</h2>
+      <div id="rp-alert"></div>
+      <div class="alert ai" style="line-height:1.55;margin-bottom:12px">
+        El consumo diario sale del libro de bodega: salidas y mermas de los
+        últimos <b id="rp-dias-lbl">60</b> días, divididas por los días
+        transcurridos. <b>Cobertura</b> es cuántos días de stock quedan a ese
+        ritmo. Si la cobertura es menor que el plazo del proveedor, ya vas
+        tarde: el producto se acaba antes de que llegue el pedido.
+      </div>
+      <div class="fb">
+        <label style="font-size:12px;font-weight:700">Ventana
+          <select id="rpdias" onchange="renderReponer()">
+            <option value="30">últimos 30 días</option>
+            <option value="60" selected>últimos 60 días</option>
+            <option value="90">últimos 90 días</option>
+          </select>
+        </label>
+        <select id="rpf" onchange="renderReponer()">
+          <option value="riesgo">Solo lo que está en riesgo</option>
+          <option value="todos">Todos los productos</option>
+        </select>
+      </div>
+      <div id="rp-list"></div>
+    </div>
+  </div>
+
+  <!-- ── PROVEEDORES ── -->
+  <div id="page-proveedores" class="page">
+    <div class="card">
+      <h2>🏭 Proveedores</h2>
+      <div id="pv-alert"></div>
+      <div class="fb">
+        <button class="btn bam2 bsm" onclick="abrirProveedor(null)">＋ Nuevo proveedor</button>
+        <input type="text" id="pvq" placeholder="🔍 Buscar proveedor..." oninput="renderProveedores()">
+      </div>
+      <div id="pv-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL SOLICITUD ══ -->
+<div class="mbg" id="modal-sol">
+  <div class="modal">
+    <h3 id="ms-title">Pedir algo</h3>
+    <div id="ms-alert"></div>
+
+    <div style="margin-bottom:12px"><label>¿Qué se necesita? *</label>
+      <select id="msprod" onchange="cambioProductoSolicitud()">
+        <option value="">— Algo que no está en bodega —</option>
+      </select>
+      <div class="nota-campo" id="msprod-nota"></div></div>
+
+    <div style="margin-bottom:12px" id="msdesc-box"><label>Descripción *</label>
+      <input id="msdesc" type="text" placeholder="Ej: bolsas de 30x40, cinta de embalaje">
+      <div class="nota-campo" style="display:block">
+        Para lo que no está en el catálogo de bodega: insumos, repuestos, aseo.
+      </div></div>
+
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Cantidad *</label><input id="mscant" type="number" min="0" step="0.01"></div>
+      <div><label>Medida</label>
+        <select id="msmed"><option value="caja">Cajas</option><option value="unidad">Unidades</option></select></div>
+    </div>
+
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Urgencia</label>
+        <select id="msurg">
+          <option value="normal">Normal</option>
+          <option value="pronto">Pronto</option>
+          <option value="urgente">Urgente</option>
+        </select></div>
+      <div><label>¿Para qué bodega?</label>
+        <select id="msbod"><option value="">— Cualquiera —</option></select></div>
+    </div>
+
+    <div style="margin-bottom:4px"><label>Nota</label>
+      <textarea id="msnota" placeholder="Marca preferida, para cuándo se necesita, lo que sea útil"
+        style="min-height:56px"></textarea></div>
+
+    <div class="mact">
+      <button class="btn bgray bsm" onclick="cerrar('modal-sol')">Cancelar</button>
+      <button class="btn bmora bsm" id="bms" onclick="guardarSolicitud()">Publicar en la pizarra</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL ATENDER ══ -->
+<div class="mbg" id="modal-at">
+  <div class="modal">
+    <h3>Atender solicitud</h3>
+    <div id="at-alert"></div>
+    <div id="at-resumen" class="modal-section" style="margin-bottom:14px"></div>
+
+    <div style="margin-bottom:12px"><label>Estado</label>
+      <select id="atestado" onchange="cambioEstadoAtender()">
+        <option value="solicitado">Solicitado — aún sin tocar</option>
+        <option value="cotizando">Cotizando — preguntando precio</option>
+        <option value="pedido">Pedido al proveedor</option>
+        <option value="recibida">Recibida — ya llegó</option>
+        <option value="rechazada">Rechazada — no se compra</option>
+      </select></div>
+
+    <div style="margin-bottom:12px"><label>Proveedor</label>
+      <select id="atprov"><option value="">— Sin definir —</option></select>
+      <div class="nota-campo" id="atprov-nota"></div></div>
+
+    <div style="margin-bottom:12px"><label>Fecha esperada de llegada</label>
+      <input id="atfecha" type="date">
+      <div class="nota-campo" id="atfecha-nota"></div></div>
+
+    <div style="margin-bottom:4px"><label>Respuesta para quien pidió</label>
+      <textarea id="atresp" placeholder="Ej: se pidió el lunes, llega el jueves"
+        style="min-height:56px"></textarea></div>
+
+    <div class="mact">
+      <button class="btn bgray bsm" onclick="borrarSolicitud()" id="batdel">Eliminar</button>
+      <div style="flex:1"></div>
+      <button class="btn bgray bsm" onclick="cerrar('modal-at')">Cancelar</button>
+      <button class="btn bmora bsm" id="bat" onclick="guardarAtender()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL PROVEEDOR ══ -->
+<div class="mbg" id="modal-prov">
+  <div class="modal">
+    <h3 id="pv-title">Nuevo proveedor</h3>
+    <div id="pv-malert"></div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Nombre *</label><input id="pvnombre" type="text" placeholder="Nombre del proveedor"></div>
+      <div><label>RUT</label><input id="pvrut" type="text" placeholder="12.345.678-9"></div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Contacto</label><input id="pvcontacto" type="text" placeholder="Nombre de la persona"></div>
+      <div><label>Teléfono</label><input id="pvtel" type="text" placeholder="+56 9 1234 5678"></div>
+    </div>
+    <div style="margin-bottom:12px"><label>Email</label><input id="pvemail" type="text" placeholder="Opcional"></div>
+    <div style="margin-bottom:12px"><label>Cómo se le pide</label>
+      <input id="pvcomo" type="text" placeholder="Ej: WhatsApp al vendedor, portal web, correo a ventas@">
+      <div class="nota-campo" style="display:block">
+        Lo que hay que hacer para encargarle algo. Le ahorra la pregunta a quien
+        tome la compra la próxima vez.
+      </div></div>
+    <div style="margin-bottom:12px"><label>Notas</label>
+      <textarea id="pvnotas" placeholder="Condiciones de pago, mínimos, observaciones"
+        style="min-height:56px"></textarea></div>
+    <div style="margin-bottom:4px"><label>Estado</label>
+      <select id="pvactivo"><option value="1">Activo</option><option value="0">Inactivo</option></select></div>
+    <div class="mact">
+      <button class="btn bgray bsm" id="bpvdel" onclick="borrarProveedor()">Eliminar</button>
+      <div style="flex:1"></div>
+      <button class="btn bgray bsm" onclick="cerrar('modal-prov')">Cancelar</button>
+      <button class="btn bmora bsm" id="bpv" onclick="guardarProveedor()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL VÍNCULO PRODUCTO-PROVEEDOR ══ -->
+<div class="mbg" id="modal-pp">
+  <div class="modal">
+    <h3 id="pp-title">Producto del proveedor</h3>
+    <div id="pp-alert"></div>
+    <div style="margin-bottom:12px"><label>Producto *</label>
+      <select id="ppprod"></select></div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Precio por unidad base</label>
+        <input id="ppprecio" type="number" min="0" step="1" placeholder="Opcional">
+        <div class="nota-campo" style="display:block">
+          Por unidad, no por caja: así se compara con el costo de bodega.
+        </div></div>
+      <div><label>Plazo de entrega (días)</label>
+        <input id="ppplazo" type="number" min="0" max="365" placeholder="Ej: 7">
+        <div class="nota-campo" style="display:block">
+          Es lo que convierte la cobertura en una decisión.
+        </div></div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Pedido mínimo (unidades base)</label>
+        <input id="ppmin" type="number" min="0" step="0.01" placeholder="Opcional"></div>
+      <div><label>¿Es el preferido?</label>
+        <select id="pppref"><option value="0">No</option><option value="1">Sí</option></select>
+        <div class="nota-campo" style="display:block">Solo uno por producto.</div></div>
+    </div>
+    <div style="margin-bottom:4px"><label>Notas</label>
+      <input id="ppnotas" type="text" placeholder="Opcional"></div>
+    <div class="mact">
+      <button class="btn bgray bsm" id="bppdel" onclick="borrarVinculo()">Quitar</button>
+      <div style="flex:1"></div>
+      <button class="btn bgray bsm" onclick="cerrar('modal-pp')">Cancelar</button>
+      <button class="btn bmora bsm" id="bpp" onclick="guardarVinculo()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+async function pedir(url, opciones) {
+  try {
+    return await fetch(url, opciones);
+  } catch (e) {
+    throw new Error(explicarRed(e));
+  }
+}
+
+// El Worker declara qué cabeceras acepta:
+//   'Access-Control-Allow-Headers': 'Content-Type,X-Admin-Token'
+// Si el navegador ve una cabecera fuera de esa lista, hace una consulta previa,
+// el Worker no la autoriza y la petición NUNCA SALE. El error que llega es
+// "Failed to fetch", que parece un problema de red y no lo es.
+//
+// Por eso acá no se manda ninguna otra. Nada de `Prefer` ni de `Range`: el
+// Worker ya fuerza `Prefer: return=minimal` por su cuenta, y para paginar se
+// usan `limit` y `offset` en la dirección, que viajan como parte de la URL.
+const CABECERAS_PERMITIDAS = ['Content-Type', 'X-Admin-Token'];
+
+function cabeceras(conCuerpo) {
+  const h = { 'X-Admin-Token': TOKEN };
+  if (conCuerpo) h['Content-Type'] = 'application/json';
+  return h;
+}
+
+function revisarAuth(r) {
+  if (r.status === 401) {
+    TOKEN = '';
+    try { sessionStorage.removeItem('nativo_token'); } catch (_) {}
+    document.getElementById('app').style.display   = 'none';
+    document.getElementById('login').style.display = 'flex';
+    document.getElementById('lerr').innerHTML =
+      '<div class="alert ae">La sesión expiró o la clave cambió. Ingresa de nuevo.</div>';
+    throw new Error('Sesión no autorizada');
+  }
+  return r;
+}
+
+async function sbSend(path, method, body) {
+  const o = { method, headers: cabeceras(true) };
+  if (body !== undefined) o.body = JSON.stringify(body);
+  const r = revisarAuth(await pedir(`${PROXY}/supabase/${path}`, o));
+  if (!r.ok) {
+    let d = '';
+    try { d = (await r.text()).slice(0, 220); } catch (_) {}
+    throw new Error(`HTTP ${r.status}${d ? ' · ' + d : ''}`);
+  }
+  return r;
+}
+
+async function sbJson(path) {
+  const r = revisarAuth(await pedir(`${PROXY}/supabase/${path}`, { headers: cabeceras(false) }));
+  if (!r.ok) throw new Error('HTTP ' + r.status + ' en ' + path.split('?')[0]);
+  const d = await r.json();
+  if (!Array.isArray(d)) throw new Error('Respuesta inválida en ' + path.split('?')[0]);
+  return d;
+}
+
+
+// El libro de movimientos crece con los años y PostgREST corta en 1000 filas
+// por respuesta, así que se pide por tandas.
+//
+// La paginación va por `limit` y `offset` en la dirección, no por la cabecera
+// `Range`. El Worker arma sus propios headers hacia Supabase y descarta los del
+// navegador: un `Range` nunca llegaría, PostgREST devolvería siempre las mismas
+// mil filas y el libro quedaría cortado sin avisar. La dirección, en cambio, se
+// reenvía completa.
+//
+// El Set de ids es el cinturón de seguridad: si por lo que sea una tanda
+// repitiera filas, el ciclo corta en vez de inflar el libro con copias, que es
+// la falla que haría que los saldos mientan.
+// El techo evita que un error de paginación deje al navegador pidiendo tandas
+// para siempre. Pero alcanzarlo tiene una consecuencia peor acá que en admin:
+// si el libro viene incompleto, un pedido que YA se descargó pierde su marca,
+// la pantalla vuelve a ofrecer el botón de descargar, y el stock se descuenta
+// dos veces. Antes eso pasaba en silencio. Ahora no.
+const TECHO_FILAS = 60000;
+
+function avisarTruncado(tabla, cuantas) {
+  let caja = document.getElementById('aviso-truncado');
+  if (!caja) {
+    caja = document.createElement('div');
+    caja.id = 'aviso-truncado';
+    caja.style.cssText =
+      'position:fixed;left:0;right:0;top:0;z-index:9999;background:#7f1d1d;' +
+      'color:#fff;padding:12px 16px;font-size:13px;font-weight:800;' +
+      'line-height:1.5;box-shadow:0 2px 12px rgba(0,0,0,.3)';
+    document.body.appendChild(caja);
+  }
+  caja.textContent =
+    '⚠ EL LIBRO ESTÁ INCOMPLETO — "' + tabla + '" tiene más de ' +
+    cuantas.toLocaleString('es-CL') + ' movimientos y solo se cargaron esos. ' +
+    'Los saldos que ves están MAL y un pedido ya descargado puede volver a ' +
+    'ofrecerse. No anotes movimientos ni descargues pedidos hasta resolverlo.';
+}
+
+async function sbTodo(tabla, query) {
+  const paso = 1000, vistos = new Set(), out = [];
+  let completo = false;
+  for (let desde = 0; desde < TECHO_FILAS; desde += paso) {
+    const url = `${PROXY}/supabase/${tabla}?${query}&limit=${paso}&offset=${desde}`;
+    const r = revisarAuth(await pedir(url, { headers: cabeceras(false) }));
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' en ' + tabla);
+    const d = await r.json();
+    if (!Array.isArray(d)) throw new Error('Respuesta inválida en ' + tabla);
+    let nuevos = 0;
+    for (const f of d) { if (!vistos.has(f.id)) { vistos.add(f.id); out.push(f); nuevos++; } }
+    // Salir acá significa que se acabaron las filas: el libro está completo.
+    if (d.length < paso || nuevos === 0) { completo = true; break; }
+  }
+  // Salir por agotar el for significa que se alcanzó el techo: falta data.
+  if (!completo) avisarTruncado(tabla, out.length);
+  return out;
+}
+
+function esc(s) {
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Las cantidades pueden ser fraccionarias (kilos, litros). Se muestran sin
+// decimales cuando son enteras, para que 12 no se lea "12,000".
+function num(n) {
+  const v = Number(n) || 0;
+  const dec = Math.abs(v % 1) > 0.0005 ? 3 : 0;
+  return v.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: dec });
+}
+function pesos(n) {
+  return '$' + Math.round(Number(n) || 0).toLocaleString('es-CL');
+}
+function fechaCorta(f) {
+  if (!f) return '';
+  const p = String(f).slice(0, 10).split('-');
+  return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : String(f);
+}
+function toast(msg, err) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (err ? ' err' : '');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => { t.className = ''; }, err ? 5200 : 3000);
+}
+// Misma firma que en admin.html y planner.html: el texto va segundo y la
+// clase tercera. Estaba al revés y una llamada copiada de un archivo al otro
+// no fallaba: metía la clase CSS en el mensaje y el mensaje en la clase.
+function alerta(id, msg, cls) {
+  const e = document.getElementById(id);
+  if (e) e.innerHTML = msg ? `<div class="alert ${cls}">${msg}</div>` : '';
+}
+
+
+
+// ══════════════════════════════════════════════════════════════
+//  ESTADO
+// ══════════════════════════════════════════════════════════════
+let quien       = '';       // quién está usando la pantalla
+let solicitudes = [];       // com_pizarra
+let proveedores = [];       // com_proveedores
+let vinculos    = [];       // com_producto_proveedor
+let productos   = [];       // bod_productos
+let bodegas     = [];       // bod_bodegas
+let motivos     = [];       // bod_motivos
+let saldos      = [];       // bod_saldos
+let movs        = [];       // bod_movimientos
+let solEdit     = null;
+let provEdit    = null;
+let ppEdit      = null;
+let ppProvId    = null;
+
+const T_SOL  = 'com_solicitudes';
+const T_PIZ  = 'com_pizarra';
+const T_PROV = 'com_proveedores';
+const T_PP   = 'com_producto_proveedor';
+
+const URGENCIAS = {
+  urgente: { lbl: 'Urgente', cls: 'bsal' },
+  pronto:  { lbl: 'Pronto',  cls: 'bam' },
+  normal:  { lbl: 'Normal',  cls: 'bent' }
+};
+const ESTADOS = {
+  solicitado: { lbl: 'Solicitado', cls: 'bam',  abierto: true  },
+  cotizando:  { lbl: 'Cotizando',  cls: 'bmov', abierto: true  },
+  pedido:     { lbl: 'Pedido',     cls: 'bent', abierto: true  },
+  recibida:   { lbl: 'Recibida',   cls: 'bok',  abierto: false },
+  rechazada:  { lbl: 'Rechazada',  cls: 'bsal', abierto: false }
+};
+const tiene = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+const provPorId = id => proveedores.find(p => String(p.id) === String(id)) || null;
+const prodPorId = id => productos.find(p => String(p.id) === String(id)) || null;
+
+// El factor de conversión de caja a unidad base. Es la CUARTA copia de esta
+// misma regla en la plataforma: `factorDe` en bodega, `bodFactor` en admin, la
+// vista `bod_saldos`, y esta. Se repite porque el Worker solo enruta tablas y
+// no puede llamar funciones de la base, así que cada pantalla la reimplementa.
+// Está anotado como pendiente 11 en CAMBIOS.md; si alguna vez se unifica, hay
+// que tocar las cuatro.
+function factorDe(prodId) {
+  const p = prodPorId(prodId);
+  const f = Number(p && p.unidades_caja) || 1;
+  return f >= 1 ? Math.floor(f) : 1;
+}
+function aBase(prodId, cant, medida) {
+  const q = Number(cant) || 0;
+  return (medida || 'caja') === 'caja' ? q * factorDe(prodId) : q;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════════════════════════
+async function doLogin() {
+  const clave = document.getElementById('pin').value;
+  const btn   = document.getElementById('bentrar');
+  if (!clave) return;
+  btn.innerHTML = '<span class="sp"></span>Verificando...'; btn.disabled = true;
+  document.getElementById('lerr').innerHTML = '';
+  try {
+    const r = await pedir(`${PROXY}/supabase/${T_PROV}?select=id&limit=1`, {
+      headers: { 'X-Admin-Token': clave }
+    });
+    if (r.status === 401) {
+      document.getElementById('lerr').innerHTML = '<div class="alert ae">Clave incorrecta.</div>';
+      btn.innerHTML = 'Ingresar →'; btn.disabled = false; return;
+    }
+    // 403 es el Worker rechazando la tabla; 404 es Supabase diciendo que no
+    // existe. Los dos significan lo mismo para quien mira: falta un paso de la
+    // instalación. Distinguirlos acá no ayuda a nadie.
+    if (r.status === 403 || r.status === 404) {
+      document.getElementById('lerr').innerHTML =
+        '<div class="alert ae" style="line-height:1.55">El módulo de compras no está instalado.<br><br>' +
+        'Falta correr <b>PREPARADO_compras.sql</b> en Supabase, o agregar las tablas ' +
+        '<b>com_*</b> a la lista TABLAS del Worker. Se ve en <b>/salud</b>.</div>';
+      btn.innerHTML = 'Ingresar →'; btn.disabled = false; return;
+    }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+  } catch (e) {
+    document.getElementById('lerr').innerHTML = `<div class="alert ae">${esc(e.message)}</div>`;
+    btn.innerHTML = 'Ingresar →'; btn.disabled = false; return;
+  }
+  TOKEN = clave;
+  try { sessionStorage.setItem('nativo_token', clave); } catch (_) {}
+  document.getElementById('pin').value = '';
+  entrar();
+  btn.innerHTML = 'Ingresar →'; btn.disabled = false;
+}
+
+function entrar() {
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display   = 'block';
+  cargarQuien();
+  cargarTodo();
+}
+
+function salir() {
+  TOKEN = '';
+  try { sessionStorage.removeItem('nativo_token'); } catch (_) {}
+  document.getElementById('app').style.display   = 'none';
+  document.getElementById('login').style.display = 'flex';
+  document.getElementById('pin').value = '';
+}
+
+// ── quién está usando la pantalla ──
+//
+// Mismo mecanismo que el operador de bodega: se guarda en el navegador. No hay
+// identidad real —el token de admin es una sola clave compartida—, así que
+// esto sirve para saber a quién preguntarle por una solicitud, NO como prueba
+// de quién pidió qué. Está anotado como pendiente 10.
+function cargarQuien() {
+  try { quien = localStorage.getItem('nativo_compras_quien') || ''; } catch (_) { quien = ''; }
+  if (!quien) pedirQuien();
+  pintarQuien();
+}
+function pintarQuien() {
+  document.getElementById('quien-chip').textContent = quien || 'ponte tu nombre';
+}
+function pedirQuien() {
+  const v = prompt('¿Quién eres? Tu nombre queda en las solicitudes que publiques.', quien || '');
+  if (v === null) return;
+  quien = v.trim().slice(0, 60);
+  try { localStorage.setItem('nativo_compras_quien', quien); } catch (_) {}
+  pintarQuien();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  NAVEGACIÓN
+// ══════════════════════════════════════════════════════════════
+function goTab(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('act'));
+  document.querySelectorAll('.tb').forEach(b => b.classList.remove('act'));
+  document.getElementById('page-' + id).classList.add('act');
+  btn.classList.add('act');
+  pintarPestana(id);
+}
+function pintarPestana(id) {
+  if (id === 'pizarra')     renderPizarra();
+  if (id === 'reponer')     renderReponer();
+  if (id === 'proveedores') renderProveedores();
+}
+// Cuando termina la carga hay que repintar lo que esté a la vista, no solo la
+// pizarra: es el mismo error que tenía admin, donde las pestañas quedaban
+// vacías si los datos llegaban después de abrirlas.
+function repintarActiva() {
+  const p = document.querySelector('.page.act');
+  if (p) pintarPestana(p.id.replace(/^page-/, ''));
+}
+function cerrar(id) { document.getElementById(id).classList.remove('open'); }
+
+// ══════════════════════════════════════════════════════════════
+//  CARGA
+// ══════════════════════════════════════════════════════════════
+async function cargarTodo() {
+  document.getElementById('pz-list').innerHTML =
+    '<div style="text-align:center;padding:28px"><span class="sp"></span>Cargando...</div>';
+  try {
+    const [piz, prov, vin, prod, bod, mot, sal] = await Promise.all([
+      sbJson(`${T_PIZ}?select=*&order=creada.desc`),
+      sbJson(`${T_PROV}?select=*&order=nombre.asc`),
+      sbJson(`${T_PP}?select=*`),
+      sbJson('bod_productos?select=*&order=nombre.asc'),
+      sbJson('bod_bodegas?select=*&order=nombre.asc'),
+      sbJson('bod_motivos?select=*'),
+      sbJson('bod_saldos?select=producto_id,bodega_id,saldo,bodega_activa')
+    ]);
+    solicitudes = piz; proveedores = prov; vinculos = vin;
+    productos = prod; bodegas = bod; motivos = mot; saldos = sal;
+    // El libro se pide aparte porque es el único que puede venir por tandas.
+    movs = await sbTodo('bod_movimientos', 'select=*&order=id.asc');
+    pintarSelectores();
+    repintarActiva();
+  } catch (e) {
+    alerta('pz-alert', 'No se pudo cargar: ' + esc(e.message), 'ae');
+    document.getElementById('pz-list').innerHTML = '';
+  }
+}
+
+function pintarSelectores() {
+  const opsProd = productos.filter(p => p.activo)
+    .map(p => `<option value="${esc(p.id)}">${esc(p.nombre)}${p.formato ? ' · ' + esc(p.formato) : ''}</option>`).join('');
+  document.getElementById('msprod').innerHTML =
+    '<option value="">— Algo que no está en bodega —</option>' + opsProd;
+  document.getElementById('ppprod').innerHTML = opsProd;
+  document.getElementById('msbod').innerHTML =
+    '<option value="">— Cualquiera —</option>' +
+    bodegas.filter(b => b.activa).map(b => `<option value="${esc(b.id)}">${esc(b.nombre)}</option>`).join('');
+  document.getElementById('atprov').innerHTML =
+    '<option value="">— Sin definir —</option>' +
+    proveedores.filter(p => p.activo).map(p => `<option value="${esc(p.id)}">${esc(p.nombre)}</option>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  PIZARRA
+// ══════════════════════════════════════════════════════════════
+const esAbierta = s => !!(ESTADOS[s.estado] && ESTADOS[s.estado].abierto);
+
+function renderPizarra() {
+  const cont = document.getElementById('pz-list');
+  const q    = (document.getElementById('pzq').value || '').trim().toLowerCase();
+  const f    = document.getElementById('pzf').value;
+
+  // Los contadores se calculan sobre TODAS las solicitudes, no sobre las
+  // filtradas: el punto de los números de arriba es ver el estado general aunque
+  // estés mirando un subconjunto.
+  const abiertas = solicitudes.filter(esAbierta);
+  const urgentes = abiertas.filter(s => s.urgencia === 'urgente');
+  const atrasadas = abiertas.filter(s =>
+    s.fecha_esperada && String(s.fecha_esperada) < hoyISO());
+  document.getElementById('pz-stats').innerHTML = `
+    <div class="stat"><div class="sn">${abiertas.length}</div><div class="sl">Abiertas</div></div>
+    <div class="stat"><div class="sn" style="color:${urgentes.length ? 'var(--rd)' : ''}">${urgentes.length}</div><div class="sl">Urgentes</div></div>
+    <div class="stat"><div class="sn" style="color:${atrasadas.length ? 'var(--rd)' : ''}">${atrasadas.length}</div><div class="sl">Atrasadas</div></div>
+    <div class="stat"><div class="sn">${solicitudes.filter(s => s.estado === 'pedido').length}</div><div class="sl">En camino</div></div>`;
+
+  let lista = solicitudes.filter(s => {
+    if (f === 'abiertas' && !esAbierta(s)) return false;
+    if (f !== 'abiertas' && f !== 'todas' && s.estado !== f) return false;
+    if (q && ![s.que, s.pide, s.nota, s.respuesta, s.proveedor]
+      .some(t => String(t || '').toLowerCase().includes(q))) return false;
+    return true;
+  });
+
+  // Orden: primero lo urgente, después lo atrasado, después lo más viejo. Una
+  // pizarra ordenada por fecha de creación entierra lo urgente que se pidió
+  // ayer debajo de lo normal que se pidió hace un mes.
+  const peso = { urgente: 0, pronto: 1, normal: 2 };
+  lista.sort((a, b) =>
+    (peso[a.urgencia] ?? 3) - (peso[b.urgencia] ?? 3) ||
+    String(a.creada).localeCompare(String(b.creada)));
+
+  if (!lista.length) {
+    cont.innerHTML = '<div class="alert ai">No hay solicitudes que mostrar.</div>';
+    return;
+  }
+
+  cont.innerHTML = lista.map(s => {
+    const e = ESTADOS[s.estado] || { lbl: s.estado, cls: 'bmov' };
+    const u = URGENCIAS[s.urgencia] || URGENCIAS.normal;
+    const atrasada = esAbierta(s) && s.fecha_esperada && String(s.fecha_esperada) < hoyISO();
+
+    // El saldo actual del producto al lado de la solicitud: es lo que permite
+    // decidir sin ir a buscarlo a otra pantalla.
+    const saldoHtml = s.producto_id != null && s.saldo_base != null
+      ? `<span class="sub" style="margin:0">Stock hoy: <b>${num(s.saldo_base)}</b> ${esc(s.unidad || 'un')}</span>`
+      : '';
+
+    const prefHtml = s.preferido
+      ? `<div class="sub" style="margin:4px 0 0">Preferido: <b>${esc(s.preferido)}</b>` +
+        (s.preferido_plazo_dias != null ? ` · llega en ${s.preferido_plazo_dias} días` : '') +
+        (s.preferido_como_pedir ? ` · ${esc(s.preferido_como_pedir)}` : '') + '</div>'
+      : '';
+
+    return `<div class="modal-section" style="margin-bottom:10px${atrasada ? ';border-color:var(--rd)' : ''}">
+      <div class="pick" style="align-items:flex-start;border:none;background:none;padding:0">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:800;font-size:14px">${esc(s.que)}
+            ${s.formato ? `<span class="sub" style="margin:0">· ${esc(s.formato)}</span>` : ''}</div>
+          <div style="margin:4px 0">
+            <span class="badge ${e.cls}">${esc(e.lbl)}</span>
+            <span class="badge ${u.cls}">${esc(u.lbl)}</span>
+            ${atrasada ? '<span class="badge bsal">⏰ atrasada</span>' : ''}
+          </div>
+          <div style="font-size:13px;font-weight:700">
+            Pide <b>${num(s.cantidad)}</b> ${s.medida === 'unidad' ? 'unidad(es)' : 'caja(s)'}
+            ${s.bodega ? ' · para ' + esc(s.bodega) : ''}
+          </div>
+          ${saldoHtml}
+          ${s.pide ? `<div class="sub" style="margin:4px 0 0">Pidió: <b>${esc(s.pide)}</b> · ${fechaCorta(s.creada)}</div>` : ''}
+          ${s.nota ? `<div class="msg-cli" style="margin-top:6px">💬 ${esc(s.nota)}</div>` : ''}
+          ${s.respuesta ? `<div class="alert ai" style="margin:6px 0 0">↩ ${esc(s.respuesta)}${s.atiende ? ' — ' + esc(s.atiende) : ''}</div>` : ''}
+          ${s.proveedor ? `<div class="sub" style="margin:4px 0 0">Encargado a: <b>${esc(s.proveedor)}</b>${s.fecha_esperada ? ' · llega el ' + fechaCorta(s.fecha_esperada) : ''}</div>` : prefHtml}
+        </div>
+        <button class="btn bam2 bsm" onclick="abrirAtender(${s.id})">Atender</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+const hoyISO = () => new Date().toISOString().slice(0, 10);
+
+function cambioProductoSolicitud() {
+  const id = document.getElementById('msprod').value;
+  // La descripción libre solo tiene sentido cuando NO se eligió un producto del
+  // catálogo. Con producto elegido, el nombre ya lo pone la base.
+  document.getElementById('msdesc-box').style.display = id ? 'none' : '';
+  const nota = document.getElementById('msprod-nota');
+  if (!id) { nota.style.display = 'none'; return; }
+  const p = prodPorId(id);
+  const s = saldoDe(id);
+  nota.style.display = 'block';
+  nota.textContent = `Stock hoy: ${num(s)} ${p ? (p.unidad || 'un') : 'un'}` +
+    (p && p.unidades_caja > 1 ? ` · ${p.unidades_caja} por caja` : '');
+}
+
+// Saldo total del producto en bodegas activas. Se lee de la vista `bod_saldos`
+// y no se recalcula del libro: es el mismo número que muestra admin.
+function saldoDe(prodId) {
+  return saldos
+    .filter(s => String(s.producto_id) === String(prodId) && s.bodega_activa)
+    .reduce((a, s) => a + (Number(s.saldo) || 0), 0);
+}
+
+function abrirSolicitud() {
+  if (!quien) { pedirQuien(); if (!quien) return; }
+  solEdit = null;
+  document.getElementById('ms-alert').innerHTML = '';
+  document.getElementById('msprod').value = '';
+  document.getElementById('msdesc').value = '';
+  document.getElementById('mscant').value = '';
+  document.getElementById('msmed').value  = 'caja';
+  document.getElementById('msurg').value  = 'normal';
+  document.getElementById('msbod').value  = '';
+  document.getElementById('msnota').value = '';
+  cambioProductoSolicitud();
+  abrirModal('modal-sol');
+}
+
+async function guardarSolicitud() {
+  const prodId = document.getElementById('msprod').value;
+  const desc   = document.getElementById('msdesc').value.trim();
+  const cant   = Number(document.getElementById('mscant').value);
+
+  if (!prodId && !desc)
+    return alerta('ms-alert', 'Elige un producto o escribe qué se necesita.', 'ae');
+  if (!(cant > 0))
+    return alerta('ms-alert', 'La cantidad tiene que ser mayor que cero.', 'ae');
+
+  const row = {
+    producto_id: prodId ? Number(prodId) : null,
+    descripcion: prodId ? '' : desc,
+    cantidad:    cant,
+    medida:      document.getElementById('msmed').value,
+    urgencia:    document.getElementById('msurg').value,
+    bodega_id:   document.getElementById('msbod').value
+                   ? Number(document.getElementById('msbod').value) : null,
+    nota:        document.getElementById('msnota').value.trim(),
+    pide:        quien,
+    estado:      'solicitado'
+  };
+
+  const btn = document.getElementById('bms');
+  btn.innerHTML = '<span class="sp"></span>Publicando...'; btn.disabled = true;
+  try {
+    await sbSend(T_SOL, 'POST', row);
+    await recargarPizarra();
+    cerrar('modal-sol');
+    toast('Publicado en la pizarra.');
+  } catch (e) {
+    alerta('ms-alert', 'No se pudo publicar: ' + esc(e.message), 'ae');
+  }
+  btn.innerHTML = 'Publicar en la pizarra'; btn.disabled = false;
+}
+
+async function recargarPizarra() {
+  solicitudes = await sbJson(`${T_PIZ}?select=*&order=creada.desc`);
+  renderPizarra();
+}
+
+// ── atender ──
+function abrirAtender(id) {
+  const s = solicitudes.find(x => String(x.id) === String(id));
+  if (!s) return;
+  if (!quien) { pedirQuien(); if (!quien) return; }
+  solEdit = s;
+
+  document.getElementById('at-alert').innerHTML = '';
+  document.getElementById('at-resumen').innerHTML = `
+    <div style="font-weight:800;font-size:14px">${esc(s.que)}</div>
+    <div style="font-size:13px;font-weight:700;margin-top:4px">
+      ${num(s.cantidad)} ${s.medida === 'unidad' ? 'unidad(es)' : 'caja(s)'}
+      ${s.bodega ? ' · para ' + esc(s.bodega) : ''}</div>
+    ${s.pide ? `<div class="sub" style="margin:4px 0 0">Pidió ${esc(s.pide)} el ${fechaCorta(s.creada)}</div>` : ''}
+    ${s.nota ? `<div class="msg-cli" style="margin-top:6px">💬 ${esc(s.nota)}</div>` : ''}`;
+
+  document.getElementById('atestado').value = s.estado;
+  document.getElementById('atprov').value   = s.proveedor_id || s.preferido_id || '';
+  document.getElementById('atfecha').value  = s.fecha_esperada || '';
+  document.getElementById('atresp').value   = s.respuesta || '';
+
+  const pn = document.getElementById('atprov-nota');
+  if (!s.proveedor_id && s.preferido_id) {
+    pn.style.display = 'block';
+    pn.textContent = `Propuesto: ${s.preferido} es el proveedor preferido de este producto.`;
+  } else { pn.style.display = 'none'; }
+
+  // Solo se puede borrar lo que todavía nadie atendió. Una solicitud recibida
+  // es parte del historial de compras y borrarla esconde lo que se compró.
+  document.getElementById('batdel').style.display = s.estado === 'solicitado' ? '' : 'none';
+
+  cambioEstadoAtender();
+  abrirModal('modal-at');
+}
+
+function cambioEstadoAtender() {
+  const e = document.getElementById('atestado').value;
+  const n = document.getElementById('atfecha-nota');
+  const s = solEdit;
+  if (e === 'pedido') {
+    n.style.display = 'block';
+    // Si el proveedor tiene plazo declarado, se propone la fecha. Es la razón
+    // de ser del campo `plazo_dias`: convertirlo en una fecha concreta que
+    // después permite ver qué está atrasado sin preguntarle a nadie.
+    const prov = provPorId(document.getElementById('atprov').value);
+    const v = vinculos.find(x => prov && s && String(x.proveedor_id) === String(prov.id) &&
+                                 String(x.producto_id) === String(s.producto_id));
+    if (v && v.plazo_dias != null && !document.getElementById('atfecha').value) {
+      const d = new Date();
+      d.setDate(d.getDate() + Number(v.plazo_dias));
+      document.getElementById('atfecha').value = d.toISOString().slice(0, 10);
+      n.textContent = `Propuesta: ${v.plazo_dias} días de plazo declarados para este proveedor.`;
+    } else {
+      n.textContent = 'Con esta fecha la pizarra puede marcar lo que está atrasado.';
+    }
+  } else { n.style.display = 'none'; }
+}
+
+async function guardarAtender() {
+  if (!solEdit) return;
+  const estado = document.getElementById('atestado').value;
+  const cierra = estado === 'recibida' || estado === 'rechazada';
+
+  const row = {
+    estado,
+    proveedor_id:   document.getElementById('atprov').value
+                      ? Number(document.getElementById('atprov').value) : null,
+    fecha_esperada: document.getElementById('atfecha').value || null,
+    respuesta:      document.getElementById('atresp').value.trim(),
+    atiende:        quien,
+    // La base tiene un CHECK que exige que un estado final traiga fecha de
+    // cierre y uno abierto no la traiga. Si esto no calzara, el PATCH falla
+    // con un mensaje de restricción que nadie entiende.
+    cerrada:        cierra ? new Date().toISOString() : null
+  };
+
+  const btn = document.getElementById('bat');
+  btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
+  try {
+    await sbSend(`${T_SOL}?id=eq.${encodeURIComponent(solEdit.id)}`, 'PATCH', row);
+    await recargarPizarra();
+    cerrar('modal-at');
+    toast(estado === 'recibida'
+      ? 'Marcada como recibida. Acuérdate de anotar la entrada en bodega.'
+      : 'Solicitud actualizada.');
+  } catch (e) {
+    alerta('at-alert', 'No se pudo guardar: ' + esc(e.message), 'ae');
+  }
+  btn.innerHTML = 'Guardar'; btn.disabled = false;
+}
+
+async function borrarSolicitud() {
+  if (!solEdit) return;
+  if (!confirm(`¿Eliminar la solicitud de "${solEdit.que}"?`)) return;
+  try {
+    await sbSend(`${T_SOL}?id=eq.${encodeURIComponent(solEdit.id)}`, 'DELETE');
+    await recargarPizarra();
+    cerrar('modal-at');
+    toast('Solicitud eliminada.');
+  } catch (e) {
+    alerta('at-alert', 'No se pudo eliminar: ' + esc(e.message), 'ae');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  QUÉ REPONER
+// ══════════════════════════════════════════════════════════════
+//
+// El cálculo, en una línea: cuánto sale por día × cuántos días tarda el
+// proveedor = cuánto hay que tener cuando se pide. Si el stock está por debajo
+// de eso, ya se pidió tarde.
+//
+// El consumo cuenta salidas y traslados fuera de la bodega solo si son ventas
+// o mermas. Un traslado entre bodegas propias NO es consumo: el producto sigue
+// siendo tuyo. Contarlo inflaría el consumo y haría comprar de más.
+function consumoDiario(prodId, dias) {
+  const desde = new Date();
+  desde.setDate(desde.getDate() - dias);
+  const corte = desde.toISOString().slice(0, 10);
+
+  const salida = new Set(motivos.filter(m => m.es_venta || m.es_perdida).map(m => String(m.id)));
+  let total = 0;
+  for (const m of movs) {
+    if (String(m.producto_id) !== String(prodId)) continue;
+    if (String(m.fecha).slice(0, 10) < corte) continue;
+    if (m.tipo !== 'salida') continue;
+    if (!salida.has(String(m.motivo_id))) continue;
+    total += Math.abs(aBase(prodId, m.cantidad, m.medida));
+  }
+  return { total, diario: total / dias };
+}
+
+// El mejor proveedor para un producto: el preferido si lo hay, si no el de
+// plazo más corto. Sin plazo declarado no se puede calcular el punto de
+// reposición, y eso se dice en la pantalla en vez de inventar un número.
+function proveedorDe(prodId) {
+  const vs = vinculos.filter(v => String(v.producto_id) === String(prodId));
+  if (!vs.length) return null;
+  const pref = vs.find(v => v.preferido);
+  const v = pref || vs.slice().sort((a, b) =>
+    (a.plazo_dias ?? 999) - (b.plazo_dias ?? 999))[0];
+  return { ...v, prov: provPorId(v.proveedor_id) };
+}
+
+function renderReponer() {
+  const dias = Number(document.getElementById('rpdias').value) || 60;
+  document.getElementById('rp-dias-lbl').textContent = dias;
+  const soloRiesgo = document.getElementById('rpf').value === 'riesgo';
+
+  const filas = productos.filter(p => p.activo).map(p => {
+    const { total, diario } = consumoDiario(p.id, dias);
+    const stock = saldoDe(p.id);
+    const v = proveedorDe(p.id);
+    const plazo = v && v.plazo_dias != null ? Number(v.plazo_dias) : null;
+    // Sin consumo no hay cobertura que calcular: dividir por cero daría
+    // infinito y mostrar "∞ días" en una tabla de reposición es ruido.
+    const cobertura = diario > 0 ? stock / diario : null;
+    // El punto de reposición lleva un colchón del 30% sobre el plazo: los
+    // proveedores se atrasan y el consumo tiene semanas malas. Sin colchón, la
+    // mitad de las veces se llega justo, que en la práctica es tarde.
+    const punto = plazo != null && diario > 0 ? diario * plazo * 1.3 : null;
+    const alerta = punto != null && stock <= punto;
+    const sinDatos = diario > 0 && plazo == null;
+    return { p, total, diario, stock, v, plazo, cobertura, punto, alerta, sinDatos };
+  });
+
+  const enRiesgo = filas.filter(f => f.alerta);
+  const lista = (soloRiesgo ? filas.filter(f => f.alerta || f.sinDatos) : filas)
+    .sort((a, b) => (a.cobertura ?? 1e9) - (b.cobertura ?? 1e9));
+
+  const sinPlazo = filas.filter(f => f.sinDatos).length;
+  let aviso = '';
+  if (enRiesgo.length)
+    aviso += `<div class="alert ae" style="margin-bottom:10px">⚠️ <b>${enRiesgo.length} producto(s)</b> ` +
+      'bajo el punto de reposición: el stock no alcanza a cubrir el plazo del proveedor.</div>';
+  if (sinPlazo)
+    aviso += `<div class="alert an" style="margin-bottom:10px">${sinPlazo} producto(s) con consumo ` +
+      'pero sin plazo de proveedor declarado. Sin ese dato no se puede saber cuándo pedir: ' +
+      'agrégalo en <b>Proveedores</b>.</div>';
+  if (!enRiesgo.length && !sinPlazo)
+    aviso = '<div class="alert ai" style="margin-bottom:10px">✔ Ningún producto bajo el punto de reposición.</div>';
+
+  if (!lista.length) {
+    document.getElementById('rp-list').innerHTML = aviso;
+    return;
+  }
+
+  document.getElementById('rp-list').innerHTML = aviso + `<div class="tw"><table>
+    <thead><tr>
+      <th>Producto</th><th>Stock</th><th>Consumo/día</th>
+      <th>Cobertura</th><th>Proveedor</th><th></th>
+    </tr></thead><tbody>${lista.map(f => {
+      const cob = f.cobertura == null
+        ? '<span class="sub" style="margin:0">sin consumo</span>'
+        : `<b style="color:${f.alerta ? 'var(--rd)' : 'inherit'}">${Math.floor(f.cobertura)} días</b>`;
+      const prov = f.v && f.v.prov
+        ? `${esc(f.v.prov.nombre)}${f.plazo != null ? ` <span class="sub" style="margin:0">· ${f.plazo}d</span>` : ' <span class="sub" style="margin:0">· sin plazo</span>'}`
+        : '<span class="sub" style="margin:0">sin proveedor</span>';
+      // Cuánto pedir: lo que falta para cubrir el plazo más el colchón,
+      // redondeado hacia arriba a cajas completas, porque nadie compra media.
+      const falta = f.punto != null && f.stock < f.punto ? f.punto - f.stock : 0;
+      const cajas = falta > 0 ? Math.ceil(falta / factorDe(f.p.id)) : 0;
+      return `<tr>
+        <td><div style="font-weight:700;font-size:13px">${esc(f.p.nombre)}</div>
+          ${f.p.formato ? `<div class="sub" style="margin:2px 0 0">${esc(f.p.formato)}</div>` : ''}</td>
+        <td style="font-size:13px;font-weight:700">${num(f.stock)} ${esc(f.p.unidad || 'un')}</td>
+        <td style="font-size:13px">${f.diario > 0 ? num(Math.round(f.diario * 10) / 10) : '—'}</td>
+        <td style="font-size:13px">${cob}</td>
+        <td style="font-size:12px">${prov}</td>
+        <td>${cajas > 0
+          ? `<button class="btn bam2 bsm" onclick="pedirDesdeReponer(${f.p.id},${cajas})">Pedir ${cajas} caja(s)</button>`
+          : ''}</td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
+// Abre la pizarra con el producto y la cantidad ya puestos. El punto es que
+// pasar de "veo que falta" a "quedó pedido" sea un clic y no volver a escribir
+// lo que la pantalla ya sabe.
+function pedirDesdeReponer(prodId, cajas) {
+  abrirSolicitud();
+  document.getElementById('msprod').value = String(prodId);
+  document.getElementById('mscant').value = String(cajas);
+  document.getElementById('msmed').value  = 'caja';
+  document.getElementById('msurg').value  = 'pronto';
+  document.getElementById('msnota').value =
+    'Sugerido por la pantalla de reposición: el stock no cubre el plazo del proveedor.';
+  cambioProductoSolicitud();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  PROVEEDORES
+// ══════════════════════════════════════════════════════════════
+function renderProveedores() {
+  const q = (document.getElementById('pvq').value || '').trim().toLowerCase();
+  const lista = proveedores.filter(p =>
+    !q || [p.nombre, p.contacto, p.email, p.notas].some(t => String(t || '').toLowerCase().includes(q)));
+
+  if (!lista.length) {
+    document.getElementById('pv-list').innerHTML =
+      '<div class="alert ai">No hay proveedores. Crea el primero con el botón de arriba.</div>';
+    return;
+  }
+
+  document.getElementById('pv-list').innerHTML = lista.map(p => {
+    const vs = vinculos.filter(v => String(v.proveedor_id) === String(p.id));
+    return `<div class="modal-section" style="margin-bottom:12px${p.activo ? '' : ';opacity:.55'}">
+      <div class="pick" style="align-items:flex-start;border:none;background:none;padding:0 0 8px">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:800;font-size:14px">${esc(p.nombre)}
+            ${p.activo ? '' : '<span class="badge bsal">inactivo</span>'}</div>
+          <div class="sub" style="margin:2px 0 0">
+            ${[p.rut, p.contacto, p.telefono, p.email].filter(Boolean).map(esc).join(' · ') || 'sin datos de contacto'}
+          </div>
+          ${p.como_pedir ? `<div class="sub" style="margin:2px 0 0">📞 ${esc(p.como_pedir)}</div>` : ''}
+          ${p.notas ? `<div class="sub" style="margin:2px 0 0">${esc(p.notas)}</div>` : ''}
+        </div>
+        <button class="btn bol bsm" onclick="abrirProveedor(${p.id})">Editar</button>
+        <button class="btn bam2 bsm" onclick="abrirVinculo(null,${p.id})">＋ Producto</button>
+      </div>
+      ${vs.length ? `<div class="tw"><table><tbody>${vs.map(v => {
+        const pr = prodPorId(v.producto_id);
+        return `<tr>
+          <td style="font-size:12px;font-weight:700">${esc(pr ? pr.nombre : 'producto ' + v.producto_id)}
+            ${v.preferido ? '<span class="badge bok">preferido</span>' : ''}</td>
+          <td style="font-size:12px">${v.precio != null ? pesos(v.precio) : '<span class="sub" style="margin:0">sin precio</span>'}</td>
+          <td style="font-size:12px">${v.plazo_dias != null ? v.plazo_dias + ' días' : '<span class="sub" style="margin:0">sin plazo</span>'}</td>
+          <td style="font-size:12px">${v.pedido_minimo != null ? 'mín ' + num(v.pedido_minimo) : ''}</td>
+          <td><button class="btn bol bsm" onclick="abrirVinculo(${v.id},${p.id})">Editar</button></td>
+        </tr>`;
+      }).join('')}</tbody></table></div>`
+      : '<div class="sub">Sin productos asociados. Sin al menos uno con plazo, este proveedor no aporta a la pantalla de reposición.</div>'}
+    </div>`;
+  }).join('');
+}
+
+function abrirProveedor(id) {
+  provEdit = id ? String(id) : null;
+  const p = id ? provPorId(id) : null;
+  document.getElementById('pv-title').textContent = p ? 'Editar proveedor' : 'Nuevo proveedor';
+  document.getElementById('pv-malert').innerHTML = '';
+  document.getElementById('pvnombre').value   = p ? p.nombre : '';
+  document.getElementById('pvrut').value      = p ? (p.rut || '') : '';
+  document.getElementById('pvcontacto').value = p ? (p.contacto || '') : '';
+  document.getElementById('pvtel').value      = p ? (p.telefono || '') : '';
+  document.getElementById('pvemail').value    = p ? (p.email || '') : '';
+  document.getElementById('pvcomo').value     = p ? (p.como_pedir || '') : '';
+  document.getElementById('pvnotas').value    = p ? (p.notas || '') : '';
+  document.getElementById('pvactivo').value   = (p && !p.activo) ? '0' : '1';
+  // No se ofrece borrar un proveedor con productos o solicitudes detrás: la
+  // base los desengancharía en silencio y quedaría historial sin proveedor.
+  const enUso = p && (vinculos.some(v => String(v.proveedor_id) === String(p.id)) ||
+                      solicitudes.some(s => String(s.proveedor_id) === String(p.id)));
+  document.getElementById('bpvdel').style.display = (p && !enUso) ? '' : 'none';
+  abrirModal('modal-prov');
+}
+
+async function guardarProveedor() {
+  const nombre = document.getElementById('pvnombre').value.trim();
+  if (!nombre) return alerta('pv-malert', 'Ponle un nombre al proveedor.', 'ae');
+  const row = {
+    nombre,
+    rut:        document.getElementById('pvrut').value.trim(),
+    contacto:   document.getElementById('pvcontacto').value.trim(),
+    telefono:   document.getElementById('pvtel').value.trim(),
+    email:      document.getElementById('pvemail').value.trim(),
+    como_pedir: document.getElementById('pvcomo').value.trim(),
+    notas:      document.getElementById('pvnotas').value.trim(),
+    activo:     document.getElementById('pvactivo').value === '1'
+  };
+  const btn = document.getElementById('bpv');
+  btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
+  try {
+    if (provEdit) await sbSend(`${T_PROV}?id=eq.${encodeURIComponent(provEdit)}`, 'PATCH', row);
+    else          await sbSend(T_PROV, 'POST', row);
+    proveedores = await sbJson(`${T_PROV}?select=*&order=nombre.asc`);
+    pintarSelectores();
+    renderProveedores();
+    cerrar('modal-prov');
+    toast('Proveedor guardado.');
+  } catch (e) {
+    // La base valida el RUT y la unicidad del nombre. Traducir esos dos casos
+    // evita que salga el mensaje crudo de Postgres, que nadie entiende.
+    const m = String(e.message);
+    alerta('pv-malert',
+      /rut_valido/.test(m) ? 'El RUT no es válido. Revísalo o déjalo en blanco.'
+      : /nombre_uk/.test(m) ? 'Ya existe un proveedor con ese nombre.'
+      : /rut_uk/.test(m)    ? 'Ya existe un proveedor con ese RUT.'
+      : 'No se pudo guardar: ' + esc(m), 'ae');
+  }
+  btn.innerHTML = 'Guardar'; btn.disabled = false;
+}
+
+async function borrarProveedor() {
+  if (!provEdit) return;
+  const p = provPorId(provEdit);
+  if (!confirm(`¿Eliminar el proveedor "${p ? p.nombre : provEdit}"?`)) return;
+  try {
+    await sbSend(`${T_PROV}?id=eq.${encodeURIComponent(provEdit)}`, 'DELETE');
+    proveedores = await sbJson(`${T_PROV}?select=*&order=nombre.asc`);
+    pintarSelectores();
+    renderProveedores();
+    cerrar('modal-prov');
+    toast('Proveedor eliminado.');
+  } catch (e) {
+    alerta('pv-malert', 'No se pudo eliminar: ' + esc(e.message), 'ae');
+  }
+}
+
+// ── vínculo producto ↔ proveedor ──
+function abrirVinculo(id, provId) {
+  ppEdit   = id ? String(id) : null;
+  ppProvId = String(provId);
+  const v = id ? vinculos.find(x => String(x.id) === String(id)) : null;
+  const p = provPorId(provId);
+  document.getElementById('pp-title').textContent =
+    (v ? 'Editar producto' : 'Agregar producto') + (p ? ' — ' + p.nombre : '');
+  document.getElementById('pp-alert').innerHTML = '';
+  document.getElementById('ppprod').value    = v ? String(v.producto_id) : '';
+  document.getElementById('ppprod').disabled = !!v;
+  document.getElementById('ppprecio').value  = v && v.precio != null ? v.precio : '';
+  document.getElementById('ppplazo').value   = v && v.plazo_dias != null ? v.plazo_dias : '';
+  document.getElementById('ppmin').value     = v && v.pedido_minimo != null ? v.pedido_minimo : '';
+  document.getElementById('pppref').value    = v && v.preferido ? '1' : '0';
+  document.getElementById('ppnotas').value   = v ? (v.notas || '') : '';
+  document.getElementById('bppdel').style.display = v ? '' : 'none';
+  abrirModal('modal-pp');
+}
+
+async function guardarVinculo() {
+  const prodId = document.getElementById('ppprod').value;
+  if (!prodId) return alerta('pp-alert', 'Elige un producto.', 'ae');
+  const n = campo => {
+    const v = document.getElementById(campo).value.trim();
+    return v === '' ? null : Number(v);
+  };
+  const row = {
+    proveedor_id: Number(ppProvId),
+    producto_id:  Number(prodId),
+    precio:        n('ppprecio'),
+    plazo_dias:    n('ppplazo'),
+    pedido_minimo: n('ppmin'),
+    preferido:     document.getElementById('pppref').value === '1',
+    notas:         document.getElementById('ppnotas').value.trim()
+  };
+
+  const btn = document.getElementById('bpp');
+  btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
+  try {
+    // La base tiene un índice único parcial: un solo preferido por producto.
+    // Si se marca este, primero hay que desmarcar el que estuviera, o el
+    // guardado falla. Hacerlo acá es más amable que mostrar el error y pedirle
+    // a alguien que vaya a buscar cuál era el otro.
+    if (row.preferido) {
+      const otro = vinculos.find(v => String(v.producto_id) === String(prodId) &&
+                                      v.preferido && String(v.id) !== String(ppEdit));
+      if (otro) await sbSend(`${T_PP}?id=eq.${encodeURIComponent(otro.id)}`, 'PATCH', { preferido: false });
+    }
+    if (ppEdit) await sbSend(`${T_PP}?id=eq.${encodeURIComponent(ppEdit)}`, 'PATCH', row);
+    else        await sbSend(T_PP, 'POST', row);
+    vinculos = await sbJson(`${T_PP}?select=*`);
+    renderProveedores();
+    cerrar('modal-pp');
+    toast('Guardado.');
+  } catch (e) {
+    const m = String(e.message);
+    alerta('pp-alert', /com_pp_uk/.test(m)
+      ? 'Este proveedor ya tiene ese producto asociado.'
+      : 'No se pudo guardar: ' + esc(m), 'ae');
+  }
+  btn.innerHTML = 'Guardar'; btn.disabled = false;
+}
+
+async function borrarVinculo() {
+  if (!ppEdit) return;
+  if (!confirm('¿Quitar este producto del proveedor?')) return;
+  try {
+    await sbSend(`${T_PP}?id=eq.${encodeURIComponent(ppEdit)}`, 'DELETE');
+    vinculos = await sbJson(`${T_PP}?select=*`);
+    renderProveedores();
+    cerrar('modal-pp');
+    toast('Quitado.');
+  } catch (e) {
+    alerta('pp-alert', 'No se pudo quitar: ' + esc(e.message), 'ae');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ARRANQUE
+// ══════════════════════════════════════════════════════════════
+let focoPrevio = null;
+function abrirModal(id) {
+  focoPrevio = document.activeElement;
+  const m = document.getElementById(id);
+  m.classList.add('open');
+  const f = m.querySelector('input:not([type=hidden]),select,textarea,button');
+  if (f) setTimeout(() => f.focus(), 40);
+}
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const m = document.querySelector('.mbg.open');
+  if (m) { m.classList.remove('open'); if (focoPrevio) focoPrevio.focus(); }
+});
+
+// Se llama al final del archivo a propósito, no a mitad del script: acá todas
+// las variables de estado ya existen. Es el mismo error que documenta
+// bodega.html, donde reanudar() corría antes de que los `let` se declararan y
+// la pantalla aparecía sin datos.
+(function reanudar() {
+  let guardado = null;
+  try { guardado = sessionStorage.getItem('nativo_token'); } catch (_) { return; }
+  if (!guardado) return;
+  TOKEN = guardado;
+  entrar();
+})();
+
+</script>
+</body>
+</html>
