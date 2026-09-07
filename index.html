@@ -175,10 +175,6 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
 .oc-wrap{max-width:720px;margin:0 auto;padding:24px 16px 40px}
 #oc-doc{background:var(--white);border-radius:16px;padding:32px;box-shadow:0 4px 20px rgba(107,53,184,.09)}
 #oc-alert:not(:empty){margin-bottom:16px}
-.btn-wa{
-  display:inline-block;background:#25D366;color:#fff;text-decoration:none;
-  padding:11px 20px;border-radius:10px;font-weight:900;font-size:14px;margin-top:10px;
-}
 
 /* ── ELECCIÓN DE ENTREGA ── */
 .entrega-card{background:var(--white);border-radius:16px;padding:20px;margin-bottom:16px;
@@ -375,10 +371,6 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
 //  CONFIGURACIÓN
 // ══════════════════════════════════════════════════════════════
 const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
-
-// WhatsApp de pedidos: código de país, sin +, sin espacios ni guiones.
-// Si queda el número de ejemplo, el botón de respaldo no aparece.
-const WHATSAPP = '56900000000';
 
 const CATS = [
   {id:'baldes', icon:'🧊', label:'Baldes Congelados', items:[
@@ -825,29 +817,25 @@ function cancelarConfirmacion() {
   b.disabled = false;
 }
 
-function textoWhatsapp(lineas) {
-  const msg = String(document.getElementById('mensaje').value || '').trim();
-  return `*Pedido nativo* ${sess.folio || ''}\n\n` +
-    `Empresa: ${sess.emp}\nRUT: ${sess.rut}\n` +
-    `Entrega: ${esRetiro() ? 'RETIRO EN OFICINA' : 'Despacho a domicilio'}\n` +
-    `Dirección: ${sess.dir}\nContacto: ${sess.contacto}\n` +
-    `Teléfono: ${sess.tel}\nEmail: ${sess.email}\nFecha: ${sess.fecha}\n` +
-    (msg ? `\nMensaje: ${msg}\n` : '') +
-    `\n*Productos*\n` + lineas.map(l => '• ' + l).join('\n');
-}
-
-function falloEnvio(motivo, lineas) {
-  const wa = /^\d{10,15}$/.test(WHATSAPP) && WHATSAPP !== '56900000000'
-    ? `<a class="btn-wa" target="_blank" rel="noopener"
-         href="https://wa.me/${WHATSAPP}?text=${encodeURIComponent(textoWhatsapp(lineas))}">Enviar por WhatsApp</a>`
-    : '';
+// Antes esto ofrecía además un botón de respaldo por WhatsApp. Se retiró por
+// decisión de negocio el 3 de septiembre de 2026: no se quiere publicar un
+// canal de contacto en el portal. El botón solo se dibujaba cuando el envío
+// fallaba, pero el número quedaba igual en el HTML y cualquiera que abriera el
+// código fuente lo encontraba; y un cliente que lo usara una vez se quedaba
+// con ese canal para siempre.
+//
+// La consecuencia asumida: si el Worker o Supabase se caen, el cliente solo
+// puede reintentar. El pedido no se pierde de la pantalla, pero tampoco tiene
+// otra salida. Por eso el mensaje insiste en que el pedido sigue ahí y en que
+// reintentar no duplica nada: es lo único que evita que se vaya de la página
+// pensando que perdió el trabajo.
+function falloEnvio(motivo) {
   avisoOC(
     `<div class="alert alert-error" style="line-height:1.55">
        <b>No pudimos enviar el pedido.</b><br>
-       Tu pedido no se perdió: sigue aquí abajo. Aprieta <b>Reintentar envío</b>${wa ? ', o mándanoslo por WhatsApp' : ''}.
+       Tu pedido no se perdió: sigue aquí abajo. Aprieta <b>Reintentar envío</b>.
        Reintentar no crea un pedido duplicado.
        <div class="err-detalle">Detalle técnico: ${esc(motivo)}</div>
-       ${wa}
      </div>`);
 }
 
@@ -921,7 +909,7 @@ async function enviarPedido() {
 
   btn.textContent = 'Reintentar envío';
   btn.disabled = false;
-  falloEnvio(motivo, lineas);
+  falloEnvio(motivo);
 }
 
 function pantallaConfirmacion(lineas, yaEstaba) {
