@@ -434,6 +434,8 @@ input[type=checkbox]{
       <button class="tb"     onclick="location.href='bodega.html'">📦 Bodega</button>
       <button class="tb"     onclick="goTab('clientes',this)">👥 Clientes</button>
       <button class="tb"     onclick="goTab('zonas',this)">🗺️ Zonas</button>
+      <button class="tb"     onclick="location.href='compras.html'">🛒 Compras</button>
+      <button class="tb"     onclick="location.href='kpi.html'">📊 Indicadores</button>
       <button class="tb"     onclick="location.href='planner.html'">📅 Planner</button>
     </div>
     <div class="nlogo">nativo</div>
@@ -797,6 +799,27 @@ input[type=checkbox]{
       </div>
       <div id="zn-comunas"></div>
     </div>
+
+    <div class="card">
+      <h3 style="margin-bottom:6px">Sucursales sin zona</h3>
+      <div class="sub" style="margin-bottom:10px">
+        Agrupadas por cliente. <b>Asignar a todas</b> pone la misma zona a todas
+        las sucursales de ese cliente de una vez, que es lo normal: un cliente
+        con varios locales casi siempre los tiene en la misma zona. Después
+        puedes corregir las que no.
+        <br>
+        Se guarda al instante, sin botón.
+      </div>
+      <div class="fb">
+        <input type="text" id="zsq" placeholder="🔍 Filtrar cliente, sucursal o dirección..."
+          oninput="renderSucursalesZona()">
+        <select id="zsf" onchange="renderSucursalesZona()">
+          <option value="pend">Solo las que faltan</option>
+          <option value="todas">Todas las sucursales</option>
+        </select>
+      </div>
+      <div id="zn-sucursales"></div>
+    </div>
   </div>
 
   <!-- ── RUTAS ── -->
@@ -997,6 +1020,11 @@ input[type=checkbox]{
       </div>
     </div>
     <div style="margin-bottom:12px"><label>Dirección de despacho *</label><input id="msdir" type="text" placeholder="Calle 1234, Comuna, Ciudad" onblur="proponerZonaSuc()"></div>
+    <div style="margin-bottom:12px"><label>Comuna</label>
+      <input id="mscomuna" type="text" placeholder="Ej: Las Condes" list="lista-comunas"
+        oninput="zonaDesdeComuna()">
+      <div class="nota-campo" id="mscomuna-nota"></div></div>
+    <datalist id="lista-comunas"></datalist>
     <div class="fg" style="margin-bottom:12px">
       <div><label>Contacto en sucursal</label><input id="mscontacto" type="text" placeholder="Opcional"></div>
       <div><label>Teléfono</label><input id="mstel" type="text" placeholder="Opcional"></div>
@@ -4134,6 +4162,7 @@ function renderZonas() {
       'y que <b>zonas</b> y <b>zona_comunas</b> aparezcan en la lista de tablas del ' +
       'Worker (se ve abriendo <b>/salud</b>).</div>';
     renderComunas();
+    renderSucursalesZona();
     return;
   }
 
@@ -4174,6 +4203,7 @@ function renderZonas() {
     }).join('')}</tbody></table></div>`;
 
   renderComunas();
+  renderSucursalesZona();
 }
 
 // Todas las comunas que la plataforma reconoce dentro de una dirección, con su
@@ -4360,6 +4390,158 @@ async function borrarZona() {
   } catch (e) {
     alerta('mz-alert', 'No se pudo eliminar: ' + hesc(e.message), 'ae');
   }
+}
+
+// ── Asignar zona a las sucursales ────────────────────────────
+//
+// Por qué a mano y no leyendo la dirección: el 39% de las sucursales tienen
+// direcciones sin comuna. "Apoquindo 3500 Local 2", "Alonso de Cordova 5320".
+// Ninguna función extrae una comuna que no está escrita.
+//
+// Y en las que sí traen algo, `nativo_comuna()` puede engañar: 'santiago' está
+// en la lista de comunas, así que "Av. X 123, Santiago" detecta comuna
+// Santiago cuando en realidad es el nombre de la ciudad. Esa sucursal podría
+// estar en Maipú y quedaría asignada a Oriente sin que nadie se enterara.
+//
+// Se agrupa por cliente porque es la unidad natural: un cliente con varios
+// locales casi siempre los tiene en la misma zona. Asignar por cliente
+// convierte 63 decisiones en unas veinte.
+function renderSucursalesZona() {
+  const cont = document.getElementById('zn-sucursales');
+  if (!cont) return;
+  if (!zonasOK) { cont.innerHTML = '<div class="sub">No disponible.</div>'; return; }
+  if (!dirOK) {
+    cont.innerHTML = '<div class="alert an">En modo historial las sucursales se ' +
+      'derivan de los pedidos y no se pueden editar.</div>';
+    return;
+  }
+
+  const q     = (document.getElementById('zsq').value || '').trim().toLowerCase();
+  const soloP = document.getElementById('zsf').value === 'pend';
+  const activas = new Set(zonasVivas().map(z => z.id));
+
+  // "Falta" es no tener zona, o tener una que ya no está activa: las dos
+  // obligan a elegirla a mano en cada pedido.
+  const falta = s => !s.zona || !activas.has(s.zona);
+
+  const grupos = new Map();
+  sucursales.forEach(s => {
+    if (soloP && !falta(s)) return;
+    const c = findCli(s.cliente_id);
+    const nom = c ? c.emp : '(sin cliente)';
+    if (q && ![nom, s.nombre, s.dir].some(t => String(t || '').toLowerCase().includes(q))) return;
+    const k = String(s.cliente_id || '0');
+    if (!grupos.has(k)) grupos.set(k, { nombre: nom, sucs: [] });
+    grupos.get(k).sucs.push(s);
+  });
+
+  const pendientes = sucursales.filter(falta).length;
+  const aviso = pendientes
+    ? `<div class="alert an" style="margin-bottom:10px">⚠️ ${pendientes} de ` +
+      `${sucursales.length} sucursales sin zona activa. Un pedido a esas ` +
+      'obliga a elegir la zona a mano.</div>'
+    : `<div class="alert ai" style="margin-bottom:10px">✔ Las ${sucursales.length} ` +
+      'sucursales tienen zona activa.</div>';
+
+  if (!grupos.size) {
+    cont.innerHTML = aviso + '<div class="sub">Nada calza con el filtro.</div>';
+    return;
+  }
+
+  const ops = sel => '<option value="">— Sin zona —</option>' +
+    zonasVivas().map(z => `<option value="${hesc(z.id)}"${z.id === sel ? ' selected' : ''}>` +
+      `${hesc(z.nombre)}</option>`).join('');
+
+  const orden = [...grupos.entries()].sort((a, b) => a[1].nombre.localeCompare(b[1].nombre, 'es'));
+
+  cont.innerHTML = aviso + orden.map(([k, g]) => `
+    <div class="modal-section" style="margin-bottom:12px">
+      <div class="pick" style="align-items:center;border:none;background:none;padding:0 0 8px">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:800;font-size:14px">${hesc(g.nombre)}</div>
+          <div class="sub" style="margin:0">${g.sucs.length} sucursal(es)</div>
+        </div>
+        <select id="zsc-${hesc(k)}" style="max-width:200px">
+          <option value="">— Asignar a todas —</option>
+          ${zonasVivas().map(z => `<option value="${hesc(z.id)}">${hesc(z.nombre)}</option>`).join('')}
+        </select>
+        <button class="btn bam2 bsm" onclick="zonaATodas('${hesc(k)}')">Aplicar</button>
+      </div>
+      <div class="tw"><table><tbody>
+        ${g.sucs.map(s => {
+          // Tres estados distintos y conviene distinguirlos: la comuna
+          // guardada es dato firme, la detectada en la dirección es una
+          // suposición, y no tener ninguna explica por qué esa sucursal está
+          // en esta lista.
+          const cg = (s.comuna || '').trim();
+          const cd = cg ? '' : comunaDe(s.dir || '');
+          const cHtml = cg
+            ? `<span style="color:var(--vd);font-weight:800">📍 ${hesc(titulo(cg))}</span>`
+            : cd
+              ? `<span style="color:var(--textl)">📍 ${hesc(cd)} <i>(leída de la dirección)</i></span>`
+              : '<span style="color:var(--nd);font-weight:800">📍 sin comuna</span>';
+          return `<tr>
+          <td style="font-size:12px">
+            <div style="font-weight:700">${hesc(s.nombre)}</div>
+            <div class="sub" style="margin:2px 0 0">${hesc(s.dir)}</div>
+            <div style="font-size:11px;margin-top:2px">${cHtml}</div>
+          </td>
+          <td style="width:220px">
+            <select id="zs-${s.id}" onchange="zonaDeSucursal(${s.id})"
+              style="max-width:200px">${ops(s.zona || '')}</select>
+            <button class="btn bol bsm" style="margin-top:4px;width:100%"
+              onclick="abrirSuc(${s.id},'zonas')">Editar sucursal</button>
+          </td>
+        </tr>`;
+        }).join('')}
+      </tbody></table></div>
+    </div>`).join('');
+}
+
+async function zonaDeSucursal(id) {
+  const sel = document.getElementById('zs-' + id);
+  const s   = findSuc(id);
+  if (!sel || !s) return;
+  sel.disabled = true;
+  try {
+    await sbSend(`sucursales?id=eq.${encodeURIComponent(id)}`, 'PATCH', { zona: sel.value });
+    s.zona = sel.value;               // al día en memoria, sin recargar todo
+    renderSucursalesZona();
+    const z = sel.value ? zonaPorId(sel.value) : null;
+    alerta('zn-alert', `${hesc(s.nombre)} → ${z ? hesc(z.nombre) : 'sin zona'}.`, 'ai');
+  } catch (e) {
+    sel.disabled = false;
+    alerta('zn-alert', 'No se pudo guardar: ' + hesc(e.message), 'ae');
+  }
+}
+
+// Asigna la misma zona a todas las sucursales de un cliente. Se hace con un
+// PATCH por sucursal y no uno masivo: el Worker exige un filtro en cada PATCH
+// para no arriesgar la tabla completa, y `id=in.(...)` con muchos ids se
+// vuelve una dirección larguísima. Son pocas por cliente.
+async function zonaATodas(clienteId) {
+  const sel = document.getElementById('zsc-' + clienteId);
+  if (!sel || !sel.value) return alerta('zn-alert', 'Elige una zona primero.', 'ae');
+  const zona = sel.value;
+  const cs   = sucursales.filter(s => String(s.cliente_id || '0') === String(clienteId));
+  if (!cs.length) return;
+
+  sel.disabled = true;
+  let hechas = 0, fallas = [];
+  for (const s of cs) {
+    try {
+      await sbSend(`sucursales?id=eq.${encodeURIComponent(s.id)}`, 'PATCH', { zona });
+      s.zona = zona;
+      hechas++;
+    } catch (e) { fallas.push(s.nombre); }
+  }
+  renderSucursalesZona();
+  const z = zonaPorId(zona);
+  // Se informan las dos cosas: no sirve decir "listo" si tres se cayeron.
+  alerta('zn-alert',
+    `${hechas} sucursal(es) → ${hesc(z ? z.nombre : zona)}.` +
+    (fallas.length ? ` <b>No se pudo con:</b> ${hesc(fallas.join(', '))}.` : ''),
+    fallas.length ? 'an' : 'ai');
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -4558,8 +4740,61 @@ function abrirSuc(id, ctx, cliId) {
   document.getElementById('mshorario').value  = s ? (s.horario||'')  : '';
   document.getElementById('msnotas').value    = s ? (s.notas||'')    : '';
   document.getElementById('mszona-nota').style.display = 'none';
+
+  // La comuna es el dato durable: si mañana repartes las zonas de otra forma,
+  // la comuna sigue siendo la misma y la zona se recalcula sola. La zona, en
+  // cambio, hay que volver a decidirla. Por eso este campo existe.
+  //
+  // Si la sucursal no la tiene guardada —hoy ninguna la tiene, la columna
+  // estaba muerta—, se propone leyéndola de la dirección. Cuando la dirección
+  // no la trae, queda vacía y hay que escribirla, que es justo el caso de las
+  // 63 sucursales con direcciones tipo "Apoquindo 3500 Local 2".
+  pintarListaComunas();
+  const comunaGuardada = s ? (s.comuna || '') : '';
+  const propuesta = comunaGuardada || comunaDe(s ? (s.dir || '') : '');
+  document.getElementById('mscomuna').value = propuesta;
+  const cnota = document.getElementById('mscomuna-nota');
+  if (!comunaGuardada && propuesta) {
+    cnota.style.display = 'block';
+    cnota.textContent = 'Propuesta a partir de la dirección. Corrígela si no corresponde.';
+  } else if (!propuesta) {
+    cnota.style.display = 'block';
+    cnota.textContent = 'La dirección no dice la comuna. Escríbela: con eso la zona sale sola.';
+  } else {
+    cnota.style.display = 'none';
+  }
+
   if (s && !s.zona) proponerZona('mszona', 'mszona-nota', s.dir || '');
   document.getElementById('modal-suc').classList.add('open');
+}
+
+// El datalist del campo comuna. Sale de la misma lista COMUNAS que espeja a
+// `nativo_comuna()`, así que lo que se escriba va a calzar con `zona_comunas`.
+function pintarListaComunas() {
+  const dl = document.getElementById('lista-comunas');
+  if (!dl || dl.childElementCount) return;      // se arma una sola vez
+  dl.innerHTML = COMUNAS.slice().sort()
+    .map(c => `<option value="${hesc(titulo(c))}"></option>`).join('');
+}
+
+// 'las condes' -> 'Las Condes'
+const titulo = t => String(t).replace(/\b[a-z]/g, m => m.toUpperCase());
+
+// Al escribir la comuna, se propone la zona que le corresponde. Solo propone:
+// si ya hay una zona elegida no se toca, porque alguien pudo corregirla a mano
+// sabiendo algo que la comuna no dice.
+function zonaDesdeComuna() {
+  const c = sinTilde(document.getElementById('mscomuna').value || '')
+    .trim().toLowerCase();
+  const sel = document.getElementById('mszona');
+  const nota = document.getElementById('mszona-nota');
+  if (!c || sel.value) return;
+  const z = zonasOK ? zonaComunas.get(c) : COMUNA_A_ZONA.get(c);
+  if (!z) return;
+  sel.value = z;
+  const zz = zonaPorId(z);
+  nota.style.display = 'block';
+  nota.textContent = `Zona propuesta desde “${titulo(c)}”: ${zz ? zz.nombre : z}.`;
 }
 function cerrarSuc() { document.getElementById('modal-suc').classList.remove('open'); }
 
@@ -4573,6 +4808,11 @@ async function guardarSucursal() {
     cliente_id: sucCli.id,
     nombre, dir,
     zona:     document.getElementById('mszona').value,
+    // Se guarda normalizada —minúsculas, sin tildes— porque así es como la
+    // devuelve `nativo_comuna()` y como está la llave de `zona_comunas`. Si se
+    // guardara "Ñuñoa" tal cual, el cruce para derivar la zona no calzaría.
+    comuna:   sinTilde(document.getElementById('mscomuna').value || '')
+                .trim().toLowerCase(),
     contacto: document.getElementById('mscontacto').value.trim(),
     telefono: document.getElementById('mstel').value.trim(),
     horario:  document.getElementById('mshorario').value.trim(),
@@ -4605,6 +4845,10 @@ async function guardarSucursal() {
 
     cerrarSuc();
     renderClientes();
+    // Si el modal se abrió desde la pestaña de Zonas, hay que repintar esa
+    // lista: si no, la sucursal recién editada sigue apareciendo como
+    // pendiente aunque ya tenga zona.
+    if (sucCtx === 'zonas') renderZonas();
     if (sucCtx === 'wz' && wz.sucursal) { wzGo(3); }
     else if (sucCtx === 'wz')           { wzGo(2); }
   } catch (e) {
