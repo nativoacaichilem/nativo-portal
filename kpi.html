@@ -398,6 +398,26 @@ tbody tr:hover td{background:#faf6ff}
 <div id="toast"></div>
 
 <script>
+// ══════════════════════════════════════════════════════════════
+//  kpi.html — indicadores de operaciones
+//
+//  Esta pantalla SOLO LEE. No escribe en ninguna tabla, y eso la hace segura
+//  de abrir en cualquier momento, incluso a mitad de un despacho.
+// ══════════════════════════════════════════════════════════════
+
+const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
+let TOKEN = '';
+
+// "Failed to fetch" es lo que devuelve el navegador tanto si se cayó la red
+// como si el Worker rechazó una cabecera antes de que la petición saliera.
+// El mensaje crudo no distingue los dos casos y no le dice nada a nadie.
+function explicarRed(e) {
+  const m = String(e && e.message || e);
+  if (/Failed to fetch|NetworkError|Load failed/i.test(m))
+    return 'No se pudo contactar el servidor. Revisa la conexión.';
+  return m;
+}
+
 async function pedir(url, opciones) {
   try {
     return await fetch(url, opciones);
