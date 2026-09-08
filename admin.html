@@ -893,6 +893,7 @@ input[type=checkbox]{
 <div class="mbg" id="modal">
   <div class="modal">
     <h3>Editar Pedido</h3>
+    <div id="m-alert"></div>
     <div id="m-folio"></div>
 
     <div class="modal-section">Entrega, Zona y Estado</div>
@@ -1005,7 +1006,30 @@ input[type=checkbox]{
     </div>
     <div style="margin-bottom:12px"><label>Email</label><input id="mcemail" type="text" placeholder="Opcional"></div>
     <div style="margin-bottom:12px"><label>Nombres antiguos (para búsqueda)</label><input id="mcalias" type="text" placeholder="Separados por |"></div>
-    <div style="margin-bottom:4px"><label>Notas</label><textarea id="mcnotas" placeholder="Condiciones, observaciones..." style="min-height:56px"></textarea></div>
+    <div style="margin-bottom:12px"><label>Notas</label><textarea id="mcnotas" placeholder="Condiciones, observaciones..." style="min-height:56px"></textarea></div>
+
+    <!-- El bloqueo va al final y separado a propósito: no es un dato del
+         cliente como el teléfono, es una decisión sobre él. Mezclarlo con los
+         campos de contacto invita a marcarlo sin pensar. -->
+    <div style="border-top:1px solid var(--crema-d);padding-top:12px">
+      <label class="chk" style="display:flex;align-items:center;gap:8px;margin:0 0 8px;
+        text-transform:none;font-size:13px;color:var(--text);font-weight:800">
+        <input type="checkbox" id="mcbloq" onchange="mcBloqueoCambio()" style="width:auto">
+        🚫 Bloquear a este cliente
+      </label>
+      <div id="mc-bloq-campos" style="display:none">
+        <div class="fg">
+          <div><label>Motivo</label>
+            <input id="mcbloqmotivo" type="text" placeholder="Ej: facturas impagas desde julio"></div>
+          <div><label>Bloqueado desde</label><input id="mcbloqdesde" type="date"></div>
+        </div>
+        <div class="nota-campo" style="display:block">
+          Un cliente bloqueado no desaparece: sigue apareciendo y se le puede
+          seguir registrando pedidos. Lo que hace el bloqueo es <b>avisar</b>
+          al elegirlo, para que nadie despache sin saberlo.
+        </div>
+      </div>
+    </div>
     <div class="mact">
       <button class="btn bgray bsm" onclick="cerrarCli()">Cancelar</button>
       <button class="btn bmora bsm" id="bmc" onclick="guardarCliente()">Guardar</button>
@@ -1157,6 +1181,36 @@ let zonaComunas = new Map();   // comuna normalizada -> id de zona
 let zonasOK     = false;
 let zonasPedidas = false;      // para pedirlas una sola vez por sesión
 
+// ── Bloqueo de clientes ──
+// false = la base todavía no tiene las columnas de bloqueo. El panel funciona
+// igual y el formulario simplemente no las manda. Mismo criterio que `dirOK`.
+let bloqueoOK = false;
+
+const estaBloqueado = c => !!(c && c.bloqueado);
+
+function mcBloqueoCambio() {
+  const on = document.getElementById('mcbloq').checked;
+  document.getElementById('mc-bloq-campos').style.display = on ? 'block' : 'none';
+  const f = document.getElementById('mcbloqdesde');
+  if (on && !f.value) f.value = hoyISO();
+}
+
+// El aviso que se muestra al elegir un cliente bloqueado. Dice desde cuándo,
+// porque "bloqueado hace tres días" y "bloqueado hace cuatro meses" son dos
+// conversaciones distintas con esa empresa.
+function avisoBloqueo(c) {
+  if (!estaBloqueado(c)) return '';
+  const dias = c.bloqueado_desde
+    ? Math.floor((Date.now() - new Date(c.bloqueado_desde).getTime()) / 86400000) : null;
+  return `<div class="alert ae" style="line-height:1.55">
+    🚫 <b>${hesc(c.emp)} está bloqueado.</b>
+    ${c.bloqueo_motivo ? '<br>' + hesc(c.bloqueo_motivo) : ''}
+    ${dias !== null ? `<br>Bloqueado hace ${dias} día(s).` : ''}
+    <br><span style="font-weight:400">Puedes registrar el pedido igual, pero
+    <b>no lo despaches</b> sin confirmar con quien lo bloqueó.</span>
+  </div>`;
+}
+
 // Las cuatro de siempre, como respaldo. No se borran: son lo que la pantalla
 // muestra si la base no responde o si las tablas no existen todavía.
 const ZONAS_RESPALDO = [
@@ -1295,6 +1349,13 @@ function goTab(id, btn) {
 //  UTILIDADES
 // ══════════════════════════════════════════
 function hoy() { return new Date().toLocaleDateString('es-CL'); }
+
+// Hoy en formato ISO. `hoy()` devuelve el formato chileno, que sirve para
+// mostrar y NO para guardar: una columna `date` de Postgres lo rechaza.
+function hoyISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 
 // Escapa HTML. Todo dato que venga de la base pasa por aquí antes de
 // insertarse en la página: los pedidos del portal los escribe cualquiera.
@@ -1834,7 +1895,8 @@ function render() {
       </td>
       <td data-rot="Fecha" style="font-size:12px;color:var(--textl);font-weight:600;white-space:nowrap">${hesc(p.fecha)||'—'}</td>
       <td class="td-emp">
-        <div style="font-weight:800;font-size:13px">${hesc(p.emp)}</div>
+        <div style="font-weight:800;font-size:13px">${hesc(p.emp)}
+          ${chipBloqueo(p.cliente_id != null ? findCli(p.cliente_id) : null)}</div>
         <div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:1px">${hesc(p.rut)}</div>
         ${folioHtml}
         ${contactoHtml}
@@ -2888,6 +2950,11 @@ function abrir(id) {
   eid = id;
   const ret = esRetiro(p);
 
+  // Si el cliente está bloqueado, el aviso va arriba del modal: es el último
+  // lugar donde alguien mira antes de marcar el pedido como despachado.
+  const cliP = p.cliente_id != null ? findCli(p.cliente_id) : null;
+  document.getElementById('m-alert').innerHTML = avisoBloqueo(cliP);
+
   document.getElementById('m-folio').innerHTML = p.folio
     ? `<div class="alert ai" style="display:flex;align-items:center;gap:8px">
          <span>Folio del cliente</span><b class="folio" style="font-size:14px">${hesc(p.folio)}</b></div>`
@@ -3596,6 +3663,10 @@ async function loadDirectorio() {
       sbJson('sucursales?select=*&order=nombre.asc')
     ]);
     clientes = c; sucursales = s; dirOK = true;
+    // Se pide `select=*`, así que si la columna existe viene en la respuesta.
+    // Preguntarle a la primera fila es más barato y más honesto que mantener
+    // una bandera aparte que alguien tenga que acordarse de cambiar.
+    bloqueoOK = c.length > 0 && Object.prototype.hasOwnProperty.call(c[0], 'bloqueado');
     indexar();
   } catch (e) {
     dirOK = false;
@@ -3779,8 +3850,10 @@ function renderPaso1() {
     return `<div class="pick ${wz.cliente && String(wz.cliente.id) === String(c.id) ? 'sel' : ''}"
                  onclick="pickCliente('${c.id}')">
       <div style="flex:1;min-width:0">
-        <div class="pick-t">${hesc(c.emp)}</div>
+        <div class="pick-t">${hesc(c.emp)} ${chipBloqueo(c)}</div>
         <div class="pick-s">${hesc(c.rut || 'sin RUT')}${c.contacto ? ' · 👤 ' + hesc(c.contacto) : ''}</div>
+        ${estaBloqueado(c) && c.bloqueo_motivo
+          ? `<div class="pick-s" style="color:var(--rd);font-weight:800">${hesc(c.bloqueo_motivo)}</div>` : ''}
         ${c.alias && q ? `<div class="pick-s" style="opacity:.75">antes: ${hesc(c.alias.split('|').slice(0,3).join(' · '))}</div>` : ''}
       </div>
       <div class="pick-r">
@@ -3806,9 +3879,17 @@ function traspasarZona(s) {
   if (!s.zona) proponerZona('wzona', null, s.dir || '');
 }
 
+// Etiqueta de bloqueado, para las listas. Corta y roja: en una lista larga
+// tiene que verse sin leer.
+const chipBloqueo = c => estaBloqueado(c)
+  ? '<span class="badge" style="background:var(--rl);color:var(--rd)">🚫 bloqueado</span>' : '';
+
 function pickCliente(id) {
   const c = findCli(id);
   if (!c) return;
+  // El aviso va acá y no al guardar: enterarse de que el cliente está moroso
+  // después de armar el pedido completo es enterarse tarde.
+  alerta('wz-alert', avisoBloqueo(c), 'ae');
   if (!wz.cliente || String(wz.cliente.id) !== String(c.id)) {
     wz.sucursal = null;
     wz.qtys = {};
@@ -4628,7 +4709,9 @@ function renderClientes() {
     return `<div class="cli ${open}" id="cli-${c.id}">
       <div class="cli-h" onclick="togCli('${c.id}')">
         <div style="flex:1;min-width:0">
-          <div class="pick-t">${hesc(c.emp)}</div>
+          <div class="pick-t">${hesc(c.emp)} ${chipBloqueo(c)}</div>
+          ${estaBloqueado(c) && c.bloqueo_motivo
+            ? `<div class="pick-s" style="color:var(--rd);font-weight:800">🚫 ${hesc(c.bloqueo_motivo)}</div>` : ''}
           <div class="pick-s">${hesc(c.rut || 'sin RUT')}${c.contacto ? ' · 👤 ' + hesc(c.contacto) : ''}${c.telefono ? ' · 📞 ' + hesc(c.telefono) : ''}</div>
           ${c.alias ? `<div class="pick-s" style="opacity:.8">también: ${hesc(c.alias.split('|').join(' · '))}</div>` : ''}
         </div>
@@ -4698,6 +4781,11 @@ function abrirCli(id, ctx) {
   document.getElementById('mcemail').value    = c ? (c.email||'')    : '';
   document.getElementById('mcalias').value    = c ? (c.alias||'')    : '';
   document.getElementById('mcnotas').value    = c ? (c.notas||'')    : '';
+  document.getElementById('mcbloq').checked      = !!(c && c.bloqueado);
+  document.getElementById('mcbloqmotivo').value  = c ? (c.bloqueo_motivo || '') : '';
+  document.getElementById('mcbloqdesde').value   = c && c.bloqueado_desde
+    ? String(c.bloqueado_desde).slice(0, 10) : '';
+  mcBloqueoCambio();
   document.getElementById('modal-cli').classList.add('open');
 }
 function cerrarCli() { document.getElementById('modal-cli').classList.remove('open'); }
@@ -4715,6 +4803,21 @@ async function guardarCliente() {
     alias:    document.getElementById('mcalias').value.trim(),
     notas:    document.getElementById('mcnotas').value.trim()
   };
+
+  // El bloqueo solo se manda si la base lo soporta. `bloqueoOK` se apaga solo
+  // cuando el directorio llega sin esas columnas, así que un panel nuevo
+  // contra una base vieja guarda el resto del cliente en vez de fallar entero.
+  if (bloqueoOK) {
+    const bl = document.getElementById('mcbloq').checked;
+    row.bloqueado      = bl;
+    row.bloqueo_motivo = bl ? document.getElementById('mcbloqmotivo').value.trim() : '';
+    // La base exige que un cliente bloqueado tenga fecha y uno al día no la
+    // tenga. Se resuelve acá para que el formulario nunca choque con el CHECK.
+    row.bloqueado_desde = bl
+      ? (document.getElementById('mcbloqdesde').value || hoyISO())
+      : null;
+    row.bloqueo_quien  = bl ? (quienDescarga() || '') : '';
+  }
 
   const btn = document.getElementById('bmc');
   btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true;
