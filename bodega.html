@@ -912,6 +912,45 @@ tbody tr:hover td{background:#faf6ff}
 </div>
 
 <!-- ══ MODAL CONFIRMAR ══ -->
+<!-- ══ EDITAR MOVIMIENTO ══
+     Existe para los errores de tipeo. Un error de criterio —se sacó lo que no
+     correspondía— se arregla revirtiendo, que deja las dos líneas y es lo
+     correcto. Un 5 que debía ser 50 no necesita dos líneas, necesita un 50.
+     Lo que se editó queda marcado y guarda cómo era antes. -->
+<div class="mbg" id="mod-editar" role="dialog" aria-modal="true" aria-labelledby="ed-title">
+  <div class="modal" style="max-width:560px">
+    <h3 id="ed-title">✏️ Corregir movimiento</h3>
+    <div id="ed-alert"></div>
+    <div id="ed-ficha" class="alert ai" style="line-height:1.5"></div>
+
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Cantidad</label><input id="ed-cant" type="number" step="any" min="0"
+        oninput="edPrevio()"></div>
+      <div><label>Medida</label>
+        <select id="ed-medida" onchange="edPrevio()">
+          <option value="caja">Cajas</option><option value="unidad">Unidades</option>
+        </select></div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Fecha</label><input id="ed-fecha" type="date"></div>
+      <div><label>Motivo</label><select id="ed-motivo"></select></div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Documento o factura</label><input id="ed-doc" type="text"></div>
+      <div><label>Quien lo anotó</label><input id="ed-usuario" type="text"></div>
+    </div>
+    <div style="margin-bottom:4px"><label>Nota</label>
+      <textarea id="ed-nota" style="min-height:52px"></textarea></div>
+
+    <div id="ed-aviso" class="alert aw" style="display:none;line-height:1.5"></div>
+
+    <div class="mact">
+      <button class="btn bgray bsm" onclick="cerrar('mod-editar')">Cancelar</button>
+      <button class="btn bmora bsm" id="ed-ok" onclick="guardarEdicionMov()">Guardar corrección</button>
+    </div>
+  </div>
+</div>
+
 <div class="mbg" id="mod-confirm" role="dialog" aria-modal="true" aria-labelledby="cf-title">
   <div class="modal" style="max-width:430px">
     <h3 id="cf-title">Confirmar</h3>
@@ -2414,9 +2453,13 @@ function renderMovs() {
           : esc(unidadDe(m.producto_id))}</div></td>
       <td>${mot}${m.doc ? `<div class="sub mono">${esc(m.doc)}</div>` : ''}
         ${m.pedido_id ? `<div class="sub">pedido #${esc(m.pedido_id)}</div>` : ''}</td>
-      <td><div class="sub" style="margin:0">${esc(m.usuario || '—')}</div></td>
+      <td><div class="sub" style="margin:0">${esc(m.usuario || '—')}</div>
+        ${m.editado ? `<div class="sub" style="margin:1px 0 0;color:var(--nd)"
+          title="Se editó después de anotarlo${m.editado_por ? ' · ' + esc(m.editado_por) : ''}"
+          >✏️ editado</div>` : ''}</td>
       <td class="num">${anulado || esReverso ? '' :
-        `<button class="btn bdng bsm" onclick="pedirRevertir(${m.id})" title="Anota el movimiento contrario">Revertir</button>`}</td>
+        `<button class="btn bol bsm" onclick="abrirEditarMov(${m.id})" title="Corregir lo que se anotó mal">Editar</button>
+         <button class="btn bdng bsm" onclick="pedirRevertir(${m.id})" title="Anota el movimiento contrario">Revertir</button>`}</td>
     </tr>`;
   }).join('');
 
@@ -2627,6 +2670,158 @@ async function guardarMov() {
   } finally {
     b.disabled = false; b.innerHTML = 'Registrar';
   }
+}
+
+
+// ══════════════════════════════════════════════════════════════
+//  EDITAR UN MOVIMIENTO
+// ══════════════════════════════════════════════════════════════
+//
+// El libro es la fuente del saldo, así que editarlo no es gratis. Por eso el
+// sistema ofrecía solo revertir, y para un error de criterio esa sigue siendo
+// la vía correcta: quedan las dos líneas y se ve qué pasó.
+//
+// Esto es para lo otro: el 5 que debía ser 50. Ahí dos líneas son ruido.
+//
+// Lo que se puede cambiar acá es lo que se anotó mal al escribir: cantidad,
+// medida, fecha, motivo, documento, quién y la nota. NO se puede cambiar el
+// producto, la bodega ni el tipo, porque eso ya no es corregir un tipeo: es
+// otro movimiento, y para eso está revertir y anotar el correcto.
+//
+// Cada edición marca la fila y la primera guarda cómo era antes.
+
+let movEdit = null;
+
+function abrirEditarMov(id) {
+  const m = movs.find(x => Number(x.id) === Number(id));
+  if (!m) return;
+
+  if (movs.some(x => Number(x.revierte_a) === Number(id)))
+    return toast('Ese movimiento ya está revertido: no se edita', true);
+  if (m.revierte_a)
+    return toast('Un reverso no se edita. Revierte el reverso si hace falta', true);
+
+  movEdit = m;
+  document.getElementById('ed-alert').innerHTML = '';
+
+  // Lo que no se puede cambiar se muestra, para que quede claro qué se está
+  // corrigiendo y qué no.
+  document.getElementById('ed-ficha').innerHTML =
+    `<b>${esc(nombreProducto(m.producto_id))}</b><br>` +
+    `${esc(TIPO_TXT[m.tipo] || m.tipo)} en <b>${esc(nombreBodega(m.bodega_id))}</b>` +
+    (m.bodega_destino_id ? ` → <b>${esc(nombreBodega(m.bodega_destino_id))}</b>` : '') +
+    `<br><span style="font-weight:400">El producto, la bodega y el tipo no se ` +
+    `pueden cambiar acá: eso sería otro movimiento, y para eso está revertir.</span>` +
+    (m.editado ? `<br><b style="color:var(--nd)">Ya se editó antes` +
+      (m.editado_por ? ' · ' + esc(m.editado_por) : '') + '</b>' : '');
+
+  document.getElementById('ed-cant').value    = Math.abs(Number(m.cantidad) || 0);
+  document.getElementById('ed-medida').value  = m.medida || 'caja';
+  document.getElementById('ed-fecha').value   = String(m.fecha || '').slice(0, 10);
+  document.getElementById('ed-doc').value     = m.doc || '';
+  document.getElementById('ed-usuario').value = m.usuario || '';
+  document.getElementById('ed-nota').value    = m.nota || '';
+
+  // Los motivos que la base acepta para este tipo. Un traslado o un ajuste no
+  // llevan motivo; una entrada y una salida lo exigen.
+  const sel = document.getElementById('ed-motivo');
+  const necesita = m.tipo === 'entrada' || m.tipo === 'salida';
+  sel.disabled = !necesita;
+  sel.innerHTML = necesita
+    ? motivos.filter(x => x.activo && x.tipo === m.tipo)
+        .map(x => `<option value="${x.id}"${String(x.id) === String(m.motivo_id) ? ' selected' : ''}>` +
+          `${esc(x.nombre)}</option>`).join('')
+    : '<option value="">— no lleva motivo —</option>';
+
+  edPrevio();
+  abrir('mod-editar');
+}
+
+// Muestra cómo queda el saldo con el valor nuevo, antes de guardar. Es lo que
+// convierte "cambiar un número" en "entender qué estoy cambiando".
+function edPrevio() {
+  if (!movEdit) return;
+  const m = movEdit;
+  const aviso = document.getElementById('ed-aviso');
+  const nueva = Number(document.getElementById('ed-cant').value);
+  const med   = document.getElementById('ed-medida').value;
+  if (!(nueva > 0)) { aviso.style.display = 'none'; return; }
+
+  const antes  = aBase(m.producto_id, Math.abs(Number(m.cantidad) || 0), m.medida);
+  const ahora  = aBase(m.producto_id, nueva, med);
+  if (antes === ahora) { aviso.style.display = 'none'; return; }
+
+  const signo = m.tipo === 'entrada' ? 1 : m.tipo === 'salida' ? -1 : 0;
+  const saldoHoy = saldoDe(m.bodega_id, m.producto_id);
+  const dif = (ahora - antes) * (signo || 1);
+  aviso.style.display = 'block';
+  aviso.innerHTML =
+    `El saldo de <b>${esc(nombreProducto(m.producto_id))}</b> en ` +
+    `<b>${esc(nombreBodega(m.bodega_id))}</b> pasa de <b>${num(saldoHoy)}</b> a ` +
+    `<b>${num(saldoHoy + dif)}</b>.` +
+    (m.tipo === 'traslado'
+      ? ' El destino se ajusta al revés, en la misma cantidad.' : '');
+}
+
+async function guardarEdicionMov() {
+  if (!movEdit) return;
+  const m = movEdit;
+  const cant = Number(document.getElementById('ed-cant').value);
+  const fecha = document.getElementById('ed-fecha').value;
+
+  if (!(cant > 0))
+    return alerta('ed-alert', 'La cantidad tiene que ser mayor que cero.', 'ae');
+  if (!fecha)
+    return alerta('ed-alert', 'Falta la fecha.', 'ae');
+
+  const necesita = m.tipo === 'entrada' || m.tipo === 'salida';
+  const motivo = document.getElementById('ed-motivo').value;
+  if (necesita && !motivo)
+    return alerta('ed-alert', 'Este tipo de movimiento necesita un motivo.', 'ae');
+
+  const fila = {
+    // El signo lo pone la base según el tipo, igual que al anotar: acá siempre
+    // va el valor absoluto. Un ajuste es la excepción y conserva su signo.
+    cantidad: m.tipo === 'ajuste' ? (Number(m.cantidad) < 0 ? -cant : cant) : cant,
+    medida:   document.getElementById('ed-medida').value,
+    fecha,
+    doc:      document.getElementById('ed-doc').value.trim() || null,
+    nota:     document.getElementById('ed-nota').value.trim() || null,
+    usuario:  document.getElementById('ed-usuario').value.trim() || null,
+    editado:     new Date().toISOString(),
+    editado_por: operador || 'sin firma'
+  };
+  if (necesita) fila.motivo_id = Number(motivo);
+
+  // El original se guarda UNA sola vez. Si se escribiera en cada edición, la
+  // tercera pisaría a la segunda y se perdería justo lo que interesa: cómo
+  // estaba el movimiento cuando se anotó.
+  if (!m.editado) fila.original = {
+    cantidad: m.cantidad, medida: m.medida, fecha: m.fecha,
+    motivo_id: m.motivo_id, doc: m.doc, nota: m.nota, usuario: m.usuario
+  };
+
+  const btn = document.getElementById('ed-ok');
+  btn.innerHTML = '<span class="sp"></span>Guardando…'; btn.disabled = true;
+  try {
+    await sbSend(`${T_MOV}?id=eq.${encodeURIComponent(m.id)}`, 'PATCH', fila);
+    cerrar('mod-editar');
+    movEdit = null;
+    await cargarTodo();
+    toast('Movimiento corregido');
+  } catch (e) {
+    // Si faltan las columnas de auditoría, el PATCH falla por eso y conviene
+    // decirlo con nombre y apellido en vez de mostrar el error de Postgres.
+    const msg = String(e.message);
+    alerta('ed-alert',
+      /editado|original/.test(msg)
+        ? 'Faltan las columnas de auditoría en la base. Corre ' +
+          '<b>PREPARADO_editar_movimientos.sql</b> en Supabase y vuelve a intentar.'
+        : 'No se pudo guardar: ' + esc(msg), 'ae');
+    btn.innerHTML = 'Guardar corrección'; btn.disabled = false;
+    return;
+  }
+  btn.innerHTML = 'Guardar corrección'; btn.disabled = false;
 }
 
 // ══════════════════════════════════════════════════════════════
