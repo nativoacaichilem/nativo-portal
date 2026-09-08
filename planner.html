@@ -323,6 +323,22 @@ textarea{resize:vertical;min-height:60px}
   .pl-lbl{min-width:130px;font-size:13px}
   .nlogo{display:none}
 }
+
+/* ══ BARRA DE MÓDULOS ══
+   Arriba SOLO se cambia de módulo. Las pestañas de cada pantalla van en su
+   propia barra, abajo. Antes las dos cosas se veían igual y estaban en la
+   misma fila, así que no había forma de saber qué botón cambiaba de página y
+   cuál solo de vista. */
+.modbar{display:flex;gap:2px;overflow-x:auto;flex:1;min-width:0}
+.mod{background:none;border:none;padding:14px 13px;font-size:12px;font-weight:800;
+  color:var(--textl);cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;
+  border-bottom:3px solid transparent}
+.mod:hover{color:var(--mora-d)}
+/* El módulo actual no es un botón: es dónde estás. Por eso no responde al
+   cursor y se marca con el mismo amarillo de la casa. */
+.mod.act{color:var(--mora-d);border-bottom-color:var(--am);cursor:default;
+  background:var(--mora-xl)}
+@media(max-width:640px){ .mod{padding:12px 9px;font-size:11px} }
 </style>
 </head>
 <body>
@@ -343,13 +359,12 @@ textarea{resize:vertical;min-height:60px}
 <!-- ══ APP ══ -->
 <div id="app" style="display:none">
   <nav>
-    <div class="ntabs">
-      <button class="tb" onclick="location.href='admin.html#pedidos'">📋 Pedidos</button>
-      <button class="tb" onclick="location.href='admin.html#nuevo'">➕ Agregar</button>
-      <button class="tb" onclick="location.href='admin.html#rutas'">🚚 Ruta</button>
-      <button class="tb" onclick="location.href='bodega.html'">📦 Bodega</button>
-      <button class="tb" onclick="location.href='admin.html#clientes'">👥 Clientes</button>
-      <button class="tb act">📅 Planner</button>
+    <div class="modbar">
+      <button class="mod" onclick="location.href='admin.html#pedidos'">📋 Pedidos</button>
+      <button class="mod" onclick="location.href='bodega.html'">📦 Bodega</button>
+      <button class="mod" onclick="location.href='compras.html'">🛒 Compras</button>
+      <button class="mod" onclick="location.href='kpi.html'">📊 Indicadores</button>
+      <button class="mod act" aria-current="page">📅 Planner</button>
     </div>
     <div class="nlogo">nativo</div>
     <div class="nright"><button class="bout" onclick="salir()">Salir</button></div>
