@@ -325,20 +325,24 @@ textarea{resize:vertical;min-height:60px}
 }
 
 /* ══ BARRA DE MÓDULOS ══
-   Arriba SOLO se cambia de módulo. Las pestañas de cada pantalla van en su
+   Arriba SOLO se cambia de módulo. Las secciones de cada pantalla van en su
    propia barra, abajo. Antes las dos cosas se veían igual y estaban en la
    misma fila, así que no había forma de saber qué botón cambiaba de página y
-   cuál solo de vista. */
+   cuál solo de vista.
+
+   Los colores van sobre el morado del nav, que es el fondo en las cinco
+   pantallas. Un gris pensado para fondo claro acá no se lee. */
 .modbar{display:flex;gap:2px;overflow-x:auto;flex:1;min-width:0}
-.mod{background:none;border:none;padding:14px 13px;font-size:12px;font-weight:800;
-  color:var(--textl);cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;
-  border-bottom:3px solid transparent}
-.mod:hover{color:var(--mora-d)}
+.mod{background:none;border:none;padding:14px 14px;font-size:12px;font-weight:800;
+  color:rgba(255,255,255,.62);cursor:pointer;font-family:'Nunito',sans-serif;
+  white-space:nowrap;border-bottom:3px solid transparent}
+.mod:hover{color:#fff;background:rgba(255,255,255,.08)}
 /* El módulo actual no es un botón: es dónde estás. Por eso no responde al
-   cursor y se marca con el mismo amarillo de la casa. */
-.mod.act{color:var(--mora-d);border-bottom-color:var(--am);cursor:default;
-  background:var(--mora-xl)}
-@media(max-width:640px){ .mod{padding:12px 9px;font-size:11px} }
+   cursor y se marca con el amarillo de la casa. */
+.mod.act{color:#fff;border-bottom-color:var(--am);cursor:default;
+  background:rgba(0,0,0,.16)}
+.mod.act:hover{background:rgba(0,0,0,.16)}
+@media(max-width:640px){ .mod{padding:12px 10px;font-size:11px} }
 </style>
 </head>
 <body>
