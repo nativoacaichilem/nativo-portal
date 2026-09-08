@@ -406,6 +406,35 @@ input[type=checkbox]{
   /* La dirección no tiene por qué recortarse en celular: hay alto de sobra. */
   .tabla-pedidos td.td-dir{max-width:none}
 }
+
+/* ══ BARRA DE MÓDULOS ══
+   Arriba SOLO se cambia de módulo. Las pestañas de cada pantalla van en su
+   propia barra, abajo. Antes las dos cosas se veían igual y estaban en la
+   misma fila, así que no había forma de saber qué botón cambiaba de página y
+   cuál solo de vista. */
+.modbar{display:flex;gap:2px;overflow-x:auto;flex:1;min-width:0}
+.mod{background:none;border:none;padding:14px 13px;font-size:12px;font-weight:800;
+  color:var(--textl);cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;
+  border-bottom:3px solid transparent}
+.mod:hover{color:var(--mora-d)}
+/* El módulo actual no es un botón: es dónde estás. Por eso no responde al
+   cursor y se marca con el mismo amarillo de la casa. */
+.mod.act{color:var(--mora-d);border-bottom-color:var(--am);cursor:default;
+  background:var(--mora-xl)}
+@media(max-width:640px){ .mod{padding:12px 9px;font-size:11px} }
+
+/* ══ BARRA DE SECCIONES ══
+   Las vistas DENTRO de esta pantalla. Se ve distinta de la barra de módulos a
+   propósito: fondo claro, píldoras en vez de solapas. Son dos cosas
+   diferentes y tienen que parecerlo. */
+.secbar{display:flex;gap:6px;overflow-x:auto;padding:12px 16px 0;max-width:1240px;
+  margin:0 auto;flex-wrap:wrap}
+.sec{background:var(--white);border:1.5px solid var(--crema-d);border-radius:20px;
+  padding:8px 15px;font-size:12px;font-weight:800;color:var(--textl);cursor:pointer;
+  font-family:'Nunito',sans-serif;white-space:nowrap}
+.sec:hover{border-color:var(--mora-l);color:var(--mora-d)}
+.sec.act{background:var(--mora);border-color:var(--mora);color:#fff}
+@media(max-width:640px){ .sec{padding:7px 12px;font-size:11px} }
 </style>
 </head>
 <body>
@@ -427,22 +456,34 @@ input[type=checkbox]{
 <!-- ══ APP ══ -->
 <div id="app" style="display:none">
   <nav>
-    <div class="ntabs">
-      <button class="tb act" onclick="goTab('pedidos',this)">📋 Pedidos</button>
-      <button class="tb"     onclick="goTab('nuevo',this)">➕ Agregar</button>
-      <button class="tb"     onclick="goTab('rutas',this)">🚚 Ruta</button>
-      <button class="tb"     onclick="location.href='bodega.html'">📦 Bodega</button>
-      <button class="tb"     onclick="goTab('clientes',this)">👥 Clientes</button>
-      <button class="tb"     onclick="goTab('zonas',this)">🗺️ Zonas</button>
-      <button class="tb"     onclick="location.href='compras.html'">🛒 Compras</button>
-      <button class="tb"     onclick="location.href='kpi.html'">📊 Indicadores</button>
-      <button class="tb"     onclick="location.href='planner.html'">📅 Planner</button>
+    <div class="modbar">
+      <button class="mod act" aria-current="page">📋 Pedidos</button>
+      <button class="mod" onclick="location.href='bodega.html'">📦 Bodega</button>
+      <button class="mod" onclick="location.href='compras.html'">🛒 Compras</button>
+      <button class="mod" onclick="location.href='kpi.html'">📊 Indicadores</button>
+      <button class="mod" onclick="location.href='planner.html'">📅 Planner</button>
     </div>
     <div class="nlogo">nativo</div>
     <div class="nright">
       <button class="bout" onclick="salir()">Salir</button>
     </div>
   </nav>
+
+  <!-- Las secciones de esta pantalla. Van aparte de la barra de módulos de
+       arriba, que es la que cambia de pantalla. Antes estaban mezcladas en la
+       misma fila y no se distinguían. -->
+  <div class="secbar" role="group" aria-label="Secciones de pedidos">
+    <!-- Se llama "Lista" y no "Pedidos" porque el módulo de arriba ya se llama
+         Pedidos: dos botones con el mismo nombre a diez píxeles de distancia
+         no ayudan a nadie. El id sigue siendo `pedidos`, que es lo que usan
+         los enlaces admin.html#pedidos desde las otras pantallas. -->
+    <button class="sec act" id="sec-pedidos"  onclick="goTab('pedidos',this)">📋 Lista</button>
+    <button class="sec"     id="sec-nuevo"    onclick="goTab('nuevo',this)">➕ Agregar</button>
+    <button class="sec"     id="sec-rutas"    onclick="goTab('rutas',this)">🚚 Ruta</button>
+    <button class="sec"     id="sec-clientes" onclick="goTab('clientes',this)">👥 Clientes</button>
+    <button class="sec"     id="sec-zonas"    onclick="goTab('zonas',this)">🗺️ Zonas</button>
+  </div>
+
 
   <!-- ── PEDIDOS ── -->
   <div id="page-pedidos" class="page act">
@@ -1235,7 +1276,11 @@ function repintarPestanaActiva() {
 
 function goTab(id, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('act'));
-  document.querySelectorAll('.tb').forEach(b => b.classList.remove('act'));
+  // Solo los botones de la barra de secciones. La barra de módulos de arriba
+  // marca en qué PANTALLA estás y no la toca el cambio de sección: si se
+  // limpiara acá, el módulo actual dejaría de verse marcado al cambiar de
+  // pestaña y no se sabría dónde uno está parado.
+  document.querySelectorAll('.sec').forEach(b => b.classList.remove('act'));
   document.getElementById('page-' + id).classList.add('act');
   btn.classList.add('act');
   if (id === 'pedidos') { cargar(); return; }   // cargar() repinta al terminar
@@ -4629,8 +4674,7 @@ function pedirDesde(cid, sid) {
   document.getElementById('wzona').value  = s.zona || '';
   document.getElementById('wentrega').value = 'despacho';
   document.getElementById('wfecha').value = hoy();
-  const btn = [...document.querySelectorAll('.tb')].find(b => b.textContent.includes('Agregar'));
-  goTab('nuevo', btn);
+  goTab('nuevo', document.getElementById('sec-nuevo'));
   wzGo(3);
 }
 
@@ -5139,8 +5183,11 @@ async function cargarTodo() {
 (function irAHash(){
   const id = (location.hash || '').slice(1);
   if (!['pedidos','nuevo','clientes','rutas','zonas'].includes(id)) return;
-  const b = [...document.querySelectorAll('.tb')]
-    .find(x => (x.getAttribute('onclick') || '').includes("goTab('" + id + "'"));
+  // Los botones de sección tienen id fijo, así que se buscan directo en vez de
+  // rastrearlos por su texto o su onclick. Antes se buscaban por la clase de la
+  // barra vieja y, al unificar la navegación, dejaban de encontrarse: entrar a
+  // admin.html#nuevo desde bodega no hacía nada.
+  const b = document.getElementById('sec-' + id);
   if (!b) return;
   goTab(id, b);
 })();
