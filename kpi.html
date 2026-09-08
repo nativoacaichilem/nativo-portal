@@ -341,7 +341,10 @@ tbody tr:hover td{background:#faf6ff}
   </nav>
 
   <div class="secbar" role="group" aria-label="Secciones de indicadores">
-    <button class="sec act" id="sec-ventas"     onclick="goTab('ventas',this)">📈 Ventas</button>
+    <button class="sec act" id="sec-clientes"   onclick="goTab('clientes',this)">🔁 Clientes</button>
+    <button class="sec"     id="sec-rotacion"   onclick="goTab('rotacion',this)">📦 Movimiento</button>
+    <button class="sec"     id="sec-traslados"  onclick="goTab('traslados',this)">↔️ Traslados</button>
+    <button class="sec"     id="sec-ventas"     onclick="goTab('ventas',this)">📈 Ventas</button>
     <button class="sec"     id="sec-mermas"     onclick="goTab('mermas',this)">🗑️ Mermas</button>
     <button class="sec"     id="sec-capital"    onclick="goTab('capital',this)">💰 Inventario</button>
     <button class="sec"     id="sec-zonas"      onclick="goTab('zonas',this)">🚚 Zonas</button>
@@ -351,7 +354,88 @@ tbody tr:hover td{background:#faf6ff}
   <div id="kp-alert" style="padding:0 16px"></div>
 
   <!-- ── VENTAS ── -->
-  <div id="page-ventas" class="page act">
+
+  <!-- ══ RECURRENCIA POR CLIENTE ══ -->
+  <div id="page-clientes" class="page act">
+    <div class="card">
+      <h2>🔁 Cada cuánto pide cada cliente</h2>
+      <div class="sub">
+        El ritmo de cada cliente se saca de sus propios pedidos: la
+        <b>mediana</b> de los días entre uno y otro, no el promedio, porque un
+        cliente que pidió tres veces seguidos en una semana y después se
+        desapareció dos meses tiene un promedio que no describe a nadie.
+        <br>
+        <b>Atrasado</b> es que lleve más de una vez y media su propio ritmo sin
+        pedir. Esa es la lista a la que hay que llamar.
+      </div>
+      <div class="fb">
+        <select id="cl-ver" onchange="renderClientesKPI()">
+          <option value="atrasados">Solo los atrasados</option>
+          <option value="todos">Todos</option>
+          <option value="perdidos">Perdidos (más de 3 ciclos)</option>
+        </select>
+        <select id="cl-nivel" onchange="renderClientesKPI()">
+          <option value="cliente">Por cliente</option>
+          <option value="sucursal">Por sucursal</option>
+        </select>
+        <input type="text" id="cl-q" placeholder="🔍 Buscar..." oninput="renderClientesKPI()"
+          style="max-width:240px">
+      </div>
+      <div id="cl-stats" class="stats"></div>
+      <div id="cl-lista"></div>
+    </div>
+  </div>
+
+  <!-- ══ MOVIMIENTO DE PRODUCTO ══ -->
+  <div id="page-rotacion" class="page">
+    <div class="card">
+      <h2>📦 Cuánto se mueve cada producto</h2>
+      <div class="sub">
+        Salidas de venta llevadas a día, semana y mes, en unidades base. Es el
+        número para decidir cuánto reponer.
+        <br>
+        La <b>tendencia</b> compara el último período contra el anterior del
+        mismo largo: si dice +40%, se está vendiendo más y el stock de siempre
+        ya no alcanza.
+      </div>
+      <div class="fb">
+        <select id="rt-vent" onchange="renderRotacion()">
+          <option value="30">Últimos 30 días</option>
+          <option value="60" selected>Últimos 60 días</option>
+          <option value="90">Últimos 90 días</option>
+        </select>
+        <select id="rt-bod" onchange="renderRotacion()"></select>
+        <input type="text" id="rt-q" placeholder="🔍 Buscar producto..." oninput="renderRotacion()"
+          style="max-width:240px">
+      </div>
+      <div id="rt-lista"></div>
+    </div>
+  </div>
+
+  <!-- ══ TRASLADOS ENTRE BODEGAS ══ -->
+  <div id="page-traslados" class="page">
+    <div class="card">
+      <h2>↔️ Traslados entre bodegas</h2>
+      <div class="sub">
+        Cada traslado es un viaje que alguien hizo. Una bodega que solo recibe
+        se está abasteciendo desde otra en vez de comprar directo; dos bodegas
+        que se mandan producto en los dos sentidos están haciendo viajes que se
+        podrían evitar guardando distinto.
+      </div>
+      <div class="fb">
+        <select id="tr-vent" onchange="renderTraslados()">
+          <option value="30">Últimos 30 días</option>
+          <option value="90" selected>Últimos 90 días</option>
+          <option value="365">Último año</option>
+          <option value="0">Todo el historial</option>
+        </select>
+      </div>
+      <div id="tr-resumen" class="stats"></div>
+      <div id="tr-lista"></div>
+    </div>
+  </div>
+
+  <div id="page-ventas" class="page">
     <div class="card">
       <h2>📈 Ventas semanales por producto</h2>
       <div class="alert ai" style="line-height:1.55;margin-bottom:12px">
@@ -615,8 +699,19 @@ function alerta(id, msg, cls) {
 // ══════════════════════════════════════════════════════════════
 let productos = [], bodegas = [], motivos = [], saldos = [], movs = [];
 let pedidos   = [], zonas   = [];
+let clientes  = [], sucursales = [];
 
 const prodPorId = id => productos.find(p => String(p.id) === String(id)) || null;
+
+// Nombre legible de un producto, con su formato. Si no está en el catálogo se
+// muestra el id: es peor esconder una fila que mostrarla incompleta, porque
+// un producto que dejó de existir pero tiene movimientos sigue siendo parte
+// de lo que pasó.
+function nombreProducto(id) {
+  const p = prodPorId(id);
+  if (!p) return 'producto #' + id;
+  return p.nombre + (p.formato ? ' (' + p.formato + ')' : '');
+}
 const zonaPorId = id => zonas.find(z => z.id === id) || null;
 
 // Cuarta copia de la conversión caja→unidad base. Ver pendiente 11 en
@@ -708,6 +803,9 @@ function goTab(id, btn) {
   pintarPestana(id);
 }
 function pintarPestana(id) {
+  if (id === 'clientes')  renderClientesKPI();
+  if (id === 'rotacion')  renderRotacion();
+  if (id === 'traslados') renderTraslados();
   if (id === 'ventas')  renderVentas();
   if (id === 'mermas')  renderMermas();
   if (id === 'capital') renderCapital();
@@ -735,7 +833,20 @@ async function cargarTodo() {
     catch (_) { zonas = []; }
 
     movs    = await sbTodo('bod_movimientos', 'select=*&order=id.asc');
-    pedidos = await sbTodo('pedidos', 'select=id,created_at,zona,entrega,estado,tipo,emp,cliente_id&order=id.asc');
+    // `sucursal_id` hace falta para el ritmo por sucursal; el directorio, para
+    // poder mostrar nombres en vez de números.
+    pedidos = await sbTodo('pedidos',
+      'select=id,created_at,zona,entrega,estado,tipo,emp,cliente_id,sucursal_id&order=id.asc');
+
+    // El directorio puede no existir en una instalación vieja. Si falta, la
+    // sección de clientes lo dice y el resto sigue andando.
+    try {
+      const [cl, su] = await Promise.all([
+        sbJson('clientes?select=id,emp,rut,activo'),
+        sbJson('sucursales?select=id,cliente_id,nombre,dir,zona,activo')
+      ]);
+      clientes = cl; sucursales = su;
+    } catch (_) { clientes = []; sucursales = []; }
 
     alerta('kp-alert', '', '');
     repintarActiva();
@@ -1043,6 +1154,294 @@ function renderCapital() {
 // ══════════════════════════════════════════════════════════════
 //  RECURRENCIA POR ZONA
 // ══════════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════
+//  RECURRENCIA POR CLIENTE
+// ══════════════════════════════════════════════════════════════
+
+// La mediana de los días entre pedidos consecutivos.
+//
+// Mediana y no promedio: un cliente que pidió tres veces en una semana y
+// después desapareció dos meses tiene un promedio de veinte días que no
+// describe ningún comportamiento real. La mediana dice "lo normal en este
+// cliente es cada 3 días" y deja el hueco como lo que es, una excepción.
+function medianaDias(fechas) {
+  if (fechas.length < 2) return null;
+  const orden = fechas.slice().sort();
+  const huecos = [];
+  for (let i = 1; i < orden.length; i++) {
+    const d = Math.round((new Date(orden[i]) - new Date(orden[i - 1])) / 86400000);
+    if (d > 0) huecos.push(d);          // dos pedidos el mismo día son uno solo
+  }
+  if (!huecos.length) return null;
+  huecos.sort((a, b) => a - b);
+  const m = Math.floor(huecos.length / 2);
+  return huecos.length % 2 ? huecos[m] : Math.round((huecos[m - 1] + huecos[m]) / 2);
+}
+
+const diasDesde = f => Math.floor((Date.now() - new Date(f).getTime()) / 86400000);
+
+// Agrupa los pedidos por cliente o por sucursal y calcula el ritmo de cada uno.
+function ritmos(nivel) {
+  const g = new Map();
+  for (const p of pedidos) {
+    if (p.tipo === 'cortesia' || p.estado === 'anulado') continue;
+    let clave, nombre, sub = '';
+    if (nivel === 'sucursal') {
+      if (p.sucursal_id == null) continue;   // sin sucursal no hay nada que agrupar
+      const su = sucursales.find(x => String(x.id) === String(p.sucursal_id));
+      const cl = clientes.find(x => String(x.id) === String(p.cliente_id));
+      clave  = 's' + p.sucursal_id;
+      nombre = cl ? cl.emp : (p.emp || 'sin cliente');
+      sub    = su ? su.nombre + (su.dir ? ' · ' + su.dir : '') : 'sucursal #' + p.sucursal_id;
+    } else {
+      // Sin `cliente_id` se agrupa por nombre: hay pedidos anteriores al
+      // directorio y dejarlos fuera escondería clientes reales.
+      const cl = p.cliente_id != null
+        ? clientes.find(x => String(x.id) === String(p.cliente_id)) : null;
+      clave  = cl ? 'c' + cl.id : 'n:' + String(p.emp || '').trim().toLowerCase();
+      nombre = cl ? cl.emp : (p.emp || 'sin nombre');
+      if (!clave || clave === 'n:') continue;
+    }
+    if (!g.has(clave)) g.set(clave, { nombre, sub, fechas: [], zona: p.zona || '' });
+    g.get(clave).fechas.push(String(p.created_at).slice(0, 10));
+  }
+
+  return [...g.values()].map(x => {
+    const cada    = medianaDias(x.fechas);
+    const ultimo  = x.fechas.slice().sort().pop();
+    const sinPedir = diasDesde(ultimo);
+    // Atrasado a partir de una vez y media su propio ritmo. Por debajo de eso
+    // la variación normal de cualquier cliente daría falsas alarmas todos los
+    // días, y una alarma que suena siempre deja de mirarse.
+    let est = 'nuevo';
+    if (cada != null) {
+      if      (sinPedir > cada * 3)   est = 'perdido';
+      else if (sinPedir > cada * 1.5) est = 'atrasado';
+      else                            est = 'aldia';
+    }
+    return { ...x, cada, ultimo, sinPedir, pedidos: x.fechas.length, est };
+  });
+}
+
+const EST_CLI = {
+  perdido:  { lbl: 'Perdido',  col: 'var(--rd)' },
+  atrasado: { lbl: 'Atrasado', col: 'var(--nd)' },
+  aldia:    { lbl: 'Al día',   col: 'var(--vd)' },
+  nuevo:    { lbl: 'Un pedido', col: 'var(--textl)' }
+};
+
+function renderClientesKPI() {
+  const cont = document.getElementById('cl-lista');
+  if (!cont) return;
+  if (!clientes.length && !pedidos.length) {
+    cont.innerHTML = '<div class="alert ai">Sin pedidos que analizar.</div>';
+    return;
+  }
+
+  const nivel = document.getElementById('cl-nivel').value;
+  const ver   = document.getElementById('cl-ver').value;
+  const q     = (document.getElementById('cl-q').value || '').trim().toLowerCase();
+
+  let filas = ritmos(nivel);
+  const total = filas.length;
+  const atrasados = filas.filter(f => f.est === 'atrasado').length;
+  const perdidos  = filas.filter(f => f.est === 'perdido').length;
+
+  document.getElementById('cl-stats').innerHTML = `
+    <div class="stat"><div class="sn">${total}</div>
+      <div class="sl">${nivel === 'sucursal' ? 'Sucursales' : 'Clientes'} con pedidos</div></div>
+    <div class="stat"><div class="sn" style="color:${atrasados ? 'var(--nd)' : 'inherit'}">${atrasados}</div>
+      <div class="sl">Atrasados</div></div>
+    <div class="stat"><div class="sn" style="color:${perdidos ? 'var(--rd)' : 'inherit'}">${perdidos}</div>
+      <div class="sl">Perdidos</div></div>`;
+
+  if (ver === 'atrasados') filas = filas.filter(f => f.est === 'atrasado');
+  if (ver === 'perdidos')  filas = filas.filter(f => f.est === 'perdido');
+  if (q) filas = filas.filter(f => (f.nombre + ' ' + f.sub).toLowerCase().includes(q));
+
+  // Primero el que lleva más ciclos sin pedir, no el que lleva más días: un
+  // cliente semanal con 20 días de atraso es más urgente que uno mensual con
+  // 40, aunque en días parezca al revés.
+  filas.sort((a, b) => {
+    const ra = a.cada ? a.sinPedir / a.cada : 0;
+    const rb = b.cada ? b.sinPedir / b.cada : 0;
+    return rb - ra;
+  });
+
+  if (!filas.length) {
+    cont.innerHTML = '<div class="alert as">✔ Nada que revisar con este filtro.</div>';
+    return;
+  }
+
+  cont.innerHTML = `<div class="tw"><table>
+    <thead><tr>
+      <th>${nivel === 'sucursal' ? 'Cliente y sucursal' : 'Cliente'}</th>
+      <th>Pedidos</th><th>Cada</th><th>Último</th><th>Sin pedir</th><th>Estado</th>
+    </tr></thead><tbody>
+    ${filas.map(f => {
+      const e = EST_CLI[f.est];
+      const ciclos = f.cada ? (f.sinPedir / f.cada) : null;
+      return `<tr>
+        <td><div style="font-weight:800">${esc(f.nombre)}</div>
+          ${f.sub ? `<div class="sub" style="margin:0">${esc(f.sub)}</div>` : ''}</td>
+        <td style="font-weight:700">${f.pedidos}</td>
+        <td>${f.cada != null ? f.cada + ' días' : '<span class="sub" style="margin:0">—</span>'}</td>
+        <td style="font-size:12px">${esc(fechaCorta(f.ultimo))}</td>
+        <td style="font-weight:800;color:${e.col}">${f.sinPedir} días
+          ${ciclos != null && ciclos > 1
+            ? `<div class="sub" style="margin:0">${ciclos.toFixed(1)}× su ritmo</div>` : ''}</td>
+        <td><span style="font-weight:800;color:${e.col}">${e.lbl}</span></td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MOVIMIENTO DE PRODUCTO
+// ══════════════════════════════════════════════════════════════
+function renderRotacion() {
+  const cont = document.getElementById('rt-lista');
+  if (!cont) return;
+
+  const sel = document.getElementById('rt-bod');
+  if (sel && !sel.options.length)
+    sel.innerHTML = '<option value="">Todas las bodegas</option>' +
+      bodegas.filter(b => b.activa).map(b =>
+        `<option value="${b.id}">${esc(b.nombre)}</option>`).join('');
+
+  const dias = Number(document.getElementById('rt-vent').value) || 60;
+  const bid  = document.getElementById('rt-bod').value;
+  const q    = (document.getElementById('rt-q').value || '').trim().toLowerCase();
+
+  const venta = new Set(motivos.filter(m => m.es_venta).map(m => String(m.id)));
+  const corte = f => { const d = new Date(); d.setDate(d.getDate() - f); return d.toISOString().slice(0, 10); };
+  const desdeA = corte(dias);            // período reciente
+  const desdeB = corte(dias * 2);        // el anterior, del mismo largo
+
+  const acum = new Map();                // producto -> {a, b}
+  for (const m of movs) {
+    if (m.tipo !== 'salida' || !venta.has(String(m.motivo_id))) continue;
+    if (bid && String(m.bodega_id) !== bid) continue;
+    const f = String(m.fecha).slice(0, 10);
+    if (f < desdeB) continue;
+    const k = String(m.producto_id);
+    if (!acum.has(k)) acum.set(k, { a: 0, b: 0 });
+    const q2 = aBase(m.producto_id, Math.abs(Number(m.cantidad) || 0), m.medida);
+    if (f >= desdeA) acum.get(k).a += q2; else acum.get(k).b += q2;
+  }
+
+  let filas = [...acum.entries()].map(([id, v]) => {
+    const porDia = v.a / dias;
+    // Sin período anterior no hay con qué comparar: decir +100% de cero sería
+    // inventar una tendencia donde solo hay un producto nuevo.
+    const tend = v.b > 0 ? ((v.a - v.b) / v.b) * 100 : null;
+    return { id, total: v.a, porDia, tend,
+             nombre: nombreProducto(id), stock: stockDe(id) };
+  }).filter(f => f.total > 0);
+
+  if (q) filas = filas.filter(f => f.nombre.toLowerCase().includes(q));
+  filas.sort((a, b) => b.total - a.total);
+
+  if (!filas.length) {
+    cont.innerHTML = '<div class="alert ai">Ninguna salida de venta en el período.</div>';
+    return;
+  }
+
+  cont.innerHTML = `<div class="tw"><table>
+    <thead><tr><th>Producto</th><th>Diario</th><th>Semanal</th><th>Mensual</th>
+      <th>Tendencia</th><th>Stock</th><th>Alcanza</th></tr></thead><tbody>
+    ${filas.map(f => {
+      const cob = f.porDia > 0 ? Math.floor(f.stock / f.porDia) : null;
+      const colCob = cob == null ? 'inherit'
+        : cob <= 7 ? 'var(--rd)' : cob <= 14 ? 'var(--nd)' : 'var(--vd)';
+      const colT = f.tend == null ? 'var(--textl)'
+        : f.tend > 15 ? 'var(--vd)' : f.tend < -15 ? 'var(--rd)' : 'inherit';
+      return `<tr>
+        <td style="font-weight:700">${esc(f.nombre)}</td>
+        <td>${num(Math.round(f.porDia * 100) / 100)}</td>
+        <td style="font-weight:800">${num(Math.round(f.porDia * 7))}</td>
+        <td>${num(Math.round(f.porDia * 30))}</td>
+        <td style="color:${colT};font-weight:700">${f.tend == null ? '—'
+          : (f.tend > 0 ? '+' : '') + Math.round(f.tend) + '%'}</td>
+        <td>${num(f.stock)}</td>
+        <td style="color:${colCob};font-weight:800">${cob == null ? '—' : cob + ' días'}</td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
+// Stock de un producto en todas las bodegas activas.
+function stockDe(prodId) {
+  return saldos
+    .filter(s => String(s.producto_id) === String(prodId) && s.bodega_activa)
+    .reduce((a, s) => a + (Number(s.saldo) || 0), 0);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  TRASLADOS ENTRE BODEGAS
+// ══════════════════════════════════════════════════════════════
+function renderTraslados() {
+  const cont = document.getElementById('tr-lista');
+  if (!cont) return;
+  const dias = Number(document.getElementById('tr-vent').value) || 0;
+  let desde = '';
+  if (dias > 0) { const d = new Date(); d.setDate(d.getDate() - dias); desde = d.toISOString().slice(0, 10); }
+
+  const nombreBod = id => (bodegas.find(b => String(b.id) === String(id)) || {}).nombre
+    || ('bodega #' + id);
+
+  const rutas = new Map();
+  let total = 0;
+  for (const m of movs) {
+    if (m.tipo !== 'traslado' || m.bodega_destino_id == null) continue;
+    const f = String(m.fecha).slice(0, 10);
+    if (desde && f < desde) continue;
+    const k = m.bodega_id + '>' + m.bodega_destino_id;
+    if (!rutas.has(k)) rutas.set(k, {
+      de: m.bodega_id, a: m.bodega_destino_id,
+      veces: 0, dias: new Set(), productos: new Set(), unidades: 0
+    });
+    const r = rutas.get(k);
+    r.veces++; r.dias.add(f); r.productos.add(String(m.producto_id));
+    r.unidades += aBase(m.producto_id, Math.abs(Number(m.cantidad) || 0), m.medida);
+    total++;
+  }
+
+  const lista = [...rutas.values()].sort((a, b) => b.dias.size - a.dias.size);
+
+  // Un par que se manda producto en los dos sentidos son viajes que se podrían
+  // evitar guardando distinto. Vale detectarlo y decirlo.
+  const idaYVuelta = lista.filter(r =>
+    rutas.has(r.a + '>' + r.de)).map(r => [r.de, r.a].sort().join('|'));
+  const pares = [...new Set(idaYVuelta)].length;
+
+  document.getElementById('tr-resumen').innerHTML = `
+    <div class="stat"><div class="sn">${total}</div><div class="sl">Traslados</div></div>
+    <div class="stat"><div class="sn">${lista.length}</div><div class="sl">Rutas distintas</div></div>
+    <div class="stat"><div class="sn" style="color:${pares ? 'var(--nd)' : 'inherit'}">${pares}</div>
+      <div class="sl">Pares de ida y vuelta</div></div>`;
+
+  if (!lista.length) {
+    cont.innerHTML = '<div class="alert ai">Ningún traslado en el período.</div>';
+    return;
+  }
+
+  cont.innerHTML = `<div class="tw"><table>
+    <thead><tr><th>Ruta</th><th>Viajes</th><th>Traslados</th><th>Productos</th>
+      <th>Unidades</th><th></th></tr></thead><tbody>
+    ${lista.map(r => {
+      const vuelve = rutas.has(r.a + '>' + r.de);
+      return `<tr>
+        <td style="font-weight:700">${esc(nombreBod(r.de))} → ${esc(nombreBod(r.a))}</td>
+        <td style="font-weight:800">${r.dias.size}</td>
+        <td>${r.veces}</td>
+        <td>${r.productos.size}</td>
+        <td>${num(Math.round(r.unidades))}</td>
+        <td>${vuelve ? '<span style="color:var(--nd);font-weight:700;font-size:11px">' +
+          '↔️ también va al revés</span>' : ''}</td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
 function renderZonasKPI() {
   const semanas = Number(document.getElementById('zsem').value) || 13;
   const corte = haceDias(semanas * 7);
