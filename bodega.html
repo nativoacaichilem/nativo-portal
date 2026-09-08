@@ -91,10 +91,9 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--mo
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ══ SEGMENTOS ══ */
-.segs{display:flex;gap:3px;background:var(--crema);padding:3px;border-radius:10px;flex-wrap:wrap}
-.segs button{border:0;background:transparent;padding:7px 16px;border-radius:8px;font-weight:800;
-  font-size:13px;color:var(--textl);cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap}
-.segs button[aria-pressed=true]{background:var(--white);color:var(--mora-d);box-shadow:0 1px 3px rgba(107,53,184,.18)}
+/* Las secciones de bodega usaban su propio estilo —un control segmentado— y
+   por eso se veían distintas de las de las otras pantallas. Ahora usan la
+   barra común .secbar/.sec, definida más abajo. */
 
 /* ══ KPI ══ */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
@@ -145,6 +144,7 @@ tbody tr:hover td{background:#faf6ff}
   padding-right:7px;font-size:11.5px;font-weight:900;color:var(--text);text-shadow:0 0 3px rgba(255,255,255,.9)}
 .f-ok{background:linear-gradient(90deg,#5cbfa0,#2E8B6E)}
 .f-medio{background:linear-gradient(90deg,#f0c368,#D89A1E)}
+.f-tibio{background:linear-gradient(90deg,#f7e08a,#E3C64A)}
 .f-alto{background:linear-gradient(90deg,#e08279,#C0392B)}
 .f-nada{background:repeating-linear-gradient(135deg,#d9d4e0 0 5px,#efecf3 5px 10px)}
 
@@ -304,13 +304,13 @@ tbody tr:hover td{background:#faf6ff}
   <div class="wrap">
 
     <div class="card-head" style="margin-bottom:14px">
-      <div class="segs" role="group" aria-label="Secciones de bodega">
-        <button id="s-panorama"    aria-pressed="true"  onclick="irA('panorama')">📊 Panorama</button>
-        <button id="s-movimientos" aria-pressed="false" onclick="irA('movimientos')">📖 Movimientos</button>
-        <button id="s-conteo"      aria-pressed="false" onclick="irA('conteo')">🔢 Conteo físico</button>
-        <button id="s-ventas"      aria-pressed="false" onclick="irA('ventas')">🧾 Ventas</button>
-        <button id="s-maestros"    aria-pressed="false" onclick="irA('maestros')">⚙️ Configuración</button>
-        <button id="s-diag"        aria-pressed="false" onclick="irA('diag')">🩺 Diagnóstico</button>
+      <div class="secbar" role="group" aria-label="Secciones de bodega">
+        <button id="s-panorama" class="sec act"    aria-pressed="true"  onclick="irA('panorama')">📊 Panorama</button>
+        <button id="s-movimientos" class="sec" aria-pressed="false" onclick="irA('movimientos')">📖 Movimientos</button>
+        <button id="s-conteo" class="sec"      aria-pressed="false" onclick="irA('conteo')">🔢 Conteo físico</button>
+        <button id="s-ventas" class="sec"      aria-pressed="false" onclick="irA('ventas')">🧾 Ventas</button>
+        <button id="s-maestros" class="sec"    aria-pressed="false" onclick="irA('maestros')">⚙️ Configuración</button>
+        <button id="s-diag" class="sec"        aria-pressed="false" onclick="irA('diag')">🩺 Diagnóstico</button>
       </div>
       <div class="crece"></div>
       <span class="chip" id="quien-chip" onclick="pedirOperador()" style="cursor:pointer"
@@ -342,25 +342,13 @@ tbody tr:hover td{background:#faf6ff}
 
       <div class="stats" id="kpis"></div>
 
-      <div class="card" id="card-alertas" style="display:none">
-        <div class="card-head">
-          <h2>🚨 Bajo el mínimo</h2>
-          <div class="crece"></div>
-          <span class="chip" id="alertas-cuenta"></span>
-        </div>
-        <div class="fb">
-          <select id="al-bodega" onchange="alGuardarPref()" style="min-width:180px;font-weight:800"></select>
-          <select id="al-orden" onchange="alGuardarPref()">
-            <option value="urgencia">Lo que se acaba primero</option>
-            <option value="masStock">Más stock primero</option>
-            <option value="menosStock">Menos stock primero</option>
-            <option value="nombre">Por nombre</option>
-          </select>
-        </div>
-        <div id="alertas-frio"></div>
-        <div class="al-lista" id="alertas"></div>
-        <div id="alertas-nunca"></div>
-      </div>
+      <!-- Acá estaba la tarjeta "🚨 Bajo el mínimo". Se retiró el 3 de
+           septiembre de 2026: nadie la miraba, y su criterio dependía de un
+           mínimo escrito a mano producto por producto que casi nunca estaba
+           puesto y que no se actualizaba cuando la venta cambiaba.
+           Lo que reemplaza esa función es el color de la matriz de abajo, que
+           se calcula solo desde el libro: rojo cuando queda menos de media
+           semana de venta. -->
 
       <div class="card">
         <div class="card-head">
@@ -388,7 +376,7 @@ tbody tr:hover td{background:#faf6ff}
           <select id="f-familia" onchange="renderMatriz()"><option value="">Todas las familias</option></select>
           <select id="f-estado" onchange="renderMatriz()">
             <option value="">Todo el catálogo</option>
-            <option value="alerta">Solo bajo el mínimo</option>
+            <option value="alerta">Solo lo que urge reponer</option>
             <option value="pronto">Se acaban esta semana</option>
             <option value="conmov">Solo con movimiento</option>
             <option value="cero">Solo en cero</option>
@@ -1440,17 +1428,63 @@ function totalDe(productoId) {
   return Math.round(t * 1000) / 1000;
 }
 
-// Estado de una celda. Sin mínimo definido no hay alerta posible:
-// decir "está bien" de algo que nadie midió sería inventar tranquilidad.
-function estado(saldo, minimo) {
-  if (minimo === null || !(minimo > 0)) return saldo > 0 ? 'sinmin' : 'nada';
+// Estado de una celda, medido contra LO QUE SE VENDE, no contra un mínimo
+// escrito a mano.
+//
+// El mínimo tenía dos problemas. Había que definirlo producto por producto y
+// bodega por bodega, así que la mayoría quedaba sin él y sin color. Y no se
+// actualizaba solo: un producto que empezó vendiendo 3 a la semana y ahora
+// vende 30 seguía con el mínimo de antes, diciendo que estaba bien.
+//
+// El criterio nuevo se calcula solo desde el libro:
+//
+//   rojo     queda menos de media semana de venta
+//   naranjo  queda menos de una semana
+//   amarillo queda menos de dos semanas
+//   verde    más que eso
+//
+// Un producto que se vende 10 por semana se pone rojo con 5 en bodega, que es
+// exactamente lo pedido.
+//
+// El mínimo NO se elimina: si está definido y es más exigente que la venta,
+// manda el mínimo. Alguien lo puso por una razón que el libro no sabe —un
+// compromiso con un cliente, un lote que hay que tener siempre— y el número
+// que se calcula solo no tiene por qué pasarle por encima.
+function estado(saldo, minimo, semanal) {
   if (saldo <= 0) return 'nada';
-  if (saldo <= minimo) return 'alto';
-  if (saldo <= minimo * 1.5) return 'medio';
-  return 'ok';
+
+  let porVenta = null;
+  if (semanal > 0) {
+    const semanas = saldo / semanal;
+    // `<=` y no `<` en el primer corte: con 10 de venta semanal y 5 en
+    // bodega el pedido dice explícitamente que es rojo. Con `<` justo ese
+    // caso —el del ejemplo— quedaba en naranjo.
+    porVenta = semanas <= 0.5 ? 'alto' : semanas < 1 ? 'medio'
+             : semanas < 2    ? 'tibio' : 'ok';
+  }
+
+  let porMinimo = null;
+  if (minimo !== null && minimo > 0)
+    porMinimo = saldo <= minimo ? 'alto' : saldo <= minimo * 1.5 ? 'medio' : 'ok';
+
+  // Sin ninguno de los dos no hay con qué juzgar. Decir "está bien" de algo
+  // que nadie midió sería inventar tranquilidad.
+  if (porVenta === null && porMinimo === null) return 'sinmin';
+
+  // Gana el más pesimista de los dos.
+  const orden = { alto: 0, medio: 1, tibio: 2, ok: 3 };
+  if (porVenta === null)  return porMinimo;
+  if (porMinimo === null) return porVenta;
+  return orden[porVenta] <= orden[porMinimo] ? porVenta : porMinimo;
 }
-const ESTADO_TXT = { ok: 'Con holgura', medio: 'Se acerca al mínimo', alto: 'Bajo el mínimo',
-                     nada: 'Agotado', sinmin: 'Sin mínimo definido' };
+// De peor a mejor. Sirve para decidir el estado de una fila que agrupa varias
+// bodegas: manda la peor. `sinmin` va al final porque no es un problema, es
+// una falta de información.
+const GRAVEDAD = { nada: 0, alto: 1, medio: 2, tibio: 3, ok: 4, sinmin: 5 };
+
+const ESTADO_TXT = { ok: 'Con holgura', tibio: 'Menos de dos semanas',
+                     medio: 'Menos de una semana', alto: 'Menos de media semana',
+                     nada: 'Agotado', sinmin: 'Sin venta ni mínimo con qué medir' };
 
 // ── CONSUMO Y COBERTURA ───────────────────────────────────────────────
 //  Saber que quedan 12 baldes no sirve de nada solo: doce baldes son un mes
@@ -1498,6 +1532,14 @@ function consumoDiario(bodegaId, productoId) {
 
 // null cuando no hay consumo medible: no se puede dividir por cero, y decir
 // "alcanza para siempre" sería mentira disfrazada de dato.
+// Lo que sale por semana de un producto en una bodega. Es el consumo diario
+// que ya se calcula para la cobertura, llevado a semanas: el mismo número
+// medido de la misma forma, para que el color y la cobertura nunca digan
+// cosas distintas.
+function ventaSemanal(bodegaId, productoId) {
+  return consumoDiario(bodegaId, productoId) * 7;
+}
+
 function coberturaDias(bodegaId, productoId) {
   const c = consumoDiario(bodegaId, productoId);
   if (!(c > 0)) return null;
@@ -1527,7 +1569,12 @@ function irA(s) {
   seccion = s;
   SECCIONES.forEach(x => {
     document.getElementById('page-' + x).classList.toggle('act', x === s);
-    document.getElementById('s-' + x).setAttribute('aria-pressed', String(x === s));
+    const b = document.getElementById('s-' + x);
+    // La clase es lo que pinta; el aria-pressed queda para los lectores de
+    // pantalla. Antes solo estaba el segundo y el estilo colgaba de él, que
+    // es frágil: cualquier cambio de CSS dejaba de marcar la sección activa.
+    b.classList.toggle('act', x === s);
+    b.setAttribute('aria-pressed', String(x === s));
   });
   if (location.hash.slice(1) !== s) history.replaceState(null, '', '#' + s);
   if (s === 'conteo') { nombreCuadraturaPorOmision(); ajustarFiltroConteo();
@@ -1539,7 +1586,6 @@ function pintarTodo() {
   llenarSelects();
   pintarCuandoRespaldo();
   renderKPIs();
-  renderAlertas();
   renderMatriz();
   renderGrafico();
   renderMovs();
@@ -1711,18 +1757,29 @@ function renderKPIs() {
     for (const p of productosVivos())
       if (esFrio(p) && saldoDe(b.id, p.id) <= 0) frioCero.push({ b, p });
 
+  // Los dos indicadores de arriba se miden con el mismo criterio que el color
+  // de la matriz, para que nunca digan cosas distintas: contra la venta, no
+  // contra un mínimo escrito a mano.
+  let enCero = 0, bajoVenta = 0;
+  for (const b of bodegasVivas())
+    for (const p of productosVivos()) {
+      const e = estado(saldoDe(b.id, p.id), minimoDe(b.id, p.id), ventaSemanal(b.id, p.id));
+      if (e === 'nada') enCero++;
+      else if (e === 'alto') bajoVenta++;
+    }
+
   document.getElementById('kpis').innerHTML = `
     <div class="stat ${frioCero.length ? 'grave' : ''} pulsa" onclick="verSoloFrio()">
       <div class="sn">${frioCero.length}</div><div class="sl">❄️ Congelados en cero</div>
       <div class="sx">${frioCero.length
         ? esc([...new Set(frioCero.map(x => x.b.nombre))].join(' · '))
         : 'ninguno, todo con stock'}</div></div>
-    <div class="stat ${criticas ? 'grave' : ''} pulsa" onclick="irAlertas()">
-      <div class="sn">${criticas}</div><div class="sl">Agotados</div>
-      <div class="sx">Con mínimo definido y saldo en cero</div></div>
-    <div class="stat ${al.length - criticas > 0 ? 'aviso' : ''} pulsa" onclick="irAlertas()">
-      <div class="sn">${al.length - criticas}</div><div class="sl">Bajo el mínimo</div>
-      <div class="sx">Alcanza, pero hay que reponer</div></div>
+    <div class="stat ${enCero ? 'grave' : ''} pulsa" onclick="verCriticos()">
+      <div class="sn">${enCero}</div><div class="sl">Agotados</div>
+      <div class="sx">Sin stock en alguna bodega</div></div>
+    <div class="stat ${bajoVenta ? 'aviso' : ''} pulsa" onclick="verCriticos()">
+      <div class="sn">${bajoVenta}</div><div class="sl">Menos de media semana</div>
+      <div class="sx">Al ritmo al que se están vendiendo</div></div>
     <div class="stat">${kpiValor}</div>
     <div class="stat">${kpiMerma}</div>
     <div class="stat ${pronto.length ? 'aviso' : ''} pulsa" onclick="verSeAcaban()">
@@ -1744,6 +1801,19 @@ function verSoloFrio() {
   document.getElementById('matriz-frio').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+// Lleva a la matriz mostrando solo lo que urge. Reemplaza al viejo
+// `irAlertas()`, que abría la tarjeta "Bajo el mínimo": ahora no hay tarjeta,
+// el mismo dato se lee en la matriz con el filtro puesto.
+function verCriticos() {
+  irA('panorama');
+  document.getElementById('f-buscar').value = '';
+  document.getElementById('f-familia').value = '';
+  document.getElementById('f-estado').value = 'alerta';
+  verGrupo('');                       // acá interesa todo, no solo congelados
+  renderMatriz();
+  document.getElementById('matriz-frio').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function verSeAcaban() {
   irA('panorama');
   document.getElementById('f-estado').value = 'pronto';
@@ -1753,164 +1823,21 @@ function verSeAcaban() {
   document.getElementById('matriz-frio').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function irAlertas() {
-  irA('panorama');
-  const c = document.getElementById('card-alertas');
-  if (c.style.display !== 'none') c.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-// ══════════════════════════════════════════════════════════════
-//  ALERTAS
-// ══════════════════════════════════════════════════════════════
-// Un producto que nunca tuvo un movimiento en esta bodega y está en cero no
-// es una alerta: es carga inicial pendiente. Ponerlo en la misma lista que
-// los baldes que se están acabando ahoga lo que sí hay que mirar hoy.
-function nuncaTuvo(bodegaId, productoId) {
-  return !movs.some(m => m.producto_id === productoId &&
-    (m.bodega_id === bodegaId || m.bodega_destino_id === bodegaId));
-}
-
-function alBodegaElegida() {
-  const sel = document.getElementById('al-bodega');
-  const v = sel ? Number(sel.value) : 0;
-  if (v) return v;
-  const vivas = bodegasVivas();
-  if (!vivas.length) return 0;
-  // Por omisión, la oficina: es donde se despacha todos los días.
-  const of = vivas.find(b => /oficina/i.test(b.nombre));
-  return (of || vivas[0]).id;
-}
-
-function llenarSelectAlertas() {
-  const sel = document.getElementById('al-bodega');
-  if (!sel) return;
-  const vivas = bodegasVivas();
-  const prev = sel.value;
-  sel.innerHTML = vivas.map(b => `<option value="${b.id}">${esc(b.nombre)}</option>`).join('') +
-    '<option value="0">Todas las bodegas</option>';
-  let guardada = '';
-  try { guardada = localStorage.getItem('nativo_bod_al_bodega') || ''; } catch (_) {}
-  const valido = v => v === '0' || vivas.some(b => String(b.id) === v);
-  sel.value = valido(prev) ? prev
-            : (valido(guardada) ? guardada : String(alBodegaElegida()));
-  const so = document.getElementById('al-orden');
-  try {
-    const g = localStorage.getItem('nativo_bod_al_orden');
-    if (g && [...so.options].some(o => o.value === g)) so.value = g;
-  } catch (_) {}
-}
-
-function alGuardarPref() {
-  try {
-    localStorage.setItem('nativo_bod_al_bodega', document.getElementById('al-bodega').value);
-    localStorage.setItem('nativo_bod_al_orden', document.getElementById('al-orden').value);
-  } catch (_) {}
-  renderAlertas();
-}
-
-function ordenarAlertas(lista) {
-  const modo = (document.getElementById('al-orden') || {}).value || 'urgencia';
-  const l = lista.slice();
-  if (modo === 'masStock')   return l.sort((a, b) => b.saldo - a.saldo);
-  if (modo === 'menosStock') return l.sort((a, b) => a.saldo - b.saldo);
-  if (modo === 'nombre')     return l.sort((a, b) =>
-    a.producto.nombre.localeCompare(b.producto.nombre, 'es'));
-  return l;   // ya viene por urgencia desde listaAlertas()
-}
-
-function tarjetaAlerta(a) {
-  const cls = a.frio && a.saldo <= 0 ? 'frio-crit' : (a.saldo <= 0 ? 'crit' : 'baja');
-  const pie = a.minimo === null
-    ? `<b>sin stock</b> · ${esc(a.bodega.nombre)} · sin mínimo definido`
-    : `<b>${coberturaTexto(a.dias)}</b> · ${esc(a.bodega.nombre)}
-       · mínimo ${fmtBase(a.producto.id, a.minimo)} · faltan ${fmtBase(a.producto.id, a.falta)}`;
-  return `<div class="al ${cls}" tabindex="0" role="button"
-      onclick="verDetalle(${a.bodega.id},${a.producto.id})"
-      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();verDetalle(${a.bodega.id},${a.producto.id})}">
-      <div class="al-n" style="${porUnidad(a.producto.id) ? 'font-size:17px' : ''}">${fmtBase(a.producto.id, a.saldo)}</div>
-      <div>
-        <div class="al-t">${a.frio ? '❄️ ' : ''}${esc(a.producto.nombre)}${
-          a.producto.formato ? ' <span class="chip">' + esc(a.producto.formato) + '</span>' : ''}</div>
-        <div class="al-s">${pie}</div>
-      </div>
-    </div>`;
-}
-
-function renderAlertas() {
-  llenarSelectAlertas();
-  const todas = listaAlertas();
-  const card = document.getElementById('card-alertas');
-  if (!todas.length) { card.style.display = 'none'; return; }
-  card.style.display = 'block';
-
-  const bid = Number(document.getElementById('al-bodega').value);
-  const enBodega = bid ? todas.filter(a => a.bodega.id === bid) : todas;
-
-  // Se aparta lo que nunca entró a esa bodega. Sigue estando —abajo y
-  // plegado— pero deja de competir con lo que se está acabando hoy.
-  const nunca = enBodega.filter(a => a.saldo <= 0 && nuncaTuvo(a.bodega.id, a.producto.id));
-  const al = ordenarAlertas(enBodega.filter(a => !nunca.includes(a)));
-
-  const frio  = al.filter(a => a.frio);
-  const resto = al.filter(a => !a.frio);
-  document.getElementById('alertas-cuenta').textContent =
-    al.length + (al.length === 1 ? ' aviso' : ' avisos') +
-    (nunca.length ? ` · ${nunca.length} sin carga inicial` : '');
-
-  document.getElementById('alertas-nunca').innerHTML = nunca.length
-    ? `<div class="alert ai" style="margin-top:14px;line-height:1.6;cursor:pointer"
-         onclick="alVerNunca()">
-         📥 <b>${nunca.length} producto${nunca.length === 1 ? '' : 's'} con mínimo definido
-         que nunca ${nunca.length === 1 ? 'ha' : 'han'} tenido stock en ${esc(nombreBodega(bid) || 'las bodegas')}.</b>
-         No es que falten: es que todavía no se cargan. Se dejan aparte para que no tapen
-         lo que se está acabando hoy. <u>Ver la lista</u>
-       </div>
-       <div id="alertas-nunca-lista" style="display:none">
-         <div class="grupo-cab" style="margin-top:14px">
-           <span style="font-size:15px">📥</span>
-           <span class="grupo-t">Sin carga inicial</span>
-           <span class="grupo-s">nunca entraron a esta bodega</span>
-         </div>
-         <div class="al-lista">${ordenarAlertas(nunca).slice(0, 60).map(tarjetaAlerta).join('')}</div>
-       </div>`
-    : '';
-
-  // Los congelados van en su propio bloque y arriba. Si están mezclados con
-  // veinte avisos de vasos, el que importa se pierde y la lista deja de
-  // mirarse, que es la peor forma de que una alerta falle.
-  document.getElementById('alertas-frio').innerHTML = frio.length
-    ? `<div class="grupo-cab frio">
-         <span style="font-size:17px">❄️</span>
-         <span class="grupo-t">Congelados</span>
-         <span class="grupo-s">${frio.length} aviso${frio.length === 1 ? '' : 's'} · lo que no puede estar en cero</span>
-       </div>
-       <div class="al-lista" style="margin-bottom:18px">${frio.slice(0, 30).map(tarjetaAlerta).join('')}</div>`
-    : '';
-
-  if (!al.length) {
-    document.getElementById('alertas-frio').innerHTML = '';
-    document.getElementById('alertas').innerHTML = nunca.length
-      ? ''
-      : '<div class="empty">Nada bajo el mínimo en esta bodega.</div>';
-    return;
-  }
-
-  document.getElementById('alertas').innerHTML = resto.length
-    ? (frio.length ? `<div class="grupo-cab">
-           <span style="font-size:15px">📦</span>
-           <span class="grupo-t">Resto del catálogo</span>
-           <span class="grupo-s">${resto.length} aviso${resto.length === 1 ? '' : 's'}</span>
-         </div><div class="al-lista">` : '<div class="al-lista" style="display:contents">')
-      + resto.slice(0, 40).map(tarjetaAlerta).join('') + '</div>'
-      + (resto.length > 40 ? `<div class="empty">y ${resto.length - 40} más</div>` : '')
-    : '';
-}
+// Acá vivían las ocho funciones de la tarjeta "Bajo el mínimo": el selector
+// de bodega, el de orden, las preferencias en localStorage, el ordenamiento
+// por urgencia y el dibujo de cada tarjeta. Se retiraron con la sección el 3
+// de septiembre de 2026.
+//
+// Lo que hacían lo hace ahora el color de la matriz, que se calcula solo
+// desde el libro y no depende de que alguien haya definido un mínimo.
 
 // ══════════════════════════════════════════════════════════════
 //  MATRIZ DE STOCK
 // ══════════════════════════════════════════════════════════════
-function medidor(saldo, minimo, unidad, pid) {
-  const est = estado(saldo, minimo);
+// `semanal` llega calculada desde quien llama, que es el único que conoce la
+// bodega. Acá solo hay producto, y la venta semanal depende de las dos cosas.
+function medidor(saldo, minimo, unidad, pid, semanal) {
+  const est = estado(saldo, minimo, semanal);
   // La escala llega hasta el doble del mínimo (o hasta el saldo si lo supera),
   // así la muesca del mínimo cae siempre a la mitad y se compara de un vistazo.
   const tope = Math.max(minimo ? minimo * 2 : 0, saldo, 1);
@@ -1945,9 +1872,12 @@ function filtrarProductos() {
     if (es === 'conmov' && !conMov.has(p.id)) return false;
     if (es === 'cero'   && totalDe(p.id) > 0) return false;
     if (es === 'alerta') {
+      // Mismo criterio que el color de la celda: si el filtro dijera una cosa
+      // y el color otra, la pantalla se contradice a sí misma.
       const hay = bods.some(b => {
-        const min = minimoDe(b.id, p.id);
-        return min !== null && min > 0 && saldoDe(b.id, p.id) <= min;
+        const e = estado(saldoDe(b.id, p.id), minimoDe(b.id, p.id),
+                         ventaSemanal(b.id, p.id));
+        return e === 'nada' || e === 'alto';
       });
       if (!hay) return false;
     }
@@ -1965,7 +1895,9 @@ function filtrarProductos() {
 //  entero: setenta y ocho columnas no se leen.
 // ══════════════════════════════════════════════════════════════
 let vistaMatriz = 'producto';
-let grupoMatriz = '';
+// Por omisión se muestran los congelados: son los que se quiebran y los que
+// hay que mirar todos los días. El resto está a un clic.
+let grupoMatriz = 'frio';
 let columnas = null;          // ids elegidos para la vista por bodega
 
 function cargarPreferencias() {
@@ -2095,7 +2027,7 @@ function tablaPorBodega(bods) {
     const celdas = cols.map(p => {
       const s = saldoDe(b.id, p.id);
       const min = minimoDe(b.id, p.id);
-      const e = estado(s, min);
+      const e = estado(s, min, ventaSemanal(b.id, p.id));
       return `<td class="celda c-${e}" tabindex="0" role="button"
         onclick="verDetalle(${b.id},${p.id})"
         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();verDetalle(${b.id},${p.id})}"
@@ -2135,16 +2067,19 @@ function tablaMatriz(bods, lista, frio) {
     let peor = 'ok';
     const celdas = bods.map(b => {
       const s = saldoDe(b.id, p.id), min = minimoDe(b.id, p.id);
-      const e = estado(s, min);
+      const e = estado(s, min, ventaSemanal(b.id, p.id));
       // El estado de la fila es el de la peor bodega, no el del total.
       // Un producto con 40 baldes en la oficina y 0 en Pichilemu no está
       // "cómodo": está agotado donde se necesita.
-      if (e === 'nada' || (e === 'alto' && peor !== 'nada') ||
-          (e === 'medio' && peor === 'ok')) peor = e;
+      //
+      // Con orden explícito y no con una cadena de condiciones: la versión
+      // anterior enumeraba las combinaciones a mano y al agregar el estado
+      // "tibio" dejó de cubrirlas todas sin que nada avisara.
+      if (GRAVEDAD[e] < GRAVEDAD[peor]) peor = e;
       return `<td class="celda" tabindex="0" role="button"
         onclick="verDetalle(${b.id},${p.id})"
         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();verDetalle(${b.id},${p.id})}"
-        title="Ver detalle y mover">${medidor(s, min, un, p.id)}</td>`;
+        title="Ver detalle y mover">${medidor(s, min, un, p.id, ventaSemanal(b.id, p.id))}</td>`;
     }).join('');
     const cls = peor === 'nada' || peor === 'alto' ? 'fila-alerta' : (peor === 'medio' ? 'fila-aviso' : '');
     return `<tr class="${cls}">
@@ -2750,7 +2685,7 @@ function verDetalle(bodegaId, productoId) {
   if (!p || !b) return;
   const s = saldoDe(bodegaId, productoId);
   const min = minimoDe(bodegaId, productoId);
-  const est = estado(s, min);
+  const est = estado(s, min, ventaSemanal(bodegaId, productoId));
   const un = p.unidad || 'un';
   const cd = coberturaDias(bodegaId, productoId);
 
@@ -3011,20 +2946,36 @@ function imprimirHojaConteo() {
     .pie{margin-top:22px;font-size:11.5px;color:#666}
     @media print{body{padding:0}}
 /* ══ BARRA DE MÓDULOS ══
-   Arriba SOLO se cambia de módulo. Las pestañas de cada pantalla van en su
+   Arriba SOLO se cambia de módulo. Las secciones de cada pantalla van en su
    propia barra, abajo. Antes las dos cosas se veían igual y estaban en la
    misma fila, así que no había forma de saber qué botón cambiaba de página y
-   cuál solo de vista. */
+   cuál solo de vista.
+
+   Los colores van sobre el morado del nav, que es el fondo en las cinco
+   pantallas. Un gris pensado para fondo claro acá no se lee. */
 .modbar{display:flex;gap:2px;overflow-x:auto;flex:1;min-width:0}
-.mod{background:none;border:none;padding:14px 13px;font-size:12px;font-weight:800;
-  color:var(--textl);cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;
-  border-bottom:3px solid transparent}
-.mod:hover{color:var(--mora-d)}
+.mod{background:none;border:none;padding:14px 14px;font-size:12px;font-weight:800;
+  color:rgba(255,255,255,.62);cursor:pointer;font-family:'Nunito',sans-serif;
+  white-space:nowrap;border-bottom:3px solid transparent}
+.mod:hover{color:#fff;background:rgba(255,255,255,.08)}
 /* El módulo actual no es un botón: es dónde estás. Por eso no responde al
-   cursor y se marca con el mismo amarillo de la casa. */
-.mod.act{color:var(--mora-d);border-bottom-color:var(--am);cursor:default;
-  background:var(--mora-xl)}
-@media(max-width:640px){ .mod{padding:12px 9px;font-size:11px} }
+   cursor y se marca con el amarillo de la casa. */
+.mod.act{color:#fff;border-bottom-color:var(--am);cursor:default;
+  background:rgba(0,0,0,.16)}
+.mod.act:hover{background:rgba(0,0,0,.16)}
+@media(max-width:640px){ .mod{padding:12px 10px;font-size:11px} }
+
+/* ══ BARRA DE SECCIONES ══
+   Las vistas DENTRO de esta pantalla. Se ve distinta de la barra de módulos a
+   propósito: píldoras sobre fondo claro, en vez de solapas sobre el morado.
+   Son dos cosas diferentes y tienen que parecerlo. */
+.secbar{display:flex;gap:6px;overflow-x:auto;flex-wrap:wrap}
+.sec{background:var(--white);border:1.5px solid var(--crema-d);border-radius:20px;
+  padding:8px 15px;font-size:12px;font-weight:800;color:var(--textl);cursor:pointer;
+  font-family:'Nunito',sans-serif;white-space:nowrap}
+.sec:hover{border-color:var(--mora-l);color:var(--mora-d)}
+.sec.act{background:var(--mora);border-color:var(--mora);color:#fff}
+@media(max-width:640px){ .sec{padding:7px 12px;font-size:11px} }
 </style></head><body>
     <h1>Conteo físico · ${esc(nombreBodega(bid))}</h1>
     <div class="sub">${fechaCorta(HOY())} · contó: ______________________</div>
@@ -3468,7 +3419,7 @@ function renderMinimos() {
   t.innerHTML = `<thead><tr><th>Producto</th><th class="num">Mínimo</th>
       <th class="num">Ahora hay</th><th>Estado</th><th></th></tr></thead>
     <tbody>${conMin.map(({ p, min }) => {
-      const s = saldoDe(bid, p.id), e = estado(s, min * factorDe(p.id));
+      const s = saldoDe(bid, p.id), e = estado(s, min * factorDe(p.id), ventaSemanal(bid, p.id));
       return `<tr><td><div style="font-weight:800">${esc(p.nombre)}</div>
           <div class="sub">${esc(p.formato || '')}</div></td>
         <td class="num"><b>${num(min)}</b> <span class="sub" style="display:inline">${
