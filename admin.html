@@ -407,6 +407,15 @@ input[type=checkbox]{
   .tabla-pedidos td.td-dir{max-width:none}
 }
 
+/* Pedido de un cliente bloqueado. Franja roja al costado y fondo teñido: en
+   una lista de doscientas filas, una etiqueta chica se pasa por alto y este
+   es el error que más caro sale. */
+tr.row-bloq > td{background:#fff5f5}
+tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
+@media(max-width:640px){
+  .tabla-pedidos tr.row-bloq{border-color:var(--rd);border-left-width:5px;background:#fff5f5}
+}
+
 /* ══ BARRA DE MÓDULOS ══
    Arriba SOLO se cambia de módulo. Las secciones de cada pantalla van en su
    propia barra, abajo. Antes las dos cosas se veían igual y estaban en la
@@ -542,6 +551,7 @@ input[type=checkbox]{
         <button class="btn bol bsm" id="b-corte" onclick="abrirCorte()"
           style="display:none" title="Poner una raya en el suelo: de acá para atrás no se reclama">🪧 Corte de bodega</button>
       </div>
+      <div id="aviso-bloqueados"></div>
       <div class="tw">
         <table class="tabla-pedidos">
           <thead>
@@ -1724,6 +1734,7 @@ function filtrados() {
   const fe = document.getElementById('festado').value;
   const fn = document.getElementById('fentrega').value;
   return pedidos.filter(p =>
+    (!soloBloqueados || estaBloqueado(clienteDelPedido(p))) &&
     (!q  || (p.emp||'').toLowerCase().includes(q) ||
              (p.rut||'').includes(q) ||
              (p.contacto||'').toLowerCase().includes(q) ||
@@ -1839,6 +1850,23 @@ function render() {
   const chkAll = document.getElementById('chk-all');
   if (chkAll) chkAll.checked = false;
 
+  // El aviso de clientes bloqueados va ARRIBA de la lista y no solo en cada
+  // fila. Si hay un pedido moroso entre doscientos, su fila se puede pasar por
+  // alto; un contador arriba, no. Y da el botón para ver solo esos.
+  const bloq = pedidosBloqueados(f);
+  const cajaAviso = document.getElementById('aviso-bloqueados');
+  if (cajaAviso) cajaAviso.innerHTML = bloq.length
+    ? `<div class="alert ae" style="line-height:1.55;display:flex;gap:10px;
+         align-items:center;flex-wrap:wrap">
+        <span style="flex:1;min-width:200px">🚫 <b>${bloq.length} pedido(s) de
+          cliente(s) bloqueado(s)</b> en esta lista:
+          ${hesc([...new Set(bloq.map(x => x.emp))].slice(0, 4).join(', '))}${
+            new Set(bloq.map(x => x.emp)).size > 4 ? ' y otros' : ''}.
+          No los despaches sin confirmar.</span>
+        <button class="btn bol bsm" onclick="verSoloBloqueados()">Ver solo esos</button>
+      </div>`
+    : '';
+
   const tb = document.getElementById('tbody');
   if (!f.length) {
     tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--textl);padding:28px;font-weight:700">Sin resultados</td></tr>';
@@ -1888,7 +1916,11 @@ function render() {
     // Los data-rot son los rótulos que el CSS de celular pone delante de cada
     // celda. En pantalla ancha no se ven: los encabezados de la tabla ya
     // dicen lo mismo.
-    return `<tr class="${isChecked ? 'row-sel' : ''}">
+    // La fila completa se marca, no solo con una etiqueta. Entregarle a un
+    // cliente moroso cuesta plata, así que tiene que verse desde el otro lado
+    // de la pantalla y sin buscarlo.
+    const cliBloq = estaBloqueado(clienteDelPedido(p));
+    return `<tr class="${isChecked ? 'row-sel' : ''}${cliBloq ? ' row-bloq' : ''}">
       <td class="td-check">
         <input type="checkbox" ${isChecked ? 'checked' : ''}
           onchange="toggleRow(${p.id}, this.checked)">
@@ -1896,7 +1928,7 @@ function render() {
       <td data-rot="Fecha" style="font-size:12px;color:var(--textl);font-weight:600;white-space:nowrap">${hesc(p.fecha)||'—'}</td>
       <td class="td-emp">
         <div style="font-weight:800;font-size:13px">${hesc(p.emp)}
-          ${chipBloqueo(p.cliente_id != null ? findCli(p.cliente_id) : null)}</div>
+          ${chipBloqueo(clienteDelPedido(p))}</div>
         <div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:1px">${hesc(p.rut)}</div>
         ${folioHtml}
         ${contactoHtml}
@@ -2952,8 +2984,7 @@ function abrir(id) {
 
   // Si el cliente está bloqueado, el aviso va arriba del modal: es el último
   // lugar donde alguien mira antes de marcar el pedido como despachado.
-  const cliP = p.cliente_id != null ? findCli(p.cliente_id) : null;
-  document.getElementById('m-alert').innerHTML = avisoBloqueo(cliP);
+  document.getElementById('m-alert').innerHTML = avisoBloqueo(clienteDelPedido(p));
 
   document.getElementById('m-folio').innerHTML = p.folio
     ? `<div class="alert ai" style="display:flex;align-items:center;gap:8px">
@@ -3881,8 +3912,43 @@ function traspasarZona(s) {
 
 // Etiqueta de bloqueado, para las listas. Corta y roja: en una lista larga
 // tiene que verse sin leer.
+// Deja en pantalla solo los pedidos de clientes bloqueados. No es un filtro
+// nuevo en la barra: se marca con una bandera y `filtrados()` la respeta, así
+// no hay dos caminos distintos para filtrar la misma lista.
+let soloBloqueados = false;
+function verSoloBloqueados() {
+  soloBloqueados = !soloBloqueados;
+  render();
+}
+
 const chipBloqueo = c => estaBloqueado(c)
-  ? '<span class="badge" style="background:var(--rl);color:var(--rd)">🚫 bloqueado</span>' : '';
+  ? '<span class="badge" style="background:var(--rd);color:#fff">🚫 BLOQUEADO</span>' : '';
+
+// El cliente de un pedido.
+//
+// Buscar solo por `cliente_id` no alcanza y ese fue el error: hay muchos
+// pedidos anteriores al directorio que lo tienen nulo, y para esos el aviso
+// de bloqueo no aparecía. Justo los de clientes viejos, que son los que más
+// probablemente deban plata.
+//
+// Se resuelve igual que en `indexar()`: por id, y si no, por la clave que
+// empareja RUT o nombre normalizado.
+function clienteDelPedido(p) {
+  if (!p) return null;
+  if (p.cliente_id != null) {
+    const c = findCli(p.cliente_id);
+    if (c && !c._local) return c;
+  }
+  const k = clavePedido(p, n2r);
+  return clientes.find(c => claveCliente(c) === k) || null;
+}
+
+// Cuántos pedidos abiertos son de clientes bloqueados. Se muestra arriba de la
+// lista: si hay uno solo entre doscientos, la etiqueta de su fila se puede
+// pasar por alto, el contador no.
+function pedidosBloqueados(lista) {
+  return lista.filter(p => estaBloqueado(clienteDelPedido(p)));
+}
 
 function pickCliente(id) {
   const c = findCli(id);
