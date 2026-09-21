@@ -2155,6 +2155,27 @@ async function cargarBodega(forzar) {
 }
 
 function bodVivas()    { return bodBodegas.filter(b => b.activa !== false); }
+
+// ── BODEGAS DE TRÁNSITO ───────────────────────────────────────────────
+//  Una bodega marcada con `vende = false` recibe y reparte, pero no le
+//  despacha a clientes. Golden Frost es la primera.
+//
+//  Esto no es cosmético acá: el 10 de septiembre de 2026 el pedido #605 se
+//  descargó desde Golden Frost porque `bodMejor()` buscaba la bodega con
+//  más saldo entre TODAS, y Almafrigo marcaba cero —el traslado que había
+//  llegado físicamente nunca se anotó—. El panel siguió bajando en la lista
+//  y encontró las 4.977 unidades de la bodega de tránsito. Esa descarga
+//  terminó en el ajuste de −417 baldes del 17 de septiembre, que durante un
+//  mes se leyó como merma.
+//
+//  Si la columna todavía no existe en la base, `vende` es undefined y todas
+//  las bodegas venden: el panel se comporta igual que antes.
+const bodVende = b => !!b && b.vende !== false;
+function bodVenden() { return bodVivas().filter(bodVende); }
+const bodEsTransito = id => {
+  const b = bodBodegas.find(x => String(x.id) === String(id));
+  return !!b && !bodVende(b);
+};
 function bodVigentes() { return bodProductos.filter(p => p.activo !== false); }
 function bodSalidas()  { return bodMotivos.filter(m => m.activo !== false && m.tipo === 'salida'); }
 
@@ -2187,11 +2208,20 @@ function bodSaldo(bid, pid) {
   return f ? Number(f.saldo) || 0 : 0;
 }
 
-// La bodega propuesta es la que más tiene de ese producto. Es la respuesta
-// correcta casi siempre y ahorra el clic; igual se puede cambiar.
+// La bodega propuesta es la que más tiene de ese producto, ENTRE LAS QUE
+// VENDEN. Es la respuesta correcta casi siempre y ahorra el clic; igual se
+// puede cambiar.
+//
+// Se recorre bodVenden() y no bodVivas(): con la lista completa, un producto
+// sin saldo en ninguna bodega de venta hacía que el panel eligiera la de
+// tránsito, que es la que siempre tiene stock por definición. Ese fallback
+// silencioso es el que descargó el pedido #605 desde Golden Frost.
+//
+// Devolver null cuando ninguna vende es a propósito: la línea queda sin
+// bodega y dsProblemas() la reclama, en vez de elegir mal por su cuenta.
 function bodMejor(pid) {
   let mejor = null, max = -Infinity;
-  for (const b of bodVivas()) {
+  for (const b of bodVenden()) {
     const s = bodSaldo(b.id, pid);
     if (s > max) { max = s; mejor = b; }
   }
@@ -2303,6 +2333,28 @@ function cerrarDescargo() {
   document.getElementById('modal-ds').classList.remove('open');
 }
 
+// El número de factura viaja tal cual al campo `doc` del movimiento, que es
+// por donde bodega cruza contra el listado de facturación. Si ahí dice
+// "2971 y 2972" el cruce no encuentra ninguna de las dos, y eso ya pasó: el
+// 10 de septiembre de 2026 un pedido con dos facturas se descargó así.
+//
+// Avisa, no bloquea. El pedido existe y tiene que poder despacharse; lo que
+// no puede es despacharse sin que nadie se entere de que el folio quedó
+// inservible para la cuadratura.
+function avisoFolio(factura) {
+  const t = String(factura || '').trim();
+  const varios = /[\s,;]|(^\d{3,6}-\d{3,6}$)/.test(t);
+  if (!varios) return '';
+  return `<div class="alert an" style="line-height:1.55">
+    El número de factura dice <b>${hesc(t)}</b>, que parece <b>más de un documento</b>.
+    Así queda anotado en bodega y el cruce contra facturación no lo va a encontrar.
+    <div style="font-size:11.5px;font-weight:700;margin-top:5px">
+      Lo correcto es un folio por pedido. Si de verdad son dos facturas, conviene
+      partir el pedido en dos, o corregir el número acá y anotar la segunda salida
+      a mano en Bodega.
+    </div></div>`;
+}
+
 // ── PINTAR ───────────────────────────────────────────────────
 function pintarDescargo() {
   const p = ds.pedido;
@@ -2345,7 +2397,10 @@ function pintarDescargo() {
 
   const opsProd = pid => bodVigentes().map(x =>
     `<option value="${x.id}" ${String(x.id) === String(pid) ? 'selected' : ''}>${hesc(x.nombre)}${x.formato ? ' · ' + hesc(x.formato) : ''}</option>`).join('');
-  const opsBod = bid => `<option value="">— bodega —</option>` + bodVivas().map(b =>
+  // Un descargo es siempre una salida, así que solo se ofrecen las bodegas
+  // que venden. Una de tránsito acá sería exactamente el error que se está
+  // corrigiendo.
+  const opsBod = bid => `<option value="">— bodega —</option>` + bodVenden().map(b =>
     `<option value="${b.id}" ${String(b.id) === String(bid) ? 'selected' : ''}>${hesc(b.nombre)}</option>`).join('');
   // En una cortesía los motivos de venta no se ofrecen: no hay nada que
   // cobrar, y ofrecerlos solo invita a un error que la base rechazaría.
@@ -2433,7 +2488,7 @@ function pintarDescargo() {
       ? `<div class="alert ai" style="line-height:1.55">🎁 <b>Entrega sin venta</b> —
            ${hesc(p.razon || 'cortesía')}. El stock se descuenta igual; lo que no hay
            es factura ni cobro. El costo queda medido para saber cuánto se regaló.</div>`
-      : (factura ? '' : `<div class="alert an" style="line-height:1.55">
+      : (factura ? avisoFolio(factura) : `<div class="alert an" style="line-height:1.55">
       Este pedido <b>no tiene número de factura</b>, así que nada puede marcarse como venta.
       Escríbelo en el pedido y vuelve, o elige un motivo que no sea de venta —una muestra,
       por ejemplo— y el stock igual se descuenta.</div>`)}
@@ -2477,6 +2532,9 @@ function dsProblemas() {
   ds.lineas.forEach((l, i) => {
     if (!l.producto_id) out.push(`Línea ${i + 1}: falta el producto`);
     if (!l.bodega_id)   out.push(`Línea ${i + 1}: falta la bodega`);
+    else if (bodEsTransito(l.bodega_id))
+      out.push(`Línea ${i + 1}: ${bodBodegas.find(b => String(b.id) === String(l.bodega_id)).nombre} ` +
+               'es bodega de tránsito y no vende; elige otra');
     if (!l.motivo_id)   out.push(`Línea ${i + 1}: falta decir qué pasó`);
     if (!(Number(l.cantidad) > 0)) out.push(`Línea ${i + 1}: la cantidad tiene que ser mayor que cero`);
     if (esMotivoVenta(l.motivo_id) && esCortesia(ds.pedido))
