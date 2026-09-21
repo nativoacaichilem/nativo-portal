@@ -551,7 +551,6 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
         <button class="btn bol bsm" id="b-corte" onclick="abrirCorte()"
           style="display:none" title="Poner una raya en el suelo: de acá para atrás no se reclama">🪧 Corte de bodega</button>
       </div>
-      <div id="aviso-bloqueados"></div>
       <div class="tw">
         <table class="tabla-pedidos">
           <thead>
@@ -1022,7 +1021,7 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
          cliente como el teléfono, es una decisión sobre él. Mezclarlo con los
          campos de contacto invita a marcarlo sin pensar. -->
     <div style="border-top:1px solid var(--crema-d);padding-top:12px">
-      <label class="chk" style="display:flex;align-items:center;gap:8px;margin:0 0 8px;
+      <label style="display:flex;align-items:center;gap:8px;margin:0 0 8px;
         text-transform:none;font-size:13px;color:var(--text);font-weight:800">
         <input type="checkbox" id="mcbloq" onchange="mcBloqueoCambio()" style="width:auto">
         🚫 Bloquear a este cliente
@@ -1734,7 +1733,6 @@ function filtrados() {
   const fe = document.getElementById('festado').value;
   const fn = document.getElementById('fentrega').value;
   return pedidos.filter(p =>
-    (!soloBloqueados || estaBloqueado(clienteDelPedido(p))) &&
     (!q  || (p.emp||'').toLowerCase().includes(q) ||
              (p.rut||'').includes(q) ||
              (p.contacto||'').toLowerCase().includes(q) ||
@@ -1850,22 +1848,10 @@ function render() {
   const chkAll = document.getElementById('chk-all');
   if (chkAll) chkAll.checked = false;
 
-  // El aviso de clientes bloqueados va ARRIBA de la lista y no solo en cada
-  // fila. Si hay un pedido moroso entre doscientos, su fila se puede pasar por
-  // alto; un contador arriba, no. Y da el botón para ver solo esos.
-  const bloq = pedidosBloqueados(f);
-  const cajaAviso = document.getElementById('aviso-bloqueados');
-  if (cajaAviso) cajaAviso.innerHTML = bloq.length
-    ? `<div class="alert ae" style="line-height:1.55;display:flex;gap:10px;
-         align-items:center;flex-wrap:wrap">
-        <span style="flex:1;min-width:200px">🚫 <b>${bloq.length} pedido(s) de
-          cliente(s) bloqueado(s)</b> en esta lista:
-          ${hesc([...new Set(bloq.map(x => x.emp))].slice(0, 4).join(', '))}${
-            new Set(bloq.map(x => x.emp)).size > 4 ? ' y otros' : ''}.
-          No los despaches sin confirmar.</span>
-        <button class="btn bol bsm" onclick="verSoloBloqueados()">Ver solo esos</button>
-      </div>`
-    : '';
+  // Acá había un aviso arriba de la lista con la cuenta de pedidos de clientes
+  // bloqueados. Se retiró: contaba el histórico completo, así que un cliente
+  // con cuarenta pedidos viejos generaba una alarma enorme por algo que ya
+  // pasó. La marca en la tarjeta de cada pedido es donde se decide, y basta.
 
   const tb = document.getElementById('tbody');
   if (!f.length) {
@@ -2291,6 +2277,16 @@ async function abrirDescargo(pedidoId, tras) {
 
   ds = { pedido: p, tras: tras || null, lineas: [], fuera: [] };
 
+  // `cargarBodega(true)` acaba de traer datos frescos, así que la lista de
+  // atrás quedó desactualizada. Se repinta ahora.
+  //
+  // Sin esto pasaba lo siguiente: un pedido ya descargado seguía mostrando el
+  // botón amarillo 📦 Descargar porque la fila se había dibujado con el mapa
+  // viejo; al apretarlo, el modal —que sí refresca— decía "este pedido ya
+  // descargó bodega"; y al cerrar, el botón seguía ahí. Parecía que el sistema
+  // se contradecía, y en realidad eran dos fotos de momentos distintos.
+  render();
+
   const yaTiene = bodPedidosConMov.get(String(p.id)) || 0;
   if (!yaTiene) {
     const prep = bodPreparar(p);
@@ -2668,7 +2664,7 @@ function abrirCorte() {
       repisa y de ahí en adelante cada despacho lo mantiene al día.
     </div>
 
-    <div class="f1" style="margin-top:12px">
+    <div style="margin-top:12px">
       <label for="ct-nota">Por qué se cierra (queda anotado)</label>
       <input type="text" id="ct-nota" placeholder="Ej: arranque del control de bodega, conteo hecho hoy">
     </div>`;
@@ -3044,7 +3040,15 @@ async function guardar() {
   // está en la mano. Anotarlo después es anotarlo de memoria.
   const antes  = (pedidos.find(x => String(x.id) === String(eid)) || {}).estado;
   const ahora  = document.getElementById('mestado').value;
-  const saliendo = ahora !== antes &&
+
+  // Pero solo si NO descontó todavía. Antes esto miraba únicamente el cambio
+  // de estado, así que pasar de "en ruta" a otro estado de la misma lista
+  // —facturado, entregado— volvía a abrir la ventana de descargo de un pedido
+  // que ya había descontado. Se abría, decía "este pedido ya descargó bodega",
+  // y había que cerrarla a mano cada vez.
+  const yaDescargo = bodPedidosConMov.has(String(eid));
+
+  const saliendo = ahora !== antes && !yaDescargo &&
     ['en-ruta', 'entregado', 'entregado-sin-facturar'].includes(ahora);
 
   if (saliendo && !dsSaltar) {
@@ -3912,15 +3916,6 @@ function traspasarZona(s) {
 
 // Etiqueta de bloqueado, para las listas. Corta y roja: en una lista larga
 // tiene que verse sin leer.
-// Deja en pantalla solo los pedidos de clientes bloqueados. No es un filtro
-// nuevo en la barra: se marca con una bandera y `filtrados()` la respeta, así
-// no hay dos caminos distintos para filtrar la misma lista.
-let soloBloqueados = false;
-function verSoloBloqueados() {
-  soloBloqueados = !soloBloqueados;
-  render();
-}
-
 const chipBloqueo = c => estaBloqueado(c)
   ? '<span class="badge" style="background:var(--rd);color:#fff">🚫 BLOQUEADO</span>' : '';
 
@@ -3943,12 +3938,6 @@ function clienteDelPedido(p) {
   return clientes.find(c => claveCliente(c) === k) || null;
 }
 
-// Cuántos pedidos abiertos son de clientes bloqueados. Se muestra arriba de la
-// lista: si hay uno solo entre doscientos, la etiqueta de su fila se puede
-// pasar por alto, el contador no.
-function pedidosBloqueados(lista) {
-  return lista.filter(p => estaBloqueado(clienteDelPedido(p)));
-}
 
 function pickCliente(id) {
   const c = findCli(id);
