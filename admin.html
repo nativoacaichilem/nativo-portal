@@ -494,6 +494,7 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
     <button class="sec"     id="sec-nuevo"    onclick="goTab('nuevo',this)">➕ Agregar</button>
     <button class="sec"     id="sec-rutas"    onclick="goTab('rutas',this)">🚚 Ruta</button>
     <button class="sec"     id="sec-clientes" onclick="goTab('clientes',this)">👥 Clientes</button>
+    <button class="sec"     id="sec-aprobar"  onclick="goTab('aprobar',this)">✅ <span id="sec-aprobar-n">Aprobar</span></button>
     <button class="sec"     id="sec-zonas"    onclick="goTab('zonas',this)">🗺️ Zonas</button>
   </div>
 
@@ -814,6 +815,23 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
   </div>
 
   <!-- ── ZONAS ── -->
+  <!-- ══ APROBAR LO DE BODEGA ══ -->
+  <div id="page-aprobar" class="page">
+    <div class="card">
+      <h2>✅ Esperando tu visto bueno</h2>
+      <div class="sub">
+        Lo que se anotó en la bodega y todavía no toca el stock: entradas,
+        conteos, mermas y traslados.
+        <br>
+        <b>Mientras no apruebes, el sistema no sabe que eso pasó.</b> Una entrada
+        sin aprobar hace que la bodega muestre que ese producto no llegó, y la
+        pantalla de reposición lo va a pedir de nuevo.
+      </div>
+      <div id="ap-alert"></div>
+      <div id="ap-lista" style="margin-top:12px"></div>
+    </div>
+  </div>
+
   <div id="page-zonas" class="page">
     <div class="card">
       <h2>🗺️ Zonas de reparto</h2>
@@ -889,6 +907,29 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
       <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn bam2" onclick="genPrompt()">✨ Generar Prompt para Claude</button>
         <button class="btn bgray bsm" onclick="deselRuta()">Deseleccionar todo</button>
+      </div>
+
+      <!-- Asignar al camión. Una vez armada la ruta con Claude, acá se le deja
+           puesta al bodeguero: él abre su portal y ve exactamente estos
+           pedidos, sin tener que interpretar nada. -->
+      <div class="modal-section" style="margin-top:18px">Mandar al portal de bodega</div>
+      <div id="ruta-asig-alert"></div>
+      <div class="sub" style="margin-bottom:10px">
+        Los pedidos seleccionados arriba quedan asignados a un camión y un día.
+        El bodeguero los ve en <b>bodeguero.html</b> y confirma la carga desde ahí.
+      </div>
+      <div class="fg">
+        <div><label>Camión</label>
+          <select id="ruta-camion">
+            <option value="camion-1">Camión 1</option>
+            <option value="camion-2">Camión 2</option>
+          </select></div>
+        <div><label>Día del despacho</label>
+          <input id="ruta-dia" type="date"></div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn bmora bsm" onclick="asignarRuta()">🚚 Asignar al camión</button>
+        <button class="btn bol bsm" onclick="asignarRuta(true)">Quitar de la ruta</button>
       </div>
       <div id="pres" style="display:none">
         <div id="pout" class="pbox"></div>
@@ -1252,22 +1293,58 @@ async function doLogin() {
   btn.innerHTML = '<span class="sp"></span>Verificando...'; btn.disabled = true;
   document.getElementById('lerr').innerHTML = '';
 
+  // Un solo login para las dos pantallas. El Worker dice qué clave es —él es
+  // el único que lo sabe— y acá solo se redirige.
+  //
+  // Esto no relaja nada: los permisos los verifica el Worker en CADA petición
+  // según la clave que trae. Aunque alguien abra admin.html con la clave del
+  // bodeguero, no va a poder hacer nada que no le corresponda. La redirección
+  // es comodidad, no control.
+  let rol = 'admin';
   try {
-    // El Worker es quien decide. Se prueba con una lectura mínima.
-    const r = await fetch(`${PROXY}/supabase/pedidos?select=id&limit=1`, {
-      headers: { 'X-Admin-Token': clave }
-    });
+    const r = await fetch(`${PROXY}/rol`, { headers: { 'X-Admin-Token': clave } });
     if (r.status === 401) {
       document.getElementById('lerr').innerHTML =
         '<div class="alert ae">Clave incorrecta.</div>';
       btn.innerHTML = 'Ingresar →'; btn.disabled = false;
       return;
     }
-    if (!r.ok) throw new Error('HTTP ' + r.status);
+    if (r.status === 429) {
+      document.getElementById('lerr').innerHTML =
+        '<div class="alert ae">Demasiados intentos con la clave equivocada. ' +
+        'Espera quince minutos.</div>';
+      btn.innerHTML = 'Ingresar →'; btn.disabled = false;
+      return;
+    }
+    if (r.ok) { rol = (await r.json()).rol || 'admin'; }
+    // Si /rol no existe todavía —Worker sin actualizar— se sigue como antes,
+    // probando con una lectura. Así subir este archivo antes que el Worker no
+    // deja a nadie afuera.
+    else {
+      const r2 = await fetch(`${PROXY}/supabase/pedidos?select=id&limit=1`,
+        { headers: { 'X-Admin-Token': clave } });
+      if (r2.status === 401) {
+        document.getElementById('lerr').innerHTML =
+          '<div class="alert ae">Clave incorrecta.</div>';
+        btn.innerHTML = 'Ingresar →'; btn.disabled = false;
+        return;
+      }
+      if (!r2.ok) throw new Error('HTTP ' + r2.status);
+    }
   } catch (e) {
     document.getElementById('lerr').innerHTML =
       '<div class="alert ae">No se pudo conectar. Revisa tu conexión e intenta de nuevo.</div>';
     btn.innerHTML = 'Ingresar →'; btn.disabled = false;
+    return;
+  }
+
+  if (rol === 'bodega') {
+    // La clave del bodeguero abre su portal, no este. Se deja guardada para
+    // que no la tenga que teclear de nuevo del otro lado.
+    try { sessionStorage.setItem('nativo_bod_token', clave); } catch (_) {}
+    document.getElementById('lerr').innerHTML =
+      '<div class="alert ai"><span class="sp"></span>Abriendo el portal de bodega...</div>';
+    location.href = 'bodeguero.html';
     return;
   }
 
@@ -1316,8 +1393,16 @@ function salir() {
 // Viniendo de bodega, que ya hizo su propia carga, es cuando más tarda.
 function pintarPestana(id) {
   if (id === 'pedidos')  { render(); return; }
-  if (id === 'rutas')    { renderChecksRuta(); return; }
+  if (id === 'rutas') {
+    // Por omisión, hoy. La ruta casi siempre se arma para el día en curso, y
+    // una fecha vacía bloquea el botón de asignar sin decir por qué.
+    const d = document.getElementById('ruta-dia');
+    if (d && !d.value) d.value = hoyISO();
+    renderChecksRuta();
+    return;
+  }
   if (id === 'clientes') { renderClientes(); return; }
+  if (id === 'aprobar')  { renderAprobar(); return; }
   if (id === 'zonas')    { renderZonas(); return; }
   if (id === 'nuevo') {
     pintarCat('man');
@@ -1358,6 +1443,15 @@ function goTab(id, btn) {
 //  UTILIDADES
 // ══════════════════════════════════════════
 function hoy() { return new Date().toLocaleDateString('es-CL'); }
+
+// Formatea una cantidad para mostrarla. Los saldos de bodega pueden tener
+// decimales —media caja, 1,5 kilos— y "12.5" leído rápido se confunde con
+// doce mil quinientos. Con separador chileno no.
+function num(v) {
+  const n = Number(v) || 0;
+  return Number.isInteger(n) ? n.toLocaleString('es-CL')
+    : n.toLocaleString('es-CL', { maximumFractionDigits: 3 });
+}
 
 // Hoy en formato ISO. `hoy()` devuelve el formato chileno, que sirve para
 // mostrar y NO para guardar: una columna `date` de Postgres lo rechaza.
@@ -1717,6 +1811,7 @@ async function cargar() {
     // En segundo plano: si bodega no está instalada, el panel funciona igual
     // y el indicador simplemente no aparece.
     cargarBodega().then(() => render());
+    cargarPropuestas();
   } catch(e) {
     document.getElementById('tbody').innerHTML =
       '<tr><td colspan="8" style="text-align:center;color:var(--rd);padding:28px;font-weight:700">' +
@@ -2155,27 +2250,6 @@ async function cargarBodega(forzar) {
 }
 
 function bodVivas()    { return bodBodegas.filter(b => b.activa !== false); }
-
-// ── BODEGAS DE TRÁNSITO ───────────────────────────────────────────────
-//  Una bodega marcada con `vende = false` recibe y reparte, pero no le
-//  despacha a clientes. Golden Frost es la primera.
-//
-//  Esto no es cosmético acá: el 10 de septiembre de 2026 el pedido #605 se
-//  descargó desde Golden Frost porque `bodMejor()` buscaba la bodega con
-//  más saldo entre TODAS, y Almafrigo marcaba cero —el traslado que había
-//  llegado físicamente nunca se anotó—. El panel siguió bajando en la lista
-//  y encontró las 4.977 unidades de la bodega de tránsito. Esa descarga
-//  terminó en el ajuste de −417 baldes del 17 de septiembre, que durante un
-//  mes se leyó como merma.
-//
-//  Si la columna todavía no existe en la base, `vende` es undefined y todas
-//  las bodegas venden: el panel se comporta igual que antes.
-const bodVende = b => !!b && b.vende !== false;
-function bodVenden() { return bodVivas().filter(bodVende); }
-const bodEsTransito = id => {
-  const b = bodBodegas.find(x => String(x.id) === String(id));
-  return !!b && !bodVende(b);
-};
 function bodVigentes() { return bodProductos.filter(p => p.activo !== false); }
 function bodSalidas()  { return bodMotivos.filter(m => m.activo !== false && m.tipo === 'salida'); }
 
@@ -2208,20 +2282,11 @@ function bodSaldo(bid, pid) {
   return f ? Number(f.saldo) || 0 : 0;
 }
 
-// La bodega propuesta es la que más tiene de ese producto, ENTRE LAS QUE
-// VENDEN. Es la respuesta correcta casi siempre y ahorra el clic; igual se
-// puede cambiar.
-//
-// Se recorre bodVenden() y no bodVivas(): con la lista completa, un producto
-// sin saldo en ninguna bodega de venta hacía que el panel eligiera la de
-// tránsito, que es la que siempre tiene stock por definición. Ese fallback
-// silencioso es el que descargó el pedido #605 desde Golden Frost.
-//
-// Devolver null cuando ninguna vende es a propósito: la línea queda sin
-// bodega y dsProblemas() la reclama, en vez de elegir mal por su cuenta.
+// La bodega propuesta es la que más tiene de ese producto. Es la respuesta
+// correcta casi siempre y ahorra el clic; igual se puede cambiar.
 function bodMejor(pid) {
   let mejor = null, max = -Infinity;
-  for (const b of bodVenden()) {
+  for (const b of bodVivas()) {
     const s = bodSaldo(b.id, pid);
     if (s > max) { max = s; mejor = b; }
   }
@@ -2333,28 +2398,6 @@ function cerrarDescargo() {
   document.getElementById('modal-ds').classList.remove('open');
 }
 
-// El número de factura viaja tal cual al campo `doc` del movimiento, que es
-// por donde bodega cruza contra el listado de facturación. Si ahí dice
-// "2971 y 2972" el cruce no encuentra ninguna de las dos, y eso ya pasó: el
-// 10 de septiembre de 2026 un pedido con dos facturas se descargó así.
-//
-// Avisa, no bloquea. El pedido existe y tiene que poder despacharse; lo que
-// no puede es despacharse sin que nadie se entere de que el folio quedó
-// inservible para la cuadratura.
-function avisoFolio(factura) {
-  const t = String(factura || '').trim();
-  const varios = /[\s,;]|(^\d{3,6}-\d{3,6}$)/.test(t);
-  if (!varios) return '';
-  return `<div class="alert an" style="line-height:1.55">
-    El número de factura dice <b>${hesc(t)}</b>, que parece <b>más de un documento</b>.
-    Así queda anotado en bodega y el cruce contra facturación no lo va a encontrar.
-    <div style="font-size:11.5px;font-weight:700;margin-top:5px">
-      Lo correcto es un folio por pedido. Si de verdad son dos facturas, conviene
-      partir el pedido en dos, o corregir el número acá y anotar la segunda salida
-      a mano en Bodega.
-    </div></div>`;
-}
-
 // ── PINTAR ───────────────────────────────────────────────────
 function pintarDescargo() {
   const p = ds.pedido;
@@ -2397,10 +2440,7 @@ function pintarDescargo() {
 
   const opsProd = pid => bodVigentes().map(x =>
     `<option value="${x.id}" ${String(x.id) === String(pid) ? 'selected' : ''}>${hesc(x.nombre)}${x.formato ? ' · ' + hesc(x.formato) : ''}</option>`).join('');
-  // Un descargo es siempre una salida, así que solo se ofrecen las bodegas
-  // que venden. Una de tránsito acá sería exactamente el error que se está
-  // corrigiendo.
-  const opsBod = bid => `<option value="">— bodega —</option>` + bodVenden().map(b =>
+  const opsBod = bid => `<option value="">— bodega —</option>` + bodVivas().map(b =>
     `<option value="${b.id}" ${String(b.id) === String(bid) ? 'selected' : ''}>${hesc(b.nombre)}</option>`).join('');
   // En una cortesía los motivos de venta no se ofrecen: no hay nada que
   // cobrar, y ofrecerlos solo invita a un error que la base rechazaría.
@@ -2488,7 +2528,7 @@ function pintarDescargo() {
       ? `<div class="alert ai" style="line-height:1.55">🎁 <b>Entrega sin venta</b> —
            ${hesc(p.razon || 'cortesía')}. El stock se descuenta igual; lo que no hay
            es factura ni cobro. El costo queda medido para saber cuánto se regaló.</div>`
-      : (factura ? avisoFolio(factura) : `<div class="alert an" style="line-height:1.55">
+      : (factura ? '' : `<div class="alert an" style="line-height:1.55">
       Este pedido <b>no tiene número de factura</b>, así que nada puede marcarse como venta.
       Escríbelo en el pedido y vuelve, o elige un motivo que no sea de venta —una muestra,
       por ejemplo— y el stock igual se descuenta.</div>`)}
@@ -2532,9 +2572,6 @@ function dsProblemas() {
   ds.lineas.forEach((l, i) => {
     if (!l.producto_id) out.push(`Línea ${i + 1}: falta el producto`);
     if (!l.bodega_id)   out.push(`Línea ${i + 1}: falta la bodega`);
-    else if (bodEsTransito(l.bodega_id))
-      out.push(`Línea ${i + 1}: ${bodBodegas.find(b => String(b.id) === String(l.bodega_id)).nombre} ` +
-               'es bodega de tránsito y no vende; elige otra');
     if (!l.motivo_id)   out.push(`Línea ${i + 1}: falta decir qué pasó`);
     if (!(Number(l.cantidad) > 0)) out.push(`Línea ${i + 1}: la cantidad tiene que ser mayor que cero`);
     if (esMotivoVenta(l.motivo_id) && esCortesia(ds.pedido))
@@ -3214,6 +3251,41 @@ function exportCSV() {
 // ══════════════════════════════════════════
 // Los retiros NO entran: el cliente los viene a buscar. Si entraran, podrías
 // despachar algo que ya estaba coordinado para retiro.
+// Deja los pedidos seleccionados asignados a un camión y un día, o los saca.
+//
+// Se hace de a uno y no con un PATCH masivo: el Worker exige un filtro en cada
+// PATCH, y un `id=in.(...)` con treinta ids es una dirección larguísima que
+// además falla entera si uno solo da problema. De a uno se sabe cuáles
+// quedaron.
+async function asignarRuta(quitar) {
+  if (!selRuta.length)
+    return alerta('ruta-asig-alert', 'Primero marca los pedidos de la ruta.', 'ae');
+
+  const dia = document.getElementById('ruta-dia').value;
+  if (!quitar && !dia)
+    return alerta('ruta-asig-alert', 'Elige el día del despacho. Sin fecha, el ' +
+      'bodeguero no sabe cuál es la carga de hoy.', 'ae');
+
+  // La base exige que camión y fecha vayan juntos: o los dos, o ninguno.
+  const fila = quitar
+    ? { ruta: '', fecha_ruta: null }
+    : { ruta: document.getElementById('ruta-camion').value, fecha_ruta: dia };
+
+  alerta('ruta-asig-alert', '<span class="sp"></span>Asignando...', 'ai');
+  let bien = 0; const mal = [];
+  for (const id of selRuta) {
+    try { await sbPatch(id, fila); bien++; }
+    catch (e) { mal.push(id); }
+  }
+  await cargar();
+  // Se informan los dos números: decir "listo" cuando tres fallaron es lo que
+  // hace que nadie vuelva a confiar en la pantalla.
+  alerta('ruta-asig-alert',
+    `${bien} pedido(s) ${quitar ? 'sacados de la ruta' : 'asignados'}.` +
+    (mal.length ? ` <b>No se pudo con ${mal.length}:</b> #${mal.join(', #')}.` : ''),
+    mal.length ? 'an' : 'as');
+}
+
 function renderChecksRuta() {
   // Una cortesía nunca va a estar "facturada", así que si se pidiera solo ese
   // estado, las muestras no entrarían nunca en la ruta y habría que llevarlas
@@ -4373,6 +4445,211 @@ async function guardarWz() {
   btn.innerHTML = 'Guardar Pedido'; btn.disabled = false;
 }
 
+
+// ══════════════════════════════════════════════════════════════
+//  APROBAR LO QUE VIENE DE BODEGA
+// ══════════════════════════════════════════════════════════════
+//
+// El bodeguero anota entradas, conteos, mermas y traslados, y esas cosas NO
+// tocan el stock hasta que se aprueban acá. Aprobar es crear el movimiento
+// real; `bod_movimientos` sigue conteniendo solo hechos confirmados y la
+// fórmula del saldo no cambia en ninguna parte.
+//
+// La pantalla muestra el efecto que tendría cada propuesta ANTES de aprobar.
+// Sin eso habría que ir a mirar el stock en otra pestaña para cada una, nadie
+// haría eso con veinte al día, y se aprobarían todas de corrido — que es peor
+// que no aprobar, porque da la sensación de control sin el control.
+
+let propuestas = [], propOK = false;
+
+async function cargarPropuestas() {
+  try {
+    propuestas = await sbPagina('bod_propuestas_abiertas', 'select=*&order=creada.asc');
+    propOK = true;
+  } catch (e) {
+    propuestas = []; propOK = false;
+  }
+  pintarContadorAprobar();
+}
+
+// El contador va en la pestaña: si hay algo esperando tiene que verse sin
+// entrar a buscarlo.
+function pintarContadorAprobar() {
+  const e = document.getElementById('sec-aprobar-n');
+  if (!e) return;
+  e.textContent = propuestas.length ? `Aprobar (${propuestas.length})` : 'Aprobar';
+  const b = document.getElementById('sec-aprobar');
+  if (b) b.style.borderColor = propuestas.length ? 'var(--nd)' : '';
+}
+
+const TIPO_PROP = {
+  entrada:  { lbl: 'Llegó producto',  ico: '📥' },
+  salida:   { lbl: 'Salió / merma',   ico: '📤' },
+  ajuste:   { lbl: 'Diferencia al contar', ico: '🔢' },
+  traslado: { lbl: 'Traslado',        ico: '↔️' }
+};
+
+function renderAprobar() {
+  const cont = document.getElementById('ap-lista');
+  if (!cont) return;
+
+  if (!propOK) {
+    cont.innerHTML = '<div class="alert ae" style="line-height:1.55">' +
+      'No se pudo leer <b>bod_propuestas_abiertas</b>.<br>' +
+      'Corre <b>PREPARADO_propuestas.sql</b> en Supabase y comprueba que ' +
+      '<b>bod_propuestas</b> y <b>bod_propuestas_abiertas</b> estén en la lista ' +
+      'de tablas del Worker, abriendo <b>/salud</b>.</div>';
+    return;
+  }
+  if (!propuestas.length) {
+    cont.innerHTML = '<div class="alert as">✔ Nada esperando. La bodega está al día.</div>';
+    return;
+  }
+
+  cont.innerHTML = propuestas.map(x => {
+    const t = TIPO_PROP[x.tipo] || { lbl: x.tipo, ico: '•' };
+    const saldo = Number(x.saldo_actual) || 0;
+    const efecto = Number(x.efecto_base) || 0;
+    const queda = saldo + efecto;
+    // Un saldo que quedaría negativo es la señal más clara de que algo no
+    // cuadra: o la propuesta está mal, o el stock ya estaba mal antes.
+    const negativo = queda < 0;
+    const dias = Number(x.dias_esperando) || 0;
+
+    return `<div class="modal-section" style="margin-top:0"></div>
+    <div style="border:1.5px solid ${negativo ? 'var(--rd)' : 'var(--crema-d)'};
+                border-radius:12px;padding:14px;margin-bottom:12px;
+                background:${negativo ? '#fff5f5' : 'var(--white)'}">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start">
+        <div style="flex:1;min-width:220px">
+          <div style="font-weight:900;font-size:14px">
+            ${t.ico} ${hesc(t.lbl)}
+            ${dias >= 2 ? `<span class="badge" style="background:var(--nl);color:var(--nd)">
+              esperando hace ${dias} días</span>` : ''}
+          </div>
+          <div style="font-weight:800;font-size:15px;margin-top:4px">
+            ${hesc(x.producto)}${x.formato ? ' · ' + hesc(x.formato) : ''}</div>
+          <div class="sub" style="margin:2px 0 0">
+            ${num(x.cantidad)} ${x.medida === 'caja' ? 'caja(s)' : 'unidad(es)'}
+            en <b>${hesc(x.bodega)}</b>
+            ${x.bodega_destino ? ' → <b>' + hesc(x.bodega_destino) + '</b>' : ''}
+            ${x.motivo ? ' · ' + hesc(x.motivo) : ''}
+            ${x.doc ? ' · 🧾 ' + hesc(x.doc) : ''}
+          </div>
+          <div class="sub" style="margin:4px 0 0">
+            👤 ${hesc(x.quien || 'sin firma')}
+            ${x.camion ? ' · ' + hesc(x.camion.replace('camion-', 'camión ')) : ''}
+          </div>
+          ${x.nota ? `<div class="sub" style="margin:4px 0 0;color:var(--mora-d);
+            font-weight:800">💬 ${hesc(x.nota)}</div>` : ''}
+        </div>
+        <div style="flex:0 0 190px;font-size:12px;font-weight:800;line-height:1.7">
+          <div>Hoy: ${num(saldo)} ${hesc(x.unidad || 'un')}</div>
+          <div style="color:${efecto >= 0 ? 'var(--vd)' : 'var(--nd)'}">
+            ${efecto >= 0 ? '+' : ''}${num(efecto)}</div>
+          <div style="font-size:15px;color:${negativo ? 'var(--rd)' : 'var(--mora-d)'}">
+            Queda: ${num(queda)}</div>
+          ${negativo ? '<div style="color:var(--rd);font-size:11px;line-height:1.4">' +
+            '⚠️ El saldo quedaría negativo. Revisa antes de aprobar.</div>' : ''}
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn bmora bsm" onclick="aprobarProp(${x.id})">✔ Aprobar</button>
+        <button class="btn bol bsm" onclick="rechazarProp(${x.id})">✕ Rechazar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Aprobar: se crea el movimiento real y recién ahí se marca la propuesta.
+//
+// En ese orden a propósito. Si se marcara primero y el movimiento fallara,
+// quedaría una propuesta aprobada que nunca movió stock: desaparece de la
+// lista de pendientes y nadie se entera de que el producto sigue sin
+// registrarse. Al revés, si falla el segundo paso, la propuesta reaparece y a
+// lo más se aprueba dos veces, que es visible y corregible.
+async function aprobarProp(id) {
+  const x = propuestas.find(p => String(p.id) === String(id));
+  if (!x) return;
+
+  // La base exige motivo en entradas y salidas: `bod_mov_motivo` lo hace
+  // cumplir. Sin esta revisión, aprobar una propuesta sin motivo falla con un
+  // mensaje de Postgres que no dice qué hacer, y la propuesta queda ahí
+  // pareciendo que el problema es del panel.
+  if ((x.tipo === 'entrada' || x.tipo === 'salida') && !x.motivo_id) {
+    alerta('ap-alert', 'Esta propuesta no trae motivo, y la base lo exige para ' +
+      'una ' + hesc(x.tipo) + '. Recházala pidiendo que la manden de nuevo con ' +
+      'motivo, o anota el movimiento a mano desde Bodega.', 'ae');
+    return;
+  }
+
+  const queda = (Number(x.saldo_actual) || 0) + (Number(x.efecto_base) || 0);
+  if (queda < 0 && !confirm(
+      `El saldo de ${x.producto} en ${x.bodega} quedaría en ${num(queda)}.\n\n` +
+      '¿Aprobar igual?')) return;
+
+  alerta('ap-alert', '<span class="sp"></span>Aprobando...', 'ai');
+  try {
+    const mov = {
+      tipo: x.tipo,
+      fecha: hoyISO(),
+      producto_id: x.producto_id,
+      bodega_id: x.bodega_id,
+      cantidad: x.cantidad,
+      medida: x.medida,
+      motivo_id: x.motivo_id || null,
+      doc: x.doc || null,
+      // Se conserva quién lo anotó en la bodega, no quién aprobó: el hecho lo
+      // presenció él. Quién aprobó queda en la propuesta.
+      usuario: x.quien || 'bodega',
+      nota: [x.nota, 'Aprobado desde el panel'].filter(Boolean).join(' · ')
+    };
+    if (x.bodega_destino_id) mov.bodega_destino_id = x.bodega_destino_id;
+    await sbSend('bod_movimientos', 'POST', [mov]);
+
+    await sbSend(`bod_propuestas?id=eq.${encodeURIComponent(id)}`, 'PATCH', {
+      estado: 'aprobada',
+      resuelta: new Date().toISOString(),
+      resuelta_por: quienDescarga() || 'panel'
+    });
+
+    await cargarPropuestas();
+    await cargarBodega(true);
+    renderAprobar();
+    render();
+    alerta('ap-alert', 'Aprobado. El stock ya lo refleja.', 'as');
+  } catch (e) {
+    alerta('ap-alert', 'No se pudo aprobar: ' + hesc(e.message) +
+      '<br>Si el movimiento alcanzó a crearse, la propuesta va a seguir ' +
+      'apareciendo. Revisa el libro de bodega antes de reintentar.', 'ae');
+  }
+}
+
+async function rechazarProp(id) {
+  const x = propuestas.find(p => String(p.id) === String(id));
+  if (!x) return;
+  // Se pide la razón, no se ofrece: el bodeguero la ve en su portal, y
+  // rechazar sin explicar es la forma más rápida de que deje de anotar.
+  const razon = prompt('¿Por qué se rechaza?\n\nEl bodeguero va a ver esta ' +
+    'respuesta en su pantalla.');
+  if (razon === null) return;
+  if (!razon.trim()) return alerta('ap-alert', 'Escribe la razón del rechazo.', 'ae');
+
+  try {
+    await sbSend(`bod_propuestas?id=eq.${encodeURIComponent(id)}`, 'PATCH', {
+      estado: 'rechazada',
+      resuelta: new Date().toISOString(),
+      resuelta_por: quienDescarga() || 'panel',
+      respuesta: razon.trim().slice(0, 400)
+    });
+    await cargarPropuestas();
+    renderAprobar();
+    alerta('ap-alert', 'Rechazado. El bodeguero va a ver la razón.', 'ai');
+  } catch (e) {
+    alerta('ap-alert', 'No se pudo rechazar: ' + hesc(e.message), 'ae');
+  }
+}
+
 // ══════════════════════════════════════════════════════════════
 //  PESTAÑA DE ZONAS
 // ══════════════════════════════════════════════════════════════
@@ -5402,7 +5679,7 @@ async function cargarTodo() {
 // pestaña activa cuando termina, sea cual sea.
 (function irAHash(){
   const id = (location.hash || '').slice(1);
-  if (!['pedidos','nuevo','clientes','rutas','zonas'].includes(id)) return;
+  if (!['pedidos','nuevo','clientes','rutas','zonas','aprobar'].includes(id)) return;
   // Los botones de sección tienen id fijo, así que se buscan directo en vez de
   // rastrearlos por su texto o su onclick. Antes se buscaban por la clase de la
   // barra vieja y, al unificar la navegación, dejaban de encontrarse: entrar a
