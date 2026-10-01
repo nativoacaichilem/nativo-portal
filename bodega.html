@@ -301,6 +301,18 @@ tbody tr:hover td{background:#faf6ff}
 .sec:hover{border-color:var(--mora-l);color:var(--mora-d)}
 .sec.act{background:var(--mora);border-color:var(--mora);color:#fff}
 @media(max-width:640px){ .sec{padding:7px 12px;font-size:11px} }
+
+/* Control segmentado. Las SECCIONES de bodega lo usaban y pasaron a la barra
+   común .secbar/.sec, para verse igual que en las otras pantallas. El estilo
+   se conserva porque hay otro grupo que sí lo usa y para el que es el
+   correcto: el selector "Todo / Congelados / El resto" de la matriz. Ese no
+   navega a ninguna parte, filtra lo que ya está en pantalla, y un control
+   segmentado dice eso mejor que unas píldoras iguales a las de navegación. */
+.segs{display:flex;gap:3px;background:var(--crema);padding:3px;border-radius:10px;flex-wrap:wrap}
+.segs button{border:0;background:transparent;padding:7px 16px;border-radius:8px;font-weight:800;
+  font-size:13px;color:var(--textl);cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap}
+.segs button[aria-pressed=true]{background:var(--white);color:var(--mora-d);
+  box-shadow:0 1px 3px rgba(107,53,184,.18)}
 </style>
 </head>
 <body>
@@ -591,6 +603,27 @@ tbody tr:hover td{background:#faf6ff}
 
     <!-- ══════════════ MAESTROS ══════════════ -->
     <div id="page-maestros" class="page">
+
+      <!-- El portal del bodeguero trabaja sobre UNA bodega, y la elige la
+           oficina. Antes se la preguntaba a él al entrar, y eso estaba mal por
+           dos razones: no es una decisión suya, y si aprieta el botón de al
+           lado anota todo el día en la bodega equivocada. -->
+      <div class="card">
+        <div class="card-head"><h2>📱 Portal del bodeguero</h2></div>
+        <div id="pb-alert"></div>
+        <div class="hint" style="display:block;margin-bottom:10px">
+          Todo lo que el bodeguero anote —cargas, entradas y conteos— sale o
+          entra de esta bodega.
+        </div>
+        <div class="fg">
+          <div><label for="pb-bodega">Bodega del portal</label>
+            <select id="pb-bodega"></select></div>
+          <div style="display:flex;align-items:flex-end">
+            <button class="btn bmora bsm" style="width:100%" onclick="guardarBodegaPortal()">
+              Guardar</button></div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-head">
           <h2>🏬 Bodegas</h2><div class="crece"></div>
@@ -687,7 +720,6 @@ tbody tr:hover td{background:#faf6ff}
       <div>
         <label for="mv-bodega" id="mv-lbl-bodega">Bodega *</label>
         <select id="mv-bodega" onchange="mvPintarSaldo()"></select>
-        <div class="hint" id="mv-nota-bodega" style="display:none"></div>
       </div>
       <div id="mv-wrap-destino" style="display:none">
         <label for="mv-destino">Bodega de destino *</label>
@@ -721,8 +753,7 @@ tbody tr:hover td{background:#faf6ff}
     <div class="fg">
       <div>
         <label for="mv-doc">Documento</label>
-        <input type="text" id="mv-doc" placeholder="Factura, guía, OC…" oninput="mvRevisarDoc()">
-        <div class="hint" id="mv-nota-doc" style="display:none"></div>
+        <input type="text" id="mv-doc" placeholder="Factura, guía, OC…">
       </div>
       <div>
         <label for="mv-nota">Nota</label>
@@ -783,11 +814,6 @@ tbody tr:hover td{background:#faf6ff}
       <input type="text" id="bd-nombre" placeholder="Ej: Bodega Pichilemu"></div>
     <div class="f1"><label for="bd-ubic">Dirección o referencia</label>
       <input type="text" id="bd-ubic" placeholder="Ej: Alejandro Serani Sur 9447, Huechuraba"></div>
-    <div class="f1"><label class="chk"><input type="checkbox" id="bd-vende" checked> Desde aquí se le vende a clientes</label>
-      <div class="hint" id="bd-vende-hint">Desmárcalo en una <b>bodega de tránsito</b>: la que recibe
-        la importación y reparte a las demás, pero nunca despacha a un cliente. Deja de ofrecerse como
-        origen de una salida, y la descarga automática del panel no la elige nunca. Sigue pudiendo
-        recibir entradas y hacer traslados.</div></div>
     <div class="f1"><label class="chk"><input type="checkbox" id="bd-activa" checked> Bodega en uso</label>
       <div class="hint">Una bodega fuera de uso deja de aparecer en los formularios, pero conserva todo su historial.</div></div>
     <div class="mact">
@@ -828,6 +854,19 @@ tbody tr:hover td{background:#faf6ff}
       <div><label for="pr-costo">Costo unitario (CLP)</label>
         <input type="number" id="pr-costo" min="0" step="1" placeholder="Opcional">
         <div class="hint">Solo para valorizar el inventario y las pérdidas.</div></div>
+    </div>
+    <!-- Los códigos de barras. Son lo que permite pistolear en la bodega, y
+         están separados a propósito: con dos códigos el sistema sabe si lo
+         que se escaneó fue una caja o una unidad sin preguntárselo a nadie. -->
+    <div class="fg">
+      <div><label for="pr-ean-caja">Código de barras de la CAJA</label>
+        <input type="text" id="pr-ean-caja" inputmode="numeric" maxlength="13"
+          placeholder="13 dígitos" oninput="prRevisarEan(this,'pr-ean-caja-msg')">
+        <div class="hint" id="pr-ean-caja-msg">Lo que se pistolea al cargar el camión.</div></div>
+      <div><label for="pr-ean">Código de barras de la UNIDAD</label>
+        <input type="text" id="pr-ean" inputmode="numeric" maxlength="13"
+          placeholder="13 dígitos" oninput="prRevisarEan(this,'pr-ean-msg')">
+        <div class="hint" id="pr-ean-msg">Solo si también se vende suelto.</div></div>
     </div>
     <div class="f1"><label class="chk"><input type="checkbox" id="pr-frio" onchange="prFrioManual()"> ❄️ Requiere cadena de frío</label>
       <div class="hint">Los congelados se muestran y se alertan aparte, y avisan
@@ -998,7 +1037,7 @@ tbody tr:hover td{background:#faf6ff}
 // Sube con cada entrega. Se ve arriba a la derecha y en el diagnóstico:
 // sirve para saber en dos segundos si el navegador está sirviendo el archivo
 // nuevo o el viejo que tiene guardado.
-const VERSION = 'v15 · 2026-09-21';
+const VERSION = 'v14 · 2026-08-27';
 
 const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
 let TOKEN = '';
@@ -1240,11 +1279,6 @@ async function cargarLibro() {
 //  ESTADO
 // ══════════════════════════════════════════════════════════════
 let bodegas = [], productos = [], motivos = [], minimos = [], movs = [];
-// false = la base todavía no tiene la columna `bod_bodegas.vende`. Mientras
-// tanto todas las bodegas venden y la pantalla se comporta como antes: mismo
-// criterio que `zonasOK` en el panel. Así este archivo se puede subir antes o
-// después de correr el SQL sin romper nada.
-let ventaOK = false;
 let saldos = new Map();          // "bodegaId|productoId" -> cantidad
 let seccion = 'panorama';
 let operador = '';
@@ -1371,12 +1405,7 @@ function fmtBase(id, valor) {
   return signo + num(su);
 }
 
-// Para tooltips y sitios donde hace falta el número crudo además del bonito
-function fmtBaseLargo(id, valor) {
-  const f = factorDe(id);
-  if (f <= 1) return num(valor);
-  return fmtBase(id, valor) + ' (' + num(valor) + ' ' + esc(unidadDe(id)) + ')';
-}
+// `fmtBaseLargo()` se retiró: quedó sin uso al sacar la tarjeta "Bajo el mínimo".
 
 function operadorNombre() { return operador || 'sin firma'; }
 function cargarOperador() {
@@ -1420,10 +1449,6 @@ async function cargarTodo(avisar) {
       sbJson(`${T_MIN}?select=*`)
     ]);
     bodegas = b; productos = p; motivos = mo; minimos = mi;
-    // Se pide `select=*`, así que si la columna existe viene en la respuesta.
-    // Preguntarle a la primera fila es más honesto que una bandera aparte que
-    // alguien tenga que acordarse de cambiar.
-    ventaOK = b.length > 0 && Object.prototype.hasOwnProperty.call(b[0], 'vende');
     movs = await cargarLibro();
     recalcularSaldos();
     alerta('alert-global', '', 'ai');
@@ -1634,15 +1659,7 @@ function coberturaDias(bodegaId, productoId) {
   return Math.floor(s / c);
 }
 
-function coberturaTexto(d) {
-  if (d === null) return 'sin salidas en los últimos ' + VENTANA_CONSUMO + ' días';
-  if (d === 0)    return 'agotado';
-  if (d === 1)    return 'alcanza 1 día';
-  if (d <= 21)    return `alcanza ~${d} días`;
-  if (d <= 120)   return `alcanza ~${Math.round(d / 7)} semanas`;
-  if (d <= 400)   return `alcanza ~${Math.round(d / 30)} meses`;
-  return 'alcanza más de un año';
-}
+// `coberturaTexto()` se retiró: quedó sin uso al sacar la tarjeta "Bajo el mínimo".
 </script>
 <script>
 // ══════════════════════════════════════════════════════════════
@@ -1677,6 +1694,7 @@ function pintarTodo() {
   renderMovs();
   renderVentas();
   renderBodegas();
+  cargarBodegaPortal();
   renderProductos();
   renderMinimos();
   renderMotivos();
@@ -1685,21 +1703,6 @@ function pintarTodo() {
 }
 
 function bodegasVivas() { return bodegas.filter(b => b.activa !== false); }
-
-// ── BODEGAS DE TRÁNSITO ───────────────────────────────────────────────
-//  Golden Frost recibe la importación y la reparte: nunca le vende a un
-//  cliente. Hasta septiembre de 2026 nada lo impedía y se le cargaron diez
-//  ventas, dos de ellas puestas por la descarga automática del panel, que
-//  al no encontrar saldo en Almafrigo se fue a buscarlo ahí. El resultado
-//  fue un ajuste de −417 baldes que parecía merma y no lo era.
-//
-//  Se marca en la base y no en el código —`bod_bodegas.vende`— por lo mismo
-//  que las zonas: abrir otra bodega de tránsito no puede obligar a editar y
-//  desplegar dos archivos. Sin la columna, `vende` es undefined y todas
-//  venden, que es como se comportaba antes.
-const bodegaVende = b => !!b && b.vende !== false;
-function bodegasQueVenden() { return bodegasVivas().filter(bodegaVende); }
-function bodegasSinVenta()  { return bodegasVivas().filter(b => !bodegaVende(b)); }
 function productosVivos() { return productos.filter(p => p.activo !== false); }
 
 function llenarSelects() {
@@ -1888,10 +1891,9 @@ function renderKPIs() {
       <div class="sx">Al ritmo al que están saliendo</div></div>`;
 }
 
-function alVerNunca() {
-  const c = document.getElementById('alertas-nunca-lista');
-  if (c) c.style.display = c.style.display === 'none' ? 'block' : 'none';
-}
+// Acá estaba `alVerNunca()`, que desplegaba la lista de productos que nunca
+// entraron a una bodega. Se retiró con la tarjeta "Bajo el mínimo": su
+// elemento ya no existe y nadie la llamaba.
 
 function verSoloFrio() {
   irA('panorama');
@@ -2539,16 +2541,12 @@ function abrirMov(tipo, productoId, bodegaId) {
   sp.innerHTML = productosVivos().map(p =>
     `<option value="${p.id}">${esc(p.nombre)}${p.formato ? ' · ' + esc(p.formato) : ''}</option>`).join('');
 
-  // El destino de un traslado puede ser cualquier bodega viva, incluida una
-  // de tránsito: recibir producto no es vender.
-  document.getElementById('mv-destino').innerHTML = bodegasVivas()
-    .map(b => `<option value="${b.id}">${esc(b.nombre)}</option>`).join('');
+  const ops = bodegasVivas().map(b => `<option value="${b.id}">${esc(b.nombre)}</option>`).join('');
+  document.getElementById('mv-bodega').innerHTML  = ops;
+  document.getElementById('mv-destino').innerHTML = ops;
 
   if (productoId) sp.value = productoId;
-  // El origen lo llena mvLlenarBodegas(), que corre dentro de mvTipo() unas
-  // líneas más abajo y necesita saber el tipo para filtrar. Se deja anotada
-  // la bodega pedida para que la respete si sigue siendo válida.
-  mvBodegaPedida = bodegaId || null;
+  if (bodegaId)   document.getElementById('mv-bodega').value = bodegaId;
 
   document.getElementById('mv-cantidad').value = '';
   // Por omisión, cajas: es como llega y como sale casi todo. La unidad se
@@ -2571,7 +2569,6 @@ function mvTipo(t) {
   document.getElementById('mv-wrap-destino').style.display = t === 'traslado' ? 'block' : 'none';
   document.getElementById('mv-wrap-motivo').style.display  = t === 'traslado' ? 'none'  : 'block';
   document.getElementById('mv-lbl-bodega').textContent = t === 'traslado' ? 'Bodega de origen *' : 'Bodega *';
-  mvLlenarBodegas();
 
   const dispo = motivos.filter(m => m.activo !== false && m.tipo === (t === 'entrada' ? 'entrada' : 'salida'));
   document.getElementById('mv-motivo').innerHTML = dispo.length
@@ -2589,66 +2586,6 @@ function mvTipo(t) {
     }
   }
   mvPintarSaldo();
-}
-
-// Bodega pedida desde afuera —al abrir el modal desde el detalle de una
-// celda—, para que mvLlenarBodegas() la respete si el tipo la admite.
-let mvBodegaPedida = null;
-
-// El origen de una SALIDA solo puede ser una bodega que venda. Una entrada o
-// un traslado sí pueden partir de una bodega de tránsito.
-//
-// El filtro está acá, en el selector, y no solo en la validación al guardar:
-// una opción que no se puede elegir enseña la regla; un error después de
-// llenar el formulario solo la castiga.
-function mvLlenarBodegas() {
-  const sel = document.getElementById('mv-bodega');
-  const antes = mvBodegaPedida !== null ? String(mvBodegaPedida) : sel.value;
-  mvBodegaPedida = null;
-
-  const lista = mvActual === 'salida' ? bodegasQueVenden() : bodegasVivas();
-  sel.innerHTML = lista.length
-    ? lista.map(b => `<option value="${b.id}">${esc(b.nombre)}</option>`).join('')
-    : '<option value="">— ninguna bodega puede vender —</option>';
-  if (antes && lista.some(b => String(b.id) === String(antes))) sel.value = antes;
-
-  const fuera = bodegasSinVenta();
-  const nota = document.getElementById('mv-nota-bodega');
-  if (!nota) return;
-  const mostrar = mvActual === 'salida' && fuera.length > 0;
-  nota.style.display = mostrar ? 'block' : 'none';
-  nota.innerHTML = mostrar
-    ? `<b>${esc(fuera.map(b => b.nombre).join(' · '))}</b> no aparece${fuera.length === 1 ? '' : 'n'}
-       acá: es bodega de tránsito y no vende. Para sacar producto de ahí,
-       registra primero un <b>traslado</b> a la bodega desde donde sale.`
-    : '';
-}
-
-// El campo Documento cruza con facturación, así que tiene que traer UN
-// documento. En septiembre de 2026 aparecieron dos formas de romper ese
-// cruce: `2971 y 2972` escrito a mano, y `3006-3010` para cinco facturas
-// distintas. La primera se bloquea; la segunda solo se advierte, porque una
-// guía podría legítimamente llamarse así.
-function docProblema(v) {
-  const t = String(v || '').trim();
-  if (!t) return null;
-  if (/[\s,;]/.test(t))
-    return { bloquea: true, msg: 'El documento tiene que ser uno solo, sin espacios ni comas. ' +
-      'Si el pedido lleva dos facturas, anota una línea por cada una: así el cruce con ' +
-      'facturación las encuentra.' };
-  if (/^\d{3,6}-\d{3,6}$/.test(t))
-    return { bloquea: false, msg: 'Esto parece un <b>rango de folios</b>, o sea varios documentos ' +
-      'en una línea. Si son varias facturas, conviene una línea por cada una.' };
-  return null;
-}
-
-function mvRevisarDoc() {
-  const nota = document.getElementById('mv-nota-doc');
-  if (!nota) return;
-  const p = docProblema(document.getElementById('mv-doc').value);
-  nota.style.display = p ? 'block' : 'none';
-  nota.innerHTML = p ? p.msg : '';
-  nota.style.color = p && p.bloquea ? 'var(--alto)' : 'var(--nd)';
 }
 
 // La medida elegida en el formulario. Con un producto que no se vende suelto
@@ -2733,14 +2670,6 @@ async function guardarMov() {
   alerta('mv-alert', '', 'ae');
   if (!pid) return alerta('mv-alert', 'Elige un producto.', 'ae');
   if (!bid) return alerta('mv-alert', 'Elige una bodega.', 'ae');
-  // Doble llave: el selector ya no la ofrece, pero la pestaña puede llevar
-  // horas abierta y la marca pudo cambiarse desde otro computador.
-  if (mvActual === 'salida' && !bodegaVende(bodegas.find(x => x.id === bid)))
-    return alerta('mv-alert',
-      `<b>${esc(nombreBodega(bid))}</b> es bodega de tránsito y no vende. ` +
-      'Registra un traslado a la bodega desde donde sale el producto, y la venta desde ahí.', 'ae');
-  const pdoc = docProblema(document.getElementById('mv-doc').value);
-  if (pdoc && pdoc.bloquea) return alerta('mv-alert', pdoc.msg, 'ae');
   if (!(q > 0)) return alerta('mv-alert', 'La cantidad tiene que ser mayor que cero.', 'ae');
   if (f > HOY()) return alerta('mv-alert',
     'La fecha está en el futuro. El saldo se calcula con todo lo anotado, así que un movimiento ' +
@@ -3065,9 +2994,7 @@ function verDetalle(bodegaId, productoId) {
     </div>
     <div class="card-head">
       <button class="btn bgreen bsm" onclick="cerrar('mod-detalle');abrirMov('entrada',${productoId},${bodegaId})">📥 Entrada</button>
-      ${bodegaVende(b)
-        ? `<button class="btn bdng bsm" onclick="cerrar('mod-detalle');abrirMov('salida',${productoId},${bodegaId})">📤 Salida</button>`
-        : `<span class="chip" title="Esta bodega solo recibe y reparte">🚚 no vende</span>`}
+      <button class="btn bdng bsm"   onclick="cerrar('mod-detalle');abrirMov('salida',${productoId},${bodegaId})">📤 Salida</button>
       <button class="btn bol bsm"    onclick="cerrar('mod-detalle');abrirMov('traslado',${productoId},${bodegaId})">🔁 Traslado</button>
     </div>
     <div class="modal-section">Últimos movimientos</div>
@@ -3462,6 +3389,64 @@ function rebajarCuadratura(i) {
 // ══════════════════════════════════════════════════════════════
 let bodegaEdit = null;
 
+// ── la bodega del portal del bodeguero ──
+//
+// Vive en `bod_config`, que ya existe para los ajustes del módulo. Una fila
+// con clave `bodega_portal` y el id de la bodega como valor.
+//
+// Es la oficina la que la fija. El bodeguero no la elige: no es una decisión
+// suya, y si aprieta el botón equivocado anota todo el día en otra bodega, lo
+// que deja el inventario mal en las dos a la vez.
+let bodegaPortal = '';
+
+async function cargarBodegaPortal() {
+  try {
+    const d = await sbJson('bod_config?select=clave,valor&clave=eq.bodega_portal');
+    bodegaPortal = d.length ? String(d[0].valor || '') : '';
+  } catch (_) { bodegaPortal = ''; }
+  pintarBodegaPortal();
+}
+
+function pintarBodegaPortal() {
+  const sel = document.getElementById('pb-bodega');
+  if (!sel) return;
+  const vivas = bodegas.filter(b => b.activa);
+  sel.innerHTML = '<option value="">— Sin definir —</option>' + vivas.map(b =>
+    `<option value="${b.id}"${String(b.id) === bodegaPortal ? ' selected' : ''}>` +
+    `${esc(b.nombre)}</option>`).join('');
+  // Sin bodega definida el portal no deja entrar, así que conviene que se vea.
+  alerta('pb-alert', bodegaPortal ? '' :
+    'Todavía no has elegido la bodega del portal. Hasta que lo hagas, el ' +
+    'bodeguero no va a poder entrar.', bodegaPortal ? 'ai' : 'an');
+}
+
+async function guardarBodegaPortal() {
+  const v = document.getElementById('pb-bodega').value;
+  if (!v) return alerta('pb-alert', 'Elige una bodega.', 'ae');
+  try {
+    // No se usa upsert: el Worker no reenvía la cabecera `Prefer` del cliente
+    // —a propósito, para que nadie le mande instrucciones a Postgres desde el
+    // navegador— y sin ella PostgREST no sabe resolver el conflicto.
+    // Se intenta crear, y si ya existe se actualiza.
+    const fila = { valor: String(v), quien: operadorNombre() };
+    if (bodegaPortal)
+      await sbSend('bod_config?clave=eq.bodega_portal', 'PATCH', fila);
+    else
+      try { await sbSend('bod_config', 'POST', { clave: 'bodega_portal', ...fila }); }
+      catch (e) {
+        // Si la fila ya existía sin que esta pantalla lo supiera, el POST
+        // choca con la llave primaria. Se actualiza y listo.
+        if (!/duplicate|23505/i.test(String(e.message))) throw e;
+        await sbSend('bod_config?clave=eq.bodega_portal', 'PATCH', fila);
+      }
+    bodegaPortal = String(v);
+    pintarBodegaPortal();
+    toast('Guardado');
+  } catch (e) {
+    alerta('pb-alert', 'No se pudo guardar: ' + esc(e.message), 'ae');
+  }
+}
+
 function renderBodegas() {
   const t = document.getElementById('tabla-bodegas');
   if (!bodegas.length) {
@@ -3474,8 +3459,7 @@ function renderBodegas() {
       const conStock = productosVivos().filter(p => saldoDe(b.id, p.id) !== 0).length;
       const al = listaAlertas().filter(a => a.bodega.id === b.id).length;
       return `<tr><td><div style="font-weight:800">${esc(b.nombre)}</div>
-          ${b.activa === false ? '<span class="chip">fuera de uso</span>' : ''}
-          ${bodegaVende(b) ? '' : '<span class="chip" title="Solo recibe y reparte: no se le vende a clientes desde acá">🚚 de tránsito</span>'}</td>
+          ${b.activa === false ? '<span class="chip">fuera de uso</span>' : ''}</td>
         <td><div class="sub" style="margin:0">${esc(b.ubicacion || '—')}</div></td>
         <td class="num">${conStock}</td>
         <td class="num">${al ? `<span class="badge bsal">${al}</span>` : '—'}</td>
@@ -3492,20 +3476,6 @@ function abrirBodega(id) {
   document.getElementById('bd-nombre').value = b ? b.nombre : '';
   document.getElementById('bd-ubic').value   = b ? b.ubicacion || '' : '';
   document.getElementById('bd-activa').checked = b ? b.activa !== false : true;
-  document.getElementById('bd-vende').checked  = b ? bodegaVende(b) : true;
-  // Sin la columna en la base la casilla no se puede guardar. Se deja a la
-  // vista pero apagada, con el motivo escrito: esconderla dejaría la duda de
-  // por qué la pantalla no hace lo que dice el manual.
-  const cv = document.getElementById('bd-vende');
-  cv.disabled = !ventaOK;
-  document.getElementById('bd-vende-hint').innerHTML = ventaOK
-    ? 'Desmárcalo en una <b>bodega de tránsito</b>: la que recibe la importación y reparte a ' +
-      'las demás, pero nunca despacha a un cliente. Deja de ofrecerse como origen de una salida, ' +
-      'y la descarga automática del panel no la elige nunca. Sigue pudiendo recibir entradas y ' +
-      'hacer traslados.'
-    : '⚠️ Falta la columna <span class="mono">vende</span> en <span class="mono">bod_bodegas</span>. ' +
-      'Corre <b>PREPARADO_bodega_transito.sql</b> en Supabase y esta casilla se activa. ' +
-      'Mientras tanto todas las bodegas pueden vender, como hasta ahora.';
   alerta('bd-alert', '', 'ae');
   abrir('mod-bodega');
 }
@@ -3518,9 +3488,6 @@ async function guardarBodega() {
 
   const fila = { nombre, ubicacion: document.getElementById('bd-ubic').value.trim() || null,
     activa: document.getElementById('bd-activa').checked };
-  // Solo se manda si la base lo soporta: un archivo nuevo contra una base
-  // vieja guarda el resto de la bodega en vez de fallar entero.
-  if (ventaOK) fila.vende = document.getElementById('bd-vende').checked;
   const b = document.getElementById('bd-guardar');
   b.disabled = true; b.innerHTML = '<span class="sp"></span>Guardando…';
   try {
@@ -3615,6 +3582,10 @@ function abrirProducto(id) {
   document.getElementById('pr-costo').value   = p && Number(p.costo) > 0 ? p.costo : '';
   document.getElementById('pr-activo').checked = p ? p.activo !== false : true;
   document.getElementById('pr-frio').checked = p ? !!p.congelado : false;
+  document.getElementById('pr-ean').value      = p ? (p.ean || '') : '';
+  document.getElementById('pr-ean-caja').value = p ? (p.ean_caja || '') : '';
+  prRevisarEan(document.getElementById('pr-ean'), 'pr-ean-msg');
+  prRevisarEan(document.getElementById('pr-ean-caja'), 'pr-ean-caja-msg');
   frioTocado = !!p;    // en uno existente manda lo guardado, no la sugerencia
   alerta('pr-alert', '', 'ae');
   abrir('mod-producto');
@@ -3631,6 +3602,36 @@ function prSugerirFrio() {
   const nom = document.getElementById('pr-nombre').value || '';
   document.getElementById('pr-frio').checked =
     /congelad/i.test(fam) || /^balde /i.test(nom.trim());
+}
+
+// Un EAN13 lleva un dígito de control calculado desde los otros doce. Se
+// valida acá para avisar en el momento: un código mal tipeado que se guarda
+// es peor que ninguno, porque después la pistola no lo encuentra nunca y
+// nadie entiende por qué ese producto "no se puede escanear".
+//
+// La misma comprobación está en la base con `nativo_ean13_valido`, que es la
+// que no se puede saltar, y en bodeguero.html para rechazar una lectura mala.
+function ean13Valido(p) {
+  const v = String(p || '').replace(/[^0-9]/g, '');
+  if (v.length !== 13) return false;
+  let s = 0;
+  for (let i = 1; i <= 12; i++) s += Number(v[i - 1]) * (i % 2 === 0 ? 3 : 1);
+  return ((10 - (s % 10)) % 10) === Number(v[12]);
+}
+
+function prRevisarEan(inp, idMsg) {
+  const v = String(inp.value || '').replace(/[^0-9]/g, '');
+  inp.value = v;
+  const m = document.getElementById(idMsg);
+  if (!v) { m.textContent = idMsg.includes('caja')
+      ? 'Lo que se pistolea al cargar el camión.' : 'Solo si también se vende suelto.';
+    m.style.color = ''; return; }
+  if (v.length < 13) { m.textContent = `Faltan ${13 - v.length} dígito(s).`;
+    m.style.color = 'var(--textl)'; return; }
+  const ok = ean13Valido(v);
+  m.textContent = ok ? '✔ Código válido.'
+    : '❌ El dígito verificador no calza. Revisa: la base lo va a rechazar.';
+  m.style.color = ok ? 'var(--vd)' : 'var(--rd)';
 }
 
 async function guardarProducto() {
@@ -3666,11 +3667,26 @@ async function guardarProducto() {
       return;
   }
 
+  // Los códigos se validan antes de mandarlos: la base los rechaza igual,
+  // pero con un mensaje de Postgres que no le dice nada a nadie.
+  const ean  = String(document.getElementById('pr-ean').value || '').replace(/[^0-9]/g, '');
+  const eanC = String(document.getElementById('pr-ean-caja').value || '').replace(/[^0-9]/g, '');
+  if (ean && !ean13Valido(ean))
+    return alerta('pr-alert', 'El código de la unidad no es un EAN13 válido: ' +
+      'el dígito verificador no calza.', 'ae');
+  if (eanC && !ean13Valido(eanC))
+    return alerta('pr-alert', 'El código de la caja no es un EAN13 válido: ' +
+      'el dígito verificador no calza.', 'ae');
+  if (ean && eanC && ean === eanC)
+    return alerta('pr-alert', 'La caja y la unidad no pueden tener el mismo código: ' +
+      'es justo lo que permite saber cuál se escaneó.', 'ae');
+
   const fila = { nombre, formato: formato || null,
     familia: document.getElementById('pr-familia').value.trim() || null,
     unidad: document.getElementById('pr-unidad').value,
     unidades_caja: factor,
     costo: costo > 0 ? costo : null,
+    ean, ean_caja: eanC,
     congelado: document.getElementById('pr-frio').checked,
     activo: document.getElementById('pr-activo').checked };
 
