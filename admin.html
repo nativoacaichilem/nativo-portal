@@ -909,28 +909,22 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
         <button class="btn bgray bsm" onclick="deselRuta()">Deseleccionar todo</button>
       </div>
 
-      <!-- Asignar al camión. Una vez armada la ruta con Claude, acá se le deja
-           puesta al bodeguero: él abre su portal y ve exactamente estos
-           pedidos, sin tener que interpretar nada. -->
+      <!-- Mandar al portal de bodega. Una vez armada la ruta con Claude, acá
+           se arma la ruta de verdad: camión, día y chofer. El bodeguero la ve
+           recién cuando se publica, no antes: así se puede ir preparando la de
+           mañana sin que alguien empiece a cargar lo que todavía va a cambiar. -->
       <div class="modal-section" style="margin-top:18px">Mandar al portal de bodega</div>
       <div id="ruta-asig-alert"></div>
-      <div class="sub" style="margin-bottom:10px">
-        Los pedidos seleccionados arriba quedan asignados a un camión y un día.
-        El bodeguero los ve en <b>bodeguero.html</b> y confirma la carga desde ahí.
-      </div>
       <div class="fg">
+        <div><label>Día del despacho</label>
+          <input id="ruta-dia" type="date" onchange="cargarRutas()"></div>
         <div><label>Camión</label>
-          <select id="ruta-camion">
+          <select id="ruta-camion" onchange="pintarRutaActual()">
             <option value="camion-1">Camión 1</option>
             <option value="camion-2">Camión 2</option>
           </select></div>
-        <div><label>Día del despacho</label>
-          <input id="ruta-dia" type="date"></div>
       </div>
-      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn bmora bsm" onclick="asignarRuta()">🚚 Asignar al camión</button>
-        <button class="btn bol bsm" onclick="asignarRuta(true)">Quitar de la ruta</button>
-      </div>
+      <div id="ruta-ficha" style="margin-top:12px"></div>
       <div id="pres" style="display:none">
         <div id="pout" class="pbox"></div>
         <button class="bcopy" onclick="copiar()">📋 Copiar y pegar en Claude</button>
@@ -1399,6 +1393,7 @@ function pintarPestana(id) {
     const d = document.getElementById('ruta-dia');
     if (d && !d.value) d.value = hoyISO();
     renderChecksRuta();
+    cargarRutas();
     return;
   }
   if (id === 'clientes') { renderClientes(); return; }
@@ -3251,38 +3246,245 @@ function exportCSV() {
 // ══════════════════════════════════════════
 // Los retiros NO entran: el cliente los viene a buscar. Si entraran, podrías
 // despachar algo que ya estaba coordinado para retiro.
-// Deja los pedidos seleccionados asignados a un camión y un día, o los saca.
+// ══════════════════════════════════════════════════════════════
+//  RUTAS DE DESPACHO
+// ══════════════════════════════════════════════════════════════
 //
-// Se hace de a uno y no con un PATCH masivo: el Worker exige un filtro en cada
-// PATCH, y un `id=in.(...)` con treinta ids es una dirección larguísima que
-// además falla entera si uno solo da problema. De a uno se sabe cuáles
-// quedaron.
-async function asignarRuta(quitar) {
-  if (!selRuta.length)
-    return alerta('ruta-asig-alert', 'Primero marca los pedidos de la ruta.', 'ae');
+// Una ruta es "este camión, este día, este chofer, estos pedidos". Vive en
+// `bod_rutas` y cada pedido apunta a ella.
+//
+// El chofer va en la ruta y no en cada pedido: si se enferma, se cambia en un
+// lugar y no en treinta.
+//
+// El bodeguero ve la ruta recién cuando se PUBLICA. Hasta entonces se puede
+// armar la de mañana tranquilo, sin que alguien empiece a cargar lo que
+// todavía va a cambiar.
 
+let rutas = [], rutasOK = false;
+
+const ESTADO_RUTA = {
+  armada:    { lbl: 'Armándose',  sub: 'El bodeguero todavía NO la ve', cls: 'bpend' },
+  en_bodega: { lbl: 'Publicada',  sub: 'Visible en el portal de bodega', cls: 'bruta' },
+  cargada:   { lbl: 'Cargada',    sub: 'El camión ya salió',            cls: 'bentr' },
+  cerrada:   { lbl: 'Cerrada',    sub: 'Terminada',                     cls: 'bfact' }
+};
+
+async function cargarRutas() {
   const dia = document.getElementById('ruta-dia').value;
-  if (!quitar && !dia)
-    return alerta('ruta-asig-alert', 'Elige el día del despacho. Sin fecha, el ' +
-      'bodeguero no sabe cuál es la carga de hoy.', 'ae');
+  if (!dia) { rutas = []; pintarRutaActual(); return; }
+  try {
+    rutas = await sbPagina('bod_rutas',
+      `select=*&fecha=eq.${encodeURIComponent(dia)}&order=camion.asc`);
+    rutasOK = true;
+  } catch (e) { rutas = []; rutasOK = false; }
+  pintarRutaActual();
+}
 
-  // La base exige que camión y fecha vayan juntos: o los dos, o ninguno.
-  const fila = quitar
-    ? { ruta: '', fecha_ruta: null }
-    : { ruta: document.getElementById('ruta-camion').value, fecha_ruta: dia };
+const rutaActual = () => rutas.find(r =>
+  r.camion === document.getElementById('ruta-camion').value) || null;
+
+function pintarRutaActual() {
+  const cont = document.getElementById('ruta-ficha');
+  if (!cont) return;
+  const dia = document.getElementById('ruta-dia').value;
+  const cam = document.getElementById('ruta-camion').value;
+
+  if (!rutasOK) {
+    cont.innerHTML = '<div class="alert ae" style="line-height:1.55">' +
+      'No se pudo leer <b>bod_rutas</b>. Corre <b>PREPARADO_rutas.sql</b> en ' +
+      'Supabase y revisa que la tabla esté en la lista del Worker, en <b>/salud</b>.</div>';
+    return;
+  }
+  if (!dia) {
+    cont.innerHTML = '<div class="sub">Elige el día del despacho.</div>';
+    return;
+  }
+
+  const r = rutaActual();
+  if (!r) {
+    cont.innerHTML = `<div class="alert ai" style="line-height:1.55">
+      Todavía no hay ruta para el <b>${hesc(dia.split('-').reverse().join('-'))}</b>
+      en el ${cam === 'camion-1' ? 'Camión 1' : 'Camión 2'}.</div>
+      <div class="fg">
+        <div><label>Chofer a cargo</label>
+          <input id="ruta-chofer-nueva" type="text" placeholder="Nombre del chofer"></div>
+        <div><label>Sale desde</label><select id="ruta-bodega-nueva"></select></div>
+      </div>
+      <button class="btn bmora bsm" style="margin-top:12px" onclick="crearRuta()">
+        ＋ Crear la ruta</button>`;
+    // Los campos de crear llevan otro id que los de editar aunque nunca estén
+    // los dos en pantalla: dos elementos con el mismo id hacen que
+    // getElementById devuelva el primero, y eso es un error que se manifiesta
+    // tarde y en el lugar equivocado.
+    llenarBodegasRuta(null, 'ruta-bodega-nueva');
+    return;
+  }
+
+  const e = ESTADO_RUTA[r.estado] || ESTADO_RUTA.armada;
+  const mios = pedidos.filter(p => String(p.ruta_id) === String(r.id));
+
+  cont.innerHTML = `
+    <div style="border:1.5px solid var(--crema-d);border-radius:12px;padding:14px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <div style="flex:1;min-width:200px">
+          <div style="font-weight:900;font-size:15px">
+            ${cam === 'camion-1' ? '🚚 Camión 1' : '🚚 Camión 2'} ·
+            <span class="badge ${e.cls}">${hesc(e.lbl)}</span>
+          </div>
+          <div class="sub" style="margin:2px 0 0">${hesc(e.sub)} · ${mios.length} pedido(s)</div>
+        </div>
+      </div>
+
+      <div class="fg" style="margin-top:12px">
+        <div><label>Chofer a cargo</label>
+          <input id="ruta-chofer" type="text" value="${hesc(r.chofer || '')}"
+            placeholder="Nombre del chofer"></div>
+        <div><label>Sale desde</label><select id="ruta-bodega"></select></div>
+      </div>
+      <div style="margin-top:10px">
+        <label>Notas para el bodeguero</label>
+        <input id="ruta-notas" type="text" value="${hesc(r.notas || '')}"
+          placeholder="Opcional: algo que deba saber antes de cargar">
+      </div>
+
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn bgray bsm" onclick="guardarRuta()">Guardar cambios</button>
+        <button class="btn bmora bsm" onclick="asignarRuta()">
+          ＋ Agregar los ${selRuta.length} seleccionado(s)</button>
+        <button class="btn bol bsm" onclick="asignarRuta(true)">Sacar los seleccionados</button>
+        ${r.estado === 'armada'
+          ? `<button class="btn bam2 bsm" onclick="publicarRuta()">📣 Publicar al bodeguero</button>`
+          : r.estado === 'en_bodega'
+            ? `<button class="btn bol bsm" onclick="despublicarRuta()">Despublicar</button>`
+            : ''}
+      </div>
+
+      ${mios.length ? `<div class="sub" style="margin-top:12px">
+        ${mios.map(p => '· ' + hesc(p.emp)).join('<br>')}</div>` : ''}
+    </div>`;
+  llenarBodegasRuta(r.bodega_id);
+}
+
+function llenarBodegasRuta(sel, id) {
+  const e = document.getElementById(id || 'ruta-bodega');
+  if (!e) return;
+  // `bodBodegas` es la lista que ya carga `cargarBodega()`. Si el módulo de
+  // bodega no está disponible viene vacía, y entonces no hay desde dónde
+  // despachar: el aviso lo dice en vez de mostrar un selector sin opciones.
+  const vivas = bodBodegas.filter(b => b.activa);
+  if (!vivas.length) {
+    e.innerHTML = '<option value="">— sin bodegas —</option>';
+    return;
+  }
+  e.innerHTML = '<option value="">— Elegir —</option>' + vivas.map(b =>
+    `<option value="${b.id}"${String(b.id) === String(sel) ? ' selected' : ''}>` +
+    `${hesc(b.nombre)}</option>`).join('');
+}
+
+async function crearRuta() {
+  const dia = document.getElementById('ruta-dia').value;
+  const cam = document.getElementById('ruta-camion').value;
+  const chofer = (document.getElementById('ruta-chofer-nueva') || {}).value || '';
+  const bod = (document.getElementById('ruta-bodega-nueva') || {}).value || '';
+  if (!dia) return alerta('ruta-asig-alert', 'Elige el día.', 'ae');
+  if (!bod) return alerta('ruta-asig-alert',
+    'Elige desde qué bodega sale: el bodeguero trabaja en una sola y el ' +
+    'sistema no debe adivinarlo.', 'ae');
+
+  try {
+    await sbSend('bod_rutas', 'POST', {
+      fecha: dia, camion: cam, chofer: chofer.trim(), bodega_id: Number(bod)
+    });
+    await cargarRutas();
+    alerta('ruta-asig-alert', 'Ruta creada. Agrégale pedidos y publícala.', 'as');
+  } catch (e) {
+    alerta('ruta-asig-alert', 'No se pudo crear: ' + hesc(e.message), 'ae');
+  }
+}
+
+async function guardarRuta() {
+  const r = rutaActual(); if (!r) return;
+  try {
+    await sbSend(`bod_rutas?id=eq.${r.id}`, 'PATCH', {
+      chofer: (document.getElementById('ruta-chofer').value || '').trim(),
+      bodega_id: Number(document.getElementById('ruta-bodega').value) || null,
+      notas: (document.getElementById('ruta-notas').value || '').trim()
+    });
+    await cargarRutas();
+    alerta('ruta-asig-alert', 'Guardado.', 'as');
+  } catch (e) {
+    alerta('ruta-asig-alert', 'No se pudo guardar: ' + hesc(e.message), 'ae');
+  }
+}
+
+async function publicarRuta() {
+  const r = rutaActual(); if (!r) return;
+  const mios = pedidos.filter(p => String(p.ruta_id) === String(r.id));
+  if (!mios.length) return alerta('ruta-asig-alert',
+    'La ruta no tiene pedidos. Publicarla vacía deja al bodeguero mirando una ' +
+    'pantalla sin nada y preguntándose si falló algo.', 'ae');
+  if (!r.chofer) return alerta('ruta-asig-alert',
+    'Falta el chofer. El bodeguero necesita saber a quién le entrega el camión.', 'ae');
+  await cambiarEstadoRuta('en_bodega', `Publicada. El bodeguero ya la ve con sus ${mios.length} pedido(s).`);
+}
+
+async function despublicarRuta() {
+  await cambiarEstadoRuta('armada', 'Despublicada. El bodeguero dejó de verla.');
+}
+
+async function cambiarEstadoRuta(estado, msg) {
+  const r = rutaActual(); if (!r) return;
+  try {
+    const fila = { estado };
+    // La base exige que una ruta cerrada tenga fecha de cierre y una abierta
+    // no. Se resuelve acá para que el panel nunca choque con el CHECK.
+    fila.cerrada = estado === 'cerrada' ? new Date().toISOString() : null;
+    await sbSend(`bod_rutas?id=eq.${r.id}`, 'PATCH', fila);
+    await cargarRutas();
+    alerta('ruta-asig-alert', msg, 'as');
+  } catch (e) {
+    alerta('ruta-asig-alert', 'No se pudo: ' + hesc(e.message), 'ae');
+  }
+}
+
+// Mete o saca de la ruta los pedidos marcados arriba.
+//
+// De a uno y no con un PATCH masivo: el Worker exige un filtro en cada PATCH,
+// y un `id=in.(...)` con treinta ids es una dirección larguísima que además
+// falla entera si uno solo da problema. De a uno se sabe cuáles quedaron.
+async function asignarRuta(quitar) {
+  const r = rutaActual();
+  if (!r) return alerta('ruta-asig-alert', 'Primero crea la ruta.', 'ae');
+  if (!selRuta.length)
+    return alerta('ruta-asig-alert', 'Marca arriba los pedidos de la ruta.', 'ae');
 
   alerta('ruta-asig-alert', '<span class="sp"></span>Asignando...', 'ai');
-  let bien = 0; const mal = [];
+  let bien = 0; const mal = []; let porQue = '';
   for (const id of selRuta) {
-    try { await sbPatch(id, fila); bien++; }
-    catch (e) { mal.push(id); }
+    try { await sbPatch(id, { ruta_id: quitar ? null : r.id }); bien++; }
+    catch (e) {
+      mal.push(id);
+      // El motivo del PRIMER fallo. La versión anterior solo guardaba cuáles
+      // fallaron, y con un solo pedido ese mensaje no servía para nada: decía
+      // que algo salió mal sin decir qué, que es casi lo mismo que no decir
+      // nada. Si fallan treinta, suelen fallar todos por la misma razón.
+      if (!porQue) porQue = String(e.message || e);
+    }
   }
   await cargar();
+  await cargarRutas();
   // Se informan los dos números: decir "listo" cuando tres fallaron es lo que
   // hace que nadie vuelva a confiar en la pantalla.
   alerta('ruta-asig-alert',
-    `${bien} pedido(s) ${quitar ? 'sacados de la ruta' : 'asignados'}.` +
-    (mal.length ? ` <b>No se pudo con ${mal.length}:</b> #${mal.join(', #')}.` : ''),
+    `${bien} pedido(s) ${quitar ? 'sacados de la ruta' : 'agregados'}.` +
+    (mal.length
+      ? ` <b>No se pudo con ${mal.length}:</b> #${mal.join(', #')}.` +
+        `<br><span style="font-weight:400">Motivo: ${hesc(porQue)}</span>` +
+        (/ruta_id/i.test(porQue)
+          ? '<br><b>Falta la columna <code>ruta_id</code> en la tabla de pedidos.</b> ' +
+            'Corre <b>PREPARADO_rutas.sql</b> en Supabase.'
+          : '')
+      : ''),
     mal.length ? 'an' : 'as');
 }
 
