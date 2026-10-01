@@ -137,10 +137,6 @@ h2{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:4px}
         <input id="in-clave" type="password" inputmode="numeric" placeholder="Clave"
           onkeydown="if(event.key==='Enter')entrar()">
       </div>
-      <div style="margin-bottom:18px">
-        <label>¿En qué bodega estás?</label>
-        <select id="in-bodega"></select>
-      </div>
       <button class="b b-am" id="b-entrar" onclick="entrar()">Entrar</button>
     </div>
   </div>
@@ -330,7 +326,7 @@ h2{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:4px}
 const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
 let TOKEN = '', quien = '', miBodega = null;
 
-let productos = [], motivos = [], saldos = [], rutas = [], pedidos = [], mandado = [];
+let bodegas = [], productos = [], motivos = [], saldos = [], rutas = [], pedidos = [], mandado = [];
 let ruta = null, ped = null, lineas = [];
 let conteo = null;     // { lista, i, resultados }
 
@@ -483,30 +479,19 @@ async function entrar() {
       }
     } catch (_) { /* sin /rol se sigue igual */ }
 
-    const bods = await leer('bod_bodegas?select=*&order=nombre.asc');
-    const vivas = bods.filter(b => b.activa);
-    if (!vivas.length) {
+    miBodega = await buscarBodega();
+    if (!miBodega) {
       TOKEN = '';
-      av('login-aviso', 'No hay bodegas configuradas. Avisa a la oficina.', 'rojo');
+      av('login-aviso', '<b>La oficina todavía no definió la bodega de este portal.</b>' +
+        '<br>Avísales: lo configuran en Bodega → Configuración.', 'rojo');
       btn.innerHTML = 'Entrar'; btn.disabled = false;
       return;
     }
-    const sel = document.getElementById('in-bodega');
-    if (sel.options.length < vivas.length) {
-      let previa = '';
-      try { previa = localStorage.getItem('nativo_bod_bodega') || ''; } catch (_) {}
-      sel.innerHTML = vivas.map(b =>
-        `<option value="${b.id}"${String(b.id) === previa ? ' selected' : ''}>${esc(b.nombre)}</option>`).join('');
-    }
-    // La bodega NO se adivina. El bodeguero carga de donde está parado, y si el
-    // sistema elige otra el inventario queda mal en las dos a la vez.
-    miBodega = vivas.find(b => String(b.id) === sel.value) || vivas[0];
+    quien = nombre;
     try {
       sessionStorage.setItem('nativo_bod_token', clave);
       localStorage.setItem('nativo_bod_quien', nombre);
-      localStorage.setItem('nativo_bod_bodega', String(miBodega.id));
     } catch (_) {}
-    quien = nombre;
     document.getElementById('in-clave').value = '';
     document.getElementById('p-login').style.display = 'none';
     document.getElementById('app').style.display = 'block';
@@ -516,6 +501,21 @@ async function entrar() {
     av('login-aviso', esc(explicarRed(e)), 'rojo');
   }
   btn.innerHTML = 'Entrar'; btn.disabled = false;
+}
+
+// La bodega del portal la fija la oficina, en `bod_config`.
+//
+// No se le pregunta al bodeguero. No es una decisión suya, y si apretara el
+// botón equivocado anotaría todo el día en otra bodega: el inventario
+// quedaría mal en las dos a la vez, de menos en una y de más en la otra.
+async function buscarBodega() {
+  try {
+    const cfg = await leer('bod_config?select=clave,valor&clave=eq.bodega_portal');
+    const id = cfg.length ? String(cfg[0].valor || '') : '';
+    if (!id) return null;
+    const bods = await leer('bod_bodegas?select=*');
+    return bods.find(b => String(b.id) === id && b.activa) || null;
+  } catch (_) { return null; }
 }
 
 function arrancar() {
@@ -1069,17 +1069,14 @@ function abrirMandado() {
     TOKEN = g; quien = n;
     (async () => {
       try {
-        const bods = await leer('bod_bodegas?select=*&order=nombre.asc');
-        let id = ''; try { id = localStorage.getItem('nativo_bod_bodega') || ''; } catch (_) {}
-        const vivas = bods.filter(b => b.activa);
-        miBodega = vivas.find(b => String(b.id) === id) || (vivas.length === 1 ? vivas[0] : null);
+        miBodega = await buscarBodega();
         if (!miBodega) throw new Error('sin bodega');
         document.getElementById('p-login').style.display = 'none';
         document.getElementById('app').style.display = 'block';
         arrancar();
       } catch (_) {
         TOKEN = '';
-        av('login-aviso', 'Elige otra vez en qué bodega estás.', 'mora');
+        av('login-aviso', 'La oficina todavía no definió la bodega de este portal.', 'rojo');
       }
     })();
   } catch (_) {}
