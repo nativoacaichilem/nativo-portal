@@ -903,6 +903,15 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
         Los retiros en oficina no aparecen: el cliente los viene a buscar.
       </p>
       <div id="ruta-aviso"></div>
+      <!-- El punto de partida va acá y no escrito en el código: ya cambió una
+           vez y va a volver a cambiar. Queda guardado en este navegador. -->
+      <div style="margin-bottom:14px">
+        <label for="ruta-origen">Punto de partida de la ruta</label>
+        <input type="text" id="ruta-origen" onchange="guardarOrigen()"
+          placeholder="Dirección desde donde sale el camión">
+        <div class="nota-campo" style="display:block">Se usa en el prompt y queda
+          guardado para la próxima vez.</div>
+      </div>
       <div id="checks"></div>
       <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn bam2" onclick="genPrompt()">✨ Generar Prompt para Claude</button>
@@ -969,11 +978,29 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
         </select>
       </div>
     </div>
+    <!-- El tipo se puede cambiar después de creado el pedido. Pasa: se
+         despacha como venta y resulta que era una muestra, o una entrega se
+         pierde en el camino y hay que dejarla como merma. -->
+    <div style="margin-bottom:12px">
+      <label>¿Qué es este pedido?</label>
+      <select id="mtipo" onchange="mTipoCambio()">
+        <option value="venta">💵 Venta — se factura y se cobra</option>
+        <option value="muestra">🎁 Muestra — se entrega sin cobrar</option>
+        <option value="merma">🗑️ Merma — salió y se perdió</option>
+        <option value="tarea">🔧 Tarea interna — no se entrega producto</option>
+      </select>
+      <div class="nota-campo" id="mtipo-nota"></div>
+    </div>
     <div style="margin-bottom:12px;display:none" id="mrazon-box">
       <label>Razón de la entrega</label>
       <select id="mrazon"></select>
       <div class="hint-man">Esta entrega no se cobra. Cambiar la razón cambia también
         el motivo que se propone al descargar bodega.</div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label>Encargado</label>
+      <input id="mencargado" type="text" placeholder="Quién se hace cargo" list="lista-encargados">
+      <datalist id="lista-encargados"></datalist>
     </div>
     <div style="margin-bottom:12px" id="mzona-box">
       <label>Zona</label>
@@ -1392,6 +1419,7 @@ function pintarPestana(id) {
     // una fecha vacía bloquea el botón de asignar sin decir por qué.
     const d = document.getElementById('ruta-dia');
     if (d && !d.value) d.value = hoyISO();
+    cargarOrigen();
     renderChecksRuta();
     cargarRutas();
     return;
@@ -1591,7 +1619,7 @@ const ESTADOS_CORTESIA = [
 function llenarEstadoModal(p) {
   const sel = document.getElementById('mestado');
   const actual = p.estado || 'pendiente';
-  if (esCortesia(p)) {
+  if (noEsVenta(p)) {
     sel.innerHTML = ESTADOS_CORTESIA
       .map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
     // Si venía en un estado de facturación —por un cambio masivo, por
@@ -1624,14 +1652,14 @@ const yaEntregado = e => e === 'entregado' || e === 'entregado-sin-facturar';
 // contar plata que no existe.
 const sinFacturar = p => {
   if (typeof p === 'string') return p === 'pendiente' || p === 'entregado-sin-facturar';
-  if (esCortesia(p)) return false;
+  if (noEsVenta(p)) return false;
   return p.estado === 'pendiente' || p.estado === 'entregado-sin-facturar';
 };
 
 function ebadge(e, p) {
   // En una cortesía, "sin facturar" no significa nada: no hay nada que
   // facturar. Lo que importa es si ya salió o no.
-  if (p && esCortesia(p)) {
+  if (p && noEsVenta(p)) {
     const salio = yaEntregado(e);
     return `<span class="badge bcort">🎁 ${salio ? 'Entregada' : 'Por entregar'}</span>` +
       (p.razon ? `<div class="chip-razon">${hesc(p.razon)}</div>` : '');
@@ -1830,7 +1858,7 @@ function filtrados() {
     (!fz || p.zona === fz) &&
     // 'sf' no es un estado: es "falta facturar", que son dos estados distintos
     (!fe || (fe === 'sf' ? sinFacturar(p)
-           : fe === 'cortesia' ? esCortesia(p)
+           : fe === 'cortesia' ? noEsVenta(p)
            : fe === 'web' ? esWeb(p)
            : p.estado === fe)) &&
     (!fn || (p.entrega || 'despacho') === fn) &&
@@ -1848,7 +1876,7 @@ const retirosPendientes = () => pedidos.filter(p =>
 
 // Cortesías que todavía no salen: es la lista de trabajo de las muestras.
 const cortesiasPendientes = () => pedidos.filter(p =>
-  esCortesia(p) && !yaEntregado(p.estado));
+  noEsVenta(p) && !yaEntregado(p.estado));
 
 // Los contadores pinchables llevan la tabla a lo que representan
 function verSinFacturar() {
@@ -1886,7 +1914,7 @@ function render() {
   // que un entregado sin facturar aparece en ambas: salió de la bodega Y falta
   // cobrarlo. El contador propio destaca justamente ese cruce, que es el
   // accionable: mercadería entregada que todavía no se factura.
-  const nEsf = pedidos.filter(p => p.estado === 'entregado-sin-facturar' && !esCortesia(p)).length;
+  const nEsf = pedidos.filter(p => p.estado === 'entregado-sin-facturar' && !noEsVenta(p)).length;
   document.getElementById('st').textContent   = pedidos.length;
   document.getElementById('sp').textContent   = pedidos.filter(p => sinFacturar(p)).length;
   document.getElementById('sr').textContent   = pedidos.filter(p => p.estado === 'en-ruta').length;
@@ -1910,7 +1938,7 @@ function render() {
 
   const ncort = cortesiasPendientes().length;
   const cajaCort = document.getElementById('stat-cort');
-  cajaCort.style.display = pedidos.some(esCortesia) ? '' : 'none';
+  cajaCort.style.display = pedidos.some(noEsVenta) ? '' : 'none';
   document.getElementById('scort').textContent = ncort;
 
   const nods = pedidosSinDescargo().length;
@@ -2020,7 +2048,7 @@ function render() {
         ${entregaHtml}
       </td>
       <td data-rot="Factura" style="font-size:12px;color:var(--textl);font-weight:600">${
-        esCortesia(p) ? '<span style="color:#3730a3;font-weight:800">sin venta</span>'
+        noEsVenta(p) ? '<span style="color:#3730a3;font-weight:800">sin venta</span>'
                       : (hesc(p.factura_num) || '—')}</td>
       <td class="td-acc"><button class="btn bol bsm" onclick="abrir(${p.id})">Editar</button>
         ${bodListo && ['en-ruta','entregado','entregado-sin-facturar'].includes(p.estado)
@@ -2331,7 +2359,7 @@ function bodMotivoPropuesto(p) {
   if (!salidas.length) return null;
   const noVenta = salidas.filter(m => !m.es_venta);
 
-  if (esCortesia(p)) {
+  if (noEsVenta(p)) {
     const razon = normTxt(p.razon || '');
     const calza = noVenta.find(m => normTxt(m.nombre) === razon) ||
                   noVenta.find(m => razon && (normTxt(m.nombre).includes(razon.split(' ')[0]) ||
@@ -2439,7 +2467,7 @@ function pintarDescargo() {
     `<option value="${b.id}" ${String(b.id) === String(bid) ? 'selected' : ''}>${hesc(b.nombre)}</option>`).join('');
   // En una cortesía los motivos de venta no se ofrecen: no hay nada que
   // cobrar, y ofrecerlos solo invita a un error que la base rechazaría.
-  const cort = esCortesia(ds.pedido);
+  const cort = noEsVenta(ds.pedido);
   const opsMot = mid => `<option value="">— motivo —</option>` +
     bodSalidas().filter(m => !(cort && m.es_venta)).map(m =>
       `<option value="${m.id}" ${String(m.id) === String(mid) ? 'selected' : ''}>${hesc(m.nombre)}${m.es_venta ? ' · venta' : ''}</option>`).join('');
@@ -2509,9 +2537,9 @@ function pintarDescargo() {
         <span>Cliente</span><b>${hesc(p.emp)}</b>
       </div>
       <div>
-        <span>${esCortesia(p) ? 'Razón' : 'Factura'}</span>
-        <b class="${esCortesia(p) ? '' : (factura ? '' : 'ds-sinfact')}">${
-          esCortesia(p) ? hesc(p.razon || 'sin venta')
+        <span>${noEsVenta(p) ? 'Razón' : 'Factura'}</span>
+        <b class="${noEsVenta(p) ? '' : (factura ? '' : 'ds-sinfact')}">${
+          noEsVenta(p) ? hesc(p.razon || 'sin venta')
                         : (factura ? hesc(factura) : 'sin número')}</b>
       </div>
       <div>
@@ -2519,7 +2547,7 @@ function pintarDescargo() {
       </div>
     </div>
 
-    ${esCortesia(p)
+    ${noEsVenta(p)
       ? `<div class="alert ai" style="line-height:1.55">🎁 <b>Entrega sin venta</b> —
            ${hesc(p.razon || 'cortesía')}. El stock se descuenta igual; lo que no hay
            es factura ni cobro. El costo queda medido para saber cuánto se regaló.</div>`
@@ -2569,7 +2597,7 @@ function dsProblemas() {
     if (!l.bodega_id)   out.push(`Línea ${i + 1}: falta la bodega`);
     if (!l.motivo_id)   out.push(`Línea ${i + 1}: falta decir qué pasó`);
     if (!(Number(l.cantidad) > 0)) out.push(`Línea ${i + 1}: la cantidad tiene que ser mayor que cero`);
-    if (esMotivoVenta(l.motivo_id) && esCortesia(ds.pedido))
+    if (esMotivoVenta(l.motivo_id) && noEsVenta(ds.pedido))
       out.push(`Línea ${i + 1}: esta entrega es sin venta, elige otro motivo`);
     else if (esMotivoVenta(l.motivo_id) && !factura)
       out.push(`Línea ${i + 1}: una venta necesita número de factura`);
@@ -2632,7 +2660,7 @@ async function guardarDescargo() {
     // El número de factura viaja en `doc` incluso cuando el motivo no es venta:
     // si mañana se reclasifica, el dato ya está.
     doc: factura || null,
-    nota: (esCortesia(p) ? 'Sin venta · ' + (p.razon || 'cortesía') + ' · ' : '') +
+    nota: (noEsVenta(p) ? 'Sin venta · ' + (p.razon || 'cortesía') + ' · ' : '') +
           'Pedido #' + p.id + (p.folio ? ' · ' + p.folio : ''),
     usuario: quienDescarga(),
     pedido_id: Number(p.id)
@@ -3048,7 +3076,31 @@ async function guardarCortesia() {
   btn.innerHTML = 'Registrar entrega'; btn.disabled = false;
 }
 
-const esCortesia = p => (p.tipo || 'venta') === 'cortesia';
+// ── los cuatro tipos de pedido ──
+//
+//   venta    se factura y se cobra. Es lo normal.
+//   muestra  se entrega sin cobrar. Era la "cortesía".
+//   merma    salió de bodega y se perdió: se rompió, se venció, se botó.
+//   tarea    algo que el equipo tiene que hacer en esa parada y que no es
+//            entregar producto. Va en la ruta porque el camión pasa igual.
+const TIPOS_PEDIDO = {
+  venta:   { lbl: 'Venta',          corto: 'venta',       ico: '💵' },
+  muestra: { lbl: 'Muestra',        corto: 'muestra',     ico: '🎁' },
+  merma:   { lbl: 'Merma',          corto: 'merma',       ico: '🗑️' },
+  tarea:   { lbl: 'Tarea interna',  corto: 'tarea',       ico: '🔧' }
+};
+const tipoDe = p => TIPOS_PEDIDO[p && p.tipo] ? p.tipo : 'venta';
+
+// La pregunta que de verdad importa en todo el panel no es "¿es cortesía?"
+// sino "¿esto se cobra?". No facturar, no mostrar el aviso de pendiente de
+// facturación y pedir la razón valen igual para una muestra, una merma y una
+// tarea. Por eso la función se llama así y no por un tipo en particular.
+const noEsVenta = p => tipoDe(p) !== 'venta';
+
+// Una tarea no entrega producto, así que no tiene nada que descargar de
+// bodega. Distinguirla importa: ofrecer "descargar stock" en una parada que
+// es ir a cobrar confunde a quien la ve.
+const esTarea = p => tipoDe(p) === 'tarea';
 const esWeb = p => (p.canal || 'b2b') === 'web';
 
 // ══════════════════════════════════════════
@@ -3060,6 +3112,48 @@ function modalEntregaCambio() {
   document.getElementById('mfentrega-lbl').textContent = ret ? 'Fecha y hora de retiro' : 'Fecha de Entrega';
   document.getElementById('mrecibe-lbl').textContent   = ret ? 'Quién retira' : 'Recibe';
   document.getElementById('mfentrega').placeholder = ret ? 'DD/MM/AAAA 11:00' : 'DD/MM/AAAA';
+}
+
+// Reacciona al tipo elegido. Se llama al abrir el modal y cada vez que se
+// cambia el selector, porque el tipo decide qué campos tienen sentido.
+//
+// En una entrega sin venta no hay factura que escribir —la base la rechaza—
+// así que esos campos se esconden en vez de quedar invitando a llenarlos.
+function mTipoCambio(razonActual) {
+  const t = document.getElementById('mtipo').value;
+  const sinVenta = t !== 'venta';
+  const tarea = t === 'tarea';
+
+  document.getElementById('mrazon-box').style.display = (sinVenta && !tarea) ? '' : 'none';
+  if (sinVenta && !tarea) {
+    const sr = document.getElementById('mrazon');
+    const actual = razonActual !== undefined ? razonActual : sr.value;
+    const lista = RAZONES.includes(actual) || !actual ? RAZONES : [actual, ...RAZONES];
+    sr.innerHTML = lista.map(r => `<option value="${hesc(r)}">${hesc(r)}</option>`).join('');
+    sr.value = actual || RAZONES[0];
+  }
+
+  document.getElementById('mfact').closest('div').style.display = sinVenta ? 'none' : '';
+  document.getElementById('m-titulo-fact').textContent =
+    sinVenta ? 'Entrega' : 'Facturación y Entrega';
+
+  const nota = document.getElementById('mtipo-nota');
+  nota.style.display = 'block';
+  nota.textContent =
+    t === 'venta'   ? 'Se factura y se cobra.'
+  : t === 'muestra' ? 'Se entrega sin cobrar. El stock se descuenta igual y el costo queda medido.'
+  : t === 'merma'   ? 'Salió de bodega y se perdió. El stock se descuenta y cuenta como pérdida.'
+  : 'No se entrega producto: es algo que hay que hacer en esa parada. No se descarga stock.';
+}
+
+// Los encargados que ya se han usado, para no tener que escribirlos de nuevo
+// y, sobre todo, para que no queden tres variantes del mismo nombre.
+function pintarEncargados() {
+  const dl = document.getElementById('lista-encargados');
+  if (!dl) return;
+  const vistos = [...new Set(pedidos.map(x => (x.encargado || '').trim()).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, 'es'));
+  dl.innerHTML = vistos.map(n => `<option value="${hesc(n)}"></option>`).join('');
 }
 
 function abrir(id) {
@@ -3096,21 +3190,10 @@ function abrir(id) {
   document.getElementById('m-mensaje-box').style.display = msg ? '' : 'none';
   document.getElementById('m-mensaje').textContent = msg;
 
-  // En una entrega sin venta no hay factura que escribir —la base la rechaza—
-  // así que esos campos se esconden en vez de quedar ahí invitando a llenarlos.
-  const cort = esCortesia(p);
-  const razonBox = document.getElementById('mrazon-box');
-  razonBox.style.display = cort ? '' : 'none';
-  if (cort) {
-    const sr = document.getElementById('mrazon');
-    const actual = p.razon || '';
-    const lista = RAZONES.includes(actual) || !actual ? RAZONES : [actual, ...RAZONES];
-    sr.innerHTML = lista.map(r => `<option value="${hesc(r)}">${hesc(r)}</option>`).join('');
-    sr.value = actual || RAZONES[0];
-  }
-  document.getElementById('mfact').closest('div').style.display = cort ? 'none' : '';
-  document.getElementById('m-titulo-fact').textContent =
-    cort ? 'Entrega' : 'Facturación y Entrega';
+  document.getElementById('mtipo').value = tipoDe(p);
+  document.getElementById('mencargado').value = p.encargado || '';
+  pintarEncargados();
+  mTipoCambio(p.razon || '');
 
   modalEntregaCambio();
   // Los pedidos del portal llegan sin zona. Si la dirección permite deducirla,
@@ -3150,7 +3233,10 @@ async function guardar() {
   btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true;
 
   const orig = pedidos.find(x => String(x.id) === String(eid)) || {};
-  const cort = esCortesia(orig);
+  // El tipo se lee del selector, no del pedido original: el punto de este
+  // campo es poder cambiarlo después de creado.
+  const tipo = document.getElementById('mtipo').value;
+  const cort = tipo !== 'venta';
   const entrega = document.getElementById('mentrega').value === 'retiro' ? 'retiro' : 'despacho';
   const row = {
     entrega,
@@ -3168,10 +3254,14 @@ async function guardar() {
     telefono:      document.getElementById('mtel').value.trim(),
     fecha_entrega: document.getElementById('mfentrega').value.trim(),
     recibe:        document.getElementById('mrecibe').value.trim(),
-    comentario:    document.getElementById('mcom').value.trim()
+    comentario:    document.getElementById('mcom').value.trim(),
+    tipo,
+    encargado:     document.getElementById('mencargado').value.trim()
     // `mensaje` no se envía a propósito: lo escribió el cliente y no se toca.
   };
-  if (cort) row.razon = document.getElementById('mrazon').value;
+  // La razón solo aplica a muestra y merma. Una tarea no entrega producto, así
+  // que no hay razón de entrega que dar.
+  row.razon = (cort && tipo !== 'tarea') ? document.getElementById('mrazon').value : '';
 
   try {
     await sbPatch(eid, row);
@@ -3221,7 +3311,7 @@ function exportCSV() {
   const rows = data.map(p => [
     p.id, p.folio||'', p.fecha||'', p.emp, p.rut,
     p.contacto||'', p.telefono||'',
-    esCortesia(p) ? 'Sin venta' : 'Venta',
+    noEsVenta(p) ? 'Sin venta' : 'Venta',
     esWeb(p) ? 'Página web' : 'Mayorista', p.razon||'',
     esRetiro(p) ? 'Retiro en oficina' : 'Despacho',
     p.dir, p.zona||'', p.detalle||'', p.mensaje||'',
@@ -3493,7 +3583,7 @@ function renderChecksRuta() {
   // estado, las muestras no entrarían nunca en la ruta y habría que llevarlas
   // aparte, anotadas en un papel.
   const listos = pedidos.filter(p =>
-    p.estado === 'facturado' || (esCortesia(p) && p.estado === 'pendiente'));
+    p.estado === 'facturado' || (noEsVenta(p) && p.estado === 'pendiente'));
   const f = listos.filter(p => !esRetiro(p));
   const nret = listos.length - f.length;
 
@@ -3518,7 +3608,7 @@ function renderChecksRuta() {
       <div style="flex:1">
         <div style="font-weight:800;font-size:13px;color:var(--mora-d)">
           ${hesc(p.emp)} ${zbadge(p.zona)}
-          ${esCortesia(p) ? `<span class="badge bcort">🎁 ${hesc(p.razon || 'sin venta')}</span>` : ''}
+          ${noEsVenta(p) ? `<span class="badge bcort">🎁 ${hesc(p.razon || 'sin venta')}</span>` : ''}
         </div>
         <div style="font-size:12px;color:var(--textl);margin-top:2px;font-weight:600">📍 ${hesc(p.dir)}</div>
         ${p.telefono ? `<div style="font-size:12px;color:var(--textl);font-weight:600">📞 ${hesc(p.telefono)}</div>` : ''}
@@ -3546,6 +3636,67 @@ function deselRuta() {
   document.querySelectorAll('#checks .ci').forEach(c => c.classList.remove('sel'));
 }
 
+// El punto de partida. Se guarda en este navegador para no volver a
+// escribirlo cada día.
+const ORIGEN_POR_OMISION = 'Huechuraba, Santiago de Chile';
+
+function origenRuta() {
+  const e = document.getElementById('ruta-origen');
+  const v = (e && e.value || '').trim();
+  return v || ORIGEN_POR_OMISION;
+}
+
+function cargarOrigen() {
+  const e = document.getElementById('ruta-origen');
+  if (!e) return;
+  let g = '';
+  try { g = localStorage.getItem('nativo_ruta_origen') || ''; } catch (_) {}
+  e.value = g || ORIGEN_POR_OMISION;
+}
+
+function guardarOrigen() {
+  try { localStorage.setItem('nativo_ruta_origen', origenRuta()); } catch (_) {}
+}
+
+// Cuánto hay que subir al camión en total, sumando todos los pedidos.
+//
+// Se agrupa por producto Y por medida, sin convertir entre cajas y unidades.
+// Sumar "3 cajas + 2 unidades = 5" sería un número que no significa nada, y
+// quien carga el camión necesita saber cuántos bultos busca, no un total
+// matemático.
+//
+// Las líneas que no se pueden leer se listan aparte en vez de descartarse:
+// algo que el sistema no entiende igual hay que subirlo al camión.
+function totalesTexto(lista) {
+  const tot = new Map();   // "nombre|medida" -> { nombre, medida, cantidad }
+  const raras = [];
+
+  lista.forEach(p => splitDet(p.detalle).forEach(it => {
+    const L = leerLinea(it);
+    if (!L || !(L.cantidad > 0)) { raras.push(it); return; }
+    const nombre = L.nombre + (L.formato ? ' (' + L.formato + ')' : '');
+    const k = nombre + '|' + L.medida;
+    if (!tot.has(k)) tot.set(k, { nombre, medida: L.medida, cantidad: 0 });
+    tot.get(k).cantidad += L.cantidad;
+  }));
+
+  if (!tot.size && !raras.length) return '';
+
+  const filas = [...tot.values()]
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
+    .map(x => `- ${x.nombre}: ${x.cantidad} ${x.medida === 'caja'
+      ? (x.cantidad === 1 ? 'caja' : 'cajas')
+      : (x.cantidad === 1 ? 'unidad' : 'unidades')}`);
+
+  return 'TOTAL A CARGAR EN EL CAMIÓN (sumando todos los pedidos):\n' +
+    filas.join('\n') +
+    (raras.length
+      ? '\n\nEstas líneas no se pudieron contar automáticamente, revísalas:\n' +
+        raras.map(t => '- ' + t).join('\n')
+      : '') +
+    '\n\n';
+}
+
 function genPrompt() {
   if (!selRuta.length) { alert('Selecciona al menos un pedido.'); return; }
   const s    = pedidos.filter(p => selRuta.includes(p.id));
@@ -3555,7 +3706,7 @@ function genPrompt() {
   const lista = s.map((p, i) =>
     `\nPEDIDO ${i+1}:\n` +
     `- Cliente: ${p.emp}\n` +
-    (esCortesia(p) ? `- ENTREGA SIN VENTA: ${p.razon || 'cortesía'} — no se cobra\n` : '') +
+    (noEsVenta(p) ? `- ENTREGA SIN VENTA: ${p.razon || 'cortesía'} — no se cobra\n` : '') +
     (esWeb(p) ? `- Venta de la página web\n` : '') +
     (p.rut ? `- RUT: ${p.rut}\n` : '') +
     (p.folio ? `- Folio: ${p.folio}\n` : '') +
@@ -3570,8 +3721,9 @@ function genPrompt() {
 
   const txt =
     `Necesito que organices la ruta de despacho más eficiente para hoy ${fecha}.\n\n` +
-    `Punto de partida: Alejandro Serani Sur 9447, Santiago de Chile.\n\n` +
+    `Punto de partida: ${origenRuta()}.\n\n` +
     `Pedidos a entregar:\n${lista}\n\n` +
+    totalesTexto(s) +
     `Por favor:\n` +
     `1. Ordena los pedidos minimizando tiempo y combustible, considerando la geografía real de Santiago.\n` +
     `2. Para cada parada:\n\n` +
@@ -3629,6 +3781,8 @@ const CATS = [
     {n:'Balde Acai Blue Monkey', f:'3,6 L'},
     {n:'Balde Acai Zero Blue Monkey', f:'5 L'},
     {n:'Balde Pistacho Soft Blue Monkey', f:'5 L'},
+    {n:'Balde Mango Soft Blue Monkey', f:'5 L'},
+    {n:'Balde Maracuya Soft Blue Monkey', f:'5 L'},
     {n:'Balde Acai Riva', f:'3,6 L'},
     {n:'Balde Yoghurt Griego Soft Blue Monkey', f:'5 L'}
   ]},
