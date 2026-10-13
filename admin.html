@@ -539,7 +539,10 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
         <select id="festado" onchange="render()">
           <option value="">Todos los estados</option>
           <option value="sf">▸ Todo lo que falta facturar</option>
-          <option value="cortesia">🎁 Entregas sin venta</option>
+          <option value="cortesia">▸ Todo lo que no es venta</option>
+          <option value="t-muestra">🎁 Muestras</option>
+          <option value="t-merma">🗑️ Mermas</option>
+          <option value="t-tarea">🔧 Tareas internas</option>
           <option value="web">🌐 Ventas página web</option>
           <option value="pendiente">Sin facturar</option>
           <option value="facturado">Facturado</option>
@@ -591,7 +594,7 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
         <div class="picks" id="wz-clientes"></div>
         <div style="margin-top:12px;border-top:1px solid var(--crema-d);padding-top:12px;display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn bol bsm" onclick="togManual()">✏️ Entrada manual (pedido puntual)</button>
-          <button class="btn bol bsm" onclick="togCortesia()">🎁 Entrega sin venta</button>
+          <button class="btn bol bsm" onclick="togCortesia()">🎁 Muestra, merma o tarea</button>
         </div>
       </div>
 
@@ -737,20 +740,34 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
 
   <!-- ── ENTREGA SIN VENTA ── -->
   <div class="card" id="cortesia-box" style="max-width:760px;margin:16px auto 0;display:none">
-    <h2>🎁 Entrega sin venta</h2>
-    <div class="alert ai" style="margin-bottom:16px;line-height:1.6">
-      Para muestras, regalos, degustaciones, activaciones y reposiciones por reclamo.
-      <b>No pide RUT ni factura</b> y no aparece en lo que falta cobrar: sale de la
-      bodega y no se cobra nunca. El costo de lo entregado queda medido igual.
-    </div>
+    <h2 id="co-titulo">🎁 Salida sin venta</h2>
+    <div class="alert ai" style="margin-bottom:16px;line-height:1.6" id="co-explica"></div>
     <div id="co-alert"></div>
 
+    <!-- El tipo va arriba de todo y con las tres opciones a la vista, porque
+         decide qué significa el resto del formulario. Antes este formulario
+         solo servía para cortesías y las mermas se anotaban como si fueran
+         regalos: a fin de mes eso hace imposible saber qué se perdió y qué se
+         entregó a propósito. -->
+    <div style="margin-bottom:16px">
+      <label>¿Qué estás registrando? *</label>
+      <select id="co-tipo" onchange="coTipoCambio()">
+        <option value="muestra">🎁 Muestra — se entrega a alguien y no se cobra</option>
+        <option value="merma">🗑️ Merma — se perdió: se rompió, se venció, se botó</option>
+        <option value="tarea">🔧 Tarea interna — algo que hacer, sin entregar producto</option>
+      </select>
+    </div>
+
     <div class="fg">
-      <div><label>Para quién *</label>
+      <div><label id="co-emp-lbl">Para quién *</label>
         <input id="co-emp" type="text" placeholder="Persona, local o empresa">
-        <div class="hint-man">Basta un nombre reconocible. No se agrega al directorio de clientes.</div></div>
-      <div><label>Razón de la entrega *</label>
+        <div class="hint-man" id="co-emp-nota">Basta un nombre reconocible. No se agrega al directorio de clientes.</div></div>
+      <div id="co-razon-box"><label>Razón *</label>
         <select id="co-razon" onchange="coRazonCambio()"></select></div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label>Encargado</label>
+      <input id="co-encargado" type="text" placeholder="Quién se hace cargo" list="lista-encargados">
     </div>
 
     <div class="fg">
@@ -1859,6 +1876,10 @@ function filtrados() {
     // 'sf' no es un estado: es "falta facturar", que son dos estados distintos
     (!fe || (fe === 'sf' ? sinFacturar(p)
            : fe === 'cortesia' ? noEsVenta(p)
+           // `t-muestra`, `t-merma`, `t-tarea`: un tipo a la vez. Cuadrar el
+           // mes es mirar las mermas por separado de las muestras, no todo
+           // junto como "lo que no se cobró".
+           : fe.startsWith('t-') ? tipoDe(p) === fe.slice(2)
            : fe === 'web' ? esWeb(p)
            : p.estado === fe)) &&
     (!fn || (p.entrega || 'despacho') === fn) &&
@@ -2048,7 +2069,8 @@ function render() {
         ${entregaHtml}
       </td>
       <td data-rot="Factura" style="font-size:12px;color:var(--textl);font-weight:600">${
-        noEsVenta(p) ? '<span style="color:#3730a3;font-weight:800">sin venta</span>'
+        noEsVenta(p) ? `<span style="color:#3730a3;font-weight:800">${
+          TIPOS_PEDIDO[tipoDe(p)].ico} ${TIPOS_PEDIDO[tipoDe(p)].corto}</span>`
                       : (hesc(p.factura_num) || '—')}</td>
       <td class="td-acc"><button class="btn bol bsm" onclick="abrir(${p.id})">Editar</button>
         ${bodListo && ['en-ruta','entregado','entregado-sin-facturar'].includes(p.estado)
@@ -2349,25 +2371,44 @@ function bodPreparar(p) {
   return { lineas, fuera };
 }
 
-// Qué motivo proponer. En una cortesía la razón ya lo dice —"Muestra
-// comercial", "Regalo"— así que se busca el motivo de bodega que calce con
-// ese texto en vez de hacer elegir dos veces lo mismo. En una venta, depende
-// de si hay factura: proponer venta sin factura sería proponer algo que la
-// base va a rechazar.
+// Qué motivo proponer al descargar bodega.
+//
+// Si el pedido trae `motivo_id`, ese es y no hay nada que decidir. Es el punto
+// de toda la cadena: la razón se eligió una vez, al crear el pedido, y viaja
+// por id hasta el movimiento.
+//
+// La versión anterior comparaba el TEXTO de la razón contra el nombre de cada
+// motivo, y si no calzaba exacto se conformaba con la primera palabra.
+// Renombrar un motivo en bodega rompía el calce sin un solo error visible: el
+// panel empezaba a proponer el primero de la lista y a fin de mes había
+// salidas con el motivo equivocado.
+//
+// El respaldo por texto se conserva solo para los pedidos anteriores a este
+// cambio, que no tienen `motivo_id`.
 function bodMotivoPropuesto(p) {
   const salidas = bodSalidas();
   if (!salidas.length) return null;
+
+  if (p.motivo_id) {
+    const m = salidas.find(x => String(x.id) === String(p.motivo_id));
+    if (m) return m;
+  }
+
   const noVenta = salidas.filter(m => !m.es_venta);
 
   if (noEsVenta(p)) {
+    // Pedidos viejos: se intenta por nombre exacto y nada más. Se quitó el
+    // calce por primera palabra, que hacía que "Merma por rotura" calzara con
+    // cualquier motivo que empezara con "Merma" —incluido el de vencimiento—.
     const razon = normTxt(p.razon || '');
-    const calza = noVenta.find(m => normTxt(m.nombre) === razon) ||
-                  noVenta.find(m => razon && (normTxt(m.nombre).includes(razon.split(' ')[0]) ||
-                                              razon.includes(normTxt(m.nombre).split(' ')[0])));
-    return calza || noVenta[0] || null;
+    const calza = razon ? noVenta.find(m => normTxt(m.nombre) === razon) : null;
+    // Si no calza, NO se adivina: se devuelve null y la pantalla pide elegir.
+    // Proponer un motivo cualquiera es peor que no proponer ninguno.
+    return calza || null;
   }
+
   const conFactura = !!String(p.factura_num || '').trim();
-  return conFactura ? (salidas.find(m => m.es_venta) || noVenta[0] || null)
+  return conFactura ? (salidas.find(m => m.es_venta) || null)
                     : (noVenta[0] || null);
 }
 
@@ -2988,15 +3029,37 @@ async function agregar() {
 //
 //  El texto de cada razón calza con el nombre de un motivo de bodega, para
 //  que al descargar el stock el motivo venga ya elegido.
-const RAZONES = [
-  'Muestra comercial',
-  'Degustación o activación',
-  'Regalo',
-  'Reposición por reclamo',
-  'Marketing y activaciones',
-  'Consumo interno',
-  'Otro (explicar en el comentario)'
-];
+// Las razones salen de `bod_motivos`, no de una lista escrita acá.
+//
+// Antes había una lista fija en el código y al descargar bodega el panel
+// buscaba un motivo cuyo NOMBRE calzara con ese texto. Si no calzaba exacto,
+// se conformaba con la primera palabra. Eso se rompe en silencio: renombra un
+// motivo en bodega y el panel empieza a proponer el equivocado, sin error, y
+// lo descubres cuadrando a fin de mes.
+//
+// Ahora viaja el id. Y no hizo falta marcar cada motivo con su tipo porque
+// las banderas que ya existen lo dicen:
+//
+//   es_venta   → motivos de una VENTA
+//   es_perdida → motivos de una MERMA
+//   ninguna    → motivos de una MUESTRA
+function motivosDeTipo(tipo) {
+  const sal = bodMotivos.filter(m => m.activo && m.tipo === 'salida');
+  if (tipo === 'merma')   return sal.filter(m => m.es_perdida);
+  if (tipo === 'muestra') return sal.filter(m => !m.es_venta && !m.es_perdida);
+  if (tipo === 'venta')   return sal.filter(m => m.es_venta);
+  return [];                 // una tarea no saca producto: no lleva motivo
+}
+
+// Opciones para un selector de razón, marcando la que ya tenga el pedido.
+function opcionesMotivo(tipo, sel) {
+  const lista = motivosDeTipo(tipo);
+  if (!lista.length)
+    return '<option value="">— no hay motivos configurados para esto —</option>';
+  return lista.map(m =>
+    `<option value="${m.id}"${String(m.id) === String(sel) ? ' selected' : ''}>` +
+    `${hesc(m.nombre)}</option>`).join('');
+}
 
 const coQ = {};   // cantidades del formulario de cortesía
 
@@ -3006,14 +3069,69 @@ function togCortesia() {
   b.style.display = abriendo ? 'block' : 'none';
   if (!abriendo) return;
   document.getElementById('manual-box').style.display = 'none';   // uno a la vez
-  const sel = document.getElementById('co-razon');
-  if (!sel.options.length)
-    sel.innerHTML = RAZONES.map(r => `<option value="${hesc(r)}">${hesc(r)}</option>`).join('');
+  coTipoCambio();
+  pintarEncargados();
   if (!document.getElementById('co-fecha').value)
     document.getElementById('co-fecha').value = hoy();
   pintarCat('co');
   coEntregaCambio();
   b.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Cambia el formulario completo según lo que se esté registrando. Las tres
+// cosas usan los mismos campos pero significan algo distinto, y dejarlos con
+// las mismas etiquetas es lo que lleva a anotar una merma como si fuera un
+// regalo.
+function coTipoCambio() {
+  const t = document.getElementById('co-tipo').value;
+  const sel = document.getElementById('co-razon');
+  const hay = motivosDeTipo(t).length > 0;
+
+  document.getElementById('co-razon-box').style.display = (t === 'tarea') ? 'none' : '';
+  sel.innerHTML = opcionesMotivo(t);
+  if (!hay && t !== 'tarea')
+    alerta('co-alert', 'No hay motivos de bodega configurados para esto. ' +
+      'Créalos en Bodega → Configuración → Motivos.', 'an');
+
+  const T = {
+    muestra: {
+      titulo: '🎁 Muestra',
+      emp: 'Para quién *',
+      nota: 'Basta un nombre reconocible. No se agrega al directorio de clientes.',
+      explica: 'Para muestras, regalos, degustaciones, activaciones y reposiciones por ' +
+        'reclamo. <b>No pide RUT ni factura</b> y no aparece en lo que falta cobrar: ' +
+        'sale de la bodega y no se cobra nunca.'
+    },
+    merma: {
+      titulo: '🗑️ Merma',
+      emp: '¿Dónde se perdió? *',
+      nota: 'La bodega, el local o el punto donde ocurrió. Sirve para saber dónde se pierde más.',
+      explica: 'Producto que salió de bodega y no llegó a nadie: se venció, se rompió, ' +
+        'se cortó la cadena de frío. <b>Se descuenta del stock igual que una venta</b>, ' +
+        'y queda separado para poder verlo aparte al cuadrar el mes.'
+    },
+    tarea: {
+      titulo: '🔧 Tarea interna',
+      emp: '¿Dónde hay que ir? *',
+      nota: 'El local, la dirección o la persona que hay que visitar.',
+      explica: 'Algo que el equipo tiene que hacer en una parada y que no es entregar ' +
+        'producto: retirar una máquina, ir a cobrar, revisar algo. <b>No descuenta ' +
+        'stock</b>, pero va en la ruta porque el camión tiene que pasar igual.'
+    }
+  }[t] || {};
+
+  document.getElementById('co-titulo').textContent  = T.titulo || '';
+  document.getElementById('co-emp-lbl').textContent = T.emp || 'Para quién *';
+  document.getElementById('co-emp-nota').textContent = T.nota || '';
+  document.getElementById('co-explica').innerHTML   = T.explica || '';
+
+  // En una tarea no hay productos que elegir: mostrar el catálogo invita a
+  // llenarlo y después nadie entiende por qué esa parada descontó stock.
+  const cat = document.querySelector('#cortesia-box .cat-box') ||
+              document.getElementById('cat-co');
+  if (cat) cat.style.display = t === 'tarea' ? 'none' : '';
+
+  coRazonCambio();
 }
 
 function coEntregaCambio() {
@@ -3029,16 +3147,30 @@ const coProponerZona = () =>
 
 async function guardarCortesia() {
   const dato = id => document.getElementById(id).value.trim();
+  const tipo  = document.getElementById('co-tipo').value;
   const emp   = dato('co-emp');
-  const razon = dato('co-razon');
+  const motivoId = tipo === 'tarea' ? null : (document.getElementById('co-razon').value || null);
+  // El texto se guarda igual: sirve para leer el pedido sin tener que cruzar
+  // la tabla de motivos, y deja constancia de cómo se llamaba la razón ese
+  // día si después alguien renombra el motivo.
+  const motivoObj = bodMotivos.find(m => String(m.id) === String(motivoId));
+  const razon = motivoObj ? motivoObj.nombre : '';
   const ret   = document.getElementById('co-entrega').value === 'retiro';
   const dir   = dato('co-dir');
   const zona  = document.getElementById('co-zona').value;
-  const det   = catDetalle('co');
+  const tarea = tipo === 'tarea';
+  const det   = tarea ? '' : catDetalle('co');
 
-  if (!emp)  return alerta('co-alert', 'Pon para quién es la entrega.', 'ae');
-  if (!det)  return alerta('co-alert', 'Elige al menos un producto.', 'ae');
-  if (!ret && !dir)  return alerta('co-alert', 'Falta la dirección de despacho.', 'ae');
+  if (!emp)  return alerta('co-alert',
+    tarea ? 'Pon dónde hay que ir.'
+    : tipo === 'merma' ? 'Pon dónde se perdió el producto.'
+    : 'Pon para quién es la entrega.', 'ae');
+  // Una tarea no lleva productos: exigirlos obligaría a inventar una línea
+  // para poder guardarla, y esa línea descontaría stock que nunca salió.
+  if (!tarea && !det)  return alerta('co-alert', 'Elige al menos un producto.', 'ae');
+  if (!tarea && !motivoId) return alerta('co-alert',
+    'Elige la razón: es lo que permite cuadrar el mes sin baldes desaparecidos.', 'ae');
+  if (!ret && !dir)  return alerta('co-alert', 'Falta la dirección.', 'ae');
   if (!ret && !zona) return alerta('co-alert', 'Asigna una zona para poder armar la ruta.', 'ae');
 
   const btn = document.getElementById('co-guardar');
@@ -3054,14 +3186,22 @@ async function guardarCortesia() {
     fecha: dato('co-fecha') || hoy(),
     fecha_entrega: '', recibe: '',
     comentario: dato('co-com'),
-    tipo: 'cortesia', razon
+    encargado: dato('co-encargado'),
+    tipo, razon, motivo_id: motivoId
   };
 
   try {
     await sbPost(fila);
-    alerta('co-alert', '✅ Entrega registrada. Descarga el stock cuando salga.', 'as');
+    alerta('co-alert', tarea
+      ? '✅ Tarea registrada. Va a aparecer en la ruta como una parada más.'
+      : tipo === 'merma'
+        ? '✅ Merma registrada. Descarga el stock para que se descuente.'
+        : '✅ Entrega registrada. Descarga el stock cuando salga.', 'as');
     ['co-emp', 'co-dir', 'co-contacto', 'co-tel', 'co-com'].forEach(id =>
       document.getElementById(id).value = '');
+    // El encargado NO se limpia: cuando se registran varias cosas seguidas
+    // suele ser la misma persona, y volver a escribirlo cada vez es la forma
+    // más rápida de que dejen de ponerlo.
     document.getElementById('co-zona').value = '';
     document.getElementById('co-zona-nota').style.display = 'none';
     document.getElementById('co-fecha').value = hoy();
@@ -3127,10 +3267,11 @@ function mTipoCambio(razonActual) {
   document.getElementById('mrazon-box').style.display = (sinVenta && !tarea) ? '' : 'none';
   if (sinVenta && !tarea) {
     const sr = document.getElementById('mrazon');
+    // `razonActual` llega como el motivo_id del pedido al abrir el modal, y
+    // como undefined cuando solo se cambió el tipo: ahí se respeta lo elegido
+    // si sigue siendo válido para el tipo nuevo.
     const actual = razonActual !== undefined ? razonActual : sr.value;
-    const lista = RAZONES.includes(actual) || !actual ? RAZONES : [actual, ...RAZONES];
-    sr.innerHTML = lista.map(r => `<option value="${hesc(r)}">${hesc(r)}</option>`).join('');
-    sr.value = actual || RAZONES[0];
+    sr.innerHTML = opcionesMotivo(t, actual);
   }
 
   document.getElementById('mfact').closest('div').style.display = sinVenta ? 'none' : '';
@@ -3193,7 +3334,7 @@ function abrir(id) {
   document.getElementById('mtipo').value = tipoDe(p);
   document.getElementById('mencargado').value = p.encargado || '';
   pintarEncargados();
-  mTipoCambio(p.razon || '');
+  mTipoCambio(p.motivo_id || '');
 
   modalEntregaCambio();
   // Los pedidos del portal llegan sin zona. Si la dirección permite deducirla,
@@ -3261,7 +3402,14 @@ async function guardar() {
   };
   // La razón solo aplica a muestra y merma. Una tarea no entrega producto, así
   // que no hay razón de entrega que dar.
-  row.razon = (cort && tipo !== 'tarea') ? document.getElementById('mrazon').value : '';
+  if (cort && tipo !== 'tarea') {
+    row.motivo_id = document.getElementById('mrazon').value || null;
+    const mo = bodMotivos.find(m => String(m.id) === String(row.motivo_id));
+    row.razon = mo ? mo.nombre : '';
+  } else {
+    row.motivo_id = null;
+    row.razon = '';
+  }
 
   try {
     await sbPatch(eid, row);
