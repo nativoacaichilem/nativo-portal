@@ -981,6 +981,14 @@ tbody tr:hover td{background:#faf6ff}
       <div><label>Fecha</label><input id="ed-fecha" type="date"></div>
       <div><label>Motivo</label><select id="ed-motivo"></select></div>
     </div>
+    <!-- La bodega sí se puede corregir. Anotar en la bodega equivocada es de
+         los errores más fáciles de cometer y de los peores de dejar: el saldo
+         queda mal en las dos a la vez, de menos en una y de más en la otra. -->
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Bodega</label><select id="ed-bodega" onchange="edPrevio()"></select></div>
+      <div id="ed-box-destino" style="display:none"><label>Bodega de destino</label>
+        <select id="ed-destino" onchange="edPrevio()"></select></div>
+    </div>
     <div class="fg" style="margin-bottom:12px">
       <div><label>Documento o factura</label><input id="ed-doc" type="text"></div>
       <div><label>Quien lo anotó</label><input id="ed-usuario" type="text"></div>
@@ -2743,10 +2751,20 @@ function abrirEditarMov(id) {
     `<b>${esc(nombreProducto(m.producto_id))}</b><br>` +
     `${esc(TIPO_TXT[m.tipo] || m.tipo)} en <b>${esc(nombreBodega(m.bodega_id))}</b>` +
     (m.bodega_destino_id ? ` → <b>${esc(nombreBodega(m.bodega_destino_id))}</b>` : '') +
-    `<br><span style="font-weight:400">El producto, la bodega y el tipo no se ` +
-    `pueden cambiar acá: eso sería otro movimiento, y para eso está revertir.</span>` +
+    `<br><span style="font-weight:400">El producto y el tipo no se pueden ` +
+    `cambiar acá: eso sería otro movimiento, y para eso está revertir.</span>` +
     (m.editado ? `<br><b style="color:var(--nd)">Ya se editó antes` +
       (m.editado_por ? ' · ' + esc(m.editado_por) : '') + '</b>' : '');
+
+  // Las bodegas: la de origen siempre, la de destino solo en un traslado.
+  const vivas = bodegas.filter(b => b.activa || String(b.id) === String(m.bodega_id));
+  const ops = sel => vivas.map(b =>
+    `<option value="${b.id}"${String(b.id) === String(sel) ? ' selected' : ''}>` +
+    `${esc(b.nombre)}</option>`).join('');
+  document.getElementById('ed-bodega').innerHTML = ops(m.bodega_id);
+  const esTras = m.tipo === 'traslado';
+  document.getElementById('ed-box-destino').style.display = esTras ? '' : 'none';
+  document.getElementById('ed-destino').innerHTML = esTras ? ops(m.bodega_destino_id) : '';
 
   document.getElementById('ed-cant').value    = Math.abs(Number(m.cantidad) || 0);
   document.getElementById('ed-medida').value  = m.medida || 'caja';
@@ -2772,28 +2790,53 @@ function abrirEditarMov(id) {
 
 // Muestra cómo queda el saldo con el valor nuevo, antes de guardar. Es lo que
 // convierte "cambiar un número" en "entender qué estoy cambiando".
+// Muestra cómo quedan los saldos con los valores nuevos, antes de guardar.
+// Es lo que convierte "cambiar un número" en "entender qué estoy cambiando".
+//
+// Contempla las dos correcciones a la vez: la cantidad y la bodega. Si cambia
+// la bodega, el efecto no es uno sino dos —se deshace en la vieja y se aplica
+// en la nueva— y mostrar solo uno de los dos sería mentir a medias.
 function edPrevio() {
   if (!movEdit) return;
   const m = movEdit;
   const aviso = document.getElementById('ed-aviso');
   const nueva = Number(document.getElementById('ed-cant').value);
   const med   = document.getElementById('ed-medida').value;
-  if (!(nueva > 0)) { aviso.style.display = 'none'; return; }
+  const bodN  = document.getElementById('ed-bodega').value;
+  if (!(nueva > 0) || !bodN) { aviso.style.display = 'none'; return; }
 
-  const antes  = aBase(m.producto_id, Math.abs(Number(m.cantidad) || 0), m.medida);
-  const ahora  = aBase(m.producto_id, nueva, med);
-  if (antes === ahora) { aviso.style.display = 'none'; return; }
+  // El signo con el que este movimiento afecta a su bodega de origen.
+  const signo = m.tipo === 'entrada' ? 1 : m.tipo === 'salida' ? -1
+              : m.tipo === 'traslado' ? -1 : (Number(m.cantidad) < 0 ? -1 : 1);
 
-  const signo = m.tipo === 'entrada' ? 1 : m.tipo === 'salida' ? -1 : 0;
-  const saldoHoy = saldoDe(m.bodega_id, m.producto_id);
-  const dif = (ahora - antes) * (signo || 1);
+  const antes = aBase(m.producto_id, Math.abs(Number(m.cantidad) || 0), m.medida) * signo;
+  const ahora = aBase(m.producto_id, nueva, med) * signo;
+  const mismaBodega = String(bodN) === String(m.bodega_id);
+
+  if (mismaBodega && antes === ahora) { aviso.style.display = 'none'; return; }
+
+  const filas = [];
+  if (mismaBodega) {
+    const hoy = saldoDe(m.bodega_id, m.producto_id);
+    filas.push([nombreBodega(m.bodega_id), hoy, hoy - antes + ahora]);
+  } else {
+    // Se deshace en la bodega donde estaba anotado...
+    const hoyV = saldoDe(m.bodega_id, m.producto_id);
+    filas.push([nombreBodega(m.bodega_id), hoyV, hoyV - antes]);
+    // ...y se aplica en la nueva.
+    const hoyN = saldoDe(bodN, m.producto_id);
+    filas.push([nombreBodega(bodN), hoyN, hoyN + ahora]);
+  }
+
   aviso.style.display = 'block';
-  aviso.innerHTML =
-    `El saldo de <b>${esc(nombreProducto(m.producto_id))}</b> en ` +
-    `<b>${esc(nombreBodega(m.bodega_id))}</b> pasa de <b>${num(saldoHoy)}</b> a ` +
-    `<b>${num(saldoHoy + dif)}</b>.` +
+  aviso.innerHTML = `<b>${esc(nombreProducto(m.producto_id))}</b><br>` +
+    filas.map(([n, de, a]) =>
+      `En <b>${esc(n)}</b>: de ${num(de)} a <b>${num(a)}</b>` +
+      (a < 0 ? ' <span style="color:var(--rd)">⚠️ queda negativo</span>' : '')
+    ).join('<br>') +
     (m.tipo === 'traslado'
-      ? ' El destino se ajusta al revés, en la misma cantidad.' : '');
+      ? '<br><span style="font-weight:400">La bodega de destino se ajusta al revés, ' +
+        'en la misma cantidad.</span>' : '');
 }
 
 async function guardarEdicionMov() {
@@ -2812,11 +2855,23 @@ async function guardarEdicionMov() {
   if (necesita && !motivo)
     return alerta('ed-alert', 'Este tipo de movimiento necesita un motivo.', 'ae');
 
+  const bodN = document.getElementById('ed-bodega').value;
+  if (!bodN) return alerta('ed-alert', 'Elige la bodega.', 'ae');
+  const desN = m.tipo === 'traslado' ? document.getElementById('ed-destino').value : null;
+  if (m.tipo === 'traslado') {
+    if (!desN) return alerta('ed-alert', 'Elige la bodega de destino.', 'ae');
+    // La base lo exige con `bod_mov_destino`, y además un traslado a la misma
+    // bodega no significa nada.
+    if (String(desN) === String(bodN))
+      return alerta('ed-alert', 'El destino tiene que ser una bodega distinta del origen.', 'ae');
+  }
+
   const fila = {
     // El signo lo pone la base según el tipo, igual que al anotar: acá siempre
     // va el valor absoluto. Un ajuste es la excepción y conserva su signo.
     cantidad: m.tipo === 'ajuste' ? (Number(m.cantidad) < 0 ? -cant : cant) : cant,
     medida:   document.getElementById('ed-medida').value,
+    bodega_id: Number(bodN),
     fecha,
     doc:      document.getElementById('ed-doc').value.trim() || null,
     nota:     document.getElementById('ed-nota').value.trim() || null,
@@ -2825,12 +2880,14 @@ async function guardarEdicionMov() {
     editado_por: operador || 'sin firma'
   };
   if (necesita) fila.motivo_id = Number(motivo);
+  if (m.tipo === 'traslado') fila.bodega_destino_id = Number(desN);
 
   // El original se guarda UNA sola vez. Si se escribiera en cada edición, la
   // tercera pisaría a la segunda y se perdería justo lo que interesa: cómo
   // estaba el movimiento cuando se anotó.
   if (!m.editado) fila.original = {
     cantidad: m.cantidad, medida: m.medida, fecha: m.fecha,
+    bodega_id: m.bodega_id, bodega_destino_id: m.bodega_destino_id,
     motivo_id: m.motivo_id, doc: m.doc, nota: m.nota, usuario: m.usuario
   };
 
@@ -3983,6 +4040,7 @@ const CATALOGO = [
     ['Balde Pitaya Zero Blue Monkey','5 L'],
     ['Balde Acai Blue Monkey','3,6 L'],['Balde Acai Zero Blue Monkey','5 L'],
     ['Balde Pistacho Soft Blue Monkey','5 L'],
+    ['Balde Mango Soft Blue Monkey','5 L'],['Balde Maracuya Soft Blue Monkey','5 L'],
     ['Balde Acai Riva','3,6 L'],['Balde Yoghurt Griego Soft Blue Monkey','5 L']]],
   // El tercer valor es cuántas unidades trae la caja. Estos tres se venden
   // también suelto por la página web, así que la unidad base es el pote.
