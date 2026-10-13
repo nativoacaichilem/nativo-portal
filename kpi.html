@@ -306,6 +306,11 @@ tbody tr:hover td{background:#faf6ff}
 .sec:hover{border-color:var(--mora-l);color:var(--mora-d)}
 .sec.act{background:var(--mora);border-color:var(--mora);color:#fff}
 @media(max-width:640px){ .sec{padding:7px 12px;font-size:11px} }
+
+/* Aviso naranjo. Se usa en dos lugares del archivo y no estaba definido, así
+   que esos avisos salían como texto suelto. Detectado con
+   `pruebas/prueba_integridad.mjs`. */
+.an{background:var(--nl);color:var(--nd)}
 </style>
 </head>
 <body>
@@ -579,17 +584,11 @@ function revisarAuth(r) {
   return r;
 }
 
-async function sbSend(path, method, body) {
-  const o = { method, headers: cabeceras(true) };
-  if (body !== undefined) o.body = JSON.stringify(body);
-  const r = revisarAuth(await pedir(`${PROXY}/supabase/${path}`, o));
-  if (!r.ok) {
-    let d = '';
-    try { d = (await r.text()).slice(0, 220); } catch (_) {}
-    throw new Error(`HTTP ${r.status}${d ? ' · ' + d : ''}`);
-  }
-  return r;
-}
+// Acá estaba `sbSend()`, para escribir en la base. Se retiró porque no se
+// usaba, y no se usaba porque **esta pantalla solo lee**. Dejar la función
+// disponible invitaba a que alguien agregara un guardado acá algún día, y el
+// valor de kpi.html es justamente que se puede abrir en cualquier momento sin
+// riesgo de tocar nada.
 
 async function sbJson(path) {
   const r = revisarAuth(await pedir(`${PROXY}/supabase/${path}`, { headers: cabeceras(false) }));
@@ -1185,7 +1184,12 @@ const diasDesde = f => Math.floor((Date.now() - new Date(f).getTime()) / 8640000
 function ritmos(nivel) {
   const g = new Map();
   for (const p of pedidos) {
-    if (p.tipo === 'cortesia' || p.estado === 'anulado') continue;
+    // Solo las ventas cuentan para el ritmo de pedido de un cliente. Una
+    // muestra, una merma o una tarea interna no dicen nada sobre cada cuánto
+    // compra. Antes esto comparaba contra 'cortesia', el nombre viejo: tras
+    // renombrar los tipos habría dejado de excluirlas y los clientes con
+    // muchas muestras habrían parecido más frecuentes de lo que son.
+    if ((p.tipo || 'venta') !== 'venta' || p.estado === 'anulado') continue;
     let clave, nombre, sub = '';
     if (nivel === 'sucursal') {
       if (p.sucursal_id == null) continue;   // sin sucursal no hay nada que agrupar
