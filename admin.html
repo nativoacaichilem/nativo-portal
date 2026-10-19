@@ -407,6 +407,33 @@ input[type=checkbox]{
   .tabla-pedidos td.td-dir{max-width:none}
 }
 
+/* ══ LA SEMANA ══
+   Siete cajas en fila. En celular se envuelven en vez de encogerse: un día
+   de 40px de ancho no se puede leer ni apretar. */
+.semana{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
+@media(max-width:860px){ .semana{grid-template-columns:repeat(4,1fr)} }
+@media(max-width:520px){ .semana{grid-template-columns:repeat(2,1fr)} }
+.dia{background:var(--crema);border:1.5px solid var(--crema-d);border-radius:11px;
+  padding:9px 10px;cursor:pointer;min-height:76px;display:flex;flex-direction:column;gap:3px}
+.dia:hover{border-color:var(--mora-l)}
+.dia .dnom{font-size:11px;font-weight:900;color:var(--textl);text-transform:uppercase;
+  letter-spacing:.4px}
+.dia .dnum{font-size:15px;font-weight:900;color:var(--mora-d)}
+.dia .dnota{font-size:12px;font-weight:800;color:var(--text);line-height:1.35;
+  word-break:break-word}
+.dia .dvacio{font-size:12px;font-weight:700;color:var(--textl);font-style:italic}
+/* Hoy se marca fuerte: en una fila de siete cajas parecidas, encontrar el día
+   en que uno está no debería costar. */
+.dia.hoy{background:var(--am-l);border-color:var(--am);border-width:2.5px}
+.dia.pas{opacity:.55}
+
+/* Pedido prioritario. Franja amarilla al costado, distinta de la roja del
+   cliente bloqueado: son dos avisos que pueden darse a la vez en la misma
+   fila y tienen que poder leerse por separado. */
+tr.row-prio > td:first-child{box-shadow:inset 4px 0 0 var(--am)}
+tr.row-prio.row-bloq > td:first-child{
+  box-shadow:inset 4px 0 0 var(--rd), inset 8px 0 0 var(--am)}
+
 /* Pedido de un cliente bloqueado. Franja roja al costado y fondo teñido: en
    una lista de doscientas filas, una etiqueta chica se pasa por alto y este
    es el error que más caro sale. */
@@ -523,6 +550,21 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
         <div class="sn" id="scort">0</div><div class="sl">Muestras por entregar</div>
       </div>
     </div>
+    <!-- La semana. Cada día lleva una nota escrita, pensada para dejar
+         anotado a qué ciudad o zona se despacha. Es lo que hoy se dice de
+         palabra y se olvida. -->
+    <div class="card" style="padding-bottom:12px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <h2 style="margin:0">🗓️ La semana</h2>
+        <div style="flex:1"></div>
+        <button class="btn bgray bsm" onclick="semanaMover(-1)">←</button>
+        <button class="btn bgray bsm" onclick="semanaMover(0)">Hoy</button>
+        <button class="btn bgray bsm" onclick="semanaMover(1)">→</button>
+      </div>
+      <div id="agenda-alert"></div>
+      <div id="agenda"></div>
+    </div>
+
     <div class="card">
       <h2>📋 Pedidos</h2>
       <div class="fb">
@@ -538,6 +580,7 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
         </select>
         <select id="festado" onchange="render()">
           <option value="">Todos los estados</option>
+          <option value="prio">⚡ Prioritarios</option>
           <option value="sf">▸ Todo lo que falta facturar</option>
           <option value="cortesia">▸ Todo lo que no es venta</option>
           <option value="t-muestra">🎁 Muestras</option>
@@ -995,6 +1038,13 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
         </select>
       </div>
     </div>
+    <label style="display:flex;align-items:center;gap:9px;margin:0 0 14px;
+      padding:11px 13px;background:var(--am-l);border-radius:10px;
+      text-transform:none;font-size:14px;color:#78350f;font-weight:900">
+      <input type="checkbox" id="mprio" style="width:auto">
+      ⚡ Prioritario — va primero en la lista
+    </label>
+
     <!-- El tipo se puede cambiar después de creado el pedido. Pasa: se
          despacha como venta y resulta que era una muestra, o una entrega se
          pierde en el camino y hay que dejarla como merma. -->
@@ -1852,6 +1902,7 @@ async function cargar() {
     // y el indicador simplemente no aparece.
     cargarBodega().then(() => render());
     cargarPropuestas();
+    cargarAgenda();
   } catch(e) {
     document.getElementById('tbody').innerHTML =
       '<tr><td colspan="8" style="text-align:center;color:var(--rd);padding:28px;font-weight:700">' +
@@ -1874,7 +1925,8 @@ function filtrados() {
              (p.folio||'').toLowerCase().includes(q)) &&
     (!fz || p.zona === fz) &&
     // 'sf' no es un estado: es "falta facturar", que son dos estados distintos
-    (!fe || (fe === 'sf' ? sinFacturar(p)
+    (!fe || (fe === 'prio' ? !!p.prioritario
+           : fe === 'sf' ? sinFacturar(p)
            : fe === 'cortesia' ? noEsVenta(p)
            // `t-muestra`, `t-merma`, `t-tarea`: un tipo a la vez. Cuadrar el
            // mes es mirar las mermas por separado de las muestras, no todo
@@ -1992,6 +2044,13 @@ function render() {
   // con cuarenta pedidos viejos generaba una alarma enorme por algo que ya
   // pasó. La marca en la tarjeta de cada pedido es donde se decide, y basta.
 
+  // Los prioritarios van primero, sin importar el resto del orden.
+  //
+  // Se eligió esto en vez de una pestaña aparte: una pestaña hay que
+  // acordarse de ir a mirarla, y un pedido urgente que vive en otra pantalla
+  // se olvida igual. Acá aparece sin que nadie lo vaya a buscar.
+  f = f.slice().sort((a, b) => (b.prioritario ? 1 : 0) - (a.prioritario ? 1 : 0));
+
   const tb = document.getElementById('tbody');
   if (!f.length) {
     tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--textl);padding:28px;font-weight:700">Sin resultados</td></tr>';
@@ -2045,14 +2104,15 @@ function render() {
     // cliente moroso cuesta plata, así que tiene que verse desde el otro lado
     // de la pantalla y sin buscarlo.
     const cliBloq = estaBloqueado(clienteDelPedido(p));
-    return `<tr class="${isChecked ? 'row-sel' : ''}${cliBloq ? ' row-bloq' : ''}">
+    return `<tr class="${isChecked ? 'row-sel' : ''}${cliBloq ? ' row-bloq' : ''}${
+      p.prioritario ? ' row-prio' : ''}">
       <td class="td-check">
         <input type="checkbox" ${isChecked ? 'checked' : ''}
           onchange="toggleRow(${p.id}, this.checked)">
       </td>
       <td data-rot="Fecha" style="font-size:12px;color:var(--textl);font-weight:600;white-space:nowrap">${hesc(p.fecha)||'—'}</td>
       <td class="td-emp">
-        <div style="font-weight:800;font-size:13px">${hesc(p.emp)}
+        <div style="font-weight:800;font-size:13px">${p.prioritario ? '⚡ ' : ''}${hesc(p.emp)}
           ${chipBloqueo(clienteDelPedido(p))}</div>
         <div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:1px">${hesc(p.rut)}</div>
         ${folioHtml}
@@ -3331,6 +3391,7 @@ function abrir(id) {
   document.getElementById('m-mensaje-box').style.display = msg ? '' : 'none';
   document.getElementById('m-mensaje').textContent = msg;
 
+  document.getElementById('mprio').checked = !!p.prioritario;
   document.getElementById('mtipo').value = tipoDe(p);
   document.getElementById('mencargado').value = p.encargado || '';
   pintarEncargados();
@@ -3397,6 +3458,7 @@ async function guardar() {
     recibe:        document.getElementById('mrecibe').value.trim(),
     comentario:    document.getElementById('mcom').value.trim(),
     tipo,
+    prioritario:   document.getElementById('mprio').checked,
     encargado:     document.getElementById('mencargado').value.trim()
     // `mensaje` no se envía a propósito: lo escribió el cliente y no se toca.
   };
@@ -3484,6 +3546,111 @@ function exportCSV() {
 // ══════════════════════════════════════════
 // Los retiros NO entran: el cliente los viene a buscar. Si entraran, podrías
 // despachar algo que ya estaba coordinado para retiro.
+
+// ══════════════════════════════════════════════════════════════
+//  LA SEMANA
+// ══════════════════════════════════════════════════════════════
+//
+// Siete días con una nota cada uno, arriba de la lista de pedidos. Pensada
+// para dejar escrito a qué ciudad o zona se despacha ese día.
+//
+// POR QUÉ POR FECHA Y NO POR DÍA DE LA SEMANA. Guardar "los martes se va a
+// Rancagua" sería más corto y sería falso la primera semana que cambie: las
+// rutas se mueven por feriados, por un camión en mantención o porque un
+// cliente pidió otro día. Con una fila por fecha se puede mirar atrás y saber
+// qué se hizo el martes pasado, que es justo lo que hace falta cuando algo no
+// cuadra.
+
+let agenda = [], agendaOK = false, semanaOffset = 0;
+
+const DIAS_CORTOS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+
+// El lunes de la semana que se está mirando.
+function lunesDe(offset) {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  // getDay() devuelve 0 para domingo. Acá la semana parte el lunes, así que
+  // el domingo cuenta como el día 7 de la semana anterior.
+  const corr = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - corr + (offset * 7));
+  return d;
+}
+
+const aISO = d =>
+  `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+function semanaMover(a) {
+  semanaOffset = a === 0 ? 0 : semanaOffset + a;
+  cargarAgenda();
+}
+
+async function cargarAgenda() {
+  const l = lunesDe(semanaOffset);
+  const f = new Date(l); f.setDate(f.getDate() + 6);
+  try {
+    agenda = await sbPagina('agenda_dias',
+      `select=*&fecha=gte.${aISO(l)}&fecha=lte.${aISO(f)}&order=fecha.asc`);
+    agendaOK = true;
+  } catch (e) { agenda = []; agendaOK = false; }
+  pintarAgenda();
+}
+
+function pintarAgenda() {
+  const cont = document.getElementById('agenda');
+  if (!cont) return;
+  if (!agendaOK) {
+    cont.innerHTML = '<div class="alert ai" style="line-height:1.5">' +
+      'No se pudo leer <b>agenda_dias</b>. Corre <b>PREPARADO_prioridad_agenda.sql</b> ' +
+      'en Supabase y revisa que la tabla esté en la lista del Worker, en <b>/salud</b>.</div>';
+    return;
+  }
+  const l = lunesDe(semanaOffset);
+  const hoyIso = aISO(new Date());
+  let h = '';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(l); d.setDate(d.getDate() + i);
+    const iso = aISO(d);
+    const nota = (agenda.find(x => String(x.fecha).slice(0, 10) === iso) || {}).nota || '';
+    const cuantos = pedidos.filter(p => String(p.fecha_entrega || '').slice(0, 10) === iso).length;
+    h += `<div class="dia ${iso === hoyIso ? 'hoy' : ''} ${iso < hoyIso ? 'pas' : ''}"
+            onclick="editarDia('${iso}')" title="Escribir a dónde se despacha">
+      <div class="dnom">${DIAS_CORTOS[d.getDay()]} ${d.getDate()}</div>
+      ${nota ? `<div class="dnota">${hesc(nota)}</div>`
+             : '<div class="dvacio">— sin anotar —</div>'}
+      ${cuantos ? `<div class="dnom" style="margin-top:auto">${cuantos} entrega(s)</div>` : ''}
+    </div>`;
+  }
+  cont.innerHTML = `<div class="semana">${h}</div>`;
+}
+
+async function editarDia(iso) {
+  const actual = (agenda.find(x => String(x.fecha).slice(0, 10) === iso) || {}).nota || '';
+  const v = prompt(`¿A dónde se despacha el ${iso.split('-').reverse().join('-')}?\n\n` +
+    'Deja vacío para borrar la nota.', actual);
+  if (v === null) return;
+  const nota = v.trim().slice(0, 200);
+
+  try {
+    // Sin upsert: el Worker no reenvía la cabecera `Prefer` del cliente, así
+    // que PostgREST no sabe resolver el conflicto. Se crea, y si ya existe se
+    // actualiza.
+    const fila = { nota, quien: quienDescarga() || 'panel',
+                   actualizado: new Date().toISOString() };
+    const existe = agenda.some(x => String(x.fecha).slice(0, 10) === iso);
+    if (existe)
+      await sbSend(`agenda_dias?fecha=eq.${iso}`, 'PATCH', fila);
+    else
+      try { await sbSend('agenda_dias', 'POST', { fecha: iso, ...fila }); }
+      catch (e) {
+        if (!/duplicate|23505/i.test(String(e.message))) throw e;
+        await sbSend(`agenda_dias?fecha=eq.${iso}`, 'PATCH', fila);
+      }
+    await cargarAgenda();
+  } catch (e) {
+    alerta('agenda-alert', 'No se pudo guardar la nota: ' + hesc(e.message), 'ae');
+  }
+}
+
 // ══════════════════════════════════════════════════════════════
 //  RUTAS DE DESPACHO
 // ══════════════════════════════════════════════════════════════
