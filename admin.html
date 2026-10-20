@@ -2059,15 +2059,21 @@ function render() {
   // Se eligió esto en vez de una pestaña aparte: una pestaña hay que
   // acordarse de ir a mirarla, y un pedido urgente que vive en otra pantalla
   // se olvida igual. Acá aparece sin que nadie lo vaya a buscar.
-  f = f.slice().sort((a, b) => (b.prioritario ? 1 : 0) - (a.prioritario ? 1 : 0));
+  //
+  // Va en una variable nueva y no encima de `f`, que está declarada `const`:
+  // asignarle encima lanza un error en ejecución y mata el dibujado de la
+  // tabla entera. Los contadores seguían funcionando —se calculan en otra
+  // función— así que la pantalla mostraba "23 pedidos" y una lista vacía.
+  const lista = f.slice()
+    .sort((a, b) => (b.prioritario ? 1 : 0) - (a.prioritario ? 1 : 0));
 
   const tb = document.getElementById('tbody');
-  if (!f.length) {
+  if (!lista.length) {
     tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--textl);padding:28px;font-weight:700">Sin resultados</td></tr>';
     return;
   }
 
-  tb.innerHTML = f.map(p => {
+  tb.innerHTML = lista.map(p => {
     const isChecked = checked.includes(p.id);
     const items = splitDet(p.detalle);
     const dhtml = items.length
