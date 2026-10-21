@@ -373,25 +373,35 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
 const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
 
 const CATS = [
-  {id:'baldes', icon:'🧊', label:'Baldes Congelados', items:[
+  // Todo lo congelado en una sola categoría, ordenado por sabor: los açaí, las
+  // pitaya y después los soft de un solo sabor. Antes eran dos —Baldes
+  // Congelados y Congelados Retail— y la separación era por envase, que no es
+  // como un cliente busca un producto.
+  //
+  // `u` es cuántas unidades trae la caja. Los que la tienen se piden POR CAJA
+  // y la tarjeta lo dice: antes eso lo decía el título de la sección, y al
+  // juntar las dos categorías el aviso tenía que pasar a cada producto. La
+  // línea del pedido no cambia —sigue sin sufijo— porque admin la lee como
+  // cajas.
+  //
+  // `Acai Puro` (4×100 g) NO va acá a propósito: se vende a un solo cliente,
+  // que no usa este portal, así que vive solo en admin.html y en bodega. Si
+  // vuelve a venderse a todos, se agrega con el mismo nombre y formato.
+  {id:'congelados', icon:'🧊', label:'Congelados', items:[
     {n:'Balde Acai Nativo', f:'3,6 L'},
-    {n:'Balde Pitaya Blue Monkey', f:'3,6 L'},
-    {n:'Balde Pitaya Zero Blue Monkey', f:'5 L'},
     {n:'Balde Acai Blue Monkey', f:'3,6 L'},
     {n:'Balde Acai Zero Blue Monkey', f:'5 L'},
+    {n:'Balde Acai Riva', f:'3,6 L'},
+    {n:'Acai Puro Blue Monkey', f:'60×100 g · 6 kg'},
+    {n:'Scoopable Acai', f:'500 ml', u:12},
+    {n:'Acai Fused', f:'4×100 g', u:15},
+    {n:'Balde Pitaya Blue Monkey', f:'3,6 L'},
+    {n:'Balde Pitaya Zero Blue Monkey', f:'5 L'},
+    {n:'Pitaya Puro Blue Monkey', f:'60×100 g · 6 kg'},
+    {n:'Balde Yoghurt Griego Soft Blue Monkey', f:'5 L'},
     {n:'Balde Pistacho Soft Blue Monkey', f:'5 L'},
     {n:'Balde Mango Soft Blue Monkey', f:'5 L'},
-    {n:'Balde Maracuya Soft Blue Monkey', f:'5 L'},
-    {n:'Balde Acai Riva', f:'3,6 L'},
-    {n:'Balde Yoghurt Griego Soft Blue Monkey', f:'5 L'}
-  ]},
-  // Estos tres se piden por CAJA en el portal. El nombre ya no lo dice
-  // —se sacó el "(caja)" para poder vender suelto por la página web— así
-  // que lo dice el encabezado de la sección.
-  {id:'retail', icon:'🛒', label:'Congelados Retail · por caja', items:[
-    {n:'Scoopable Acai', f:'500 ml'},
-    {n:'Acai Fused', f:'4×100 g'},
-    {n:'Acai Puro', f:'4×100 g'}
+    {n:'Balde Maracuya Soft Blue Monkey', f:'5 L'}
   ]},
   {id:'toppings', icon:'🌰', label:'Frutos Secos & Toppings', items:[
     {n:'Cacao Nibs', f:'0,1 kg'},
@@ -607,6 +617,11 @@ function logout() {
 // ══════════════════════════════════════════════════════════════
 function slug(s) { return s.replace(/[^a-zA-Z0-9]/g, '_'); }
 
+// Lo que ve el cliente bajo el nombre. Solo para mostrar: la línea del pedido
+// lleva el formato tal cual, porque admin y bodega buscan el producto por
+// nombre y formato, y cualquier texto agregado ahí rompería el calce.
+const formatoVisible = (f, u) => Number(u) > 1 ? `${f} · por caja de ${u}` : f;
+
 function buildCatalogo() {
   document.getElementById('catalogo-wrap').innerHTML = CATS.map(cat => `
     <div class="seccion" id="sec-${cat.id}">
@@ -622,11 +637,11 @@ function buildCatalogo() {
       </div>
       <div class="sec-body" id="body-${cat.id}">
         <div class="prod-grid">
-          ${cat.items.map(({n,f}) => `
+          ${cat.items.map(({n,f,u}) => `
             <div class="prod-card" id="pc-${slug(n)}" data-prod="${esc(n)}">
               <div>
                 <div class="prod-name">${esc(n)}</div>
-                <div class="prod-format">${esc(f)}</div>
+                <div class="prod-format">${esc(formatoVisible(f, u))}</div>
               </div>
               <div class="qty-row">
                 <button class="qty-btn" data-menos="${slug(n)}">−</button>
@@ -763,8 +778,8 @@ function pintarDocumento() {
     const sel = items.filter(({n}) => qtys[n]);
     if (!sel.length) return;
     rows += `<tr class="doc-cat"><td colspan="3">${esc(label)}</td></tr>`;
-    sel.forEach(({n,f}) => {
-      rows += `<tr><td>${esc(n)}</td><td style="color:var(--textl);font-size:12px">${esc(f)}</td><td>${qtys[n]}</td></tr>`;
+    sel.forEach(({n,f,u}) => {
+      rows += `<tr><td>${esc(n)}</td><td style="color:var(--textl);font-size:12px">${esc(formatoVisible(f, u))}</td><td>${qtys[n]}</td></tr>`;
     });
   });
 
