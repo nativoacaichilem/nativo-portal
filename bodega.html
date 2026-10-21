@@ -848,7 +848,7 @@ tbody tr:hover td{background:#faf6ff}
     </div>
     <div class="fg">
       <div><label for="pr-familia">Familia</label>
-        <input type="text" id="pr-familia" list="familias" placeholder="Ej: Baldes Congelados"
+        <input type="text" id="pr-familia" list="familias" placeholder="Ej: Congelados"
           oninput="prSugerirFrio()">
         <datalist id="familias"></datalist></div>
       <div><label for="pr-costo">Costo unitario (CLP)</label>
@@ -4036,17 +4036,24 @@ function pedirBorrarMotivo(id) {
 //  escribir 78 productos a mano y evita que los nombres se separen.
 // ══════════════════════════════════════════════════════════════
 const CATALOGO = [
-  ['Baldes Congelados', 'un', [['Balde Acai Nativo','3,6 L'],['Balde Pitaya Blue Monkey','3,6 L'],
-    ['Balde Pitaya Zero Blue Monkey','5 L'],
-    ['Balde Acai Blue Monkey','3,6 L'],['Balde Acai Zero Blue Monkey','5 L'],
-    ['Balde Pistacho Soft Blue Monkey','5 L'],
-    ['Balde Mango Soft Blue Monkey','5 L'],['Balde Maracuya Soft Blue Monkey','5 L'],
-    ['Balde Acai Riva','3,6 L'],['Balde Yoghurt Griego Soft Blue Monkey','5 L']]],
-  // El tercer valor es cuántas unidades trae la caja. Estos tres se venden
-  // también suelto por la página web, así que la unidad base es el pote.
-  ['Congelados Retail', 'un', [['Scoopable Acai','500 ml', 12],
-    ['Acai Fused','4×100 g', 15],
-    ['Acai Puro','4×100 g', 15]]],
+  // Una sola familia para todo lo congelado, en el mismo orden que el portal:
+  // los açaí, las pitaya y los soft de un sabor. Antes eran Baldes Congelados
+  // y Congelados Retail.
+  //
+  // El tercer valor es cuántas unidades trae la caja. Desde octubre de 2026
+  // Scoopable, Fused y Puro se venden solo por caja, pero su unidad base sigue
+  // siendo el pote: así está guardado el saldo, y una caja abierta o un pote
+  // roto se siguen contando sueltos. Cambiarla obligaría a convertir todos los
+  // saldos. `Acai Puro` sigue acá aunque ya no esté en el portal: se vende a un
+  // solo cliente, pero se guarda y se descuenta igual que el resto.
+  ['Congelados', 'un', [['Balde Acai Nativo','3,6 L'],['Balde Acai Blue Monkey','3,6 L'],
+    ['Balde Acai Zero Blue Monkey','5 L'],['Balde Acai Riva','3,6 L'],
+    ['Acai Puro Blue Monkey','60×100 g · 6 kg'],
+    ['Scoopable Acai','500 ml', 12],['Acai Fused','4×100 g', 15],['Acai Puro','4×100 g', 15],
+    ['Balde Pitaya Blue Monkey','3,6 L'],['Balde Pitaya Zero Blue Monkey','5 L'],
+    ['Pitaya Puro Blue Monkey','60×100 g · 6 kg'],
+    ['Balde Yoghurt Griego Soft Blue Monkey','5 L'],['Balde Pistacho Soft Blue Monkey','5 L'],
+    ['Balde Mango Soft Blue Monkey','5 L'],['Balde Maracuya Soft Blue Monkey','5 L']]],
   ['Frutos Secos & Toppings', 'un', [['Cacao Nibs','0,1 kg'],['Castañas de caju','2 kg'],
     ['Avellana europea tostada','2 kg'],['Nueces cuarto','2 kg'],['Almendra Laminada','2 kg'],
     ['Oreo molidas','4 kg'],['Avena integral','2 kg'],['Chia','2 kg'],['Coco laminado','2 kg'],
@@ -4117,20 +4124,28 @@ async function intentarCatalogo(ruta) {
     let f;
     while ((f = reFam.exec(trozo))) {
       const fam = f[1];
-      const reIt = /\{n:'((?:[^'\\]|\\.)*)',\s*f:'((?:[^'\\]|\\.)*)'\}/g;
+      // `u` es opcional: los productos que vienen en caja lo traen. Antes la
+      // expresión exigía cerrar la llave justo después del formato, así que un
+      // producto con `u` no se leía; y aunque se leyera, se importaba con una
+      // unidad por caja en vez de doce.
+      const reIt = /\{n:'((?:[^'\\]|\\.)*)',\s*f:'((?:[^'\\]|\\.)*)'(?:,\s*u:(\d+))?\s*\}/g;
       let it;
       while ((it = reIt.exec(f[2]))) {
         const n = it[1].replace(/\\'/g, "'"), fo = it[2].replace(/\\'/g, "'");
-        if (n) out.push({ fam, un: unidadPorFamilia(fam), n, f: fo });
+        if (n) out.push({ fam, un: unidadPorFamilia(fam), n, f: fo, uc: Number(it[3]) || 1 });
       }
     }
     return out.length >= 20 ? out : null;   // si vinieron cuatro, algo se rompió
   } catch (_) { return null; }
 }
 
+// La familia 'Congelados Retail' devolvía 'caja' acá y 'un' en la copia
+// interna: el mismo producto entraba con una unidad u otra según de dónde se
+// leyera el catálogo. Al juntarla en Congelados las dos dicen 'un', que es lo
+// correcto para algo que se cuenta en potes aunque se venda por caja.
 function unidadPorFamilia(fam) {
   const f = (fam || '').toLowerCase();
-  if (f.includes('retail') || f.includes('bars')) return 'caja';
+  if (f.includes('bars')) return 'caja';
   return 'un';
 }
 
