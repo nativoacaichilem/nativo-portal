@@ -323,8 +323,6 @@ input[type=checkbox]{
 .stp button{width:26px;height:26px;border-radius:6px;border:1.5px solid var(--crema-d);background:var(--white);font-weight:900;cursor:pointer;color:var(--mora);font-size:15px;line-height:1;padding:0;font-family:'Nunito',sans-serif}
 .stp button:hover{border-color:var(--mora);background:var(--mora-xl)}
 .stp input{width:48px;text-align:center;padding:4px 2px;font-weight:800;font-size:12px}
-.stp .med-sel{width:auto;min-width:62px;padding:4px 6px;font-size:11px;font-weight:800;
-  border-radius:6px;background:var(--white);color:var(--mora)}
 .bweb{background:#e0f2fe;color:#075985;border:1px solid #7dd3fc}
 
 /* ── BARRA RESUMEN ── */
@@ -673,11 +671,10 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
         <div class="modal-section">Despacho y facturación</div>
         <div class="fg">
           <div><label>De dónde viene la venta</label>
-            <select id="wcanal" onchange="canalCambio('wz')">
+            <select id="wcanal">
               <option value="b2b">Cliente mayorista</option>
               <option value="web">🌐 Página web</option>
             </select>
-            <div class="nota-campo" id="wcanal-nota"></div>
           </div>
           <div><label>Tipo de entrega</label>
             <select id="wentrega" onchange="wzEntregaCambio()">
@@ -730,11 +727,10 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
       <div class="modal-section">Entrega</div>
       <div style="margin-bottom:12px">
         <label>De dónde viene la venta</label>
-        <select id="ncanal" onchange="canalCambio('man')">
+        <select id="ncanal">
           <option value="b2b">Cliente mayorista</option>
           <option value="web">🌐 Página web</option>
         </select>
-        <div class="nota-campo" id="ncanal-nota"></div>
       </div>
       <div class="fg">
         <div><label>Tipo de entrega</label>
@@ -1303,7 +1299,7 @@ let clientes   = [];    // catálogo de clientes
 let sucursales = [];    // catálogo de sucursales
 let dirOK      = false; // true = tablas clientes/sucursales disponibles en Supabase
 let dirLoaded  = false;
-let wz         = { paso:1, cliente:null, sucursal:null, qtys:{}, meds:{} };
+let wz         = { paso:1, cliente:null, sucursal:null, qtys:{} };
 
 // ── Zonas ──
 // Antes eran cuatro <option> repetidos en seis selectores del HTML más un
@@ -2781,8 +2777,8 @@ async function guardarDescargo() {
     bodega_id: Number(l.bodega_id),
     bodega_destino_id: null,
     cantidad: Math.round((Number(l.cantidad) || 0) * 1000) / 1000,
-    // La medida sale de cómo se pidió la línea: un pedido web puede traer
-    // potes sueltos y un B2B trae cajas cerradas.
+    // La medida sale de cómo se pidió la línea. Hoy todo se vende por caja,
+    // pero un pedido anterior a octubre de 2026 puede traer potes sueltos.
     medida: l.medida === 'unidad' ? 'unidad' : 'caja',
     motivo_id: Number(l.motivo_id),
     // El número de factura viaja en `doc` incluso cuando el motivo no es venta:
@@ -4139,24 +4135,32 @@ function copiar() {
 //  CATÁLOGO DE PRODUCTOS (espejo de index.html)
 // ══════════════════════════════════════════════════════════════
 const CATS = [
-  {id:'baldes', icon:'🧊', label:'Baldes Congelados', items:[
+  // Todo lo congelado en una sola categoría, ordenado por sabor: los açaí, las
+  // pitaya y después los soft de un solo sabor. Es el mismo orden que en el
+  // portal, para que un pedido se lea igual en las dos pantallas.
+  //
+  // `u` es cuántas unidades trae la caja. Desde octubre de 2026 todo se vende
+  // por caja; `u` queda porque bodega cuenta esos productos en potes y el
+  // descargo tiene que multiplicar.
+  //
+  // `Acai Puro` está acá y NO en el portal: se vende a un solo cliente, que no
+  // usa el portal, así que sus pedidos se cargan desde este panel.
+  {id:'congelados', icon:'🧊', label:'Congelados', items:[
     {n:'Balde Acai Nativo', f:'3,6 L'},
-    {n:'Balde Pitaya Blue Monkey', f:'3,6 L'},
-    {n:'Balde Pitaya Zero Blue Monkey', f:'5 L'},
     {n:'Balde Acai Blue Monkey', f:'3,6 L'},
     {n:'Balde Acai Zero Blue Monkey', f:'5 L'},
-    {n:'Balde Pistacho Soft Blue Monkey', f:'5 L'},
-    {n:'Balde Mango Soft Blue Monkey', f:'5 L'},
-    {n:'Balde Maracuya Soft Blue Monkey', f:'5 L'},
     {n:'Balde Acai Riva', f:'3,6 L'},
-    {n:'Balde Yoghurt Griego Soft Blue Monkey', f:'5 L'}
-  ]},
-  // `u` es cuántas unidades trae la caja. Los productos con u > 1 se pueden
-  // pedir por unidad suelta, que es como los vende la página web.
-  {id:'retail', icon:'🛒', label:'Congelados Retail', items:[
+    {n:'Acai Puro Blue Monkey', f:'60×100 g · 6 kg'},
     {n:'Scoopable Acai', f:'500 ml', u:12},
     {n:'Acai Fused', f:'4×100 g', u:15},
-    {n:'Acai Puro', f:'4×100 g', u:15}
+    {n:'Acai Puro', f:'4×100 g', u:15},
+    {n:'Balde Pitaya Blue Monkey', f:'3,6 L'},
+    {n:'Balde Pitaya Zero Blue Monkey', f:'5 L'},
+    {n:'Pitaya Puro Blue Monkey', f:'60×100 g · 6 kg'},
+    {n:'Balde Yoghurt Griego Soft Blue Monkey', f:'5 L'},
+    {n:'Balde Pistacho Soft Blue Monkey', f:'5 L'},
+    {n:'Balde Mango Soft Blue Monkey', f:'5 L'},
+    {n:'Balde Maracuya Soft Blue Monkey', f:'5 L'}
   ]},
   {id:'toppings', icon:'🌰', label:'Frutos Secos & Toppings', items:[
     {n:'Cacao Nibs', f:'0,1 kg'},
@@ -4282,6 +4286,10 @@ function factorCat(nombre) {
 //
 //  Una línea sin sufijo son cajas, así que los 400 y tantos pedidos que ya
 //  existen se leen exactamente igual que antes.
+//
+//  Desde octubre de 2026 ya no se vende por unidad y el panel no escribe más
+//  "un". Se sigue LEYENDO porque hay pedidos anteriores que lo traen, y su
+//  descargo de bodega tiene que descontar potes y no cajas.
 const RE_LINEA = /^(.*?)\s*\(([^)]*)\)\s*[x×]\s*([\d.,]+)\s*(cajas?|un|unidades?)?\s*$/i;
 
 function leerLinea(texto) {
@@ -4296,8 +4304,10 @@ function leerLinea(texto) {
   };
 }
 
-function escribirLinea(prod, cantidad, medida) {
-  const suf = medida === 'unidad' ? ' un' : (Number(prod.u) > 1 ? ' cajas' : '');
+// Siempre en cajas. El sufijo " cajas" va en los productos que tienen caja
+// para que la línea se lea sin ambigüedad; los demás no lo necesitan.
+function escribirLinea(prod, cantidad) {
+  const suf = Number(prod.u) > 1 ? ' cajas' : '';
   return `${prod.n} (${prod.f}) x${cantidad}${suf}`;
 }
 
@@ -4864,20 +4874,10 @@ function pickSucursal(id) {
 // ══════════════════════════════════════════════════════════════
 //  PASO 3 — PEDIDO
 // ══════════════════════════════════════════════════════════════
-// Cambiar el canal no toca lo ya elegido: solo cambia la medida por omisión
-// de las filas que todavía no se han tocado a mano, y lo dice.
-function canalCambio(pre) {
-  const web = pre === 'wz' ? canalDe('wcanal') : canalDe('ncanal');
-  const nota = document.getElementById(pre === 'wz' ? 'wcanal-nota' : 'ncanal-nota');
-  if (nota) {
-    nota.textContent = web
-      ? 'Los productos que vienen en caja se piden por unidad salvo que digas lo contrario.'
-      : '';
-    nota.style.display = web ? 'block' : 'none';
-  }
-  pintarCat(pre);
-  if (CTX[pre] && CTX[pre].alCambiar) CTX[pre].alCambiar();
-}
+// El canal —mayorista o página web— queda anotado en el pedido y nada más.
+// Hasta octubre de 2026 un pedido web proponía cada producto en caja por unidad
+// suelta; desde entonces todo se vende por caja, así que el canal ya no cambia
+// nada del catálogo.
 
 function wzEntregaCambio() {
   const ret = document.getElementById('wentrega').value === 'retiro';
@@ -4946,25 +4946,17 @@ function pintarCat(pre) {
   el.innerHTML = html || '<div class="empty">Sin coincidencias en el catálogo.</div>';
 }
 
+// Todo se pide por caja. Hasta octubre de 2026 los productos que vienen en
+// caja —Scoopable, Fused, Acai Puro— tenían al lado un selector caja/un y se
+// podían vender sueltos; se dejó de vender por unidad y el selector se fue.
+//
+// El pie sigue diciendo a cuántas unidades equivale lo pedido: es lo que
+// después se descuenta en bodega, que cuenta en potes.
 function prodRow(p, pre) {
   const q = CTX[pre].qtys[p.n] || 0;
-  const md = medDe(pre, p.n);
-  // El selector solo aparece en los productos que vienen en caja y se venden
-  // sueltos. En el resto estorbaría: no hay nada que elegir.
-  const selMed = Number(p.u) > 1
-    ? `<select class="med-sel" onchange="qMedida('${pre}','${p.id}',this.value)"
-         title="¿Se pide por caja o por unidad?">
-         <option value="caja"${md === 'caja' ? ' selected' : ''}>caja</option>
-         <option value="unidad"${md === 'unidad' ? ' selected' : ''}>un</option>
-       </select>` : '';
-  const pie = Number(p.u) > 1
-    ? `<div class="prod-f">${hesc(p.f)} · caja de ${p.u}${
-        q && md === 'caja' ? ` · son ${q * p.u} un` : ''}</div>`
-    : `<div class="prod-f">${hesc(p.f)}</div>`;
   return `<div class="prod ${q ? 'on' : ''}" id="pr-${pre}-${p.id}">
-    <div class="prod-n">${hesc(p.n)}${pie}</div>
+    <div class="prod-n">${hesc(p.n)}<div class="prod-f">${hesc(pieProducto(p, q))}</div></div>
     <div class="stp">
-      ${selMed}
       <button type="button" onclick="qChg('${pre}','${p.id}',-1)">−</button>
       <input type="number" min="0" id="qi-${pre}-${p.id}" value="${q}"
         oninput="qSet('${pre}','${p.id}',this.value)">
@@ -4973,23 +4965,11 @@ function prodRow(p, pre) {
   </div>`;
 }
 
-// La medida elegida para un producto en un formulario. Por omisión, caja:
-// la unidad se elige a propósito. En un pedido de la página web la omisión
-// se da vuelta, porque ahí lo normal es lo suelto.
-function medDe(pre, nombre) {
-  const c = CTX[pre];
-  if (!c) return 'caja';
-  if (c.meds && c.meds[nombre]) return c.meds[nombre];
-  return (c.canalWeb && c.canalWeb()) ? 'unidad' : 'caja';
-}
-
-function qMedida(pre, id, valor) {
-  const p = prodById(id); const c = CTX[pre];
-  if (!p || !c) return;
-  if (!c.meds) c.meds = {};
-  c.meds[p.n] = valor === 'unidad' ? 'unidad' : 'caja';
-  pintarCat(pre);                 // el pie de la fila cambia con la medida
-  if (c.alCambiar) c.alCambiar();
+// "500 ml · caja de 12 · son 36 un". Lo comparten la fila y el repintado al
+// cambiar la cantidad, para que las dos digan siempre lo mismo.
+function pieProducto(p, q) {
+  if (!(Number(p.u) > 1)) return p.f;
+  return `${p.f} · caja de ${p.u}` + (q ? ` · son ${q * p.u} un` : '');
 }
 
 function qChg(pre, id, d) {
@@ -5011,8 +4991,7 @@ function qApply(pre, p, v, saltarInput) {
   // pedido, así que hay que repintarlo al cambiar la cantidad.
   if (Number(p.u) > 1) {
     const cel = row && row.querySelector('.prod-f');
-    if (cel) cel.textContent = `${p.f} · caja de ${p.u}` +
-      (v && medDe(pre, p.n) === 'caja' ? ` · son ${v * p.u} un` : '');
+    if (cel) cel.textContent = pieProducto(p, v);
   }
   if (c.alCambiar) c.alCambiar();
 }
@@ -5023,7 +5002,7 @@ function qApply(pre, p, v, saltarInput) {
 function catDetalle(pre, extraId) {
   const c = CTX[pre];
   const del = PRODS.filter(p => c.qtys[p.n])
-                   .map(p => escribirLinea(p, c.qtys[p.n], medDe(pre, p.n)));
+                   .map(p => escribirLinea(p, c.qtys[p.n]));
   const extra = extraId
     ? (document.getElementById(extraId).value || '')
         .split('\n').map(x => x.trim().replace(/,$/, '')).filter(Boolean)
@@ -5036,43 +5015,34 @@ function catResumen(pre) {
   // Se cuentan bultos, no unidades: sumar cajas con potes sueltos daría un
   // número que no significa nada. Lo que importa acá es cuántas líneas hay.
   const bultos = e.reduce((a, [, q]) => a + q, 0);
-  const sueltos = e.filter(([k]) => medDe(pre, k) === 'unidad' && factorCat(k) > 1).length;
   return { n: e.length, unidades: bultos,
     texto: e.length
-      ? `${e.length} producto${e.length > 1 ? 's' : ''} · ${bultos} bulto${bultos > 1 ? 's' : ''}` +
-        (sueltos ? ` · ${sueltos} por unidad` : '')
+      ? `${e.length} producto${e.length > 1 ? 's' : ''} · ${bultos} bulto${bultos > 1 ? 's' : ''}`
       : 'Sin productos seleccionados',
-    lista: e.map(([k, q]) => `${k} ×${q}${
-      medDe(pre, k) === 'unidad' && factorCat(k) > 1 ? ' un' : ''}`).join(', ') };
+    lista: e.map(([k, q]) => `${k} ×${q}`).join(', ') };
 }
 
 function catLimpiar(pre) {
   Object.keys(CTX[pre].qtys).forEach(k => delete CTX[pre].qtys[k]);
-  if (CTX[pre].meds) Object.keys(CTX[pre].meds).forEach(k => delete CTX[pre].meds[k]);
   pintarCat(pre);
   if (CTX[pre].alCambiar) CTX[pre].alCambiar();
 }
 
 // El asistente sigue funcionando igual: solo pasa por el mismo motor.
-// `canalWeb` decide la medida por omisión de cada fila: en un pedido de la
-// página web lo normal es el pote suelto, no la caja.
-catRegistrar('wz', { qtys: wz.qtys, meds: wz.meds, cont: 'cat-wrap', busca: 'pq',
-                     canalWeb: () => canalDe('wcanal'),
+catRegistrar('wz', { qtys: wz.qtys, cont: 'cat-wrap', busca: 'pq',
                      alCambiar: () => { updWzBar(); renderWzPills(); } });
-catRegistrar('man', { qtys: {}, meds: {}, cont: 'cat-man', busca: 'npq',
-                      canalWeb: () => canalDe('ncanal'),
+catRegistrar('man', { qtys: {}, cont: 'cat-man', busca: 'npq',
                       alCambiar: () => {
                         document.getElementById('man-resumen').textContent = catResumen('man').texto;
                       } });
-catRegistrar('co', { qtys: coQ, meds: {}, cont: 'cat-co', busca: 'co-pq',
+catRegistrar('co', { qtys: coQ, cont: 'cat-co', busca: 'co-pq',
                      alCambiar: () => {
                        document.getElementById('co-resumen').textContent = catResumen('co').texto;
                      } });
-function renderCatalogo() { CTX.wz.qtys = wz.qtys; CTX.wz.meds = wz.meds; pintarCat('wz'); }
+function renderCatalogo() { CTX.wz.qtys = wz.qtys; pintarCat('wz'); }
 
 function limpiarProds() {
   wz.qtys = {}; CTX.wz.qtys = wz.qtys;
-  wz.meds = {}; CTX.wz.meds = wz.meds;
   document.getElementById('wextra').value = '';
   renderCatalogo(); updWzBar(); renderWzPills();
 }
@@ -5091,27 +5061,38 @@ function repetirUltimo() {
   const p = ultPedidoSuc(wz.cliente, wz.sucursal);
   if (!p) return;
   wz.qtys = {};
-  const sobra = [];
-  if (!CTX.wz.meds) CTX.wz.meds = {};
-  Object.keys(CTX.wz.meds).forEach(k => delete CTX.wz.meds[k]);
+  const sobra = [], sueltos = [];
   splitDet(p.detalle).forEach(it => {
-    const L = leerLinea(it);
-    if (L) {
-      const prod = prodPorNombre(L.nombre);   // reconoce los nombres viejos
-      if (prod && L.cantidad > 0) {
-        wz.qtys[prod.n] = L.cantidad;
-        if (Number(prod.u) > 1) CTX.wz.meds[prod.n] = L.medida;
-        return;
-      }
-    }
-    sobra.push(it);
+    const x = lineaParaRepetir(it);
+    if (x.tipo === 'catalogo') wz.qtys[x.prod.n] = x.cantidad;
+    else if (x.tipo === 'suelto') sueltos.push(it);
+    else sobra.push(it);
   });
   CTX.wz.qtys = wz.qtys;
   document.getElementById('wextra').value = sobra.join('\n');
   renderCatalogo(); updWzBar(); renderWzPills();
   alerta('wz-alert',
     `Cargado el último pedido (${hesc(p.fecha || 's/fecha')}).` +
-    (sobra.length ? ` ${sobra.length} ítem(s) fuera de catálogo quedaron en “otros”.` : ''), 'ai');
+    (sobra.length ? ` ${sobra.length} ítem(s) fuera de catálogo quedaron en “otros”.` : '') +
+    (sueltos.length ? `<br><b>No se cargó:</b> ${sueltos.map(hesc).join(' · ')}. ` +
+      'Se había pedido por unidad suelta y ahora solo se vende por caja: ' +
+      'elige las cajas a mano.' : ''),
+    sueltos.length ? 'an' : 'ai');
+}
+
+// Qué hacer con una línea de un pedido viejo al repetirlo.
+//
+//   catalogo  se carga en el catálogo con su cantidad, en cajas.
+//   suelto    se pidió por unidad suelta de un producto que viene en caja. Ya
+//             no se vende así y NO se puede cargar tal cual: "5 un" leído
+//             como 5 cajas serían 60 potes. Se deja fuera y se avisa.
+//   otro      no es del catálogo; va a "otros" como texto.
+function lineaParaRepetir(texto) {
+  const L = leerLinea(texto);
+  const prod = L ? prodPorNombre(L.nombre) : null;   // reconoce los nombres viejos
+  if (!L || !prod || !(L.cantidad > 0)) return { tipo: 'otro' };
+  if (L.medida === 'unidad' && Number(prod.u) > 1) return { tipo: 'suelto' };
+  return { tipo: 'catalogo', prod, cantidad: L.cantidad };
 }
 
 function buildDetalle() { CTX.wz.qtys = wz.qtys; return catDetalle('wz', 'wextra'); }
