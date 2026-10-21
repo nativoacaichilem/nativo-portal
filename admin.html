@@ -1805,6 +1805,17 @@ async function sbPagina(tabla, query, clave) {
     let nuevos = 0;
     for (const f of d) {
       const kk = k(f);
+      // Una fila sin clave no se distingue de otra: el Set de abajo las trata
+      // a todas como repetidas, se queda con la primera y bota el resto, sin
+      // ningún error.
+      //
+      // Pasó de verdad con `agenda_dias`, cuya llave es la fecha y no tiene
+      // `id`. La franja de la semana mostraba solo la nota más temprana; las
+      // demás estaban guardadas en la base y nunca aparecían. Ahora una tabla
+      // sin id que llegue acá sin su clave falla a la vista.
+      if (kk === undefined || kk === null)
+        throw new Error(`Las filas de ${tabla} no traen id: hay que pasarle ` +
+          'a sbPagina la clave de esa tabla como tercer argumento.');
       if (!vistos.has(kk)) { vistos.add(kk); out.push(f); nuevos++; }
     }
     // Salir acá significa que se acabaron las filas: la lista está completa.
@@ -3577,7 +3588,7 @@ function exportCSV() {
 // qué se hizo el martes pasado, que es justo lo que hace falta cuando algo no
 // cuadra.
 
-let agenda = [], agendaOK = false, semanaOffset = 0;
+let agenda = [], agendaOK = false, agendaFalla = '', semanaOffset = 0;
 
 const DIAS_CORTOS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 
@@ -3595,6 +3606,23 @@ function lunesDe(offset) {
 const aISO = d =>
   `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 
+// Una fecha escrita a mano, en ISO, o '' si no se entiende.
+//
+// `fecha_entrega` se escribe en formato chileno —"21/10/2026", a veces con la
+// hora del retiro detrás— y la franja la comparaba directo contra la fecha ISO
+// de cada caja. No calzaba nunca, así que el "N entrega(s)" de cada día no
+// apareció desde que se hizo la franja. Se acepta también el ISO tal cual, por
+// si algún día ese campo se guarda bien.
+function isoDeTexto(t) {
+  const s = String(t || '').trim();
+  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4}|\d{2})\b/);
+  if (!m) return '';
+  const anio = m[3].length === 2 ? '20' + m[3] : m[3];
+  return `${anio}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+}
+
 function semanaMover(a) {
   semanaOffset = a === 0 ? 0 : semanaOffset + a;
   cargarAgenda();
@@ -3604,10 +3632,14 @@ async function cargarAgenda() {
   const l = lunesDe(semanaOffset);
   const f = new Date(l); f.setDate(f.getDate() + 6);
   try {
+    // La llave de esta tabla es la fecha: no tiene `id`. Sin la clave,
+    // sbPagina deduplicaba por un id que no existe y dejaba una sola nota por
+    // semana, la más temprana. Las otras se guardaban y nunca se veían.
     agenda = await sbPagina('agenda_dias',
-      `select=*&fecha=gte.${aISO(l)}&fecha=lte.${aISO(f)}&order=fecha.asc`);
-    agendaOK = true;
-  } catch (e) { agenda = []; agendaOK = false; }
+      `select=*&fecha=gte.${aISO(l)}&fecha=lte.${aISO(f)}&order=fecha.asc`,
+      x => String(x.fecha).slice(0, 10));
+    agendaOK = true; agendaFalla = '';
+  } catch (e) { agenda = []; agendaOK = false; agendaFalla = String(e.message || e); }
   pintarAgenda();
 }
 
@@ -3617,7 +3649,9 @@ function pintarAgenda() {
   if (!agendaOK) {
     cont.innerHTML = '<div class="alert ai" style="line-height:1.5">' +
       'No se pudo leer <b>agenda_dias</b>. Corre <b>PREPARADO_prioridad_agenda.sql</b> ' +
-      'en Supabase y revisa que la tabla esté en la lista del Worker, en <b>/salud</b>.</div>';
+      'en Supabase y revisa que la tabla esté en la lista del Worker, en <b>/salud</b>.' +
+      (agendaFalla ? '<br><span style="font-weight:400;font-size:12px">Detalle: ' +
+        hesc(agendaFalla) + '</span>' : '') + '</div>';
     return;
   }
   const l = lunesDe(semanaOffset);
@@ -3627,7 +3661,7 @@ function pintarAgenda() {
     const d = new Date(l); d.setDate(d.getDate() + i);
     const iso = aISO(d);
     const nota = (agenda.find(x => String(x.fecha).slice(0, 10) === iso) || {}).nota || '';
-    const cuantos = pedidos.filter(p => String(p.fecha_entrega || '').slice(0, 10) === iso).length;
+    const cuantos = pedidos.filter(p => isoDeTexto(p.fecha_entrega) === iso).length;
     h += `<div class="dia ${iso === hoyIso ? 'hoy' : ''} ${iso < hoyIso ? 'pas' : ''}"
             onclick="editarDia('${iso}')" title="Escribir a dónde se despacha">
       <div class="dnom">${DIAS_CORTOS[d.getDay()]} ${d.getDate()}</div>
