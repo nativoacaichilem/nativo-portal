@@ -424,6 +424,26 @@ input[type=checkbox]{
    en que uno está no debería costar. */
 .dia.hoy{background:var(--am-l);border-color:var(--am);border-width:2.5px}
 .dia.pas{opacity:.55}
+/* El día que se está mirando en la lista. Borde morado por dentro, para que
+   se distinga del amarillo de hoy cuando son el mismo día. Un día pasado
+   elegido vuelve a verse entero: si lo estás mirando, no está de fondo. */
+.dia.sel{border-color:var(--mora);box-shadow:inset 0 0 0 2px var(--mora);opacity:1}
+.dia .dcab{display:flex;align-items:center;gap:6px}
+.dia .dcab .dnom{flex:1}
+/* La nota se edita con su propio botón: apretar el día ahora filtra la lista. */
+.dia .dedit{background:var(--white);border:1px solid var(--crema-d);border-radius:7px;
+  font-size:12px;line-height:1;padding:4px 6px;cursor:pointer}
+.dia .dedit:hover{border-color:var(--mora-l)}
+.dia .dcuenta{margin-top:auto;font-size:11px;font-weight:900;color:var(--mora)}
+.dia .dcuenta.listo{color:var(--vd)}
+
+/* La barra del día elegido, arriba de la lista. */
+.dia-barra{background:var(--mora-xl);border:1.5px solid #ddc9f5;border-radius:12px;
+  padding:12px 14px;margin-bottom:14px}
+.dia-barra .dtit{font-size:15px;font-weight:900;color:var(--mora-d)}
+.dia-barra .dsub{font-size:12px;font-weight:700;color:var(--mora);margin-top:2px}
+.dia-barra .dacc{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.dia-barra .dbod{font-size:12px;font-weight:800;color:var(--nd);margin-top:8px}
 
 /* Pedido prioritario. Franja amarilla al costado, distinta de la roja del
    cliente bloqueado: son dos avisos que pueden darse a la vez en la misma
@@ -565,6 +585,9 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
 
     <div class="card">
       <h2>📋 Pedidos</h2>
+      <!-- El día elegido arriba en la semana: qué hay que entregar y los botones
+           para cambiar el estado de todo eso de una vez. -->
+      <div id="dia-barra"></div>
       <div class="fb">
         <input type="text" id="buscar" placeholder="🔍 Buscar empresa, RUT, contacto o folio..." oninput="render()">
         <select id="fentrega" onchange="render()">
@@ -1272,6 +1295,10 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
     <option value="entregado">Entregado</option>
   </select>
   <button class="btn bsm ab-apply" id="ab-btn" onclick="aplicarMasivo()">Aplicar</button>
+  <!-- Los días son los de la semana que se ve arriba. Para asignar a la
+       semana siguiente, se mueve la semana con la flecha. -->
+  <select id="ab-dia" title="Día de entrega de lo seleccionado"></select>
+  <button class="btn bsm ab-apply" id="ab-dia-btn" onclick="asignarDiaMasivo()">Asignar día</button>
   <button class="btn bsm ab-cancel" onclick="deselTabla()">✕ Deseleccionar</button>
 </div>
 
@@ -1952,6 +1979,7 @@ function filtrados() {
            : fe === 'web' ? esWeb(p)
            : p.estado === fe)) &&
     (!fn || (p.entrega || 'despacho') === fn) &&
+    (!diaFiltro || isoDeTexto(p.fecha_entrega) === diaFiltro) &&
     (!filtroSinDescargo || (
       ['en-ruta','entregado','entregado-sin-facturar'].includes(p.estado) &&
       !bodPedidosConMov.has(String(p.id))))
@@ -1970,6 +1998,7 @@ const cortesiasPendientes = () => pedidos.filter(p =>
 
 // Los contadores pinchables llevan la tabla a lo que representan
 function verSinFacturar() {
+  soltarDia();
   filtroSinDescargo = false;
   // el contador cuenta dos estados, así que el filtro tiene que cubrir los dos
   document.getElementById('festado').value = 'sf';
@@ -1980,6 +2009,7 @@ function verSinFacturar() {
 }
 
 function verEntregadoSinFacturar() {
+  soltarDia();
   filtroSinDescargo = false;
   document.getElementById('festado').value = 'entregado-sin-facturar';
   document.getElementById('fentrega').value = '';
@@ -1989,6 +2019,7 @@ function verEntregadoSinFacturar() {
 }
 
 function verRetirosPendientes() {
+  soltarDia();
   filtroSinDescargo = false;
   document.getElementById('fentrega').value = 'retiro';
   document.getElementById('fzona').value = '';
@@ -2073,6 +2104,8 @@ function render() {
   // función— así que la pantalla mostraba "23 pedidos" y una lista vacía.
   const lista = f.slice()
     .sort((a, b) => (b.prioritario ? 1 : 0) - (a.prioritario ? 1 : 0));
+
+  pintarBarraDia(lista);
 
   const tb = document.getElementById('tbody');
   if (!lista.length) {
@@ -2281,6 +2314,7 @@ function updateActionBar() {
   } else {
     bar.classList.remove('visible');
     document.getElementById('ab-estado').value = '';
+    document.getElementById('ab-dia').value = '';
   }
 }
 
@@ -2969,6 +3003,7 @@ async function quitarCorte() {
 }
 
 function verCortesias() {
+  soltarDia();
   filtroSinDescargo = false;
   document.getElementById('festado').value = 'cortesia';
   document.getElementById('fentrega').value = '';
@@ -2978,6 +3013,7 @@ function verCortesias() {
 }
 
 function verSinDescargo() {
+  soltarDia();
   document.getElementById('festado').value = '';
   document.getElementById('fentrega').value = '';
   document.getElementById('buscar').value = '';
@@ -3621,6 +3657,9 @@ function isoDeTexto(t) {
 
 function semanaMover(a) {
   semanaOffset = a === 0 ? 0 : semanaOffset + a;
+  // Cambiar de semana suelta el día elegido: quedaría filtrando la lista por
+  // una fecha que ya no se ve arriba, y no se entendería por qué.
+  if (diaFiltro) { diaFiltro = null; render(); }
   cargarAgenda();
 }
 
@@ -3656,21 +3695,31 @@ function pintarAgenda() {
   for (let i = 0; i < 7; i++) {
     const d = new Date(l); d.setDate(d.getDate() + i);
     const iso = aISO(d);
-    const nota = (agenda.find(x => String(x.fecha).slice(0, 10) === iso) || {}).nota || '';
-    const cuantos = pedidos.filter(p => isoDeTexto(p.fecha_entrega) === iso).length;
-    h += `<div class="dia ${iso === hoyIso ? 'hoy' : ''} ${iso < hoyIso ? 'pas' : ''}"
-            onclick="editarDia('${iso}')" title="Escribir a dónde se despacha">
-      <div class="dnom">${DIAS_CORTOS[d.getDay()]} ${d.getDate()}</div>
+    const nota = notaDelDia(iso);
+    const delDia = pedidosDelDia(iso);
+    const listos = delDia.filter(p => yaEntregado(p.estado)).length;
+    const clases = ['dia', iso === hoyIso ? 'hoy' : '', iso < hoyIso ? 'pas' : '',
+                    iso === diaFiltro ? 'sel' : ''].join(' ');
+    h += `<div class="${clases}" onclick="verDia('${iso}')"
+            title="Ver los pedidos que se entregan este día">
+      <div class="dcab">
+        <div class="dnom">${DIAS_CORTOS[d.getDay()]} ${d.getDate()}</div>
+        <button class="dedit" onclick="event.stopPropagation(); editarDia('${iso}')"
+          title="Escribir a dónde se despacha">✏️</button>
+      </div>
       ${nota ? `<div class="dnota">${hesc(nota)}</div>`
              : '<div class="dvacio">— sin anotar —</div>'}
-      ${cuantos ? `<div class="dnom" style="margin-top:auto">${cuantos} entrega(s)</div>` : ''}
+      ${delDia.length ? `<div class="dcuenta ${listos === delDia.length ? 'listo' : ''}">${
+        delDia.length} pedido${delDia.length === 1 ? '' : 's'}${
+        listos ? (listos === delDia.length ? ' · ✔ todo entregado' : ` · ${listos} ✔`) : ''}</div>` : ''}
     </div>`;
   }
   cont.innerHTML = `<div class="semana">${h}</div>`;
+  pintarOpcionesDia();
 }
 
 async function editarDia(iso) {
-  const actual = (agenda.find(x => String(x.fecha).slice(0, 10) === iso) || {}).nota || '';
+  const actual = notaDelDia(iso);
   const v = prompt(`¿A dónde se despacha el ${iso.split('-').reverse().join('-')}?\n\n` +
     'Deja vacío para borrar la nota.', actual);
   if (v === null) return;
@@ -3695,6 +3744,208 @@ async function editarDia(iso) {
   } catch (e) {
     alerta('agenda-alert', 'No se pudo guardar la nota: ' + hesc(e.message), 'ae');
   }
+}
+
+
+// ══════════════════════════════════════════════════════════════
+//  LOS PEDIDOS DE CADA DÍA
+// ══════════════════════════════════════════════════════════════
+//
+// Un pedido se asigna a un día con su `fecha_entrega`, que ya existía y se
+// escribe en formato chileno. Desde la lista se marcan los pedidos y se les
+// pone el día; apretando un día de la semana, la lista muestra solo los de
+// ese día, y desde ahí se pasan todos a "en ruta" o a "entregado".
+//
+// POR QUÉ `fecha_entrega` Y NO UNA COLUMNA NUEVA. Es el dato que ya se
+// escribía a mano en cada pedido, el que lee la franja para contar entregas y
+// el que dice si un retiro ya está coordinado. Una columna aparte serían dos
+// fechas para lo mismo, y tarde o temprano dirían cosas distintas.
+
+let diaFiltro = null;   // fecha ISO del día elegido arriba, o null
+
+const notaDelDia = iso =>
+  (agenda.find(x => String(x.fecha).slice(0, 10) === iso) || {}).nota || '';
+
+const pedidosDelDia = iso => pedidos.filter(p => isoDeTexto(p.fecha_entrega) === iso);
+
+// '2026-10-22' → '22/10/2026', el formato en que se escribe a mano.
+function fechaCL(iso) {
+  const [a, m, d] = String(iso).split('-');
+  return `${d}/${m}/${a}`;
+}
+
+// La fecha de entrega nueva de un pedido. Si la que tenía traía algo después
+// de la fecha —la hora de un retiro, "21/10/2026 11:00"—, eso se conserva:
+// mover un retiro de día no debería borrar la hora que se acordó.
+function nuevaFechaEntrega(actual, iso) {
+  if (!iso) return '';
+  const m = String(actual || '').trim()
+    .match(/^(?:\d{4}-\d{2}-\d{2}|\d{1,2}[\/.\-]\d{1,2}[\/.\-](?:\d{4}|\d{2}))\b\s*(.*)$/);
+  const resto = m ? m[1].trim() : '';
+  return fechaCL(iso) + (resto ? ' ' + resto : '');
+}
+
+// En qué estado queda un pedido al marcar el día. null = no cambia.
+//
+// Nunca se retrocede: un pedido ya entregado no vuelve a "en ruta".
+//
+// Un retiro no va en camión, así que "en ruta" no le aplica; "entregado" sí,
+// porque significa que lo vinieron a buscar.
+//
+// "Entregado" no es un solo estado. Una venta sin factura queda como
+// ENTREGADO · SIN FACTURAR, no como entregado a secas: "entregado" saca el
+// pedido de la lista de lo que falta cobrar, y marcar de una vez todo el día
+// no puede ser la forma en que una factura pendiente desaparece.
+function estadoDelDia(p, accion) {
+  const e = p.estado || 'pendiente';
+  if (yaEntregado(e)) return null;
+  if (accion === 'en-ruta') {
+    if (esRetiro(p) || e === 'en-ruta') return null;
+    return 'en-ruta';
+  }
+  if (noEsVenta(p)) return 'entregado';
+  const facturado = e === 'facturado' || !!String(p.factura_num || '').trim();
+  return facturado ? 'entregado' : 'entregado-sin-facturar';
+}
+
+function verDia(iso) {
+  if (diaFiltro === iso) return quitarDia();
+  diaFiltro = iso;
+  // Se limpian los demás filtros: al apretar un día se quiere ver TODO lo de
+  // ese día, y un filtro de zona olvidado escondería pedidos sin decirlo.
+  filtroSinDescargo = false;
+  ['buscar', 'festado', 'fentrega', 'fzona'].forEach(id => {
+    const e = document.getElementById(id); if (e) e.value = '';
+  });
+  pintarAgenda();
+  render();
+  const b = document.getElementById('dia-barra');
+  if (b) b.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function quitarDia() {
+  diaFiltro = null;
+  pintarAgenda();
+  render();
+}
+
+// Para los atajos de los contadores: llevan a otra lista, así que el día deja
+// de estar elegido. No repinta la lista porque cada atajo lo hace después.
+function soltarDia() {
+  if (!diaFiltro) return;
+  diaFiltro = null;
+  pintarAgenda();
+}
+
+function pintarBarraDia(lista) {
+  const caja = document.getElementById('dia-barra');
+  if (!caja) return;
+  if (!diaFiltro) { caja.innerHTML = ''; return; }
+
+  const [a, m, d] = diaFiltro.split('-').map(Number);
+  const nombre = new Date(a, m - 1, d).toLocaleDateString('es-CL', { weekday: 'long' });
+  const nota = notaDelDia(diaFiltro);
+  const total = pedidosDelDia(diaFiltro).length;
+  const listos = lista.filter(p => yaEntregado(p.estado)).length;
+  const aRuta = lista.filter(p => estadoDelDia(p, 'en-ruta')).length;
+  const aEntregado = lista.filter(p => estadoDelDia(p, 'entregado')).length;
+  // Lo que ya salió sin descontar stock, de este día. Se dice acá porque el
+  // cambio de estado de todo el día no descarga bodega, y es justo el momento
+  // de acordarse.
+  const sinBod = bodListo ? lista.filter(p =>
+    ['en-ruta', 'entregado', 'entregado-sin-facturar'].includes(p.estado) &&
+    !esTarea(p) && !bodPedidosConMov.has(String(p.id))).length : 0;
+  const ocultos = total - lista.length;
+
+  caja.innerHTML = `<div class="dia-barra">
+    <div class="dtit">📅 ${hesc(nombre.charAt(0).toUpperCase() + nombre.slice(1))} ${hesc(fechaCL(diaFiltro))}${
+      nota ? ' · ' + hesc(nota) : ''}</div>
+    <div class="dsub">${total ? `${total} pedido${total === 1 ? '' : 's'} para este día` +
+      (listos ? ` · ${listos} ya entregado${listos === 1 ? '' : 's'}` : '')
+      : 'No hay pedidos con esta fecha de entrega. Márcalos en la lista y usa ' +
+        '<b>Asignar día</b> en la barra de abajo.'}${
+      ocultos ? ` · <b>${ocultos} no se ven</b> por los filtros de la lista` : ''}</div>
+    <div class="dacc">
+      <button class="btn bmora bsm" ${aRuta ? '' : 'disabled'} onclick="marcarDia('en-ruta')">
+        🚚 Poner en ruta${aRuta ? ' (' + aRuta + ')' : ''}</button>
+      <button class="btn bgreen bsm" ${aEntregado ? '' : 'disabled'} onclick="marcarDia('entregado')">
+        ✅ Marcar entregados${aEntregado ? ' (' + aEntregado + ')' : ''}</button>
+      <button class="btn bgray bsm" onclick="quitarDia()">✕ Ver todos los pedidos</button>
+    </div>
+    ${sinBod ? `<div class="dbod">📦 ${sinBod} de este día ya salieron sin descargar bodega.
+      Hazlo con el botón de cada fila.</div>` : ''}
+  </div>`;
+}
+
+// Cambia el estado de todos los pedidos del día que se están viendo. Actúa
+// sobre la lista visible y no sobre todo el día a ciegas: si alguien filtró
+// por zona, cambia lo que tiene a la vista, que es lo que el botón dice.
+async function marcarDia(accion) {
+  const lista = filtrados();
+  const cambios = lista.map(p => ({ p, e: estadoDelDia(p, accion) })).filter(x => x.e);
+  if (!cambios.length) return;
+
+  const quedan = lista.length - cambios.length;
+  const sinFact = cambios.filter(x => x.e === 'entregado-sin-facturar').length;
+  const msg = accion === 'en-ruta'
+    ? `¿Poner ${cambios.length} pedido(s) en ruta?` +
+      (quedan ? `\n\n${quedan} no cambian: ya se entregaron, ya estaban en ruta o son retiros.` : '')
+    : `¿Marcar ${cambios.length} pedido(s) como entregados?` +
+      (sinFact ? `\n\n${sinFact} no tienen factura y quedan como "Entregado · sin facturar", ` +
+        'para que sigan apareciendo en lo que falta cobrar.' : '') +
+      (quedan ? `\n\n${quedan} ya estaban entregados.` : '');
+  if (!confirm(msg)) return;
+
+  const r = await Promise.allSettled(cambios.map(x => sbPatch(x.p.id, { estado: x.e })));
+  const malos = r.filter(x => x.status === 'rejected');
+  await cargar();
+  // Igual que el cambio masivo de la barra de abajo, esto NO descarga bodega:
+  // cada pedido sale de una bodega distinta y descontar a ciegas es peor que
+  // no descontar. La barra del día cuenta los que quedaron pendientes.
+  alert((malos.length
+      ? `${cambios.length - malos.length} de ${cambios.length} se actualizaron. ` +
+        `${malos.length} fallaron: ${malos[0].reason && malos[0].reason.message || ''}`
+      : `${cambios.length} pedido(s) actualizados.`) +
+    (bodListo ? '\n\nEl stock NO se descontó: hazlo con el botón 📦 Descargar de cada fila.' : ''));
+}
+
+// Las opciones de "Asignar día" en la barra de abajo: los siete días de la
+// semana que se ve arriba, con su nota, para elegir "mié 22 · Viña" y no una
+// fecha suelta.
+function pintarOpcionesDia() {
+  const sel = document.getElementById('ab-dia');
+  if (!sel) return;
+  const antes = sel.value;
+  const l = lunesDe(semanaOffset);
+  let h = '<option value="">— Día de entrega —</option>';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(l); d.setDate(d.getDate() + i);
+    const iso = aISO(d), nota = notaDelDia(iso);
+    h += `<option value="${iso}">${DIAS_CORTOS[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}${
+      nota ? ' · ' + hesc(nota) : ''}</option>`;
+  }
+  h += '<option value="__quitar">Quitar la fecha</option>';
+  sel.innerHTML = h;
+  sel.value = antes;
+}
+
+async function asignarDiaMasivo() {
+  const v = document.getElementById('ab-dia').value;
+  if (!v) { alert('Elige el día.'); return; }
+  if (!checked.length) return;
+
+  const btn = document.getElementById('ab-dia-btn');
+  btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true;
+  const r = await Promise.allSettled(checked.map(id => {
+    const p = pedidos.find(x => x.id === id) || {};
+    return sbPatch(id, { fecha_entrega: v === '__quitar' ? '' : nuevaFechaEntrega(p.fecha_entrega, v) });
+  }));
+  const malos = r.filter(x => x.status === 'rejected').length;
+  await cargar();
+  pintarAgenda();          // los contadores de cada día cambian
+  if (malos) alert(`${r.length - malos} de ${r.length} pedidos quedaron con su día. ` +
+                   `${malos} fallaron; vuelve a intentar con esos.`);
+  btn.innerHTML = 'Asignar día'; btn.disabled = false;
 }
 
 // ══════════════════════════════════════════════════════════════
