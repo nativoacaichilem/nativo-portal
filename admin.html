@@ -443,6 +443,25 @@ input[type=checkbox]{
 .dia-barra .dtit{font-size:15px;font-weight:900;color:var(--mora-d)}
 .dia-barra .dsub{font-size:12px;font-weight:700;color:var(--mora);margin-top:2px}
 .dia-barra .dacc{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.dia-barra .dcabeza{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.dia-barra .dcabeza > div:first-child{flex:1;min-width:200px}
+/* Los cuatro pasos del día, en el orden en que se hacen. Un paso hecho se
+   pone verde: a media mañana se ve de un vistazo en qué va el despacho. */
+.pasos{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+@media(max-width:860px){ .pasos{grid-template-columns:repeat(2,1fr)} }
+@media(max-width:520px){ .pasos{grid-template-columns:1fr} }
+.paso{background:var(--white);border:1.5px solid var(--crema-d);border-radius:11px;
+  padding:10px 11px;display:flex;flex-direction:column;gap:5px}
+.paso.hecho{border-color:#6ee7b7;background:#f0fdf7}
+.paso .ptit{font-size:12px;font-weight:900;color:var(--mora-d);display:flex;gap:7px;align-items:center}
+.paso .pnum{width:20px;height:20px;border-radius:50%;background:var(--crema-d);color:var(--textl);
+  display:flex;align-items:center;justify-content:center;font-size:11px;flex:0 0 20px}
+.paso.hecho .pnum{background:var(--vd);color:#fff}
+.paso .ptxt{font-size:11.5px;font-weight:700;color:var(--textl);line-height:1.45;flex:1}
+.paso .ptxt a{color:var(--mora);font-weight:800;cursor:pointer;text-decoration:underline}
+.paso .btn{width:100%}
+.ruta-dia{margin-top:12px}
+.ruta-dia .pbox{margin-top:8px;max-height:320px}
 .dia-barra .dbod{font-size:12px;font-weight:800;color:var(--nd);margin-top:8px}
 
 /* Pedido prioritario. Franja amarilla al costado, distinta de la roja del
@@ -3785,12 +3804,24 @@ function nuevaFechaEntrega(actual, iso) {
   return fechaCL(iso) + (resto ? ' ' + resto : '');
 }
 
+// Va en el camión: no es un retiro y todavía no se entrega.
+const vaEnCamion = p => !esRetiro(p) && !yaEntregado(p.estado || 'pendiente');
+
+// Lista para la ruta: facturada, o algo que no se factura (muestra, merma,
+// tarea). Un número de factura escrito cuenta aunque el estado no se haya
+// cambiado, y uno que ya está en ruta sigue contando: rearmar la ruta a media
+// mañana no debería sacarlo.
+const listoParaRuta = p => p.estado === 'facturado' || p.estado === 'en-ruta' ||
+  noEsVenta(p) || !!String(p.factura_num || '').trim();
+
 // En qué estado queda un pedido al marcar el día. null = no cambia.
 //
 // Nunca se retrocede: un pedido ya entregado no vuelve a "en ruta".
 //
-// Un retiro no va en camión, así que "en ruta" no le aplica; "entregado" sí,
-// porque significa que lo vinieron a buscar.
+// "En ruta" es para lo que va en la ruta: no a un retiro, que no sube al
+// camión, ni a una venta que todavía no se factura, que quedó fuera de la
+// ruta a propósito. "Entregado" sí aplica a un retiro: significa que lo
+// vinieron a buscar.
 //
 // "Entregado" no es un solo estado. Una venta sin factura queda como
 // ENTREGADO · SIN FACTURAR, no como entregado a secas: "entregado" saca el
@@ -3800,7 +3831,7 @@ function estadoDelDia(p, accion) {
   const e = p.estado || 'pendiente';
   if (yaEntregado(e)) return null;
   if (accion === 'en-ruta') {
-    if (esRetiro(p) || e === 'en-ruta') return null;
+    if (!vaEnCamion(p) || e === 'en-ruta' || !listoParaRuta(p)) return null;
     return 'en-ruta';
   }
   if (noEsVenta(p)) return 'entregado';
@@ -3837,44 +3868,142 @@ function soltarDia() {
   pintarAgenda();
 }
 
+// La ruta armada para el día, con los pedidos que llevaba. Se guarda en la
+// sesión para que la lista pueda repintarse —cada vez que se busca, cada vez
+// que se factura uno— sin perder el texto.
+let rutaDia = null;   // { iso, ids:[...], texto, hora }
+
+// El día como se lee: "Jueves 22/10/2026".
+function nombreDia(iso) {
+  const [a, m, d] = iso.split('-').map(Number);
+  const n = new Date(a, m - 1, d).toLocaleDateString('es-CL', { weekday: 'long' });
+  return n.charAt(0).toUpperCase() + n.slice(1) + ' ' + fechaCL(iso);
+}
+
+// Todo lo del día en un lugar, en el orden en que se hace: facturar, armar la
+// ruta, sacarla y cerrarla.
 function pintarBarraDia(lista) {
   const caja = document.getElementById('dia-barra');
   if (!caja) return;
   if (!diaFiltro) { caja.innerHTML = ''; return; }
 
-  const [a, m, d] = diaFiltro.split('-').map(Number);
-  const nombre = new Date(a, m - 1, d).toLocaleDateString('es-CL', { weekday: 'long' });
   const nota = notaDelDia(diaFiltro);
   const total = pedidosDelDia(diaFiltro).length;
-  const listos = lista.filter(p => yaEntregado(p.estado)).length;
+  const ocultos = total - lista.length;
+  const entregados = lista.filter(p => yaEntregado(p.estado)).length;
+
+  const camion  = lista.filter(vaEnCamion);
+  const faltan  = camion.filter(p => !listoParaRuta(p));
+  const listos  = camion.filter(listoParaRuta);
+  const retiros = lista.filter(p => esRetiro(p) && !yaEntregado(p.estado)).length;
   const aRuta = lista.filter(p => estadoDelDia(p, 'en-ruta')).length;
   const aEntregado = lista.filter(p => estadoDelDia(p, 'entregado')).length;
+  const enRuta = lista.filter(p => p.estado === 'en-ruta').length;
+
+  // El día está cerrado cuando todo lo que tiene se entregó. Ahí los cuatro
+  // pasos quedan hechos, aunque ya no quede nada "por facturar" que contar.
+  const cerrado = total > 0 && entregados === lista.length;
+
+  // ¿La ruta armada sigue siendo la de hoy? Queda vieja si apareció un pedido
+  // listo que no estaba —se facturó uno más— o si uno de los que llevaba ya
+  // no es de este día. Que un pedido salga a ruta o se entregue no la
+  // envejece: es justamente lo que se espera que pase.
+  const ruta = rutaDia && rutaDia.iso === diaFiltro ? rutaDia : null;
+  const idsDelDia = new Set(pedidosDelDia(diaFiltro).map(p => p.id));
+  const rutaVieja = !!ruta && (listos.some(p => !ruta.ids.includes(p.id)) ||
+                               ruta.ids.some(id => !idsDelDia.has(id)));
+
   // Lo que ya salió sin descontar stock, de este día. Se dice acá porque el
   // cambio de estado de todo el día no descarga bodega, y es justo el momento
   // de acordarse.
   const sinBod = bodListo ? lista.filter(p =>
     ['en-ruta', 'entregado', 'entregado-sin-facturar'].includes(p.estado) &&
     !esTarea(p) && !bodPedidosConMov.has(String(p.id))).length : 0;
-  const ocultos = total - lista.length;
+
+  const enlaces = l => l.slice(0, 5).map(p =>
+    `<a onclick="abrir(${p.id})" title="Abrir para facturar">${hesc(p.emp)}</a>`).join(', ') +
+    (l.length > 5 ? ` y ${l.length - 5} más` : '');
+
+  const paso = (n, hecho, tit, txt, boton) => `<div class="paso ${hecho ? 'hecho' : ''}">
+      <div class="ptit"><span class="pnum">${hecho ? '✓' : n}</span>${tit}</div>
+      <div class="ptxt">${txt}</div>${boton}</div>`;
+
+  // ① Facturar
+  const p1 = paso(1, cerrado || (camion.length > 0 && !faltan.length), 'Facturar',
+    faltan.length ? `${listos.length} de ${camion.length} listos. Falta: ${enlaces(faltan)}.`
+    : camion.length ? `Los ${camion.length} están listos.`
+    : cerrado ? 'Listo.' : 'Nada que despachar en camión.', '');
+
+  // ② Armar la ruta
+  const p2 = paso(2, cerrado || (!!ruta && !rutaVieja), 'Armar la ruta',
+    ruta && !rutaVieja ? `Armada a las ${hesc(ruta.hora)} con ${ruta.ids.length} parada${ruta.ids.length === 1 ? '' : 's'}.`
+    : cerrado ? 'Listo.'
+    : !listos.length ? 'Cuando haya pedidos facturados, se arma acá.'
+    : ruta && rutaVieja ? '<b style="color:var(--nd)">La lista cambió desde que la armaste.</b> Vuelve a armarla.'
+    : faltan.length ? `Se puede armar con los ${listos.length} listos y dejar fuera los que faltan.`
+    : `${listos.length} parada${listos.length === 1 ? '' : 's'}.`,
+    listos.length
+      ? `<button class="btn ${faltan.length && !ruta ? 'bol' : 'bam2'} bsm" onclick="armarRutaDia()">${
+          ruta ? '↻ Volver a armar' : faltan.length ? `Armar con los ${listos.length} listos` : '✨ Armar la ruta'}</button>`
+      : '');
+
+  // ③ En ruta
+  const p3 = paso(3, cerrado || (!aRuta && enRuta > 0), 'Salir a ruta',
+    aRuta ? `${aRuta} pasa${aRuta === 1 ? '' : 'n'} a "en ruta".`
+    : enRuta ? `${enRuta} en ruta.` : cerrado ? 'Listo.' : 'Nada listo para salir.',
+    `<button class="btn bmora bsm" ${aRuta ? '' : 'disabled'} onclick="marcarDia('en-ruta')">
+       🚚 Poner en ruta${aRuta ? ' (' + aRuta + ')' : ''}</button>`);
+
+  // ④ Entregado
+  const p4 = paso(4, total > 0 && entregados === lista.length, 'Entregado',
+    aEntregado ? `${aEntregado} por cerrar.` + (retiros ? ` Incluye ${retiros} retiro${retiros === 1 ? '' : 's'}.` : '')
+    : entregados ? 'Todo entregado.' : 'Nada por cerrar.',
+    `<button class="btn bgreen bsm" ${aEntregado ? '' : 'disabled'} onclick="marcarDia('entregado')">
+       ✅ Marcar entregados${aEntregado ? ' (' + aEntregado + ')' : ''}</button>`);
 
   caja.innerHTML = `<div class="dia-barra">
-    <div class="dtit">📅 ${hesc(nombre.charAt(0).toUpperCase() + nombre.slice(1))} ${hesc(fechaCL(diaFiltro))}${
-      nota ? ' · ' + hesc(nota) : ''}</div>
-    <div class="dsub">${total ? `${total} pedido${total === 1 ? '' : 's'} para este día` +
-      (listos ? ` · ${listos} ya entregado${listos === 1 ? '' : 's'}` : '')
-      : 'No hay pedidos con esta fecha de entrega. Márcalos en la lista y usa ' +
-        '<b>Asignar día</b> en la barra de abajo.'}${
-      ocultos ? ` · <b>${ocultos} no se ven</b> por los filtros de la lista` : ''}</div>
-    <div class="dacc">
-      <button class="btn bmora bsm" ${aRuta ? '' : 'disabled'} onclick="marcarDia('en-ruta')">
-        🚚 Poner en ruta${aRuta ? ' (' + aRuta + ')' : ''}</button>
-      <button class="btn bgreen bsm" ${aEntregado ? '' : 'disabled'} onclick="marcarDia('entregado')">
-        ✅ Marcar entregados${aEntregado ? ' (' + aEntregado + ')' : ''}</button>
+    <div class="dcabeza">
+      <div>
+        <div class="dtit">📅 ${hesc(nombreDia(diaFiltro))}${nota ? ' · ' + hesc(nota) : ''}</div>
+        <div class="dsub">${total ? `${total} pedido${total === 1 ? '' : 's'} para este día` +
+          (retiros ? ` · ${retiros} retiro${retiros === 1 ? '' : 's'}, que no va${retiros === 1 ? '' : 'n'} en el camión` : '')
+          : 'No hay pedidos con esta fecha de entrega. Márcalos en la lista y usa ' +
+            '<b>Asignar día</b> en la barra de abajo.'}${
+          ocultos ? ` · <b>${ocultos} no se ven</b> por los filtros de la lista` : ''}</div>
+      </div>
       <button class="btn bgray bsm" onclick="quitarDia()">✕ Ver todos los pedidos</button>
     </div>
+    ${total ? `<div class="pasos">${p1}${p2}${p3}${p4}</div>` : ''}
+    ${ruta ? `<div class="ruta-dia">
+      <div class="dsub">Sale desde <b>${hesc(origenRuta())}</b> · se cambia en la pestaña Ruta.</div>
+      <div class="pbox" id="pout-dia">${hesc(ruta.texto)}</div>
+      <button class="bcopy" id="bcopy-dia" onclick="copiarDe('pout-dia', this)">📋 Copiar y pegar en Claude</button>
+    </div>` : ''}
     ${sinBod ? `<div class="dbod">📦 ${sinBod} de este día ya salieron sin descargar bodega.
       Hazlo con el botón de cada fila.</div>` : ''}
   </div>`;
+}
+
+// Arma el prompt de la ruta con los pedidos del día que van en el camión y
+// están listos. Los mismos que pasan después a "en ruta", así que lo que se
+// le manda a Claude y lo que sale de la bodega son la misma lista.
+function armarRutaDia() {
+  if (!diaFiltro) return;
+  const listos = filtrados().filter(p => vaEnCamion(p) && listoParaRuta(p));
+  if (!listos.length) return;
+  const [a, m, d] = diaFiltro.split('-').map(Number);
+  const fecha = new Date(a, m - 1, d).toLocaleDateString('es-CL', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const ahora = new Date();
+  rutaDia = {
+    iso: diaFiltro,
+    ids: listos.map(p => p.id),
+    texto: textoRuta(listos, 'el ' + fecha, notaDelDia(diaFiltro)),
+    hora: `${ahora.getHours()}:${String(ahora.getMinutes()).padStart(2, '0')}`
+  };
+  render();
+  const b = document.getElementById('pout-dia');
+  if (b) b.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // Cambia el estado de todos los pedidos del día que se están viendo. Actúa
@@ -3887,9 +4016,13 @@ async function marcarDia(accion) {
 
   const quedan = lista.length - cambios.length;
   const sinFact = cambios.filter(x => x.e === 'entregado-sin-facturar').length;
+  const sinFacturar = lista.filter(p => vaEnCamion(p) && !listoParaRuta(p));
   const msg = accion === 'en-ruta'
     ? `¿Poner ${cambios.length} pedido(s) en ruta?` +
-      (quedan ? `\n\n${quedan} no cambian: ya se entregaron, ya estaban en ruta o son retiros.` : '')
+      (sinFacturar.length ? `\n\nQuedan fuera porque no están facturados: ` +
+        sinFacturar.map(p => p.emp).join(', ') + '.' : '') +
+      (quedan - sinFacturar.length > 0
+        ? `\n\n${quedan - sinFacturar.length} no cambian: ya se entregaron, ya estaban en ruta o son retiros.` : '')
     : `¿Marcar ${cambios.length} pedido(s) como entregados?` +
       (sinFact ? `\n\n${sinFact} no tienen factura y quedan como "Entregado · sin facturar", ` +
         'para que sigan apareciendo en lo que falta cobrar.' : '') +
@@ -4252,10 +4385,16 @@ function deselRuta() {
 // escribirlo cada día.
 const ORIGEN_POR_OMISION = 'Huechuraba, Santiago de Chile';
 
+// El campo vive en la pestaña Ruta y se llena al abrirla. El panel del día
+// arma rutas sin pasar por ahí, así que si el campo está vacío se lee lo
+// guardado: si no, la ruta saldría desde el origen por omisión aunque el
+// equipo haya cambiado el suyo.
 function origenRuta() {
   const e = document.getElementById('ruta-origen');
   const v = (e && e.value || '').trim();
-  return v || ORIGEN_POR_OMISION;
+  if (v) return v;
+  try { const g = (localStorage.getItem('nativo_ruta_origen') || '').trim(); if (g) return g; } catch (_) {}
+  return ORIGEN_POR_OMISION;
 }
 
 function cargarOrigen() {
@@ -4309,12 +4448,12 @@ function totalesTexto(lista) {
     '\n\n';
 }
 
-function genPrompt() {
-  if (!selRuta.length) { alert('Selecciona al menos un pedido.'); return; }
-  const s    = pedidos.filter(p => selRuta.includes(p.id));
-  const fecha = new Date().toLocaleDateString('es-CL', {
-    weekday:'long', year:'numeric', month:'long', day:'numeric'
-  });
+// El texto que se le pega a Claude para ordenar la ruta. Lo usan la pestaña
+// Ruta y el panel del día: una sola función para que las dos rutas se pidan
+// igual. `cuando` es "hoy jueves, 22 de octubre…" o "el jueves, 22 de…", y
+// `nota` es lo anotado para ese día en la semana —"Viña"—, que le dice a
+// Claude hacia dónde va el camión.
+function textoRuta(s, cuando, nota) {
   const lista = s.map((p, i) =>
     `\nPEDIDO ${i+1}:\n` +
     `- Cliente: ${p.emp}\n` +
@@ -4331,9 +4470,10 @@ function genPrompt() {
     (p.factura_num ? `\n- Factura N°: ${p.factura_num}` : '')
   ).join('\n');
 
-  const txt =
-    `Necesito que organices la ruta de despacho más eficiente para hoy ${fecha}.\n\n` +
+  return (
+    `Necesito que organices la ruta de despacho más eficiente para ${cuando}.\n\n` +
     `Punto de partida: ${origenRuta()}.\n\n` +
+    (nota ? `Destino anotado para ese día: ${nota}.\n\n` : '') +
     `Pedidos a entregar:\n${lista}\n\n` +
     totalesTexto(s) +
     `Por favor:\n` +
@@ -4344,15 +4484,26 @@ function genPrompt() {
     `Dirección: [Dirección]\n` +
     `Productos: [Detalle]\n` +
     `🗺 Google Maps: https://www.google.com/maps/dir/?api=1&destination=[DIRECCIÓN CODIFICADA]&travelmode=driving\n\n` +
-    `3. Al final: total por zona, estimación del recorrido y justificación del orden.`;
-
-  document.getElementById('pres').style.display = 'block';
-  document.getElementById('pout').textContent   = txt;
+    `3. Al final: total por zona, estimación del recorrido y justificación del orden.`);
 }
 
-function copiar() {
-  const txt = document.getElementById('pout').textContent;
-  const b = document.querySelector('.bcopy');
+function genPrompt() {
+  if (!selRuta.length) { alert('Selecciona al menos un pedido.'); return; }
+  const s = pedidos.filter(p => selRuta.includes(p.id));
+  const fecha = new Date().toLocaleDateString('es-CL', {
+    weekday:'long', year:'numeric', month:'long', day:'numeric'
+  });
+  document.getElementById('pres').style.display = 'block';
+  document.getElementById('pout').textContent   = textoRuta(s, 'hoy ' + fecha);
+}
+
+// El botón de la pestaña Ruta. Se busca dentro de su cuadro: ahora hay otro
+// botón de copiar en el panel del día, más arriba en la página, y buscar el
+// primero de la página tomaría ese.
+function copiar() { copiarDe('pout', document.querySelector('#pres .bcopy')); }
+
+function copiarDe(idTexto, b) {
+  const txt = document.getElementById(idTexto).textContent;
   const listo = () => {
     b.textContent = '✅ ¡Copiado! Pégalo en Claude';
     setTimeout(() => b.textContent = '📋 Copiar y pegar en Claude', 3000);
@@ -4371,7 +4522,7 @@ function copiar() {
   function seleccionar() {
     try {
       const r = document.createRange();
-      r.selectNodeContents(document.getElementById('pout'));
+      r.selectNodeContents(document.getElementById(idTexto));
       const sel = window.getSelection();
       sel.removeAllRanges(); sel.addRange(r);
       b.textContent = '👆 Texto seleccionado · copia con Ctrl+C';
