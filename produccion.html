@@ -185,10 +185,14 @@ h2{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:4px}
       <div class="paso">Produje algo</div>
       <div id="prod-aviso"></div>
       <div class="tarj">
-        <div style="margin-bottom:16px">
-          <label>¿Qué produjiste?</label>
-          <select id="pr-producto" onchange="prProductoCambio()"></select>
+        <label>¿Qué produjiste?</label>
+        <div class="gris" style="margin:-4px 0 8px">
+          Puedes anotar varios de una vez. Se retiran todos juntos.
         </div>
+        <div id="pr-lista" style="margin-bottom:14px"></div>
+
+        <button class="b b-gris b-chico" style="width:100%;margin-bottom:16px"
+          onclick="prNuevoAbrir()">➕ Es un producto nuevo</button>
 
         <div id="pr-nuevo-caja" style="display:none;margin-bottom:16px">
           <label>Nombre exacto del producto nuevo</label>
@@ -205,13 +209,8 @@ h2{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:4px}
                 <option value="lt">Litros</option>
               </select></div>
           </div>
-        </div>
-
-        <label id="pr-lbl">¿Cuánto hiciste?</label>
-        <div class="cont">
-          <button onclick="sumar('pr-cant',-1)">−</button>
-          <input id="pr-cant" type="number" inputmode="numeric" value="0" onfocus="this.select()">
-          <button onclick="sumar('pr-cant',1)">+</button>
+          <button class="b b-mora b-chico" style="width:100%;margin-top:12px"
+            onclick="prCrearProducto()">Crear y agregarlo a la lista</button>
         </div>
 
         <label>¿Qué día lo retiran?</label>
@@ -491,54 +490,69 @@ async function cargarTodo() {
 // ══════════════════════════════════════════════════════════════
 //  PRODUJE ALGO
 // ══════════════════════════════════════════════════════════════
+let prCant = {};
+
 function abrirProduje() {
   mostrar('p-produje');
-  const sel = document.getElementById('pr-producto');
-  // Solo congelados: es lo único que fabrica la sala, y mostrarle los
-  // cuarenta productos lo obliga a buscar entre cosas que nunca va a
-  // producir. Un producto nuevo creado desde acá nace congelado.
-  sel.innerHTML = '<option value="">— Elige qué produjiste —</option>' +
-    congelados().map(p => `<option value="${p.id}">${esc(p.nombre)}` +
-      `${p.formato ? ' · ' + esc(p.formato) : ''}${p.revisar ? ' (por revisar)' : ''}</option>`).join('') +
-    '<option value="NUEVO">➕ Es un producto nuevo</option>';
-  sel.value = '';
-  document.getElementById('pr-cant').value = 0;
-  document.getElementById('pr-nota').value = '';
+  prCant = {};
   document.getElementById('pr-nuevo').value = '';
   document.getElementById('pr-formato').value = '';
+  document.getElementById('pr-parecido').innerHTML = '';
   document.getElementById('pr-nuevo-caja').style.display = 'none';
+  document.getElementById('pr-nota').value = '';
   document.getElementById('pr-fecha').value = hoyISO();
   prTurno('');
-  // Si no hay congelados, la lista sale con un solo elemento y nadie entiende
-  // por qué. Más vale decirlo que dejarlo mudo.
+  pintarPrLista();
+  // Si no hay congelados, la lista sale vacía y nadie entiende por qué.
   av('prod-aviso', congelados().length ? '' :
-    'No hay productos congelados en el catálogo. Puedes crear uno nuevo acá, ' +
-    'o pedirle a la oficina que marque los que correspondan.', 'naranjo');
+    'No hay productos congelados en el catálogo. Crea uno nuevo acá abajo, ' +
+    'o pídele a la oficina que marque los que correspondan.', 'naranjo');
 }
 
-function prProductoCambio() {
-  const v = document.getElementById('pr-producto').value;
-  document.getElementById('pr-nuevo-caja').style.display = v === 'NUEVO' ? 'block' : 'none';
-  const p = prod(v);
-  const f = p && Number(p.unidades_caja) > 1 ? Number(p.unidades_caja) : 1;
-  document.getElementById('pr-lbl').textContent =
-    f > 1 ? `¿Cuántas cajas hiciste? (cada una trae ${f})` : '¿Cuánto hiciste?';
-  if (v === 'NUEVO') setTimeout(() => document.getElementById('pr-nuevo').focus(), 50);
+function pintarPrLista() {
+  const cont = document.getElementById('pr-lista');
+  const lista = congelados();
+  if (!lista.length) { cont.innerHTML = ''; return; }
+  cont.innerHTML = lista.map(p => {
+    const q = prCant[p.id] || 0;
+    const f = Number(p.unidades_caja) > 1 ? Number(p.unidades_caja) : 1;
+    return `<div class="fila">
+      <div class="fila-n">${esc(p.nombre)}${p.revisar ? ' <span class="marca m-naranjo">por revisar</span>' : ''}
+        <div class="gris" style="font-size:14px">${esc(p.formato || '')}${
+          f > 1 ? ` · caja de ${f}` : ''}</div></div>
+      <div style="display:flex;gap:8px;align-items:center;flex:0 0 auto">
+        <button class="b b-gris b-chico" style="width:52px;padding:10px"
+          onclick="prChg(${p.id},-1)">−</button>
+        <div class="fila-c" style="min-width:40px;text-align:center">${num(q)}</div>
+        <button class="b b-gris b-chico" style="width:52px;padding:10px"
+          onclick="prChg(${p.id},1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function prChg(id, d) {
+  prCant[id] = Math.max(0, (prCant[id] || 0) + d);
+  if (!prCant[id]) delete prCant[id];
+  pintarPrLista();
+}
+
+function prNuevoAbrir() {
+  const c = document.getElementById('pr-nuevo-caja');
+  const abriendo = c.style.display === 'none';
+  c.style.display = abriendo ? 'block' : 'none';
+  if (abriendo) setTimeout(() => document.getElementById('pr-nuevo').focus(), 50);
 }
 
 // Avisa si el nombre nuevo se parece a uno que ya existe.
 //
-// POR QUÉ IMPORTA: el catálogo vive en cuatro lugares y admin busca el
-// producto POR NOMBRE para descargar stock de un pedido. "Maracuyá" contra
-// "Maracuya" no calza, el pedido se despacha y el stock no se descuenta. Eso
-// es un balde desaparecido, que es justo lo que se quiere evitar.
+// Se busca en el catálogo COMPLETO, no solo en congelados: el panel descarga
+// stock buscando por nombre, y dos productos parecidos rompen ese cruce
+// aunque uno de ellos no sea congelado.
 function prBuscarParecido() {
   const v = normTxt(document.getElementById('pr-nuevo').value);
   const caja = document.getElementById('pr-parecido');
   if (v.length < 4) { caja.innerHTML = ''; return; }
-  // Se busca en el catálogo COMPLETO, no solo en congelados: un nombre nuevo
-  // no debe chocar con ninguno existente, porque el panel descarga stock
-  // buscando por nombre y dos productos parecidos rompen ese cruce.
   const cerca = productos.filter(p => {
     const n = normTxt(p.nombre);
     return n.includes(v) || v.includes(n);
@@ -546,8 +560,39 @@ function prBuscarParecido() {
   caja.innerHTML = cerca.length
     ? '<b style="color:var(--naranjo)">Ya existe algo parecido:</b><br>' +
       cerca.map(p => `· ${esc(p.nombre)}${p.formato ? ' · ' + esc(p.formato) : ''}`).join('<br>') +
-      '<br><span style="font-weight:700">Si es el mismo, elígelo arriba en vez de crearlo de nuevo.</span>'
+      '<br><span style="font-weight:700">Si es el mismo, úsalo de la lista en vez de crearlo de nuevo.</span>'
     : '<span style="color:var(--verde);font-weight:800">✔ No se parece a ninguno existente.</span>';
+}
+
+// Crea el producto y lo deja en la lista con cantidad 1, listo para ajustar.
+//
+// Nace congelado y marcado para revisión: lo que sale de la sala es
+// congelado, y el nombre lo revisa la oficina antes de publicarlo en el
+// portal de clientes.
+async function prCrearProducto() {
+  const nombre = document.getElementById('pr-nuevo').value.trim();
+  if (!nombre) return av('prod-aviso', 'Escribe el nombre del producto nuevo.', 'rojo');
+  try {
+    const r = await enviar('bod_productos', 'POST', [{
+      nombre,
+      formato: document.getElementById('pr-formato').value.trim() || null,
+      unidad: document.getElementById('pr-unidad').value,
+      unidades_caja: 1, congelado: true, activo: true, revisar: true
+    }]);
+    const d = await r.json();
+    const nuevo = Array.isArray(d) ? d[0] : d;
+    if (!nuevo || !nuevo.id) throw new Error('no se pudo crear');
+    productos.push(nuevo);
+    prCant[nuevo.id] = 1;
+    document.getElementById('pr-nuevo').value = '';
+    document.getElementById('pr-formato').value = '';
+    document.getElementById('pr-parecido').innerHTML = '';
+    document.getElementById('pr-nuevo-caja').style.display = 'none';
+    pintarPrLista();
+    av('prod-aviso', 'Producto creado y agregado a la lista.', 'verde');
+  } catch (e) {
+    av('prod-aviso', 'No se pudo crear: ' + esc(e.message), 'rojo');
+  }
 }
 
 function prTurno(t) {
@@ -556,47 +601,36 @@ function prTurno(t) {
   document.getElementById('pr-t2').className = 'b ' + (t === 'tarde'  ? 'b-mora' : 'b-gris');
 }
 
+// Guarda UN LOTE POR PRODUCTO, todos con la misma fecha y turno.
+//
+// Por qué no un lote con varios productos: la diferencia entre lo declarado y
+// lo recibido es POR PRODUCTO. Si llegan 10 baldes de acai y 7 de pitaya
+// cuando se declararon 8, hay que saber cuál faltó. Un lote con una lista
+// adentro obligaría a repetir esa cuenta dentro de cada fila.
+//
+// Se retiran juntos igual: comparten día y turno, y el panel los muestra así.
 async function guardarLote() {
-  const sel = document.getElementById('pr-producto').value;
-  const cant = Number(document.getElementById('pr-cant').value) || 0;
+  const ids = Object.keys(prCant);
   const fecha = document.getElementById('pr-fecha').value;
 
-  if (!sel)        return av('prod-aviso', 'Elige qué produjiste.', 'rojo');
-  if (!(cant > 0)) return av('prod-aviso', 'Pon cuánto hiciste.', 'rojo');
-  if (!fecha)      return av('prod-aviso', 'Pon qué día lo retiran.', 'rojo');
-  if (!prTurnoSel) return av('prod-aviso',
+  if (!ids.length)  return av('prod-aviso', 'Pon cuánto hiciste de al menos un producto.', 'rojo');
+  if (!fecha)       return av('prod-aviso', 'Pon qué día lo retiran.', 'rojo');
+  if (!prTurnoSel)  return av('prod-aviso',
     'Elige si lo retiran en la mañana o en la tarde: el freezer es chico y hay ' +
     'que saber cuándo liberar espacio.', 'rojo');
 
+  const nota = document.getElementById('pr-nota').value.trim();
   const btn = document.getElementById('b-produje');
   btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
   try {
-    let prodId = sel;
-    if (sel === 'NUEVO') {
-      const nombre = document.getElementById('pr-nuevo').value.trim();
-      if (!nombre) {
-        av('prod-aviso', 'Escribe el nombre del producto nuevo.', 'rojo');
-        btn.innerHTML = 'Anotar'; btn.disabled = false; return;
-      }
-      // Nace marcado para revisión: el nombre es la llave que une producción,
-      // bodega y pedidos. La oficina lo revisa antes de publicarlo.
-      const r = await enviar('bod_productos', 'POST', [{
-        nombre, formato: document.getElementById('pr-formato').value.trim() || null,
-        unidad: document.getElementById('pr-unidad').value,
-        unidades_caja: 1, congelado: true, activo: true, revisar: true
-      }]);
-      const d = await r.json();
-      prodId = (Array.isArray(d) ? d[0] : d).id;
-      if (!prodId) throw new Error('no se pudo crear el producto');
-    }
-
-    await enviar('prod_lotes', 'POST', [{
-      producto_id: Number(prodId), declarada: cant, medida: 'caja',
-      fecha_retiro: fecha, turno: prTurnoSel,
-      nota: document.getElementById('pr-nota').value.trim(), quien
-    }]);
+    // Todos en una sola llamada: si falla, no queda la mitad anotada.
+    await enviar('prod_lotes', 'POST', ids.map(id => ({
+      producto_id: Number(id), declarada: prCant[id], medida: 'caja',
+      fecha_retiro: fecha, turno: prTurnoSel, nota, quien
+    })));
     await cargarTodo();
-    listo('Anotado', 'Lo van a retirar el ' + fechaCorta(fecha), () => abrirProduje());
+    listo(ids.length === 1 ? 'Anotado' : `Anotados ${ids.length}`,
+      'Los retiran el ' + fechaCorta(fecha), () => abrirProduje());
   } catch (e) {
     av('prod-aviso', '<b>No se pudo guardar.</b> ' + esc(e.message) +
       '<br>Nada quedó anotado: revisa y prueba otra vez.', 'rojo');
