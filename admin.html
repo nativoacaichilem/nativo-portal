@@ -1152,8 +1152,27 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
       <div><label>N° Factura</label><input id="mfact" type="text"></div>
     </div>
     <div class="fg" style="margin-bottom:12px">
-      <div><label id="mfentrega-lbl">Fecha de Entrega</label><input id="mfentrega" type="text" placeholder="DD/MM/AAAA"></div>
+      <div><label id="mfentrega-lbl">Fecha de Entrega</label>
+        <div style="display:flex;gap:6px">
+          <input id="mfentrega-dia" type="date" style="flex:1">
+          <input id="mfentrega-hora" type="time" style="width:110px;display:none">
+        </div>
+        <!-- El valor que se guarda sigue siendo texto en formato chileno, que
+             es como está toda la base. El calendario solo evita teclearlo. -->
+        <input id="mfentrega" type="hidden">
+        <div class="nota-campo" id="mfentrega-crudo" style="display:none"></div>
+      </div>
       <div><label id="mrecibe-lbl">Recibe</label><input id="mrecibe" type="text" placeholder="Nombre de quien recibe"></div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Momento del día</label>
+        <select id="mturno">
+          <option value="">Sin preferencia</option>
+          <option value="manana">☀️ Mañana</option>
+          <option value="tarde">🌙 Tarde</option>
+        </select>
+        <div class="nota-campo" style="display:block">Lo usa la sala de producción,
+          que tiene freezer chico. En el resto es solo una indicación.</div></div>
     </div>
     <div class="fg" style="margin-bottom:12px">
       <div><label>Fecha Pedido</label><input id="mfecha" type="text"></div>
@@ -1638,6 +1657,29 @@ function num(v) {
 
 // Hoy en formato ISO. `hoy()` devuelve el formato chileno, que sirve para
 // mostrar y NO para guardar: una columna `date` de Postgres lo rechaza.
+// ── fecha de entrega: texto chileno ↔ calendario ──
+//
+// En la base `fecha_entrega` es TEXTO en formato chileno, y en los retiros
+// lleva la hora pegada: "28/10/2026 11:00". Se conserva así a propósito:
+// cambiar el formato obligaría a migrar cuatrocientos pedidos y a tocar los
+// doce lugares que lo leen.
+//
+// El calendario solo evita teclearlo. Estas dos funciones traducen.
+function fechaAPartes(txt) {
+  const m = String(txt || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/);
+  if (!m) return { dia: '', hora: '', crudo: String(txt || '').trim() };
+  return {
+    dia: `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`,
+    hora: m[4] ? `${m[4].padStart(2,'0')}:${m[5]}` : '',
+    crudo: ''
+  };
+}
+function partesAFecha(dia, hora) {
+  if (!dia) return '';
+  const [a, m, d] = dia.split('-');
+  return `${d}/${m}/${a}` + (hora ? ' ' + hora : '');
+}
+
 // Un aviso flotante para los casos que no cuelgan de ninguna pantalla.
 //
 // Admin avisa dentro de cada sección con `alerta()`, pero cuando falla al
@@ -2271,7 +2313,8 @@ function render() {
       </td>
       <td data-rot="Fecha" style="font-size:12px;color:var(--textl);font-weight:600;white-space:nowrap">${hesc(p.fecha)||'—'}</td>
       <td class="td-emp">
-        <div style="font-weight:800;font-size:13px">${p.prioritario ? '⚡ ' : ''}${hesc(p.emp)}
+        <div style="font-weight:800;font-size:13px">${p.prioritario ? '⚡ ' : ''}${hesc(p.emp)}${
+          p.turno ? ` <span class="badge bpend">${p.turno === 'manana' ? '☀️ mañana' : '🌙 tarde'}</span>` : ''}
           ${chipBloqueo(clienteDelPedido(p))}</div>
         <div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:1px">${hesc(p.rut)}</div>
         ${folioHtml}
@@ -3478,7 +3521,7 @@ function modalEntregaCambio() {
   document.getElementById('mzona-box').style.display = ret ? 'none' : '';
   document.getElementById('mfentrega-lbl').textContent = ret ? 'Fecha y hora de retiro' : 'Fecha de Entrega';
   document.getElementById('mrecibe-lbl').textContent   = ret ? 'Quién retira' : 'Recibe';
-  document.getElementById('mfentrega').placeholder = ret ? 'DD/MM/AAAA 11:00' : 'DD/MM/AAAA';
+  document.getElementById('mfentrega-hora').style.display = ret ? '' : 'none';
 }
 
 // Reacciona al tipo elegido. Se llama al abrir el modal y cada vez que se
@@ -3555,7 +3598,17 @@ function abrir(id) {
   document.getElementById('mfecha').value    = p.fecha         || '';
   document.getElementById('mcontacto').value = p.contacto      || '';
   document.getElementById('mtel').value      = p.telefono      || '';
+  const fe = fechaAPartes(p.fecha_entrega);
+  document.getElementById('mfentrega-dia').value  = fe.dia;
+  document.getElementById('mfentrega-hora').value = fe.hora;
   document.getElementById('mfentrega').value = p.fecha_entrega || '';
+  // Si lo guardado no calza con el formato esperado, se muestra tal cual en
+  // vez de borrarlo en silencio: un dato raro escrito a mano sigue siendo un
+  // dato, y perderlo al abrir la ficha sería peor que mostrarlo.
+  const crudo = document.getElementById('mfentrega-crudo');
+  crudo.style.display = fe.crudo ? 'block' : 'none';
+  crudo.textContent = fe.crudo ? 'Guardado como: ' + fe.crudo : '';
+  document.getElementById('mturno').value = p.turno || '';
   document.getElementById('mrecibe').value   = p.recibe        || '';
   document.getElementById('mcom').value      = p.comentario    || '';
 
@@ -3627,7 +3680,15 @@ async function guardar() {
     fecha:         document.getElementById('mfecha').value.trim(),
     contacto:      document.getElementById('mcontacto').value.trim(),
     telefono:      document.getElementById('mtel').value.trim(),
-    fecha_entrega: document.getElementById('mfentrega').value.trim(),
+    fecha_entrega: (() => {
+      const d = document.getElementById('mfentrega-dia').value;
+      const h = document.getElementById('mfentrega-hora').value;
+      // Sin día elegido se conserva lo que hubiera: un texto raro que el
+      // calendario no supo leer no debe borrarse por abrir la ficha.
+      return d ? partesAFecha(d, h)
+               : document.getElementById('mfentrega').value.trim();
+    })(),
+    turno: document.getElementById('mturno').value,
     recibe:        document.getElementById('mrecibe').value.trim(),
     comentario:    document.getElementById('mcom').value.trim(),
     tipo,
