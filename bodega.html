@@ -868,6 +868,13 @@ tbody tr:hover td{background:#faf6ff}
           placeholder="13 dígitos" oninput="prRevisarEan(this,'pr-ean-msg')">
         <div class="hint" id="pr-ean-msg">Solo si también se vende suelto.</div></div>
     </div>
+    <!-- Lo que la sala de producción puede pedir a bodega. Se marca acá y no
+         se escribe en el código: una lista de nombres dentro del archivo deja
+         de calzar en silencio el día que alguien renombra un producto. -->
+    <div class="f1"><label class="chk"><input type="checkbox" id="pr-materia">
+      🏭 La sala de producción puede pedirlo</label>
+      <div class="hint" style="display:block">Aparece en el portal de producción,
+        en "necesito materia prima".</div></div>
     <div class="f1"><label class="chk"><input type="checkbox" id="pr-frio" onchange="prFrioManual()"> ❄️ Requiere cadena de frío</label>
       <div class="hint">Los congelados se muestran y se alertan aparte, y avisan
         cuando llegan a cero aunque no tengan mínimo definido.</div></div>
@@ -3639,6 +3646,7 @@ function abrirProducto(id) {
   document.getElementById('pr-costo').value   = p && Number(p.costo) > 0 ? p.costo : '';
   document.getElementById('pr-activo').checked = p ? p.activo !== false : true;
   document.getElementById('pr-frio').checked = p ? !!p.congelado : false;
+  document.getElementById('pr-materia').checked = p ? !!p.materia_prima : false;
   document.getElementById('pr-ean').value      = p ? (p.ean || '') : '';
   document.getElementById('pr-ean-caja').value = p ? (p.ean_caja || '') : '';
   prRevisarEan(document.getElementById('pr-ean'), 'pr-ean-msg');
@@ -3744,6 +3752,7 @@ async function guardarProducto() {
     unidades_caja: factor,
     costo: costo > 0 ? costo : null,
     ean, ean_caja: eanC,
+    materia_prima: document.getElementById('pr-materia').checked,
     congelado: document.getElementById('pr-frio').checked,
     activo: document.getElementById('pr-activo').checked };
 
