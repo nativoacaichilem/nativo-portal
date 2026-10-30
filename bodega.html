@@ -848,7 +848,7 @@ tbody tr:hover td{background:#faf6ff}
     </div>
     <div class="fg">
       <div><label for="pr-familia">Familia</label>
-        <input type="text" id="pr-familia" list="familias" placeholder="Ej: Congelados"
+        <input type="text" id="pr-familia" list="familias" placeholder="Ej: Baldes Congelados"
           oninput="prSugerirFrio()">
         <datalist id="familias"></datalist></div>
       <div><label for="pr-costo">Costo unitario (CLP)</label>
@@ -1367,13 +1367,13 @@ document.querySelectorAll('.mbg').forEach(bg => {
   bg.addEventListener('mousedown', e => { if (e.target === bg) cerrar(bg.id); });
 });
 
-function nombreBodega(id) { const b = bodegas.find(x => x.id === id); return b ? b.nombre : '—'; }
+function nombreBodega(id) { const b = bodegas.find(x => String(x.id) === String(id)); return b ? b.nombre : '—'; }
 function nombreProducto(id) {
-  const p = productos.find(x => x.id === id);
+  const p = productos.find(x => String(x.id) === String(id));
   return p ? p.nombre + (p.formato ? ' · ' + p.formato : '') : '—';
 }
-function nombreMotivo(id) { const m = motivos.find(x => x.id === id); return m ? m.nombre : ''; }
-function unidadDe(id) { const p = productos.find(x => x.id === id); return p && p.unidad ? p.unidad : 'un'; }
+function nombreMotivo(id) { const m = motivos.find(x => String(x.id) === String(id)); return m ? m.nombre : ''; }
+function unidadDe(id) { const p = productos.find(x => String(x.id) === String(id)); return p && p.unidad ? p.unidad : 'un'; }
 
 // ══════════════════════════════════════════════════════════════
 //  CAJAS Y UNIDADES
@@ -1385,7 +1385,7 @@ function unidadDe(id) { const p = productos.find(x => x.id === id); return p && 
 //  divide y ya está.
 // ══════════════════════════════════════════════════════════════
 function factorDe(id) {
-  const p = productos.find(x => x.id === id);
+  const p = productos.find(x => String(x.id) === String(id));
   const f = p ? Number(p.unidades_caja) || 1 : 1;
   return f >= 1 ? Math.floor(f) : 1;
 }
@@ -2341,7 +2341,7 @@ function renderGrafico() {
 
   const datos = [...acum.entries()]
     .map(([id, v]) => {
-      const mo = motivos.find(x => x.id === id);
+      const mo = motivos.find(x => String(x.id) === String(id));
       return { lbl: mo ? mo.nombre : 'Sin motivo', v, perdida: mo ? !!mo.es_perdida : false,
                color: (mo && mo.color) || null };
     })
@@ -2996,8 +2996,8 @@ async function revertir(id) {
 //  DETALLE PRODUCTO × BODEGA
 // ══════════════════════════════════════════════════════════════
 function verDetalle(bodegaId, productoId) {
-  const p = productos.find(x => x.id === productoId);
-  const b = bodegas.find(x => x.id === bodegaId);
+  const p = productos.find(x => String(x.id) === String(productoId));
+  const b = bodegas.find(x => String(x.id) === String(bodegaId));
   if (!p || !b) return;
   const s = saldoDe(bodegaId, productoId);
   const min = minimoDe(bodegaId, productoId);
@@ -3528,7 +3528,7 @@ function renderBodegas() {
 
 function abrirBodega(id) {
   bodegaEdit = id;
-  const b = id ? bodegas.find(x => x.id === id) : null;
+  const b = id ? bodegas.find(x => String(x.id) === String(id)) : null;
   document.getElementById('bd-title').textContent = b ? 'Editar bodega' : 'Nueva bodega';
   document.getElementById('bd-nombre').value = b ? b.nombre : '';
   document.getElementById('bd-ubic').value   = b ? b.ubicacion || '' : '';
@@ -3558,7 +3558,7 @@ async function guardarBodega() {
 }
 
 function pedirBorrarBodega(id) {
-  const b = bodegas.find(x => x.id === id);
+  const b = bodegas.find(x => String(x.id) === String(id));
   const usos = movs.filter(m => m.bodega_id === id || m.bodega_destino_id === id).length;
   document.getElementById('cf-title').textContent = 'Eliminar bodega';
   document.getElementById('cf-wrap-nota').style.display = 'none';
@@ -3629,7 +3629,7 @@ function renderProductos() {
 
 function abrirProducto(id) {
   productoEdit = id;
-  const p = id ? productos.find(x => x.id === id) : null;
+  const p = id ? productos.find(x => String(x.id) === String(id)) : null;
   document.getElementById('pr-title').textContent = p ? 'Editar producto' : 'Nuevo producto';
   document.getElementById('pr-nombre').value  = p ? p.nombre : '';
   document.getElementById('pr-formato').value = p ? p.formato || '' : '';
@@ -3760,7 +3760,7 @@ async function guardarProducto() {
 }
 
 function pedirBorrarProducto(id) {
-  const p = productos.find(x => x.id === id);
+  const p = productos.find(x => String(x.id) === String(id));
   const usos = movs.filter(m => m.producto_id === id).length;
   document.getElementById('cf-title').textContent = 'Eliminar producto';
   document.getElementById('cf-wrap-nota').style.display = 'none';
@@ -3957,7 +3957,7 @@ function renderMotivos() {
 
 function abrirMotivo(id) {
   motivoEdit = id;
-  const m = id ? motivos.find(x => x.id === id) : null;
+  const m = id ? motivos.find(x => String(x.id) === String(id)) : null;
   document.getElementById('mo-color').innerHTML = PALETA.map(c =>
     `<option value="${c}" style="background:${c}">${c}</option>`).join('');
   document.getElementById('mo-title').textContent = m ? 'Editar motivo' : 'Nuevo motivo';
@@ -3987,7 +3987,7 @@ async function guardarMotivo() {
     es_perdida: document.getElementById('mo-perdida').checked,
     color: document.getElementById('mo-color').value,
     activo: document.getElementById('mo-activo').checked,
-    orden: motivoEdit ? (motivos.find(m => m.id === motivoEdit).orden ?? 99) : motivos.length + 1 };
+    orden: motivoEdit ? (motivos.find(m => String(m.id) === String(motivoEdit)).orden ?? 99) : motivos.length + 1 };
 
   const b = document.getElementById('mo-guardar');
   b.disabled = true; b.innerHTML = '<span class="sp"></span>Guardando…';
@@ -4002,7 +4002,7 @@ async function guardarMotivo() {
 }
 
 function pedirBorrarMotivo(id) {
-  const m = motivos.find(x => x.id === id);
+  const m = motivos.find(x => String(x.id) === String(id));
   const usos = movs.filter(x => x.motivo_id === id).length;
   document.getElementById('cf-title').textContent = 'Eliminar motivo';
   document.getElementById('cf-wrap-nota').style.display = 'none';
@@ -4036,24 +4036,17 @@ function pedirBorrarMotivo(id) {
 //  escribir 78 productos a mano y evita que los nombres se separen.
 // ══════════════════════════════════════════════════════════════
 const CATALOGO = [
-  // Una sola familia para todo lo congelado, en el mismo orden que el portal:
-  // los açaí, las pitaya y los soft de un sabor. Antes eran Baldes Congelados
-  // y Congelados Retail.
-  //
-  // El tercer valor es cuántas unidades trae la caja. Desde octubre de 2026
-  // Scoopable, Fused y Puro se venden solo por caja, pero su unidad base sigue
-  // siendo el pote: así está guardado el saldo, y una caja abierta o un pote
-  // roto se siguen contando sueltos. Cambiarla obligaría a convertir todos los
-  // saldos. `Acai Puro` sigue acá aunque ya no esté en el portal: se vende a un
-  // solo cliente, pero se guarda y se descuenta igual que el resto.
-  ['Congelados', 'un', [['Balde Acai Nativo','3,6 L'],['Balde Acai Blue Monkey','3,6 L'],
-    ['Balde Acai Zero Blue Monkey','5 L'],['Balde Acai Riva','3,6 L'],
-    ['Acai Puro Blue Monkey','60×100 g · 6 kg'],
-    ['Scoopable Acai','500 ml', 12],['Acai Fused','4×100 g', 15],['Acai Puro','4×100 g', 15],
-    ['Balde Pitaya Blue Monkey','3,6 L'],['Balde Pitaya Zero Blue Monkey','5 L'],
-    ['Pitaya Puro Blue Monkey','60×100 g · 6 kg'],
-    ['Balde Yoghurt Griego Soft Blue Monkey','5 L'],['Balde Pistacho Soft Blue Monkey','5 L'],
-    ['Balde Mango Soft Blue Monkey','5 L'],['Balde Maracuya Soft Blue Monkey','5 L']]],
+  ['Baldes Congelados', 'un', [['Balde Acai Nativo','3,6 L'],['Balde Pitaya Blue Monkey','3,6 L'],
+    ['Balde Pitaya Zero Blue Monkey','5 L'],
+    ['Balde Acai Blue Monkey','3,6 L'],['Balde Acai Zero Blue Monkey','5 L'],
+    ['Balde Pistacho Soft Blue Monkey','5 L'],
+    ['Balde Mango Soft Blue Monkey','5 L'],['Balde Maracuya Soft Blue Monkey','5 L'],
+    ['Balde Acai Riva','3,6 L'],['Balde Yoghurt Griego Soft Blue Monkey','5 L']]],
+  // El tercer valor es cuántas unidades trae la caja. Estos tres se venden
+  // también suelto por la página web, así que la unidad base es el pote.
+  ['Congelados Retail', 'un', [['Scoopable Acai','500 ml', 12],
+    ['Acai Fused','4×100 g', 15],
+    ['Acai Puro','4×100 g', 15]]],
   ['Frutos Secos & Toppings', 'un', [['Cacao Nibs','0,1 kg'],['Castañas de caju','2 kg'],
     ['Avellana europea tostada','2 kg'],['Nueces cuarto','2 kg'],['Almendra Laminada','2 kg'],
     ['Oreo molidas','4 kg'],['Avena integral','2 kg'],['Chia','2 kg'],['Coco laminado','2 kg'],
@@ -4124,28 +4117,20 @@ async function intentarCatalogo(ruta) {
     let f;
     while ((f = reFam.exec(trozo))) {
       const fam = f[1];
-      // `u` es opcional: los productos que vienen en caja lo traen. Antes la
-      // expresión exigía cerrar la llave justo después del formato, así que un
-      // producto con `u` no se leía; y aunque se leyera, se importaba con una
-      // unidad por caja en vez de doce.
-      const reIt = /\{n:'((?:[^'\\]|\\.)*)',\s*f:'((?:[^'\\]|\\.)*)'(?:,\s*u:(\d+))?\s*\}/g;
+      const reIt = /\{n:'((?:[^'\\]|\\.)*)',\s*f:'((?:[^'\\]|\\.)*)'\}/g;
       let it;
       while ((it = reIt.exec(f[2]))) {
         const n = it[1].replace(/\\'/g, "'"), fo = it[2].replace(/\\'/g, "'");
-        if (n) out.push({ fam, un: unidadPorFamilia(fam), n, f: fo, uc: Number(it[3]) || 1 });
+        if (n) out.push({ fam, un: unidadPorFamilia(fam), n, f: fo });
       }
     }
     return out.length >= 20 ? out : null;   // si vinieron cuatro, algo se rompió
   } catch (_) { return null; }
 }
 
-// La familia 'Congelados Retail' devolvía 'caja' acá y 'un' en la copia
-// interna: el mismo producto entraba con una unidad u otra según de dónde se
-// leyera el catálogo. Al juntarla en Congelados las dos dicen 'un', que es lo
-// correcto para algo que se cuenta en potes aunque se venda por caja.
 function unidadPorFamilia(fam) {
   const f = (fam || '').toLowerCase();
-  if (f.includes('bars')) return 'caja';
+  if (f.includes('retail') || f.includes('bars')) return 'caja';
   return 'un';
 }
 
@@ -4238,7 +4223,7 @@ async function guardarImportar() {
 //  como venta, y la base no deja que eso ocurra sin número de factura.
 // ══════════════════════════════════════════════════════════════
 function motivoEsVenta(id) {
-  const m = motivos.find(x => x.id === id);
+  const m = motivos.find(x => String(x.id) === String(id));
   return !!(m && m.es_venta);
 }
 
