@@ -214,7 +214,11 @@ h2{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:4px}
         </div>
 
         <label>¿Qué día lo retiran?</label>
-        <input id="pr-fecha" type="date" style="margin-bottom:14px">
+        <input id="pr-fecha" type="date" style="margin-bottom:6px">
+        <div class="gris" style="margin-bottom:14px">
+          Si después hay que cambiar el día, avisa a la oficina: ellos saben
+          si el camión está libre.
+        </div>
 
         <label>¿En qué momento?</label>
         <div style="display:flex;gap:10px;margin-bottom:16px">
@@ -401,6 +405,11 @@ const prod = id => productos.find(p => String(p.id) === String(id)) || null;
 // que entra a la sala puede ser cualquier cosa, lo que sale de ella es
 // congelado.
 const congelados = () => productos.filter(p => p.congelado);
+
+// Lo que la sala puede pedir a bodega. Se marca en el producto, desde el
+// panel, y no se escribe acá: una lista de nombres en el código deja de
+// calzar en silencio el día que alguien renombra un producto.
+const materiasPrimas = () => productos.filter(p => p.materia_prima);
 function nombreProd(id) {
   const p = prod(id);
   if (!p) return 'producto ' + id;
@@ -623,14 +632,47 @@ async function guardarLote() {
   const btn = document.getElementById('b-produje');
   btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
   try {
+    // ── el pedido de retiro, primero ──
+    //
+    // Antes el lote vivía solo en `prod_lotes` y la pantalla de rutas no lo
+    // veía: había que crear el pedido a mano, y si alguien se olvidaba el
+    // camión no pasaba. Ahora se crea junto con el lote.
+    //
+    // Va PRIMERO porque el lote necesita su id. Si falla el pedido, no se
+    // anota nada y se puede reintentar entero; al revés quedarían lotes sin
+    // viaje, que es el problema que se está arreglando.
+    const detalle = ids.map(id => {
+      const p = prod(id);
+      return `${p.nombre}${p.formato ? ' (' + p.formato + ')' : ''} x${prCant[id]}`;
+    }).join(', ');
+
+    let pedidoId = null;
+    const rp = await enviar('pedidos', 'POST', [{
+      emp: 'Sala de producción · RETIRO',
+      dir: '',
+      detalle,
+      tipo: 'produccion',
+      turno: prTurnoSel,
+      fecha: hoyISO(),
+      fecha_entrega: fecha,
+      entrega: 'despacho',
+      estado: 'pendiente',
+      prioritario: true,
+      encargado: quien,
+      comentario: nota
+    }]);
+    try { const d = await rp.json(); pedidoId = (Array.isArray(d) ? d[0] : d).id; }
+    catch (_) {}
+
     // Todos en una sola llamada: si falla, no queda la mitad anotada.
     await enviar('prod_lotes', 'POST', ids.map(id => ({
       producto_id: Number(id), declarada: prCant[id], medida: 'caja',
-      fecha_retiro: fecha, turno: prTurnoSel, nota, quien
+      fecha_retiro: fecha, turno: prTurnoSel, nota, quien,
+      pedido_id: pedidoId
     })));
     await cargarTodo();
     listo(ids.length === 1 ? 'Anotado' : `Anotados ${ids.length}`,
-      'Los retiran el ' + fechaCorta(fecha), () => abrirProduje());
+      'Ya quedó en la ruta del ' + fechaCorta(fecha), () => abrirProduje());
   } catch (e) {
     av('prod-aviso', '<b>No se pudo guardar.</b> ' + esc(e.message) +
       '<br>Nada quedó anotado: revisa y prueba otra vez.', 'rojo');
@@ -658,7 +700,13 @@ function abrirPedir() {
 
 function pintarPedLista() {
   const cont = document.getElementById('ped-lista');
-  cont.innerHTML = productos.map(p => {
+  const lista = materiasPrimas();
+  if (!lista.length) {
+    cont.innerHTML = '<div class="aviso a-naranjo">La oficina todavía no ha ' +
+      'marcado qué puedes pedir. Avísales: se configura en Bodega → Productos.</div>';
+    return;
+  }
+  cont.innerHTML = lista.map(p => {
     const q = pedCant[p.id] || 0;
     return `<div class="fila">
       <div class="fila-n">${esc(p.nombre)}
@@ -707,7 +755,7 @@ async function guardarPedido() {
   btn.innerHTML = '<span class="sp"></span>Mandando...'; btn.disabled = true;
   try {
     await enviar('pedidos', 'POST', [{
-      emp: 'Sala de producción',
+      emp: 'Sala de producción · MATERIA PRIMA',
       dir: '',
       detalle,
       tipo: 'produccion',
@@ -762,7 +810,8 @@ function abrirHistorial() {
               ${esc(fechaCorta(l.fecha_retiro))}</span>
           </div>
           <div class="gris" style="margin-top:5px"><b>${esc(e.t)}</b>${
-            l.recibida != null ? ` · llegaron ${num(l.recibida)}` : ''}</div>
+            l.recibida != null ? ` · llegaron ${num(l.recibida)}` : ''}${
+            l.pedido_id ? ' · ya está en la ruta' : ''}</div>
           ${dif ? `<div class="dif">${dif < 0
               ? `Faltaron ${num(Math.abs(dif))} en el camino`
               : `Llegaron ${num(dif)} de más`}${
