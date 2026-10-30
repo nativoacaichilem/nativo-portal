@@ -5414,37 +5414,55 @@ function renderProduccion() {
     return;
   }
 
-  cont.innerHTML = abiertos.map(l => {
-    const p = bodProductos.find(x => String(x.id) === String(l.producto_id));
-    const nom = p ? p.nombre + (p.formato ? ' (' + p.formato + ')' : '')
-                  : 'producto #' + l.producto_id;
-    const hoyI = hoyISO();
-    const atrasado = String(l.fecha_retiro) < hoyI;
-    const esHoy = String(l.fecha_retiro) === hoyI;
+  // Agrupados por día y turno: así es como se retiran. Producción puede
+  // anotar cinco productos de una vez y todos se van en el mismo viaje;
+  // mostrarlos como cinco tarjetas sueltas haría parecer que son cinco
+  // paradas distintas.
+  const grupos = new Map();
+  abiertos.forEach(l => {
+    const k = l.fecha_retiro + '|' + l.turno;
+    if (!grupos.has(k)) grupos.set(k, { fecha: l.fecha_retiro, turno: l.turno, lotes: [] });
+    grupos.get(k).lotes.push(l);
+  });
 
-    return `<div style="border:1.5px solid ${atrasado ? 'var(--nd)' : 'var(--crema-d)'};
-                border-radius:12px;padding:14px;margin-bottom:12px;
-                background:${atrasado ? 'var(--nl)' : 'var(--white)'}">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start">
-        <div style="flex:1;min-width:220px">
-          <div style="font-weight:900;font-size:15px">${hesc(nom)}</div>
-          <div class="sub" style="margin:3px 0 0">
-            Declaró <b>${num(l.declarada)} ${l.medida === 'caja' ? 'caja(s)' : 'unidad(es)'}</b>
-            · retiro ${hesc(String(l.fecha_retiro).split('-').reverse().join('-'))}
-            ${hesc(TURNO_TXT[l.turno] || l.turno)}
-            ${atrasado ? ' · <b>ATRASADO</b>' : esHoy ? ' · <b>hoy</b>' : ''}
-          </div>
-          <div class="sub" style="margin:3px 0 0">👤 ${hesc(l.quien || 'sin firma')}</div>
-          ${l.nota ? `<div class="sub" style="margin:4px 0 0;color:var(--mora-d);
-            font-weight:800">💬 ${hesc(l.nota)}</div>` : ''}
+  const hoyI = hoyISO();
+  cont.innerHTML = [...grupos.values()]
+    .sort((a, b) => (a.fecha + a.turno).localeCompare(b.fecha + b.turno))
+    .map(g => {
+      const atrasado = String(g.fecha) < hoyI;
+      const esHoy = String(g.fecha) === hoyI;
+      return `<div style="border:1.5px solid ${atrasado ? 'var(--nd)' : 'var(--crema-d)'};
+                  border-radius:12px;padding:14px;margin-bottom:14px;
+                  background:${atrasado ? 'var(--nl)' : 'var(--white)'}">
+        <div style="font-weight:900;font-size:15px;margin-bottom:4px">
+          🚚 ${hesc(String(g.fecha).split('-').reverse().join('-'))}
+          · ${hesc(TURNO_TXT[g.turno] || g.turno)}
+          ${atrasado ? ' · <span style="color:var(--rd)">ATRASADO</span>'
+                     : esHoy ? ' · <span style="color:var(--mora-d)">hoy</span>' : ''}
         </div>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-        <button class="btn bmora bsm" onclick="abrirRecibir(${l.id})">📥 Recibir</button>
-        <button class="btn bol bsm" onclick="anularLote(${l.id})">Anular</button>
-      </div>
-    </div>`;
-  }).join('');
+        <div class="sub" style="margin-bottom:10px">
+          ${g.lotes.length} producto(s) para retirar en el mismo viaje</div>
+
+        ${g.lotes.map(l => {
+          const p = bodProductos.find(x => String(x.id) === String(l.producto_id));
+          const nom = p ? p.nombre + (p.formato ? ' (' + p.formato + ')' : '')
+                        : 'producto #' + l.producto_id;
+          return `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+                      padding:9px 0;border-top:1px solid var(--crema-d)">
+            <div style="flex:1;min-width:200px">
+              <b>${hesc(nom)}</b>
+              <div class="sub" style="margin:2px 0 0">
+                Declaró ${num(l.declarada)} ${l.medida === 'caja' ? 'caja(s)' : 'unidad(es)'}
+                · 👤 ${hesc(l.quien || 'sin firma')}</div>
+              ${l.nota ? `<div class="sub" style="margin:2px 0 0;color:var(--mora-d);
+                font-weight:800">💬 ${hesc(l.nota)}</div>` : ''}
+            </div>
+            <button class="btn bmora bsm" onclick="abrirRecibir(${l.id})">📥 Recibir</button>
+            <button class="btn bol bsm" onclick="anularLote(${l.id})">Anular</button>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }).join('');
 
   pintarPorRevisar();
 }
