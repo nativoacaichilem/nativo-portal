@@ -397,6 +397,11 @@ function sumar(id, cuanto) {
   e.value = Math.max(0, (Number(e.value) || 0) + cuanto);
 }
 const prod = id => productos.find(p => String(p.id) === String(id)) || null;
+
+// Lo que la sala puede producir. La materia prima NO se filtra por esto: lo
+// que entra a la sala puede ser cualquier cosa, lo que sale de ella es
+// congelado.
+const congelados = () => productos.filter(p => p.congelado);
 function nombreProd(id) {
   const p = prod(id);
   if (!p) return 'producto ' + id;
@@ -489,8 +494,11 @@ async function cargarTodo() {
 function abrirProduje() {
   mostrar('p-produje');
   const sel = document.getElementById('pr-producto');
+  // Solo congelados: es lo único que fabrica la sala, y mostrarle los
+  // cuarenta productos lo obliga a buscar entre cosas que nunca va a
+  // producir. Un producto nuevo creado desde acá nace congelado.
   sel.innerHTML = '<option value="">— Elige qué produjiste —</option>' +
-    productos.map(p => `<option value="${p.id}">${esc(p.nombre)}` +
+    congelados().map(p => `<option value="${p.id}">${esc(p.nombre)}` +
       `${p.formato ? ' · ' + esc(p.formato) : ''}${p.revisar ? ' (por revisar)' : ''}</option>`).join('') +
     '<option value="NUEVO">➕ Es un producto nuevo</option>';
   sel.value = '';
@@ -501,7 +509,11 @@ function abrirProduje() {
   document.getElementById('pr-nuevo-caja').style.display = 'none';
   document.getElementById('pr-fecha').value = hoyISO();
   prTurno('');
-  av('prod-aviso', '');
+  // Si no hay congelados, la lista sale con un solo elemento y nadie entiende
+  // por qué. Más vale decirlo que dejarlo mudo.
+  av('prod-aviso', congelados().length ? '' :
+    'No hay productos congelados en el catálogo. Puedes crear uno nuevo acá, ' +
+    'o pedirle a la oficina que marque los que correspondan.', 'naranjo');
 }
 
 function prProductoCambio() {
@@ -524,6 +536,9 @@ function prBuscarParecido() {
   const v = normTxt(document.getElementById('pr-nuevo').value);
   const caja = document.getElementById('pr-parecido');
   if (v.length < 4) { caja.innerHTML = ''; return; }
+  // Se busca en el catálogo COMPLETO, no solo en congelados: un nombre nuevo
+  // no debe chocar con ninguno existente, porque el panel descarga stock
+  // buscando por nombre y dos productos parecidos rompen ese cruce.
   const cerca = productos.filter(p => {
     const n = normTxt(p.nombre);
     return n.includes(v) || v.includes(n);
