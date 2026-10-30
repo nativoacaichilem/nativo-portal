@@ -1318,7 +1318,7 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
     </div>
 
     <div class="mact">
-      <button class="btn bgray bsm" onclick="cerrar('mod-recibir')">Cancelar</button>
+      <button class="btn bgray bsm" onclick="cerrarRecibir()">Cancelar</button>
       <button class="btn bmora bsm" id="rc-ok" onclick="confirmarRecibir()">
         Recibir y sumar al stock</button>
     </div>
@@ -5637,7 +5637,14 @@ function abrirRecibir(id) {
     : '<option value="">— no hay bodegas activas —</option>';
 
   rcPrevio();
-  abrir('mod-recibir');
+  // Ojo: en admin `abrir()` abre un PEDIDO, no un modal. Los modales se
+  // abren directo con la clase, como el resto del archivo.
+  document.getElementById('mod-recibir').classList.add('open');
+}
+
+function cerrarRecibir() {
+  document.getElementById('mod-recibir').classList.remove('open');
+  loteRec = null;
 }
 
 function rcPrevio() {
@@ -5722,7 +5729,7 @@ async function confirmarRecibir() {
       recibido: new Date().toISOString()
     });
 
-    cerrar('mod-recibir');
+    cerrarRecibir();
     loteRec = null;
     await cargarProduccion();
     await cargarBodega(true);
