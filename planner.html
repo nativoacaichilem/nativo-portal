@@ -796,7 +796,7 @@ async function plCargar() {
   }
 }
 
-const plActual = () => plPerfiles.find(p => p.id === plPersona) || null;
+const plActual = () => plPerfiles.find(p => String(p.id) === String(plPersona)) || null;
 
 function plCambiarPersona(id) {
   plPersona = id || null;
@@ -1052,7 +1052,10 @@ function plRenderSemana() {
   h += '</div>';
 
   // grilla
-  h += `<div class="pl-fila pl-cuerpo pl-editable" ${GC}>`;
+  // `pl-cuerpo` como clase no está definida en ninguna hoja y ningún JS la
+  // consulta: no hacía nada. El id `pl-cuerpo` del contenedor sí existe y es
+  // otra cosa.
+  h += `<div class="pl-fila pl-editable" ${GC}>`;
   h += `<div class="pl-gut" style="position:sticky;left:0;height:calc(var(--pxh) * ${R.h})">`;
   for (let m = R.a; m <= R.b; m += 60) {
     const cls = m === R.a ? ' tope' : (m === R.b ? ' base' : '');
@@ -1148,7 +1151,14 @@ function plRenderSemana() {
 async function plDensidad(v) {
   plCfg.densidad = v;
   plRender();
-  try { await sbSend(`${T_CFG}?id=eq.global`, 'PATCH', { densidad:v }); } catch (_) {}
+  try {
+    await sbSend(`${T_CFG}?id=eq.global`, 'PATCH', { densidad:v });
+  } catch (e) {
+    // Antes esto se tragaba el error. El cambio se veía aplicado, no se
+    // guardaba, y al recargar volvía atrás sin ninguna explicación. Ver el
+    // valor viejo sin saber por qué es peor que ver el error.
+    toast('No se pudo guardar el zoom: se pierde al recargar');
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1490,7 +1500,7 @@ function plNuevaTarea(fecha, ini, fin) {
 }
 
 function plEditarTarea(id, fecha) {
-  const t = plTareas.find(x => x.id === id);
+  const t = plTareas.find(x => String(x.id) === String(id));
   if (!t) return;
   plTareaEd = t; plFechaEd = fecha || t.fecha;
   const serie = t.rep.tipo === 'sem';
