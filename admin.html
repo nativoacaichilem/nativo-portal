@@ -1437,7 +1437,10 @@ const ZONAS_RESPALDO = [
   { id:'sur',      nombre:'Sur',      color:'#16a34a', orden:4, activa:true }
 ];
 
-const zonaPorId = id => zonas.find(z => z.id === id) || null;
+// Comparación por texto y no estricta: los ids llegan desde atributos del
+// HTML —donde todo es texto— y desde la base, donde pueden venir como número.
+// Una comparación estricta entre los dos falla sin decir nada.
+const zonaPorId = id => zonas.find(z => String(z.id) === String(id)) || null;
 const zonasVivas = () => zonas.filter(z => z.activa);
 
 // Lee un selector de canal. Si el elemento no existe todavía, es b2b.
@@ -2315,13 +2318,13 @@ function notaCelda(p) {
 }
 
 function pintarNota(id) {
-  const p = pedidos.find(x => x.id === id);
+  const p = pedidos.find(x => String(x.id) === String(id));
   const w = document.getElementById('nota-' + id);
   if (p && w) w.outerHTML = notaCelda(p);
 }
 
 function editarNota(id) {
-  const p = pedidos.find(x => x.id === id);
+  const p = pedidos.find(x => String(x.id) === String(id));
   const w = document.getElementById('nota-' + id);
   if (!p || !w) return;
   w.innerHTML = `<div class="nota-edit">
@@ -2342,7 +2345,7 @@ function editarNota(id) {
 }
 
 async function guardarNota(id) {
-  const p = pedidos.find(x => x.id === id);
+  const p = pedidos.find(x => String(x.id) === String(id));
   const ta = document.getElementById('nota-ta-' + id);
   if (!p || !ta) return;
   const texto = ta.value.trim();
@@ -2634,7 +2637,12 @@ function bodMotivoPropuesto(p) {
 async function abrirDescargo(pedidoId, tras) {
   const p = pedidos.find(x => String(x.id) === String(pedidoId));
   // Sin aviso, el botón "no hace nada" y no hay forma de saber por qué.
-  if (!p) { toastRojo('No encuentro ese pedido. Recarga la página.'); return; }
+  if (!p) {
+    toastRojo(pedidos.length
+      ? `No encuentro el pedido #${pedidoId} entre los ${pedidos.length} cargados.`
+      : 'Todavía no se han cargado los pedidos. Espera un momento.');
+    return;
+  }
 
   document.getElementById('ds-alert').innerHTML =
     '<div class="alert ai"><span class="sp"></span>Cargando bodega…</div>';
@@ -3517,8 +3525,13 @@ function pintarEncargados() {
 }
 
 function abrir(id) {
-  const p = pedidos.find(x => x.id === id);
-  if (!p) { toastRojo('No encuentro ese pedido. Recarga la página.'); return; }
+  const p = pedidos.find(x => String(x.id) === String(id));
+  if (!p) {
+    toastRojo(pedidos.length
+      ? `No encuentro el pedido #${id} entre los ${pedidos.length} cargados.`
+      : 'Todavía no se han cargado los pedidos. Espera un momento.');
+    return;
+  }
   eid = id;
   const ret = esRetiro(p);
 
@@ -4362,7 +4375,7 @@ const PRODS = [];
 CATS.forEach(c => c.items.forEach((it, i) =>
   PRODS.push({ id: c.id + '-' + i, cat: c.id, n: it.n, f: it.f, u: it.u || 1 })
 ));
-const prodById = id => PRODS.find(p => p.id === id) || null;
+const prodById = id => PRODS.find(p => String(p.id) === String(id)) || null;
 
 // ══════════════════════════════════════════════════════════════
 //  NOMBRES ANTIGUOS
