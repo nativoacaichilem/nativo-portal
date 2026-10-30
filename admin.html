@@ -5517,8 +5517,12 @@ async function renderProduccion() {
           ${atrasado ? ' · <span style="color:var(--rd)">ATRASADO</span>'
                      : esHoy ? ' · <span style="color:var(--mora-d)">hoy</span>' : ''}
         </div>
-        <div class="sub" style="margin-bottom:10px">
-          ${g.lotes.length} producto(s) para retirar en el mismo viaje</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+          <div class="sub" style="flex:1;min-width:180px">
+            ${g.lotes.length} producto(s) para retirar en el mismo viaje</div>
+          <button class="btn bol bsm" onclick="moverRetiro('${g.fecha}','${g.turno}')">
+            📅 Cambiar día u hora</button>
+        </div>
 
         ${g.lotes.map(l => {
           const p = bodProductos.find(x => String(x.id) === String(l.producto_id));
@@ -5591,6 +5595,58 @@ async function anularLote(id) {
   }
 }
 
+
+// Mueve el viaje completo a otro día o turno.
+//
+// Se mueven TODOS los lotes de ese grupo y su pedido de retiro a la vez: son
+// un solo viaje, y dejar la mitad en otro día haría que el camión pasara dos
+// veces por lo que entra en una.
+//
+// Los cambios internos pasan —se corre una producción, el camión se ocupa—
+// y sin esto habría que anular y volver a declarar, que pierde lo que
+// producción ya anotó.
+async function moverRetiro(fecha, turno) {
+  const grupo = lotes.filter(l =>
+    String(l.fecha_retiro) === String(fecha) && l.turno === turno &&
+    l.estado !== 'recibido' && l.estado !== 'anulado');
+  if (!grupo.length) return toastRojo('No encuentro ese retiro. Recarga la página.');
+
+  const nueva = prompt('¿Para qué día se pasa el retiro?\n\nFormato: AAAA-MM-DD',
+    String(fecha).slice(0, 10));
+  if (nueva === null) return;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(nueva.trim()))
+    return alerta('pr-alert', 'La fecha tiene que ir como AAAA-MM-DD.', 'ae');
+
+  const t = confirm('¿Se retira en la MAÑANA?\n\nAceptar = mañana · Cancelar = tarde')
+    ? 'manana' : 'tarde';
+
+  alerta('pr-alert', '<span class="sp"></span>Moviendo...', 'ai');
+  let bien = 0; const mal = []; let porQue = '';
+  const pedidosTocados = new Set();
+  for (const l of grupo) {
+    try {
+      await sbSend(`prod_lotes?id=eq.${l.id}`, 'PATCH',
+        { fecha_retiro: nueva.trim(), turno: t });
+      bien++;
+      if (l.pedido_id) pedidosTocados.add(l.pedido_id);
+    } catch (e) { mal.push(l.id); if (!porQue) porQue = String(e.message || e); }
+  }
+  // El pedido de retiro se mueve con ellos: si no, la ruta seguiría diciendo
+  // el día viejo y el camión pasaría cuando no corresponde.
+  for (const pid of pedidosTocados) {
+    try { await sbPatch(pid, { fecha_entrega: nueva.trim(), turno: t }); }
+    catch (e) { if (!porQue) porQue = String(e.message || e); }
+  }
+
+  await cargarProduccion();
+  await cargar();
+  renderProduccion();
+  alerta('pr-alert',
+    `${bien} lote(s) movidos al ${nueva.trim().split('-').reverse().join('-')} ` +
+    `${t === 'manana' ? 'en la mañana' : 'en la tarde'}.` +
+    (mal.length ? ` <b>No se pudo con ${mal.length}.</b> ${hesc(porQue)}` : ''),
+    mal.length ? 'an' : 'as');
+}
 
 // ── recibir un lote ──
 //
