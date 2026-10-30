@@ -319,10 +319,21 @@ input[type=checkbox]{
 .prod.on{background:#faf6ff}
 .prod-n{flex:1;font-size:12px;font-weight:700;line-height:1.35}
 .prod-f{font-size:10px;color:var(--textl);font-weight:700}
+/* El contador de muestra va bajo el nombre del producto y se ve distinto del
+   de venta —fondo amarillo, más chico—: son dos números en la misma fila y
+   confundirlos significa regalar lo que había que cobrar. */
+.stp-muestra{margin-top:5px;background:var(--am-l);border-radius:7px;
+  padding:3px 6px;display:inline-flex;gap:4px;align-items:center}
+.stp-muestra .mlbl{font-size:12px}
+.stp-muestra button{width:22px;height:22px;font-size:13px;border-color:#e3c64a}
+.stp-muestra input{width:38px;font-size:11px}
+
 .stp{display:flex;align-items:center;gap:4px;flex:0 0 auto}
 .stp button{width:26px;height:26px;border-radius:6px;border:1.5px solid var(--crema-d);background:var(--white);font-weight:900;cursor:pointer;color:var(--mora);font-size:15px;line-height:1;padding:0;font-family:'Nunito',sans-serif}
 .stp button:hover{border-color:var(--mora);background:var(--mora-xl)}
 .stp input{width:48px;text-align:center;padding:4px 2px;font-weight:800;font-size:12px}
+.stp .med-sel{width:auto;min-width:62px;padding:4px 6px;font-size:11px;font-weight:800;
+  border-radius:6px;background:var(--white);color:var(--mora)}
 .bweb{background:#e0f2fe;color:#075985;border:1px solid #7dd3fc}
 
 /* ── BARRA RESUMEN ── */
@@ -424,45 +435,6 @@ input[type=checkbox]{
    en que uno está no debería costar. */
 .dia.hoy{background:var(--am-l);border-color:var(--am);border-width:2.5px}
 .dia.pas{opacity:.55}
-/* El día que se está mirando en la lista. Borde morado por dentro, para que
-   se distinga del amarillo de hoy cuando son el mismo día. Un día pasado
-   elegido vuelve a verse entero: si lo estás mirando, no está de fondo. */
-.dia.sel{border-color:var(--mora);box-shadow:inset 0 0 0 2px var(--mora);opacity:1}
-.dia .dcab{display:flex;align-items:center;gap:6px}
-.dia .dcab .dnom{flex:1}
-/* La nota se edita con su propio botón: apretar el día ahora filtra la lista. */
-.dia .dedit{background:var(--white);border:1px solid var(--crema-d);border-radius:7px;
-  font-size:12px;line-height:1;padding:4px 6px;cursor:pointer}
-.dia .dedit:hover{border-color:var(--mora-l)}
-.dia .dcuenta{margin-top:auto;font-size:11px;font-weight:900;color:var(--mora)}
-.dia .dcuenta.listo{color:var(--vd)}
-
-/* La barra del día elegido, arriba de la lista. */
-.dia-barra{background:var(--mora-xl);border:1.5px solid #ddc9f5;border-radius:12px;
-  padding:12px 14px;margin-bottom:14px}
-.dia-barra .dtit{font-size:15px;font-weight:900;color:var(--mora-d)}
-.dia-barra .dsub{font-size:12px;font-weight:700;color:var(--mora);margin-top:2px}
-.dia-barra .dacc{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.dia-barra .dcabeza{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
-.dia-barra .dcabeza > div:first-child{flex:1;min-width:200px}
-/* Los cuatro pasos del día, en el orden en que se hacen. Un paso hecho se
-   pone verde: a media mañana se ve de un vistazo en qué va el despacho. */
-.pasos{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
-@media(max-width:860px){ .pasos{grid-template-columns:repeat(2,1fr)} }
-@media(max-width:520px){ .pasos{grid-template-columns:1fr} }
-.paso{background:var(--white);border:1.5px solid var(--crema-d);border-radius:11px;
-  padding:10px 11px;display:flex;flex-direction:column;gap:5px}
-.paso.hecho{border-color:#6ee7b7;background:#f0fdf7}
-.paso .ptit{font-size:12px;font-weight:900;color:var(--mora-d);display:flex;gap:7px;align-items:center}
-.paso .pnum{width:20px;height:20px;border-radius:50%;background:var(--crema-d);color:var(--textl);
-  display:flex;align-items:center;justify-content:center;font-size:11px;flex:0 0 20px}
-.paso.hecho .pnum{background:var(--vd);color:#fff}
-.paso .ptxt{font-size:11.5px;font-weight:700;color:var(--textl);line-height:1.45;flex:1}
-.paso .ptxt a{color:var(--mora);font-weight:800;cursor:pointer;text-decoration:underline}
-.paso .btn{width:100%}
-.ruta-dia{margin-top:12px}
-.ruta-dia .pbox{margin-top:8px;max-height:320px}
-.dia-barra .dbod{font-size:12px;font-weight:800;color:var(--nd);margin-top:8px}
 
 /* Pedido prioritario. Franja amarilla al costado, distinta de la roja del
    cliente bloqueado: son dos avisos que pueden darse a la vez en la misma
@@ -559,6 +531,7 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
     <button class="sec"     id="sec-rutas"    onclick="goTab('rutas',this)">🚚 Ruta</button>
     <button class="sec"     id="sec-clientes" onclick="goTab('clientes',this)">👥 Clientes</button>
     <button class="sec"     id="sec-aprobar"  onclick="goTab('aprobar',this)">✅ <span id="sec-aprobar-n">Aprobar</span></button>
+    <button class="sec"     id="sec-produccion" onclick="goTab('produccion',this)">🏭 <span id="sec-produccion-n">Producción</span></button>
     <button class="sec"     id="sec-zonas"    onclick="goTab('zonas',this)">🗺️ Zonas</button>
   </div>
 
@@ -604,9 +577,6 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
 
     <div class="card">
       <h2>📋 Pedidos</h2>
-      <!-- El día elegido arriba en la semana: qué hay que entregar y los botones
-           para cambiar el estado de todo eso de una vez. -->
-      <div id="dia-barra"></div>
       <div class="fb">
         <input type="text" id="buscar" placeholder="🔍 Buscar empresa, RUT, contacto o folio..." oninput="render()">
         <select id="fentrega" onchange="render()">
@@ -713,10 +683,11 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
         <div class="modal-section">Despacho y facturación</div>
         <div class="fg">
           <div><label>De dónde viene la venta</label>
-            <select id="wcanal">
+            <select id="wcanal" onchange="canalCambio('wz')">
               <option value="b2b">Cliente mayorista</option>
               <option value="web">🌐 Página web</option>
             </select>
+            <div class="nota-campo" id="wcanal-nota"></div>
           </div>
           <div><label>Tipo de entrega</label>
             <select id="wentrega" onchange="wzEntregaCambio()">
@@ -769,10 +740,11 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
       <div class="modal-section">Entrega</div>
       <div style="margin-bottom:12px">
         <label>De dónde viene la venta</label>
-        <select id="ncanal">
+        <select id="ncanal" onchange="canalCambio('man')">
           <option value="b2b">Cliente mayorista</option>
           <option value="web">🌐 Página web</option>
         </select>
+        <div class="nota-campo" id="ncanal-nota"></div>
       </div>
       <div class="fg">
         <div><label>Tipo de entrega</label>
@@ -913,6 +885,35 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
   </div>
 
   <!-- ── ZONAS ── -->
+  <!-- ══ SALA DE PRODUCCIÓN ══ -->
+  <div id="page-produccion" class="page">
+    <div class="card">
+      <h2>🏭 Lo que produjo la sala</h2>
+      <div class="sub">
+        Lo que hay que ir a buscar, con el día y el turno que pidió.
+        <br>
+        Al recibirlo confirmas <b>cuánto llegó de verdad</b>. Si no calza con lo
+        declarado, la diferencia queda anotada — es lo que dice, con el tiempo,
+        cuánto se pierde en el traspaso.
+      </div>
+      <div id="pr-alert"></div>
+      <div id="pr-lista" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        <h2 style="margin:0">🆕 Productos por revisar</h2>
+      </div>
+      <div class="sub">
+        Los creó producción y todavía no aparecen en el portal de clientes.
+        Revisa que el nombre esté bien escrito: es lo que usa el panel para
+        descargar stock, y una letra de diferencia hace que un pedido se
+        despache sin descontar.
+      </div>
+      <div id="pr-revisar" style="margin-top:12px"></div>
+    </div>
+  </div>
+
   <!-- ══ APROBAR LO DE BODEGA ══ -->
   <div id="page-aprobar" class="page">
     <div class="card">
@@ -1064,18 +1065,6 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
         </select>
       </div>
     </div>
-    <div class="fg" style="margin-bottom:12px">
-      <div>
-        <label>Estado</label>
-        <select id="mestado">
-          <option value="pendiente">Sin facturar</option>
-          <option value="facturado">Facturado</option>
-          <option value="en-ruta">En ruta</option>
-          <option value="entregado-sin-facturar">Entregado · sin facturar</option>
-          <option value="entregado">Entregado</option>
-        </select>
-      </div>
-    </div>
     <label style="display:flex;align-items:center;gap:9px;margin:0 0 14px;
       padding:11px 13px;background:var(--am-l);border-radius:10px;
       text-transform:none;font-size:14px;color:#78350f;font-weight:900">
@@ -1143,14 +1132,35 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
       </div>
     </div>
 
+    <!-- ══ LO QUE SE TOCA AL DESPACHAR ══
+         Estado, factura, fecha de entrega y quién recibe, juntos y en ese
+         orden. Antes el estado estaba arriba y la factura abajo, y la
+         secuencia de todos los días —facturado, en ruta, entregado— obligaba
+         a subir y bajar. Esta ventana se abre decenas de veces al día. -->
     <div class="modal-section" id="m-titulo-fact">Facturación y Entrega</div>
     <div class="fg" style="margin-bottom:12px">
+      <div>
+        <label>Estado</label>
+        <select id="mestado">
+          <option value="pendiente">Sin facturar</option>
+          <option value="facturado">Facturado</option>
+          <option value="en-ruta">En ruta</option>
+          <option value="entregado-sin-facturar">Entregado · sin facturar</option>
+          <option value="entregado">Entregado</option>
+        </select>
+      </div>
       <div><label>N° Factura</label><input id="mfact" type="text"></div>
-      <div><label>Fecha Pedido</label><input id="mfecha" type="text"></div>
     </div>
     <div class="fg" style="margin-bottom:12px">
       <div><label id="mfentrega-lbl">Fecha de Entrega</label><input id="mfentrega" type="text" placeholder="DD/MM/AAAA"></div>
       <div><label id="mrecibe-lbl">Recibe</label><input id="mrecibe" type="text" placeholder="Nombre de quien recibe"></div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Fecha Pedido</label><input id="mfecha" type="text"></div>
+      <div><label>Total de la factura</label>
+        <input id="mtotal" type="number" step="any" min="0" placeholder="Opcional">
+        <div class="nota-campo" style="display:block">Solo para calcular comisiones.
+          La plataforma no hace cuentas con esto.</div></div>
     </div>
 
     <div class="modal-section">Notas internas</div>
@@ -1284,6 +1294,37 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
 </div>
 
 <!-- ══ MODAL CERRAR EL PASADO ══ -->
+<!-- ══ RECIBIR UN LOTE DE PRODUCCIÓN ══
+     Acá se cierra el traspaso. Lo que se escribe en "cuánto llegó" es el
+     número que entra al stock, y la diferencia contra lo declarado es el dato
+     que dice cuánto se pierde entre la sala y la bodega. -->
+<div class="mbg" id="mod-recibir">
+  <div class="modal" style="max-width:520px">
+    <h3>📥 Recibir de producción</h3>
+    <div id="rc-alert"></div>
+    <div id="rc-ficha" class="alert ai" style="line-height:1.5"></div>
+
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>¿Cuánto llegó de verdad?</label>
+        <input id="rc-cant" type="number" step="any" min="0" oninput="rcPrevio()"></div>
+      <div><label>¿A qué bodega entra?</label><select id="rc-bodega"></select></div>
+    </div>
+
+    <div id="rc-dif"></div>
+
+    <div style="margin-bottom:4px">
+      <label id="rc-motivo-lbl">Nota</label>
+      <input id="rc-motivo" type="text" placeholder="Opcional">
+    </div>
+
+    <div class="mact">
+      <button class="btn bgray bsm" onclick="cerrar('mod-recibir')">Cancelar</button>
+      <button class="btn bmora bsm" id="rc-ok" onclick="confirmarRecibir()">
+        Recibir y sumar al stock</button>
+    </div>
+  </div>
+</div>
+
 <div class="mbg" id="modal-corte">
   <div class="modal" style="max-width:620px">
     <h3>🪧 Cerrar el historial anterior</h3>
@@ -1314,10 +1355,6 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
     <option value="entregado">Entregado</option>
   </select>
   <button class="btn bsm ab-apply" id="ab-btn" onclick="aplicarMasivo()">Aplicar</button>
-  <!-- Los días son los de la semana que se ve arriba. Para asignar a la
-       semana siguiente, se mueve la semana con la flecha. -->
-  <select id="ab-dia" title="Día de entrega de lo seleccionado"></select>
-  <button class="btn bsm ab-apply" id="ab-dia-btn" onclick="asignarDiaMasivo()">Asignar día</button>
   <button class="btn bsm ab-cancel" onclick="deselTabla()">✕ Deseleccionar</button>
 </div>
 
@@ -1345,7 +1382,7 @@ let clientes   = [];    // catálogo de clientes
 let sucursales = [];    // catálogo de sucursales
 let dirOK      = false; // true = tablas clientes/sucursales disponibles en Supabase
 let dirLoaded  = false;
-let wz         = { paso:1, cliente:null, sucursal:null, qtys:{} };
+let wz         = { paso:1, cliente:null, sucursal:null, qtys:{}, meds:{}, muestras:{} };
 
 // ── Zonas ──
 // Antes eran cuatro <option> repetidos en seis selectores del HTML más un
@@ -1545,6 +1582,7 @@ function pintarPestana(id) {
   }
   if (id === 'clientes') { renderClientes(); return; }
   if (id === 'aprobar')  { renderAprobar(); return; }
+  if (id === 'produccion') { renderProduccion(); return; }
   if (id === 'zonas')    { renderZonas(); return; }
   if (id === 'nuevo') {
     pintarCat('man');
@@ -1847,17 +1885,6 @@ async function sbPagina(tabla, query, clave) {
     let nuevos = 0;
     for (const f of d) {
       const kk = k(f);
-      // Una fila sin clave no se distingue de otra: el Set de abajo las trata
-      // a todas como repetidas, se queda con la primera y bota el resto, sin
-      // ningún error.
-      //
-      // Pasó de verdad con `agenda_dias`, cuya llave es la fecha y no tiene
-      // `id`. La franja de la semana mostraba solo la nota más temprana; las
-      // demás estaban guardadas en la base y nunca aparecían. Ahora una tabla
-      // sin id que llegue acá sin su clave falla a la vista.
-      if (kk === undefined || kk === null)
-        throw new Error(`Las filas de ${tabla} no traen id: hay que pasarle ` +
-          'a sbPagina la clave de esa tabla como tercer argumento.');
       if (!vistos.has(kk)) { vistos.add(kk); out.push(f); nuevos++; }
     }
     // Salir acá significa que se acabaron las filas: la lista está completa.
@@ -1930,6 +1957,43 @@ async function sbJson(path) {
 // también contiene la palabra "canal". O sea que un canal inválido dejaba de
 // mostrar el error y se guardaba con el valor por omisión, en silencio.
 async function sbPost(row) { return sbSend('pedidos', 'POST', row); }
+
+// Crea el pedido y, si hay líneas, las guarda apuntando a él.
+//
+// EL ORDEN IMPORTA: primero el pedido, después las líneas. Si fallan las
+// líneas, queda un pedido con su detalle en texto —legible, despachable— y
+// la oficina puede rehacerlas. Al revés no hay a qué apuntar.
+//
+// Si la tabla `pedido_lineas` todavía no existe, el pedido se guarda igual y
+// se avisa una vez: el detalle en texto sigue siendo la fuente y nada se
+// pierde.
+let lineasOK = true;
+async function sbPostConLineas(row, lineas) {
+  // El Worker devuelve la fila creada en todo POST, así que de acá sale el id.
+  const r = await sbSend('pedidos', 'POST', row);
+  if (!lineas || !lineas.length || !lineasOK) return r;
+
+  let id = null;
+  try { const d = await r.clone().json(); id = Array.isArray(d) ? (d[0] || {}).id : (d || {}).id; }
+  catch (_) {}
+  // Sin id no se pueden colgar las líneas. Pasa si el Worker no devuelve la
+  // fila creada; el pedido ya está guardado y el texto alcanza.
+  if (!id) return r;
+
+  try {
+    await sbSend('pedido_lineas', 'POST', lineas.map(l => ({ ...l, pedido_id: id })));
+  } catch (e) {
+    if (/pedido_lineas|404|PGRST/i.test(String(e.message))) lineasOK = false;
+    // Admin no tiene `toast`: avisa en el recuadro de la pantalla activa.
+    // Se marca como aviso y no como error porque el pedido SÍ se guardó y el
+    // detalle en texto está completo: es despachable tal cual.
+    const caja = document.querySelector('.page.act [id$="-alert"], .page.act #anv');
+    if (caja) caja.innerHTML = '<div class="alert an">El pedido se guardó, pero ' +
+      'las líneas no. El detalle en texto está completo y el pedido es ' +
+      'despachable; avisa para revisarlo.</div>';
+  }
+  return r;
+}
 async function sbPatch(id, row) { return sbSend(`pedidos?id=eq.${id}`, 'PATCH', row); }
 async function sbDelete(id)     { return sbSend(`pedidos?id=eq.${id}`, 'DELETE'); }
 
@@ -1966,6 +2030,7 @@ async function cargar() {
     cargarBodega().then(() => render());
     cargarPropuestas();
     cargarAgenda();
+    cargarProduccion();
   } catch(e) {
     document.getElementById('tbody').innerHTML =
       '<tr><td colspan="8" style="text-align:center;color:var(--rd);padding:28px;font-weight:700">' +
@@ -1998,7 +2063,6 @@ function filtrados() {
            : fe === 'web' ? esWeb(p)
            : p.estado === fe)) &&
     (!fn || (p.entrega || 'despacho') === fn) &&
-    (!diaFiltro || isoDeTexto(p.fecha_entrega) === diaFiltro) &&
     (!filtroSinDescargo || (
       ['en-ruta','entregado','entregado-sin-facturar'].includes(p.estado) &&
       !bodPedidosConMov.has(String(p.id))))
@@ -2017,7 +2081,6 @@ const cortesiasPendientes = () => pedidos.filter(p =>
 
 // Los contadores pinchables llevan la tabla a lo que representan
 function verSinFacturar() {
-  soltarDia();
   filtroSinDescargo = false;
   // el contador cuenta dos estados, así que el filtro tiene que cubrir los dos
   document.getElementById('festado').value = 'sf';
@@ -2028,7 +2091,6 @@ function verSinFacturar() {
 }
 
 function verEntregadoSinFacturar() {
-  soltarDia();
   filtroSinDescargo = false;
   document.getElementById('festado').value = 'entregado-sin-facturar';
   document.getElementById('fentrega').value = '';
@@ -2038,7 +2100,6 @@ function verEntregadoSinFacturar() {
 }
 
 function verRetirosPendientes() {
-  soltarDia();
   filtroSinDescargo = false;
   document.getElementById('fentrega').value = 'retiro';
   document.getElementById('fzona').value = '';
@@ -2123,8 +2184,6 @@ function render() {
   // función— así que la pantalla mostraba "23 pedidos" y una lista vacía.
   const lista = f.slice()
     .sort((a, b) => (b.prioritario ? 1 : 0) - (a.prioritario ? 1 : 0));
-
-  pintarBarraDia(lista);
 
   const tb = document.getElementById('tbody');
   if (!lista.length) {
@@ -2333,7 +2392,6 @@ function updateActionBar() {
   } else {
     bar.classList.remove('visible');
     document.getElementById('ab-estado').value = '';
-    document.getElementById('ab-dia').value = '';
   }
 }
 
@@ -2830,8 +2888,8 @@ async function guardarDescargo() {
     bodega_id: Number(l.bodega_id),
     bodega_destino_id: null,
     cantidad: Math.round((Number(l.cantidad) || 0) * 1000) / 1000,
-    // La medida sale de cómo se pidió la línea. Hoy todo se vende por caja,
-    // pero un pedido anterior a octubre de 2026 puede traer potes sueltos.
+    // La medida sale de cómo se pidió la línea: un pedido web puede traer
+    // potes sueltos y un B2B trae cajas cerradas.
     medida: l.medida === 'unidad' ? 'unidad' : 'caja',
     motivo_id: Number(l.motivo_id),
     // El número de factura viaja en `doc` incluso cuando el motivo no es venta:
@@ -3022,7 +3080,6 @@ async function quitarCorte() {
 }
 
 function verCortesias() {
-  soltarDia();
   filtroSinDescargo = false;
   document.getElementById('festado').value = 'cortesia';
   document.getElementById('fentrega').value = '';
@@ -3032,7 +3089,6 @@ function verCortesias() {
 }
 
 function verSinDescargo() {
-  soltarDia();
   document.getElementById('festado').value = '';
   document.getElementById('fentrega').value = '';
   document.getElementById('buscar').value = '';
@@ -3134,15 +3190,17 @@ async function agregar() {
   btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
 
   try {
-    await sbPost({
+    await sbPostConLineas({
       emp, rut, dir, zona: ret ? '' : zona, detalle: det,
       canal: canalDe('ncanal') ? 'web' : 'b2b',
       factura_num: fact, factura_nombre: '',
       estado: 'pendiente', fecha, entrega,
       contacto, telefono: tel,
       fecha_entrega: '', recibe: '', comentario: ''
-    });
-    alerta('anv', '✅ Pedido guardado correctamente.', 'as');
+    }, catLineas('man'));
+    const nm = catLineas('man').filter(l => l.tipo === 'muestra').length;
+    alerta('anv', '✅ Pedido guardado correctamente.' +
+      (nm ? ` Incluye ${nm} línea(s) de muestra, que no se facturan.` : ''), 'as');
     ['nemp','nrut','ndir','ndet','nfact','ncontacto','ntel'].forEach(id =>
       document.getElementById(id).value = ''
     );
@@ -3470,6 +3528,7 @@ function abrir(id) {
   document.getElementById('m-mensaje').textContent = msg;
 
   document.getElementById('mprio').checked = !!p.prioritario;
+  document.getElementById('mtotal').value = p.total_factura != null ? p.total_factura : '';
   document.getElementById('mtipo').value = tipoDe(p);
   document.getElementById('mencargado').value = p.encargado || '';
   pintarEncargados();
@@ -3537,6 +3596,13 @@ async function guardar() {
     comentario:    document.getElementById('mcom').value.trim(),
     tipo,
     prioritario:   document.getElementById('mprio').checked,
+    // Vacío se guarda como null, no como 0: "no lo he anotado" y "la factura
+    // fue de cero" son cosas distintas, y un cero haría que una comisión
+    // pendiente de registrar se vea como una comisión de cero.
+    total_factura: (() => {
+      const v = document.getElementById('mtotal').value.trim();
+      return v === '' ? null : (Number(v) || null);
+    })(),
     encargado:     document.getElementById('mencargado').value.trim()
     // `mensaje` no se envía a propósito: lo escribió el cliente y no se toca.
   };
@@ -3639,7 +3705,7 @@ function exportCSV() {
 // qué se hizo el martes pasado, que es justo lo que hace falta cuando algo no
 // cuadra.
 
-let agenda = [], agendaOK = false, agendaFalla = '', semanaOffset = 0;
+let agenda = [], agendaOK = false, semanaOffset = 0;
 
 const DIAS_CORTOS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 
@@ -3657,28 +3723,8 @@ function lunesDe(offset) {
 const aISO = d =>
   `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 
-// Una fecha escrita a mano, en ISO, o '' si no se entiende.
-//
-// `fecha_entrega` se escribe en formato chileno —"21/10/2026", a veces con la
-// hora del retiro detrás— y la franja la comparaba directo contra la fecha ISO
-// de cada caja. No calzaba nunca, así que el "N entrega(s)" de cada día no
-// apareció desde que se hizo la franja. Se acepta también el ISO tal cual, por
-// si algún día ese campo se guarda bien.
-function isoDeTexto(t) {
-  const s = String(t || '').trim();
-  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
-  m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4}|\d{2})\b/);
-  if (!m) return '';
-  const anio = m[3].length === 2 ? '20' + m[3] : m[3];
-  return `${anio}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
-}
-
 function semanaMover(a) {
   semanaOffset = a === 0 ? 0 : semanaOffset + a;
-  // Cambiar de semana suelta el día elegido: quedaría filtrando la lista por
-  // una fecha que ya no se ve arriba, y no se entendería por qué.
-  if (diaFiltro) { diaFiltro = null; render(); }
   cargarAgenda();
 }
 
@@ -3686,14 +3732,10 @@ async function cargarAgenda() {
   const l = lunesDe(semanaOffset);
   const f = new Date(l); f.setDate(f.getDate() + 6);
   try {
-    // La llave de esta tabla es la fecha: no tiene `id`. Sin la clave,
-    // sbPagina deduplicaba por un id que no existe y dejaba una sola nota por
-    // semana, la más temprana. Las otras se guardaban y nunca se veían.
     agenda = await sbPagina('agenda_dias',
-      `select=*&fecha=gte.${aISO(l)}&fecha=lte.${aISO(f)}&order=fecha.asc`,
-      x => String(x.fecha).slice(0, 10));
-    agendaOK = true; agendaFalla = '';
-  } catch (e) { agenda = []; agendaOK = false; agendaFalla = String(e.message || e); }
+      `select=*&fecha=gte.${aISO(l)}&fecha=lte.${aISO(f)}&order=fecha.asc`);
+    agendaOK = true;
+  } catch (e) { agenda = []; agendaOK = false; }
   pintarAgenda();
 }
 
@@ -3703,9 +3745,7 @@ function pintarAgenda() {
   if (!agendaOK) {
     cont.innerHTML = '<div class="alert ai" style="line-height:1.5">' +
       'No se pudo leer <b>agenda_dias</b>. Corre <b>PREPARADO_prioridad_agenda.sql</b> ' +
-      'en Supabase y revisa que la tabla esté en la lista del Worker, en <b>/salud</b>.' +
-      (agendaFalla ? '<br><span style="font-weight:400;font-size:12px">Detalle: ' +
-        hesc(agendaFalla) + '</span>' : '') + '</div>';
+      'en Supabase y revisa que la tabla esté en la lista del Worker, en <b>/salud</b>.</div>';
     return;
   }
   const l = lunesDe(semanaOffset);
@@ -3714,31 +3754,21 @@ function pintarAgenda() {
   for (let i = 0; i < 7; i++) {
     const d = new Date(l); d.setDate(d.getDate() + i);
     const iso = aISO(d);
-    const nota = notaDelDia(iso);
-    const delDia = pedidosDelDia(iso);
-    const listos = delDia.filter(p => yaEntregado(p.estado)).length;
-    const clases = ['dia', iso === hoyIso ? 'hoy' : '', iso < hoyIso ? 'pas' : '',
-                    iso === diaFiltro ? 'sel' : ''].join(' ');
-    h += `<div class="${clases}" onclick="verDia('${iso}')"
-            title="Ver los pedidos que se entregan este día">
-      <div class="dcab">
-        <div class="dnom">${DIAS_CORTOS[d.getDay()]} ${d.getDate()}</div>
-        <button class="dedit" onclick="event.stopPropagation(); editarDia('${iso}')"
-          title="Escribir a dónde se despacha">✏️</button>
-      </div>
+    const nota = (agenda.find(x => String(x.fecha).slice(0, 10) === iso) || {}).nota || '';
+    const cuantos = pedidos.filter(p => String(p.fecha_entrega || '').slice(0, 10) === iso).length;
+    h += `<div class="dia ${iso === hoyIso ? 'hoy' : ''} ${iso < hoyIso ? 'pas' : ''}"
+            onclick="editarDia('${iso}')" title="Escribir a dónde se despacha">
+      <div class="dnom">${DIAS_CORTOS[d.getDay()]} ${d.getDate()}</div>
       ${nota ? `<div class="dnota">${hesc(nota)}</div>`
              : '<div class="dvacio">— sin anotar —</div>'}
-      ${delDia.length ? `<div class="dcuenta ${listos === delDia.length ? 'listo' : ''}">${
-        delDia.length} pedido${delDia.length === 1 ? '' : 's'}${
-        listos ? (listos === delDia.length ? ' · ✔ todo entregado' : ` · ${listos} ✔`) : ''}</div>` : ''}
+      ${cuantos ? `<div class="dnom" style="margin-top:auto">${cuantos} entrega(s)</div>` : ''}
     </div>`;
   }
   cont.innerHTML = `<div class="semana">${h}</div>`;
-  pintarOpcionesDia();
 }
 
 async function editarDia(iso) {
-  const actual = notaDelDia(iso);
+  const actual = (agenda.find(x => String(x.fecha).slice(0, 10) === iso) || {}).nota || '';
   const v = prompt(`¿A dónde se despacha el ${iso.split('-').reverse().join('-')}?\n\n` +
     'Deja vacío para borrar la nota.', actual);
   if (v === null) return;
@@ -3763,322 +3793,6 @@ async function editarDia(iso) {
   } catch (e) {
     alerta('agenda-alert', 'No se pudo guardar la nota: ' + hesc(e.message), 'ae');
   }
-}
-
-
-// ══════════════════════════════════════════════════════════════
-//  LOS PEDIDOS DE CADA DÍA
-// ══════════════════════════════════════════════════════════════
-//
-// Un pedido se asigna a un día con su `fecha_entrega`, que ya existía y se
-// escribe en formato chileno. Desde la lista se marcan los pedidos y se les
-// pone el día; apretando un día de la semana, la lista muestra solo los de
-// ese día, y desde ahí se pasan todos a "en ruta" o a "entregado".
-//
-// POR QUÉ `fecha_entrega` Y NO UNA COLUMNA NUEVA. Es el dato que ya se
-// escribía a mano en cada pedido, el que lee la franja para contar entregas y
-// el que dice si un retiro ya está coordinado. Una columna aparte serían dos
-// fechas para lo mismo, y tarde o temprano dirían cosas distintas.
-
-let diaFiltro = null;   // fecha ISO del día elegido arriba, o null
-
-const notaDelDia = iso =>
-  (agenda.find(x => String(x.fecha).slice(0, 10) === iso) || {}).nota || '';
-
-const pedidosDelDia = iso => pedidos.filter(p => isoDeTexto(p.fecha_entrega) === iso);
-
-// '2026-10-22' → '22/10/2026', el formato en que se escribe a mano.
-function fechaCL(iso) {
-  const [a, m, d] = String(iso).split('-');
-  return `${d}/${m}/${a}`;
-}
-
-// La fecha de entrega nueva de un pedido. Si la que tenía traía algo después
-// de la fecha —la hora de un retiro, "21/10/2026 11:00"—, eso se conserva:
-// mover un retiro de día no debería borrar la hora que se acordó.
-function nuevaFechaEntrega(actual, iso) {
-  if (!iso) return '';
-  const m = String(actual || '').trim()
-    .match(/^(?:\d{4}-\d{2}-\d{2}|\d{1,2}[\/.\-]\d{1,2}[\/.\-](?:\d{4}|\d{2}))\b\s*(.*)$/);
-  const resto = m ? m[1].trim() : '';
-  return fechaCL(iso) + (resto ? ' ' + resto : '');
-}
-
-// Va en el camión: no es un retiro y todavía no se entrega.
-const vaEnCamion = p => !esRetiro(p) && !yaEntregado(p.estado || 'pendiente');
-
-// Lista para la ruta: facturada, o algo que no se factura (muestra, merma,
-// tarea). Un número de factura escrito cuenta aunque el estado no se haya
-// cambiado, y uno que ya está en ruta sigue contando: rearmar la ruta a media
-// mañana no debería sacarlo.
-const listoParaRuta = p => p.estado === 'facturado' || p.estado === 'en-ruta' ||
-  noEsVenta(p) || !!String(p.factura_num || '').trim();
-
-// En qué estado queda un pedido al marcar el día. null = no cambia.
-//
-// Nunca se retrocede: un pedido ya entregado no vuelve a "en ruta".
-//
-// "En ruta" es para lo que va en la ruta: no a un retiro, que no sube al
-// camión, ni a una venta que todavía no se factura, que quedó fuera de la
-// ruta a propósito. "Entregado" sí aplica a un retiro: significa que lo
-// vinieron a buscar.
-//
-// "Entregado" no es un solo estado. Una venta sin factura queda como
-// ENTREGADO · SIN FACTURAR, no como entregado a secas: "entregado" saca el
-// pedido de la lista de lo que falta cobrar, y marcar de una vez todo el día
-// no puede ser la forma en que una factura pendiente desaparece.
-function estadoDelDia(p, accion) {
-  const e = p.estado || 'pendiente';
-  if (yaEntregado(e)) return null;
-  if (accion === 'en-ruta') {
-    if (!vaEnCamion(p) || e === 'en-ruta' || !listoParaRuta(p)) return null;
-    return 'en-ruta';
-  }
-  if (noEsVenta(p)) return 'entregado';
-  const facturado = e === 'facturado' || !!String(p.factura_num || '').trim();
-  return facturado ? 'entregado' : 'entregado-sin-facturar';
-}
-
-function verDia(iso) {
-  if (diaFiltro === iso) return quitarDia();
-  diaFiltro = iso;
-  // Se limpian los demás filtros: al apretar un día se quiere ver TODO lo de
-  // ese día, y un filtro de zona olvidado escondería pedidos sin decirlo.
-  filtroSinDescargo = false;
-  ['buscar', 'festado', 'fentrega', 'fzona'].forEach(id => {
-    const e = document.getElementById(id); if (e) e.value = '';
-  });
-  pintarAgenda();
-  render();
-  const b = document.getElementById('dia-barra');
-  if (b) b.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function quitarDia() {
-  diaFiltro = null;
-  pintarAgenda();
-  render();
-}
-
-// Para los atajos de los contadores: llevan a otra lista, así que el día deja
-// de estar elegido. No repinta la lista porque cada atajo lo hace después.
-function soltarDia() {
-  if (!diaFiltro) return;
-  diaFiltro = null;
-  pintarAgenda();
-}
-
-// La ruta armada para el día, con los pedidos que llevaba. Se guarda en la
-// sesión para que la lista pueda repintarse —cada vez que se busca, cada vez
-// que se factura uno— sin perder el texto.
-let rutaDia = null;   // { iso, ids:[...], texto, hora }
-
-// El día como se lee: "Jueves 22/10/2026".
-function nombreDia(iso) {
-  const [a, m, d] = iso.split('-').map(Number);
-  const n = new Date(a, m - 1, d).toLocaleDateString('es-CL', { weekday: 'long' });
-  return n.charAt(0).toUpperCase() + n.slice(1) + ' ' + fechaCL(iso);
-}
-
-// Todo lo del día en un lugar, en el orden en que se hace: facturar, armar la
-// ruta, sacarla y cerrarla.
-function pintarBarraDia(lista) {
-  const caja = document.getElementById('dia-barra');
-  if (!caja) return;
-  if (!diaFiltro) { caja.innerHTML = ''; return; }
-
-  const nota = notaDelDia(diaFiltro);
-  const total = pedidosDelDia(diaFiltro).length;
-  const ocultos = total - lista.length;
-  const entregados = lista.filter(p => yaEntregado(p.estado)).length;
-
-  const camion  = lista.filter(vaEnCamion);
-  const faltan  = camion.filter(p => !listoParaRuta(p));
-  const listos  = camion.filter(listoParaRuta);
-  const retiros = lista.filter(p => esRetiro(p) && !yaEntregado(p.estado)).length;
-  const aRuta = lista.filter(p => estadoDelDia(p, 'en-ruta')).length;
-  const aEntregado = lista.filter(p => estadoDelDia(p, 'entregado')).length;
-  const enRuta = lista.filter(p => p.estado === 'en-ruta').length;
-
-  // El día está cerrado cuando todo lo que tiene se entregó. Ahí los cuatro
-  // pasos quedan hechos, aunque ya no quede nada "por facturar" que contar.
-  const cerrado = total > 0 && entregados === lista.length;
-
-  // ¿La ruta armada sigue siendo la de hoy? Queda vieja si apareció un pedido
-  // listo que no estaba —se facturó uno más— o si uno de los que llevaba ya
-  // no es de este día. Que un pedido salga a ruta o se entregue no la
-  // envejece: es justamente lo que se espera que pase.
-  const ruta = rutaDia && rutaDia.iso === diaFiltro ? rutaDia : null;
-  const idsDelDia = new Set(pedidosDelDia(diaFiltro).map(p => p.id));
-  const rutaVieja = !!ruta && (listos.some(p => !ruta.ids.includes(p.id)) ||
-                               ruta.ids.some(id => !idsDelDia.has(id)));
-
-  // Lo que ya salió sin descontar stock, de este día. Se dice acá porque el
-  // cambio de estado de todo el día no descarga bodega, y es justo el momento
-  // de acordarse.
-  const sinBod = bodListo ? lista.filter(p =>
-    ['en-ruta', 'entregado', 'entregado-sin-facturar'].includes(p.estado) &&
-    !esTarea(p) && !bodPedidosConMov.has(String(p.id))).length : 0;
-
-  const enlaces = l => l.slice(0, 5).map(p =>
-    `<a onclick="abrir(${p.id})" title="Abrir para facturar">${hesc(p.emp)}</a>`).join(', ') +
-    (l.length > 5 ? ` y ${l.length - 5} más` : '');
-
-  const paso = (n, hecho, tit, txt, boton) => `<div class="paso ${hecho ? 'hecho' : ''}">
-      <div class="ptit"><span class="pnum">${hecho ? '✓' : n}</span>${tit}</div>
-      <div class="ptxt">${txt}</div>${boton}</div>`;
-
-  // ① Facturar
-  const p1 = paso(1, cerrado || (camion.length > 0 && !faltan.length), 'Facturar',
-    faltan.length ? `${listos.length} de ${camion.length} listos. Falta: ${enlaces(faltan)}.`
-    : camion.length ? `Los ${camion.length} están listos.`
-    : cerrado ? 'Listo.' : 'Nada que despachar en camión.', '');
-
-  // ② Armar la ruta
-  const p2 = paso(2, cerrado || (!!ruta && !rutaVieja), 'Armar la ruta',
-    ruta && !rutaVieja ? `Armada a las ${hesc(ruta.hora)} con ${ruta.ids.length} parada${ruta.ids.length === 1 ? '' : 's'}.`
-    : cerrado ? 'Listo.'
-    : !listos.length ? 'Cuando haya pedidos facturados, se arma acá.'
-    : ruta && rutaVieja ? '<b style="color:var(--nd)">La lista cambió desde que la armaste.</b> Vuelve a armarla.'
-    : faltan.length ? `Se puede armar con los ${listos.length} listos y dejar fuera los que faltan.`
-    : `${listos.length} parada${listos.length === 1 ? '' : 's'}.`,
-    listos.length
-      ? `<button class="btn ${faltan.length && !ruta ? 'bol' : 'bam2'} bsm" onclick="armarRutaDia()">${
-          ruta ? '↻ Volver a armar' : faltan.length ? `Armar con los ${listos.length} listos` : '✨ Armar la ruta'}</button>`
-      : '');
-
-  // ③ En ruta
-  const p3 = paso(3, cerrado || (!aRuta && enRuta > 0), 'Salir a ruta',
-    aRuta ? `${aRuta} pasa${aRuta === 1 ? '' : 'n'} a "en ruta".`
-    : enRuta ? `${enRuta} en ruta.` : cerrado ? 'Listo.' : 'Nada listo para salir.',
-    `<button class="btn bmora bsm" ${aRuta ? '' : 'disabled'} onclick="marcarDia('en-ruta')">
-       🚚 Poner en ruta${aRuta ? ' (' + aRuta + ')' : ''}</button>`);
-
-  // ④ Entregado
-  const p4 = paso(4, total > 0 && entregados === lista.length, 'Entregado',
-    aEntregado ? `${aEntregado} por cerrar.` + (retiros ? ` Incluye ${retiros} retiro${retiros === 1 ? '' : 's'}.` : '')
-    : entregados ? 'Todo entregado.' : 'Nada por cerrar.',
-    `<button class="btn bgreen bsm" ${aEntregado ? '' : 'disabled'} onclick="marcarDia('entregado')">
-       ✅ Marcar entregados${aEntregado ? ' (' + aEntregado + ')' : ''}</button>`);
-
-  caja.innerHTML = `<div class="dia-barra">
-    <div class="dcabeza">
-      <div>
-        <div class="dtit">📅 ${hesc(nombreDia(diaFiltro))}${nota ? ' · ' + hesc(nota) : ''}</div>
-        <div class="dsub">${total ? `${total} pedido${total === 1 ? '' : 's'} para este día` +
-          (retiros ? ` · ${retiros} retiro${retiros === 1 ? '' : 's'}, que no va${retiros === 1 ? '' : 'n'} en el camión` : '')
-          : 'No hay pedidos con esta fecha de entrega. Márcalos en la lista y usa ' +
-            '<b>Asignar día</b> en la barra de abajo.'}${
-          ocultos ? ` · <b>${ocultos} no se ven</b> por los filtros de la lista` : ''}</div>
-      </div>
-      <button class="btn bgray bsm" onclick="quitarDia()">✕ Ver todos los pedidos</button>
-    </div>
-    ${total ? `<div class="pasos">${p1}${p2}${p3}${p4}</div>` : ''}
-    ${ruta ? `<div class="ruta-dia">
-      <div class="dsub">Sale desde <b>${hesc(origenRuta())}</b> · se cambia en la pestaña Ruta.</div>
-      <div class="pbox" id="pout-dia">${hesc(ruta.texto)}</div>
-      <button class="bcopy" id="bcopy-dia" onclick="copiarDe('pout-dia', this)">📋 Copiar y pegar en Claude</button>
-    </div>` : ''}
-    ${sinBod ? `<div class="dbod">📦 ${sinBod} de este día ya salieron sin descargar bodega.
-      Hazlo con el botón de cada fila.</div>` : ''}
-  </div>`;
-}
-
-// Arma el prompt de la ruta con los pedidos del día que van en el camión y
-// están listos. Los mismos que pasan después a "en ruta", así que lo que se
-// le manda a Claude y lo que sale de la bodega son la misma lista.
-function armarRutaDia() {
-  if (!diaFiltro) return;
-  const listos = filtrados().filter(p => vaEnCamion(p) && listoParaRuta(p));
-  if (!listos.length) return;
-  const [a, m, d] = diaFiltro.split('-').map(Number);
-  const fecha = new Date(a, m - 1, d).toLocaleDateString('es-CL', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const ahora = new Date();
-  rutaDia = {
-    iso: diaFiltro,
-    ids: listos.map(p => p.id),
-    texto: textoRuta(listos, 'el ' + fecha, notaDelDia(diaFiltro)),
-    hora: `${ahora.getHours()}:${String(ahora.getMinutes()).padStart(2, '0')}`
-  };
-  render();
-  const b = document.getElementById('pout-dia');
-  if (b) b.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-// Cambia el estado de todos los pedidos del día que se están viendo. Actúa
-// sobre la lista visible y no sobre todo el día a ciegas: si alguien filtró
-// por zona, cambia lo que tiene a la vista, que es lo que el botón dice.
-async function marcarDia(accion) {
-  const lista = filtrados();
-  const cambios = lista.map(p => ({ p, e: estadoDelDia(p, accion) })).filter(x => x.e);
-  if (!cambios.length) return;
-
-  const quedan = lista.length - cambios.length;
-  const sinFact = cambios.filter(x => x.e === 'entregado-sin-facturar').length;
-  const sinFacturar = lista.filter(p => vaEnCamion(p) && !listoParaRuta(p));
-  const msg = accion === 'en-ruta'
-    ? `¿Poner ${cambios.length} pedido(s) en ruta?` +
-      (sinFacturar.length ? `\n\nQuedan fuera porque no están facturados: ` +
-        sinFacturar.map(p => p.emp).join(', ') + '.' : '') +
-      (quedan - sinFacturar.length > 0
-        ? `\n\n${quedan - sinFacturar.length} no cambian: ya se entregaron, ya estaban en ruta o son retiros.` : '')
-    : `¿Marcar ${cambios.length} pedido(s) como entregados?` +
-      (sinFact ? `\n\n${sinFact} no tienen factura y quedan como "Entregado · sin facturar", ` +
-        'para que sigan apareciendo en lo que falta cobrar.' : '') +
-      (quedan ? `\n\n${quedan} ya estaban entregados.` : '');
-  if (!confirm(msg)) return;
-
-  const r = await Promise.allSettled(cambios.map(x => sbPatch(x.p.id, { estado: x.e })));
-  const malos = r.filter(x => x.status === 'rejected');
-  await cargar();
-  // Igual que el cambio masivo de la barra de abajo, esto NO descarga bodega:
-  // cada pedido sale de una bodega distinta y descontar a ciegas es peor que
-  // no descontar. La barra del día cuenta los que quedaron pendientes.
-  alert((malos.length
-      ? `${cambios.length - malos.length} de ${cambios.length} se actualizaron. ` +
-        `${malos.length} fallaron: ${malos[0].reason && malos[0].reason.message || ''}`
-      : `${cambios.length} pedido(s) actualizados.`) +
-    (bodListo ? '\n\nEl stock NO se descontó: hazlo con el botón 📦 Descargar de cada fila.' : ''));
-}
-
-// Las opciones de "Asignar día" en la barra de abajo: los siete días de la
-// semana que se ve arriba, con su nota, para elegir "mié 22 · Viña" y no una
-// fecha suelta.
-function pintarOpcionesDia() {
-  const sel = document.getElementById('ab-dia');
-  if (!sel) return;
-  const antes = sel.value;
-  const l = lunesDe(semanaOffset);
-  let h = '<option value="">— Día de entrega —</option>';
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(l); d.setDate(d.getDate() + i);
-    const iso = aISO(d), nota = notaDelDia(iso);
-    h += `<option value="${iso}">${DIAS_CORTOS[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}${
-      nota ? ' · ' + hesc(nota) : ''}</option>`;
-  }
-  h += '<option value="__quitar">Quitar la fecha</option>';
-  sel.innerHTML = h;
-  sel.value = antes;
-}
-
-async function asignarDiaMasivo() {
-  const v = document.getElementById('ab-dia').value;
-  if (!v) { alert('Elige el día.'); return; }
-  if (!checked.length) return;
-
-  const btn = document.getElementById('ab-dia-btn');
-  btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true;
-  const r = await Promise.allSettled(checked.map(id => {
-    const p = pedidos.find(x => x.id === id) || {};
-    return sbPatch(id, { fecha_entrega: v === '__quitar' ? '' : nuevaFechaEntrega(p.fecha_entrega, v) });
-  }));
-  const malos = r.filter(x => x.status === 'rejected').length;
-  await cargar();
-  pintarAgenda();          // los contadores de cada día cambian
-  if (malos) alert(`${r.length - malos} de ${r.length} pedidos quedaron con su día. ` +
-                   `${malos} fallaron; vuelve a intentar con esos.`);
-  btn.innerHTML = 'Asignar día'; btn.disabled = false;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -4385,16 +4099,10 @@ function deselRuta() {
 // escribirlo cada día.
 const ORIGEN_POR_OMISION = 'Huechuraba, Santiago de Chile';
 
-// El campo vive en la pestaña Ruta y se llena al abrirla. El panel del día
-// arma rutas sin pasar por ahí, así que si el campo está vacío se lee lo
-// guardado: si no, la ruta saldría desde el origen por omisión aunque el
-// equipo haya cambiado el suyo.
 function origenRuta() {
   const e = document.getElementById('ruta-origen');
   const v = (e && e.value || '').trim();
-  if (v) return v;
-  try { const g = (localStorage.getItem('nativo_ruta_origen') || '').trim(); if (g) return g; } catch (_) {}
-  return ORIGEN_POR_OMISION;
+  return v || ORIGEN_POR_OMISION;
 }
 
 function cargarOrigen() {
@@ -4448,12 +4156,12 @@ function totalesTexto(lista) {
     '\n\n';
 }
 
-// El texto que se le pega a Claude para ordenar la ruta. Lo usan la pestaña
-// Ruta y el panel del día: una sola función para que las dos rutas se pidan
-// igual. `cuando` es "hoy jueves, 22 de octubre…" o "el jueves, 22 de…", y
-// `nota` es lo anotado para ese día en la semana —"Viña"—, que le dice a
-// Claude hacia dónde va el camión.
-function textoRuta(s, cuando, nota) {
+function genPrompt() {
+  if (!selRuta.length) { alert('Selecciona al menos un pedido.'); return; }
+  const s    = pedidos.filter(p => selRuta.includes(p.id));
+  const fecha = new Date().toLocaleDateString('es-CL', {
+    weekday:'long', year:'numeric', month:'long', day:'numeric'
+  });
   const lista = s.map((p, i) =>
     `\nPEDIDO ${i+1}:\n` +
     `- Cliente: ${p.emp}\n` +
@@ -4470,10 +4178,9 @@ function textoRuta(s, cuando, nota) {
     (p.factura_num ? `\n- Factura N°: ${p.factura_num}` : '')
   ).join('\n');
 
-  return (
-    `Necesito que organices la ruta de despacho más eficiente para ${cuando}.\n\n` +
+  const txt =
+    `Necesito que organices la ruta de despacho más eficiente para hoy ${fecha}.\n\n` +
     `Punto de partida: ${origenRuta()}.\n\n` +
-    (nota ? `Destino anotado para ese día: ${nota}.\n\n` : '') +
     `Pedidos a entregar:\n${lista}\n\n` +
     totalesTexto(s) +
     `Por favor:\n` +
@@ -4484,26 +4191,15 @@ function textoRuta(s, cuando, nota) {
     `Dirección: [Dirección]\n` +
     `Productos: [Detalle]\n` +
     `🗺 Google Maps: https://www.google.com/maps/dir/?api=1&destination=[DIRECCIÓN CODIFICADA]&travelmode=driving\n\n` +
-    `3. Al final: total por zona, estimación del recorrido y justificación del orden.`);
-}
+    `3. Al final: total por zona, estimación del recorrido y justificación del orden.`;
 
-function genPrompt() {
-  if (!selRuta.length) { alert('Selecciona al menos un pedido.'); return; }
-  const s = pedidos.filter(p => selRuta.includes(p.id));
-  const fecha = new Date().toLocaleDateString('es-CL', {
-    weekday:'long', year:'numeric', month:'long', day:'numeric'
-  });
   document.getElementById('pres').style.display = 'block';
-  document.getElementById('pout').textContent   = textoRuta(s, 'hoy ' + fecha);
+  document.getElementById('pout').textContent   = txt;
 }
 
-// El botón de la pestaña Ruta. Se busca dentro de su cuadro: ahora hay otro
-// botón de copiar en el panel del día, más arriba en la página, y buscar el
-// primero de la página tomaría ese.
-function copiar() { copiarDe('pout', document.querySelector('#pres .bcopy')); }
-
-function copiarDe(idTexto, b) {
-  const txt = document.getElementById(idTexto).textContent;
+function copiar() {
+  const txt = document.getElementById('pout').textContent;
+  const b = document.querySelector('.bcopy');
   const listo = () => {
     b.textContent = '✅ ¡Copiado! Pégalo en Claude';
     setTimeout(() => b.textContent = '📋 Copiar y pegar en Claude', 3000);
@@ -4522,7 +4218,7 @@ function copiarDe(idTexto, b) {
   function seleccionar() {
     try {
       const r = document.createRange();
-      r.selectNodeContents(document.getElementById(idTexto));
+      r.selectNodeContents(document.getElementById('pout'));
       const sel = window.getSelection();
       sel.removeAllRanges(); sel.addRange(r);
       b.textContent = '👆 Texto seleccionado · copia con Ctrl+C';
@@ -4537,32 +4233,24 @@ function copiarDe(idTexto, b) {
 //  CATÁLOGO DE PRODUCTOS (espejo de index.html)
 // ══════════════════════════════════════════════════════════════
 const CATS = [
-  // Todo lo congelado en una sola categoría, ordenado por sabor: los açaí, las
-  // pitaya y después los soft de un solo sabor. Es el mismo orden que en el
-  // portal, para que un pedido se lea igual en las dos pantallas.
-  //
-  // `u` es cuántas unidades trae la caja. Desde octubre de 2026 todo se vende
-  // por caja; `u` queda porque bodega cuenta esos productos en potes y el
-  // descargo tiene que multiplicar.
-  //
-  // `Acai Puro` está acá y NO en el portal: se vende a un solo cliente, que no
-  // usa el portal, así que sus pedidos se cargan desde este panel.
-  {id:'congelados', icon:'🧊', label:'Congelados', items:[
+  {id:'baldes', icon:'🧊', label:'Baldes Congelados', items:[
     {n:'Balde Acai Nativo', f:'3,6 L'},
-    {n:'Balde Acai Blue Monkey', f:'3,6 L'},
-    {n:'Balde Acai Zero Blue Monkey', f:'5 L'},
-    {n:'Balde Acai Riva', f:'3,6 L'},
-    {n:'Acai Puro Blue Monkey', f:'60×100 g · 6 kg'},
-    {n:'Scoopable Acai', f:'500 ml', u:12},
-    {n:'Acai Fused', f:'4×100 g', u:15},
-    {n:'Acai Puro', f:'4×100 g', u:15},
     {n:'Balde Pitaya Blue Monkey', f:'3,6 L'},
     {n:'Balde Pitaya Zero Blue Monkey', f:'5 L'},
-    {n:'Pitaya Puro Blue Monkey', f:'60×100 g · 6 kg'},
-    {n:'Balde Yoghurt Griego Soft Blue Monkey', f:'5 L'},
+    {n:'Balde Acai Blue Monkey', f:'3,6 L'},
+    {n:'Balde Acai Zero Blue Monkey', f:'5 L'},
     {n:'Balde Pistacho Soft Blue Monkey', f:'5 L'},
     {n:'Balde Mango Soft Blue Monkey', f:'5 L'},
-    {n:'Balde Maracuya Soft Blue Monkey', f:'5 L'}
+    {n:'Balde Maracuya Soft Blue Monkey', f:'5 L'},
+    {n:'Balde Acai Riva', f:'3,6 L'},
+    {n:'Balde Yoghurt Griego Soft Blue Monkey', f:'5 L'}
+  ]},
+  // `u` es cuántas unidades trae la caja. Los productos con u > 1 se pueden
+  // pedir por unidad suelta, que es como los vende la página web.
+  {id:'retail', icon:'🛒', label:'Congelados Retail', items:[
+    {n:'Scoopable Acai', f:'500 ml', u:12},
+    {n:'Acai Fused', f:'4×100 g', u:15},
+    {n:'Acai Puro', f:'4×100 g', u:15}
   ]},
   {id:'toppings', icon:'🌰', label:'Frutos Secos & Toppings', items:[
     {n:'Cacao Nibs', f:'0,1 kg'},
@@ -4688,10 +4376,6 @@ function factorCat(nombre) {
 //
 //  Una línea sin sufijo son cajas, así que los 400 y tantos pedidos que ya
 //  existen se leen exactamente igual que antes.
-//
-//  Desde octubre de 2026 ya no se vende por unidad y el panel no escribe más
-//  "un". Se sigue LEYENDO porque hay pedidos anteriores que lo traen, y su
-//  descargo de bodega tiene que descontar potes y no cajas.
 const RE_LINEA = /^(.*?)\s*\(([^)]*)\)\s*[x×]\s*([\d.,]+)\s*(cajas?|un|unidades?)?\s*$/i;
 
 function leerLinea(texto) {
@@ -4706,10 +4390,8 @@ function leerLinea(texto) {
   };
 }
 
-// Siempre en cajas. El sufijo " cajas" va en los productos que tienen caja
-// para que la línea se lea sin ambigüedad; los demás no lo necesitan.
-function escribirLinea(prod, cantidad) {
-  const suf = Number(prod.u) > 1 ? ' cajas' : '';
+function escribirLinea(prod, cantidad, medida) {
+  const suf = medida === 'unidad' ? ' un' : (Number(prod.u) > 1 ? ' cajas' : '');
   return `${prod.n} (${prod.f}) x${cantidad}${suf}`;
 }
 
@@ -5210,7 +4892,7 @@ function pickCliente(id) {
   alerta('wz-alert', avisoBloqueo(c), 'ae');
   if (!wz.cliente || String(wz.cliente.id) !== String(c.id)) {
     wz.sucursal = null;
-    wz.qtys = {};
+    wz.qtys = {}; wz.muestras = {};
   }
   wz.cliente = c;
   const s = sucsDe(c);
@@ -5276,10 +4958,20 @@ function pickSucursal(id) {
 // ══════════════════════════════════════════════════════════════
 //  PASO 3 — PEDIDO
 // ══════════════════════════════════════════════════════════════
-// El canal —mayorista o página web— queda anotado en el pedido y nada más.
-// Hasta octubre de 2026 un pedido web proponía cada producto en caja por unidad
-// suelta; desde entonces todo se vende por caja, así que el canal ya no cambia
-// nada del catálogo.
+// Cambiar el canal no toca lo ya elegido: solo cambia la medida por omisión
+// de las filas que todavía no se han tocado a mano, y lo dice.
+function canalCambio(pre) {
+  const web = pre === 'wz' ? canalDe('wcanal') : canalDe('ncanal');
+  const nota = document.getElementById(pre === 'wz' ? 'wcanal-nota' : 'ncanal-nota');
+  if (nota) {
+    nota.textContent = web
+      ? 'Los productos que vienen en caja se piden por unidad salvo que digas lo contrario.'
+      : '';
+    nota.style.display = web ? 'block' : 'none';
+  }
+  pintarCat(pre);
+  if (CTX[pre] && CTX[pre].alCambiar) CTX[pre].alCambiar();
+}
 
 function wzEntregaCambio() {
   const ret = document.getElementById('wentrega').value === 'retiro';
@@ -5348,17 +5040,41 @@ function pintarCat(pre) {
   el.innerHTML = html || '<div class="empty">Sin coincidencias en el catálogo.</div>';
 }
 
-// Todo se pide por caja. Hasta octubre de 2026 los productos que vienen en
-// caja —Scoopable, Fused, Acai Puro— tenían al lado un selector caja/un y se
-// podían vender sueltos; se dejó de vender por unidad y el selector se fue.
-//
-// El pie sigue diciendo a cuántas unidades equivale lo pedido: es lo que
-// después se descuenta en bodega, que cuenta en potes.
 function prodRow(p, pre) {
   const q = CTX[pre].qtys[p.n] || 0;
-  return `<div class="prod ${q ? 'on' : ''}" id="pr-${pre}-${p.id}">
-    <div class="prod-n">${hesc(p.n)}<div class="prod-f">${hesc(pieProducto(p, q))}</div></div>
+  const md = medDe(pre, p.n);
+  // El selector solo aparece en los productos que vienen en caja y se venden
+  // sueltos. En el resto estorbaría: no hay nada que elegir.
+  const selMed = Number(p.u) > 1
+    ? `<select class="med-sel" onchange="qMedida('${pre}','${p.id}',this.value)"
+         title="¿Se pide por caja o por unidad?">
+         <option value="caja"${md === 'caja' ? ' selected' : ''}>caja</option>
+         <option value="unidad"${md === 'unidad' ? ' selected' : ''}>un</option>
+       </select>` : '';
+  const pie = Number(p.u) > 1
+    ? `<div class="prod-f">${hesc(p.f)} · caja de ${p.u}${
+        q && md === 'caja' ? ` · son ${q * p.u} un` : ''}</div>`
+    : `<div class="prod-f">${hesc(p.f)}</div>`;
+
+  // ── la muestra, al lado de la venta ──
+  //
+  // Aparece solo cuando ya hay cantidad vendida o cuando ya hay muestra: un
+  // segundo contador en cada uno de los cuarenta productos convierte el
+  // catálogo en un muro de números y hace más lento el caso normal, que es
+  // vender sin regalar nada.
+  const qm = CTX[pre].muestras ? (CTX[pre].muestras[p.n] || 0) : 0;
+  const cajaMuestra = (CTX[pre].conMuestras && (q || qm))
+    ? `<div class="stp stp-muestra" title="Cuántas van de regalo, sin cobrar">
+         <span class="mlbl">🎁</span>
+         <button type="button" onclick="qMuestra('${pre}','${p.id}',-1)">−</button>
+         <input type="number" min="0" id="qm-${pre}-${p.id}" value="${qm}"
+           onchange="qMuestraSet('${pre}','${p.id}',this.value)">
+         <button type="button" onclick="qMuestra('${pre}','${p.id}',1)">+</button>
+       </div>` : '';
+  return `<div class="prod ${q || qm ? 'on' : ''}" id="pr-${pre}-${p.id}">
+    <div class="prod-n">${hesc(p.n)}${pie}${cajaMuestra}</div>
     <div class="stp">
+      ${selMed}
       <button type="button" onclick="qChg('${pre}','${p.id}',-1)">−</button>
       <input type="number" min="0" id="qi-${pre}-${p.id}" value="${q}"
         oninput="qSet('${pre}','${p.id}',this.value)">
@@ -5367,11 +5083,72 @@ function prodRow(p, pre) {
   </div>`;
 }
 
-// "500 ml · caja de 12 · son 36 un". Lo comparten la fila y el repintado al
-// cambiar la cantidad, para que las dos digan siempre lo mismo.
-function pieProducto(p, q) {
-  if (!(Number(p.u) > 1)) return p.f;
-  return `${p.f} · caja de ${p.u}` + (q ? ` · son ${q * p.u} un` : '');
+// La medida elegida para un producto en un formulario. Por omisión, caja:
+// la unidad se elige a propósito. En un pedido de la página web la omisión
+// se da vuelta, porque ahí lo normal es lo suelto.
+function medDe(pre, nombre) {
+  const c = CTX[pre];
+  if (!c) return 'caja';
+  if (c.meds && c.meds[nombre]) return c.meds[nombre];
+  return (c.canalWeb && c.canalWeb()) ? 'unidad' : 'caja';
+}
+
+function qMedida(pre, id, valor) {
+  const p = prodById(id); const c = CTX[pre];
+  if (!p || !c) return;
+  if (!c.meds) c.meds = {};
+  c.meds[p.n] = valor === 'unidad' ? 'unidad' : 'caja';
+  pintarCat(pre);                 // el pie de la fila cambia con la medida
+  if (c.alCambiar) c.alCambiar();
+}
+
+// ── las muestras ──
+//
+// Se guardan aparte de `qtys` en vez de meterlas en la misma estructura: así
+// todo el código que ya lee `qtys` sigue viendo lo que se vende, sin cambiar,
+// y la muestra es información añadida en vez de un caso especial que cada
+// lector tiene que recordar.
+function qMuestra(pre, id, d) {
+  const p = prodById(id); if (!p || !CTX[pre]) return;
+  const c = CTX[pre];
+  if (!c.muestras) c.muestras = {};
+  qMuestraApply(pre, p, Math.max(0, (c.muestras[p.n] || 0) + d));
+}
+function qMuestraSet(pre, id, val) {
+  const p = prodById(id); if (!p || !CTX[pre]) return;
+  if (!CTX[pre].muestras) CTX[pre].muestras = {};
+  qMuestraApply(pre, p, Math.max(0, parseInt(val, 10) || 0), true);
+}
+function qMuestraApply(pre, p, v, saltarInput) {
+  const c = CTX[pre];
+  if (!c.muestras) c.muestras = {};
+  if (v > 0) c.muestras[p.n] = v; else delete c.muestras[p.n];
+  const inp = document.getElementById(`qm-${pre}-${p.id}`);
+  if (inp && !saltarInput) inp.value = v;
+  const row = document.getElementById(`pr-${pre}-${p.id}`);
+  if (row) row.classList.toggle('on', v > 0 || (c.qtys[p.n] || 0) > 0);
+  if (c.alCambiar) c.alCambiar();
+}
+
+// Las líneas de un pedido: lo vendido y lo regalado, por separado.
+//
+// Devuelve la forma que guarda `pedido_lineas`. El texto de `detalle` se
+// sigue escribiendo igual para poder leer el pedido sin cruzar tablas.
+function catLineas(pre) {
+  const c = CTX[pre];
+  if (!c) return [];
+  const out = [];
+  let orden = 0;
+  PRODS.forEach(p => {
+    const med = medDe(pre, p.n);
+    const v = c.qtys[p.n] || 0;
+    const m = (c.muestras && c.muestras[p.n]) || 0;
+    if (v > 0) out.push({ producto_id: p.id, texto: escribirLinea(p, v, med),
+                          cantidad: v, medida: med, tipo: 'venta', orden: orden++ });
+    if (m > 0) out.push({ producto_id: p.id, texto: escribirLinea(p, m, med),
+                          cantidad: m, medida: med, tipo: 'muestra', orden: orden++ });
+  });
+  return out;
 }
 
 function qChg(pre, id, d) {
@@ -5393,7 +5170,15 @@ function qApply(pre, p, v, saltarInput) {
   // pedido, así que hay que repintarlo al cambiar la cantidad.
   if (Number(p.u) > 1) {
     const cel = row && row.querySelector('.prod-f');
-    if (cel) cel.textContent = pieProducto(p, v);
+    if (cel) cel.textContent = `${p.f} · caja de ${p.u}` +
+      (v && medDe(pre, p.n) === 'caja' ? ` · son ${v * p.u} un` : '');
+  }
+  // Cuando la cantidad pasa de 0 a algo —o al revés— aparece o desaparece el
+  // contador de muestra, así que hay que redibujar la fila entera.
+  if (c.conMuestras && row) {
+    const tenia = !!row.querySelector('.stp-muestra');
+    const deberia = v > 0 || (c.muestras && c.muestras[p.n] > 0);
+    if (tenia !== deberia) pintarCat(pre);
   }
   if (c.alCambiar) c.alCambiar();
 }
@@ -5403,8 +5188,15 @@ function qApply(pre, p, v, saltarInput) {
 // último pedido" y el descargo de bodega.
 function catDetalle(pre, extraId) {
   const c = CTX[pre];
-  const del = PRODS.filter(p => c.qtys[p.n])
-                   .map(p => escribirLinea(p, c.qtys[p.n]));
+  const del = [];
+  PRODS.forEach(p => {
+    const med = medDe(pre, p.n);
+    if (c.qtys[p.n]) del.push(escribirLinea(p, c.qtys[p.n], med));
+    // La muestra se marca en el texto. Quien lea el pedido en un correo o en
+    // la hoja de carga tiene que poder distinguirla sin abrir el sistema.
+    if (c.muestras && c.muestras[p.n])
+      del.push(escribirLinea(p, c.muestras[p.n], med) + ' [muestra]');
+  });
   const extra = extraId
     ? (document.getElementById(extraId).value || '')
         .split('\n').map(x => x.trim().replace(/,$/, '')).filter(Boolean)
@@ -5417,34 +5209,57 @@ function catResumen(pre) {
   // Se cuentan bultos, no unidades: sumar cajas con potes sueltos daría un
   // número que no significa nada. Lo que importa acá es cuántas líneas hay.
   const bultos = e.reduce((a, [, q]) => a + q, 0);
+  const sueltos = e.filter(([k]) => medDe(pre, k) === 'unidad' && factorCat(k) > 1).length;
   return { n: e.length, unidades: bultos,
     texto: e.length
-      ? `${e.length} producto${e.length > 1 ? 's' : ''} · ${bultos} bulto${bultos > 1 ? 's' : ''}`
+      ? `${e.length} producto${e.length > 1 ? 's' : ''} · ${bultos} bulto${bultos > 1 ? 's' : ''}` +
+        (sueltos ? ` · ${sueltos} por unidad` : '')
       : 'Sin productos seleccionados',
-    lista: e.map(([k, q]) => `${k} ×${q}`).join(', ') };
+    lista: e.map(([k, q]) => `${k} ×${q}${
+      medDe(pre, k) === 'unidad' && factorCat(k) > 1 ? ' un' : ''}`).join(', ') };
 }
 
 function catLimpiar(pre) {
   Object.keys(CTX[pre].qtys).forEach(k => delete CTX[pre].qtys[k]);
+  if (CTX[pre].meds) Object.keys(CTX[pre].meds).forEach(k => delete CTX[pre].meds[k]);
   pintarCat(pre);
   if (CTX[pre].alCambiar) CTX[pre].alCambiar();
 }
 
 // El asistente sigue funcionando igual: solo pasa por el mismo motor.
-catRegistrar('wz', { qtys: wz.qtys, cont: 'cat-wrap', busca: 'pq',
+// `canalWeb` decide la medida por omisión de cada fila: en un pedido de la
+// página web lo normal es el pote suelto, no la caja.
+// `conMuestras` activa el contador de regalo al lado del de venta. No se
+// activa en `co` a propósito: ese formulario ya es una muestra o una merma
+// entera, y un contador de muestra dentro de una muestra no significa nada.
+catRegistrar('wz', { qtys: wz.qtys, meds: wz.meds, muestras: wz.muestras || {},
+                     conMuestras: true, cont: 'cat-wrap', busca: 'pq',
+                     canalWeb: () => canalDe('wcanal'),
                      alCambiar: () => { updWzBar(); renderWzPills(); } });
-catRegistrar('man', { qtys: {}, cont: 'cat-man', busca: 'npq',
+catRegistrar('man', { qtys: {}, meds: {}, muestras: {}, conMuestras: true,
+                      cont: 'cat-man', busca: 'npq',
+                      canalWeb: () => canalDe('ncanal'),
                       alCambiar: () => {
                         document.getElementById('man-resumen').textContent = catResumen('man').texto;
                       } });
-catRegistrar('co', { qtys: coQ, cont: 'cat-co', busca: 'co-pq',
+catRegistrar('co', { qtys: coQ, meds: {}, cont: 'cat-co', busca: 'co-pq',
                      alCambiar: () => {
                        document.getElementById('co-resumen').textContent = catResumen('co').texto;
                      } });
-function renderCatalogo() { CTX.wz.qtys = wz.qtys; pintarCat('wz'); }
+function renderCatalogo() {
+  CTX.wz.qtys = wz.qtys; CTX.wz.meds = wz.meds;
+  // `muestras` se reasigna igual que `qtys`: si no, el catálogo sigue
+  // apuntando al objeto viejo después de limpiar el asistente y muestra
+  // regalos de un pedido que ya se guardó.
+  if (!wz.muestras) wz.muestras = {};
+  CTX.wz.muestras = wz.muestras;
+  pintarCat('wz');
+}
 
 function limpiarProds() {
-  wz.qtys = {}; CTX.wz.qtys = wz.qtys;
+  wz.qtys = {}; wz.muestras = {};
+  CTX.wz.qtys = wz.qtys; CTX.wz.muestras = wz.muestras;
+  wz.meds = {}; CTX.wz.meds = wz.meds;
   document.getElementById('wextra').value = '';
   renderCatalogo(); updWzBar(); renderWzPills();
 }
@@ -5462,39 +5277,28 @@ function repetirUltimo() {
   if (!wz.cliente || !wz.sucursal) return;
   const p = ultPedidoSuc(wz.cliente, wz.sucursal);
   if (!p) return;
-  wz.qtys = {};
-  const sobra = [], sueltos = [];
+  wz.qtys = {}; wz.muestras = {};
+  const sobra = [];
+  if (!CTX.wz.meds) CTX.wz.meds = {};
+  Object.keys(CTX.wz.meds).forEach(k => delete CTX.wz.meds[k]);
   splitDet(p.detalle).forEach(it => {
-    const x = lineaParaRepetir(it);
-    if (x.tipo === 'catalogo') wz.qtys[x.prod.n] = x.cantidad;
-    else if (x.tipo === 'suelto') sueltos.push(it);
-    else sobra.push(it);
+    const L = leerLinea(it);
+    if (L) {
+      const prod = prodPorNombre(L.nombre);   // reconoce los nombres viejos
+      if (prod && L.cantidad > 0) {
+        wz.qtys[prod.n] = L.cantidad;
+        if (Number(prod.u) > 1) CTX.wz.meds[prod.n] = L.medida;
+        return;
+      }
+    }
+    sobra.push(it);
   });
   CTX.wz.qtys = wz.qtys;
   document.getElementById('wextra').value = sobra.join('\n');
   renderCatalogo(); updWzBar(); renderWzPills();
   alerta('wz-alert',
     `Cargado el último pedido (${hesc(p.fecha || 's/fecha')}).` +
-    (sobra.length ? ` ${sobra.length} ítem(s) fuera de catálogo quedaron en “otros”.` : '') +
-    (sueltos.length ? `<br><b>No se cargó:</b> ${sueltos.map(hesc).join(' · ')}. ` +
-      'Se había pedido por unidad suelta y ahora solo se vende por caja: ' +
-      'elige las cajas a mano.' : ''),
-    sueltos.length ? 'an' : 'ai');
-}
-
-// Qué hacer con una línea de un pedido viejo al repetirlo.
-//
-//   catalogo  se carga en el catálogo con su cantidad, en cajas.
-//   suelto    se pidió por unidad suelta de un producto que viene en caja. Ya
-//             no se vende así y NO se puede cargar tal cual: "5 un" leído
-//             como 5 cajas serían 60 potes. Se deja fuera y se avisa.
-//   otro      no es del catálogo; va a "otros" como texto.
-function lineaParaRepetir(texto) {
-  const L = leerLinea(texto);
-  const prod = L ? prodPorNombre(L.nombre) : null;   // reconoce los nombres viejos
-  if (!L || !prod || !(L.cantidad > 0)) return { tipo: 'otro' };
-  if (L.medida === 'unidad' && Number(prod.u) > 1) return { tipo: 'suelto' };
-  return { tipo: 'catalogo', prod, cantidad: L.cantidad };
+    (sobra.length ? ` ${sobra.length} ítem(s) fuera de catálogo quedaron en “otros”.` : ''), 'ai');
 }
 
 function buildDetalle() { CTX.wz.qtys = wz.qtys; return catDetalle('wz', 'wextra'); }
@@ -5527,21 +5331,24 @@ async function guardarWz() {
   };
   if (dirOK && !c._local && !s._local) { row.cliente_id = c.id; row.sucursal_id = s.id; }
 
+  const lineas = catLineas('wz');
   try {
     try {
-      await sbPost(row);
+      await sbPostConLineas(row, lineas);
     } catch (e1) {
       // Respaldo: si aún no existen las columnas de enlace en `pedidos`
       if (row.cliente_id !== undefined) {
         delete row.cliente_id; delete row.sucursal_id;
-        await sbPost(row);
+        await sbPostConLineas(row, lineas);
       } else throw e1;
     }
-    wz.qtys = {};
+    wz.qtys = {}; wz.muestras = {};
     ['wfact','wcom','wextra','pq'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('wfecha').value = hoy();
     renderCatalogo(); updWzBar(); renderWzPills();
-    alerta('wz-alert', `✅ Pedido guardado para ${hesc(c.emp)} — ${hesc(s.nombre)}.`, 'as');
+    const nm = lineas.filter(l => l.tipo === 'muestra').length;
+    alerta('wz-alert', `✅ Pedido guardado para ${hesc(c.emp)} — ${hesc(s.nombre)}.` +
+      (nm ? ` Incluye ${nm} línea(s) de muestra, que no se facturan.` : ''), 'as');
     await cargar();
   } catch (e) {
     alerta('wz-alert', 'Error guardando el pedido: ' + hesc(e.message), 'ae');
@@ -5549,6 +5356,289 @@ async function guardarWz() {
   btn.innerHTML = 'Guardar Pedido'; btn.disabled = false;
 }
 
+
+
+// ══════════════════════════════════════════════════════════════
+//  SALA DE PRODUCCIÓN
+// ══════════════════════════════════════════════════════════════
+//
+// Producción declara lo que hizo; la oficina lo retira y confirma cuánto
+// llegó. La diferencia entre ambos números es el dato que importa: dice
+// cuánto se pierde en el traspaso, y sin registrarla la merma se diluye y
+// aparece recién al cuadrar bodega, sin saber de dónde salió.
+//
+// El stock entra al RECIBIR, no al retirar. Mientras el producto va en el
+// camión no está en ninguna bodega, y decir que sí haría que alguien prometa
+// algo que va en la carretera.
+
+let lotes = [], lotesOK = false, porRevisar = [];
+
+async function cargarProduccion() {
+  try {
+    lotes = await sbPagina('prod_lotes', 'select=*&order=fecha_retiro.asc,id.asc');
+    lotesOK = true;
+  } catch (e) { lotes = []; lotesOK = false; }
+  try {
+    porRevisar = await sbPagina('bod_productos', 'select=*&revisar=is.true&order=nombre.asc');
+  } catch (e) { porRevisar = []; }
+  pintarContadorProduccion();
+}
+
+function pintarContadorProduccion() {
+  const e = document.getElementById('sec-produccion-n');
+  if (!e) return;
+  const n = lotes.filter(l => l.estado !== 'recibido' && l.estado !== 'anulado').length;
+  e.textContent = n ? `Producción (${n})` : 'Producción';
+  const b = document.getElementById('sec-produccion');
+  if (b) b.style.borderColor = n ? 'var(--mora)' : '';
+}
+
+const TURNO_TXT = { manana: '☀️ mañana', tarde: '🌙 tarde' };
+
+function renderProduccion() {
+  const cont = document.getElementById('pr-lista');
+  if (!cont) return;
+
+  if (!lotesOK) {
+    cont.innerHTML = '<div class="alert ae" style="line-height:1.55">' +
+      'No se pudo leer <b>prod_lotes</b>. Corre <b>PREPARADO_todo_v43.sql</b> en ' +
+      'Supabase y revisa que la tabla esté en la lista del Worker, en <b>/salud</b>.</div>';
+    pintarPorRevisar();
+    return;
+  }
+
+  const abiertos = lotes.filter(l => l.estado !== 'recibido' && l.estado !== 'anulado');
+  if (!abiertos.length) {
+    cont.innerHTML = '<div class="alert as">✔ Nada pendiente de retirar.</div>';
+    pintarPorRevisar();
+    return;
+  }
+
+  cont.innerHTML = abiertos.map(l => {
+    const p = bodProductos.find(x => String(x.id) === String(l.producto_id));
+    const nom = p ? p.nombre + (p.formato ? ' (' + p.formato + ')' : '')
+                  : 'producto #' + l.producto_id;
+    const hoyI = hoyISO();
+    const atrasado = String(l.fecha_retiro) < hoyI;
+    const esHoy = String(l.fecha_retiro) === hoyI;
+
+    return `<div style="border:1.5px solid ${atrasado ? 'var(--nd)' : 'var(--crema-d)'};
+                border-radius:12px;padding:14px;margin-bottom:12px;
+                background:${atrasado ? 'var(--nl)' : 'var(--white)'}">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start">
+        <div style="flex:1;min-width:220px">
+          <div style="font-weight:900;font-size:15px">${hesc(nom)}</div>
+          <div class="sub" style="margin:3px 0 0">
+            Declaró <b>${num(l.declarada)} ${l.medida === 'caja' ? 'caja(s)' : 'unidad(es)'}</b>
+            · retiro ${hesc(String(l.fecha_retiro).split('-').reverse().join('-'))}
+            ${hesc(TURNO_TXT[l.turno] || l.turno)}
+            ${atrasado ? ' · <b>ATRASADO</b>' : esHoy ? ' · <b>hoy</b>' : ''}
+          </div>
+          <div class="sub" style="margin:3px 0 0">👤 ${hesc(l.quien || 'sin firma')}</div>
+          ${l.nota ? `<div class="sub" style="margin:4px 0 0;color:var(--mora-d);
+            font-weight:800">💬 ${hesc(l.nota)}</div>` : ''}
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn bmora bsm" onclick="abrirRecibir(${l.id})">📥 Recibir</button>
+        <button class="btn bol bsm" onclick="anularLote(${l.id})">Anular</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  pintarPorRevisar();
+}
+
+function pintarPorRevisar() {
+  const c = document.getElementById('pr-revisar');
+  if (!c) return;
+  if (!porRevisar.length) {
+    c.innerHTML = '<div class="alert as">✔ Ningún producto esperando revisión.</div>';
+    return;
+  }
+  c.innerHTML = porRevisar.map(p => `<div style="display:flex;gap:10px;align-items:center;padding:10px 0;
+             border-bottom:1px solid var(--crema-d);flex-wrap:wrap">
+      <div style="flex:1;min-width:200px">
+        <b>${hesc(p.nombre)}</b>${p.formato ? ' · ' + hesc(p.formato) : ''}
+        <div class="sub" style="margin:2px 0 0">Creado desde producción</div>
+      </div>
+      <button class="btn bmora bsm" onclick="aprobarProducto(${p.id})">
+        ✔ Está bien escrito</button>
+    </div>`).join('') +
+    '<div class="sub" style="margin-top:10px">Al aprobarlo deja de estar marcado. ' +
+    'Si el nombre está mal, corrígelo primero en <b>Bodega → Productos</b>: ' +
+    'cambiarlo después de que tenga movimientos es mucho más caro.</div>';
+}
+
+async function aprobarProducto(id) {
+  try {
+    await sbSend(`bod_productos?id=eq.${id}`, 'PATCH', { revisar: false });
+    await cargarProduccion();
+    renderProduccion();
+    alerta('pr-alert', 'Producto aprobado. Acuérdate de agregarlo también al ' +
+      'catálogo de los archivos para que aparezca en el portal de clientes.', 'as');
+  } catch (e) {
+    alerta('pr-alert', 'No se pudo: ' + hesc(e.message), 'ae');
+  }
+}
+
+async function anularLote(id) {
+  if (!confirm('¿Anular este lote? Producción lo va a ver anulado y el stock no se toca.')) return;
+  try {
+    await sbSend(`prod_lotes?id=eq.${id}`, 'PATCH', { estado: 'anulado' });
+    await cargarProduccion();
+    renderProduccion();
+  } catch (e) {
+    alerta('pr-alert', 'No se pudo anular: ' + hesc(e.message), 'ae');
+  }
+}
+
+
+// ── recibir un lote ──
+//
+// Acá se cierra el traspaso y entra el stock. Dos cosas que importan:
+//
+// 1. La cantidad que se escribe es la que ENTRA. Se parte del número que
+//    declaró producción porque casi siempre calza, pero se puede cambiar: si
+//    se cayó un balde, lo que entra son 23 y no 24.
+//
+// 2. Una diferencia OBLIGA a explicarla. Sin razón es un número suelto que
+//    dentro de un mes no le dice nada a nadie, y es justamente el dato que
+//    permite saber si se pierde producto siempre en el mismo punto.
+let loteRec = null;
+
+function abrirRecibir(id) {
+  const l = lotes.find(x => String(x.id) === String(id));
+  if (!l) return;
+  if (l.estado === 'recibido') return alerta('pr-alert', 'Ese lote ya se recibió.', 'ae');
+  loteRec = l;
+
+  const p = bodProductos.find(x => String(x.id) === String(l.producto_id));
+  const nom = p ? p.nombre + (p.formato ? ' (' + p.formato + ')' : '')
+                : 'producto #' + l.producto_id;
+
+  document.getElementById('rc-alert').innerHTML = '';
+  document.getElementById('rc-ficha').innerHTML =
+    `<b>${hesc(nom)}</b><br>Producción declaró ` +
+    `<b>${num(l.declarada)} ${l.medida === 'caja' ? 'caja(s)' : 'unidad(es)'}</b>` +
+    (l.quien ? ` · ${hesc(l.quien)}` : '') +
+    (l.nota ? `<br><span style="font-weight:400">${hesc(l.nota)}</span>` : '');
+
+  // Se parte de lo declarado: casi siempre calza, y obligar a teclearlo de
+  // nuevo invita a equivocarse en el caso normal.
+  document.getElementById('rc-cant').value = l.declarada;
+  document.getElementById('rc-motivo').value = '';
+
+  const sel = document.getElementById('rc-bodega');
+  const vivas = bodBodegas.filter(b => b.activa);
+  sel.innerHTML = vivas.length
+    ? vivas.map(b => `<option value="${b.id}">${hesc(b.nombre)}</option>`).join('')
+    : '<option value="">— no hay bodegas activas —</option>';
+
+  rcPrevio();
+  abrir('mod-recibir');
+}
+
+function rcPrevio() {
+  if (!loteRec) return;
+  const v = Number(document.getElementById('rc-cant').value);
+  const dif = v - Number(loteRec.declarada);
+  const caja = document.getElementById('rc-dif');
+  const lbl = document.getElementById('rc-motivo-lbl');
+  const inp = document.getElementById('rc-motivo');
+
+  if (!Number.isFinite(v) || Math.abs(dif) < 0.001) {
+    caja.innerHTML = '';
+    lbl.textContent = 'Nota';
+    inp.placeholder = 'Opcional';
+    return;
+  }
+  caja.innerHTML = `<div class="alert an" style="line-height:1.5">
+    ${dif < 0
+      ? `Faltan <b>${num(Math.abs(dif))}</b> respecto de lo que declaró producción.`
+      : `Llegaron <b>${num(dif)}</b> de más.`}
+    <br><span style="font-weight:400">Escribe abajo qué pasó: sin eso no se
+    puede recibir, y es el dato que dice dónde se pierde producto.</span>
+  </div>`;
+  lbl.textContent = '¿Qué pasó con la diferencia?';
+  inp.placeholder = 'Se cayó uno cargando, venía uno roto...';
+}
+
+async function confirmarRecibir() {
+  if (!loteRec) return;
+  const l = loteRec;
+  const v = Number(document.getElementById('rc-cant').value);
+  const bod = document.getElementById('rc-bodega').value;
+  const motivo = document.getElementById('rc-motivo').value.trim();
+  const dif = v - Number(l.declarada);
+
+  if (!Number.isFinite(v) || v < 0)
+    return alerta('rc-alert', 'Pon cuánto llegó.', 'ae');
+  if (!bod)
+    return alerta('rc-alert', 'Elige a qué bodega entra.', 'ae');
+  if (Math.abs(dif) > 0.001 && !motivo) {
+    alerta('rc-alert', 'Hay diferencia con lo declarado: explica qué pasó.', 'ae');
+    document.getElementById('rc-motivo').focus();
+    return;
+  }
+
+  // Un motivo de entrada, que la base exige para este tipo de movimiento.
+  const mot = bodMotivos.find(m => m.activo && m.tipo === 'entrada');
+  if (!mot) return alerta('rc-alert',
+    'No hay motivos de entrada configurados. Créalos en Bodega → Configuración.', 'ae');
+
+  const btn = document.getElementById('rc-ok');
+  btn.innerHTML = '<span class="sp"></span>Recibiendo...'; btn.disabled = true;
+  try {
+    // El movimiento PRIMERO y el lote después.
+    //
+    // En ese orden a propósito: si se marcara el lote y fallara el
+    // movimiento, el lote desaparecería de la lista sin que el stock hubiera
+    // entrado, y nadie se enteraría. Al revés, a lo más se recibe dos veces,
+    // que es visible y corregible.
+    if (v > 0) {
+      await sbSend('bod_movimientos', 'POST', [{
+        tipo: 'entrada',
+        fecha: hoyISO(),
+        producto_id: l.producto_id,
+        bodega_id: Number(bod),
+        cantidad: v,
+        medida: l.medida,
+        motivo_id: mot.id,
+        usuario: l.quien || 'producción',
+        nota: ['Producción, lote ' + l.id,
+               Math.abs(dif) > 0.001
+                 ? `declaró ${num(l.declarada)}, llegaron ${num(v)} · ${motivo}`
+                 : motivo].filter(Boolean).join(' · ')
+      }]);
+    }
+
+    await sbSend(`prod_lotes?id=eq.${l.id}`, 'PATCH', {
+      estado: 'recibido',
+      recibida: v,
+      bodega_id: Number(bod),
+      diferencia_motivo: Math.abs(dif) > 0.001 ? motivo : '',
+      recibido: new Date().toISOString()
+    });
+
+    cerrar('mod-recibir');
+    loteRec = null;
+    await cargarProduccion();
+    await cargarBodega(true);
+    renderProduccion();
+    render();
+    alerta('pr-alert', v > 0
+      ? `Recibido. Entraron ${num(v)} al stock.`
+      : 'Lote cerrado sin stock: no llegó nada.', 'as');
+  } catch (e) {
+    alerta('rc-alert', 'No se pudo recibir: ' + hesc(e.message) +
+      '<br>Si el movimiento alcanzó a crearse, el lote va a seguir apareciendo. ' +
+      'Revisa el libro de bodega antes de reintentar.', 'ae');
+    btn.innerHTML = 'Recibir y sumar al stock'; btn.disabled = false;
+    return;
+  }
+  btn.innerHTML = 'Recibir y sumar al stock'; btn.disabled = false;
+}
 
 // ══════════════════════════════════════════════════════════════
 //  APROBAR LO QUE VIENE DE BODEGA
@@ -6783,7 +6873,7 @@ async function cargarTodo() {
 // pestaña activa cuando termina, sea cual sea.
 (function irAHash(){
   const id = (location.hash || '').slice(1);
-  if (!['pedidos','nuevo','clientes','rutas','zonas','aprobar'].includes(id)) return;
+  if (!['pedidos','nuevo','clientes','rutas','zonas','aprobar','produccion'].includes(id)) return;
   // Los botones de sección tienen id fijo, así que se buscan directo en vez de
   // rastrearlos por su texto o su onclick. Antes se buscaban por la clase de la
   // barra vieja y, al unificar la navegación, dejaban de encontrarse: entrar a
