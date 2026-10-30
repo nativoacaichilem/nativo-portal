@@ -5373,11 +5373,18 @@ async function guardarWz() {
 
 let lotes = [], lotesOK = false, porRevisar = [];
 
+// El motivo del último fallo, para poder decirlo en pantalla.
+//
+// La versión anterior se tragaba el error y mostraba un mensaje genérico que
+// mandaba a revisar dos cosas que ya estaban bien. Un aviso que apunta al
+// lugar equivocado cuesta más que no tener aviso.
+let lotesError = '';
+
 async function cargarProduccion() {
   try {
     lotes = await sbPagina('prod_lotes', 'select=*&order=fecha_retiro.asc,id.asc');
-    lotesOK = true;
-  } catch (e) { lotes = []; lotesOK = false; }
+    lotesOK = true; lotesError = '';
+  } catch (e) { lotes = []; lotesOK = false; lotesError = String(e.message || e); }
   try {
     porRevisar = await sbPagina('bod_productos', 'select=*&revisar=is.true&order=nombre.asc');
   } catch (e) { porRevisar = []; }
@@ -5400,9 +5407,27 @@ function renderProduccion() {
   if (!cont) return;
 
   if (!lotesOK) {
+    // El motivo primero, y después qué significa cada caso. Mandar a revisar
+    // cosas al azar hace perder más tiempo que no decir nada.
+    const m = lotesError;
+    let pista = '';
+    if (/404|PGRST205|does not exist/i.test(m))
+      pista = 'La tabla <b>prod_lotes</b> no existe en la base: corre ' +
+              '<b>PREPARADO_todo_v43.sql</b> en Supabase.';
+    else if (/403/.test(m))
+      pista = 'El Worker no tiene <b>prod_lotes</b> habilitada: sube el ' +
+              '<b>worker.js</b> nuevo y confírmalo en <b>/salud</b>.';
+    else if (/42703|column/i.test(m))
+      pista = 'La tabla existe pero le falta alguna columna. Vuelve a correr ' +
+              '<b>PREPARADO_todo_v43.sql</b>, que es idempotente.';
+    else if (/Failed to fetch|NetworkError/i.test(m))
+      pista = 'No hubo conexión con el Worker.';
+
     cont.innerHTML = '<div class="alert ae" style="line-height:1.55">' +
-      'No se pudo leer <b>prod_lotes</b>. Corre <b>PREPARADO_todo_v43.sql</b> en ' +
-      'Supabase y revisa que la tabla esté en la lista del Worker, en <b>/salud</b>.</div>';
+      '<b>No se pudo leer prod_lotes.</b>' +
+      (pista ? '<br>' + pista : '') +
+      '<br><span style="font-weight:400;font-size:12px">Detalle: ' + hesc(m) +
+      '</span></div>';
     pintarPorRevisar();
     return;
   }
