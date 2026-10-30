@@ -1635,6 +1635,28 @@ function num(v) {
 
 // Hoy en formato ISO. `hoy()` devuelve el formato chileno, que sirve para
 // mostrar y NO para guardar: una columna `date` de Postgres lo rechaza.
+// Un aviso flotante para los casos que no cuelgan de ninguna pantalla.
+//
+// Admin avisa dentro de cada sección con `alerta()`, pero cuando falla al
+// ABRIR algo todavía no se sabe en qué sección va a caer el mensaje. Sin
+// esto, esos errores no se ven en ninguna parte y el botón parece muerto.
+function toastRojo(msg) {
+  let t = document.getElementById('toast-admin');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast-admin';
+    t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);' +
+      'background:var(--rd);color:#fff;padding:13px 20px;border-radius:12px;' +
+      'font-weight:800;font-size:14px;z-index:300;max-width:90vw;text-align:center;' +
+      'box-shadow:0 6px 20px rgba(0,0,0,.25)';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(toastRojo._t);
+  toastRojo._t = setTimeout(() => { t.style.display = 'none'; }, 4000);
+}
+
 function hoyISO() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -2611,7 +2633,8 @@ function bodMotivoPropuesto(p) {
 // guardar el pedido con su nuevo estado.
 async function abrirDescargo(pedidoId, tras) {
   const p = pedidos.find(x => String(x.id) === String(pedidoId));
-  if (!p) return;
+  // Sin aviso, el botón "no hace nada" y no hay forma de saber por qué.
+  if (!p) { toastRojo('No encuentro ese pedido. Recarga la página.'); return; }
 
   document.getElementById('ds-alert').innerHTML =
     '<div class="alert ai"><span class="sp"></span>Cargando bodega…</div>';
@@ -3495,7 +3518,7 @@ function pintarEncargados() {
 
 function abrir(id) {
   const p = pedidos.find(x => x.id === id);
-  if (!p) return;
+  if (!p) { toastRojo('No encuentro ese pedido. Recarga la página.'); return; }
   eid = id;
   const ret = esRetiro(p);
 
@@ -5402,9 +5425,25 @@ function pintarContadorProduccion() {
 
 const TURNO_TXT = { manana: '☀️ mañana', tarde: '🌙 tarde' };
 
-function renderProduccion() {
+// `cargarProduccion()` se dispara al abrir el panel y NO se espera, así que
+// entrar a la pestaña antes de que termine encontraba `lotesOK` en false y
+// mostraba un error con el detalle vacío. Un error sin motivo es peor que
+// esperar: manda a buscar un problema que no existe.
+//
+// Ahora la pestaña pide sus propios datos si no los tiene.
+let cargandoProd = false;
+
+async function renderProduccion() {
   const cont = document.getElementById('pr-lista');
   if (!cont) return;
+
+  if (!lotesOK && !lotesError && !cargandoProd) {
+    cargandoProd = true;
+    cont.innerHTML = '<div class="alert ai"><span class="sp"></span>Cargando...</div>';
+    await cargarProduccion();
+    cargandoProd = false;
+    return renderProduccion();
+  }
 
   if (!lotesOK) {
     // El motivo primero, y después qué significa cada caso. Mandar a revisar
@@ -5526,6 +5565,9 @@ async function aprobarProducto(id) {
 }
 
 async function anularLote(id) {
+  if (!lotes.some(x => String(x.id) === String(id)))
+    return alerta('pr-alert',
+      'No encuentro ese lote en pantalla. Recarga la página.', 'ae');
   if (!confirm('¿Anular este lote? Producción lo va a ver anulado y el stock no se toca.')) return;
   try {
     await sbSend(`prod_lotes?id=eq.${id}`, 'PATCH', { estado: 'anulado' });
@@ -5552,7 +5594,10 @@ let loteRec = null;
 
 function abrirRecibir(id) {
   const l = lotes.find(x => String(x.id) === String(id));
-  if (!l) return;
+  // Devolverse en silencio es lo que hace que el botón "no haga nada" y no
+  // haya forma de saber por qué. Si el lote no está en memoria, se dice.
+  if (!l) return alerta('pr-alert',
+    'No encuentro ese lote en pantalla. Recarga la página y vuelve a intentar.', 'ae');
   if (l.estado === 'recibido') return alerta('pr-alert', 'Ese lote ya se recibió.', 'ae');
   loteRec = l;
 
