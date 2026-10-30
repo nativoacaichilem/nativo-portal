@@ -711,7 +711,7 @@ function nombreProducto(id) {
   if (!p) return 'producto #' + id;
   return p.nombre + (p.formato ? ' (' + p.formato + ')' : '');
 }
-const zonaPorId = id => zonas.find(z => z.id === id) || null;
+const zonaPorId = id => zonas.find(z => String(z.id) === String(id)) || null;
 
 // Cuarta copia de la conversión caja→unidad base. Ver pendiente 11 en
 // CAMBIOS.md: la regla vive en `factorDe` de bodega, `bodFactor` de admin, la
