@@ -392,9 +392,8 @@ tbody tr:hover td{background:#faf6ff}
   </nav>
 
     <div class="secbar" role="group" aria-label="Secciones de máquinas">
-    <button class="sec act" id="sec-colocaciones" onclick="goTab('colocaciones',this)">🚀 Colocaciones</button>
+    <button class="sec act" id="sec-colocaciones" onclick="goTab('colocaciones',this)">🚀 Entregas</button>
     <button class="sec"     id="sec-unidades"     onclick="goTab('unidades',this)">🔧 Máquinas</button>
-    <button class="sec"     id="sec-modelos"      onclick="goTab('modelos',this)">📐 Modelos</button>
   </div>
 
   <div class="wrap">
@@ -433,29 +432,14 @@ tbody tr:hover td{background:#faf6ff}
           <button class="btn bam2 bsm" onclick="abrirUnidad(null)">＋ Nueva máquina</button>
         </div>
         <div class="sub">
-          Cada máquina física, con su número de serie y dónde está ahora.
-          Separarlas de las colocaciones permite saber qué hay disponible y
-          seguir una máquina que vuelve y se coloca de nuevo.
+          Cada máquina con su modelo, su número de serie y dónde está ahora.
+          Acá se crean; en <b>Entregas</b> se le asigna una a un cliente.
         </div>
         <div id="un-stats" class="stats" style="margin-top:12px"></div>
         <div class="tw" style="margin-top:12px"><table id="tabla-unidades"></table></div>
       </div>
     </div>
 
-    <!-- ══ MODELOS ══ -->
-    <div id="page-modelos" class="page">
-      <div class="card">
-        <div class="card-head">
-          <h2>📐 Modelos</h2><div class="crece"></div>
-          <button class="btn bam2 bsm" onclick="abrirModelo(null)">＋ Nuevo modelo</button>
-        </div>
-        <div class="sub">
-          Los tipos de máquina que se manejan. Un modelo agrupa a todas las
-          máquinas iguales.
-        </div>
-        <div class="tw" style="margin-top:12px"><table id="tabla-modelos"></table></div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -532,10 +516,24 @@ tbody tr:hover td{background:#faf6ff}
   <div class="modal" style="max-width:520px">
     <h3 id="mu-title">Nueva máquina</h3>
     <div id="mu-alert"></div>
+    <!-- El modelo se escribe acá y se crea solo si es nuevo. Tener que ir a
+         otra pantalla a crearlo antes de poder agregar la máquina era un paso
+         de más para algo que se hace una vez. La lista sugiere los que ya
+         existen, para que dos máquinas iguales no queden con el nombre
+         escrito distinto. -->
     <div class="fg" style="margin-bottom:12px">
-      <div><label>Modelo *</label><select id="mu-modelo"></select></div>
+      <div><label>Modelo *</label>
+        <input type="text" id="mu-modelo" list="lista-modelos"
+          placeholder="Escribe o elige uno">
+        <datalist id="lista-modelos"></datalist>
+        <div class="nota-campo" id="mu-modelo-nota" style="display:block"></div></div>
       <div><label>Número de serie</label><input id="mu-serie" type="text"
         placeholder="El de la placa"></div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Marca</label><input id="mu-marca" type="text"
+        placeholder="Solo si el modelo es nuevo"></div>
+      <div></div>
     </div>
     <div class="fg" style="margin-bottom:12px">
       <div><label>¿Dónde está?</label><input id="mu-ubicacion" type="text"
@@ -554,28 +552,6 @@ tbody tr:hover td{background:#faf6ff}
     <div class="mact">
       <button class="btn bgray bsm" onclick="cerrar('mod-unidad')">Cancelar</button>
       <button class="btn bmora bsm" id="mu-guardar" onclick="guardarUnidad()">Guardar</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══ MODAL: MODELO ══ -->
-<div class="mbg" id="mod-modelo">
-  <div class="modal" style="max-width:460px">
-    <h3 id="mm-title">Nuevo modelo</h3>
-    <div id="mm-alert"></div>
-    <div style="margin-bottom:12px"><label>Nombre *</label>
-      <input id="mm-nombre" type="text" placeholder="Cómo se llama el modelo"></div>
-    <div style="margin-bottom:12px"><label>Marca</label>
-      <input id="mm-marca" type="text"></div>
-    <div style="margin-bottom:12px"><label>Notas</label>
-      <textarea id="mm-notas" style="min-height:50px"></textarea></div>
-    <label class="chk" style="display:flex;align-items:center;gap:8px;margin:0;
-      text-transform:none;font-size:13px;color:var(--text);font-weight:800">
-      <input type="checkbox" id="mm-activo" checked style="width:auto"> Activo
-    </label>
-    <div class="mact">
-      <button class="btn bgray bsm" onclick="cerrar('mod-modelo')">Cancelar</button>
-      <button class="btn bmora bsm" id="mm-guardar" onclick="guardarModelo()">Guardar</button>
     </div>
   </div>
 </div>
@@ -868,15 +844,26 @@ let preciosTmp = [];     // los de una colocación que todavía no se guarda
 
 // Las etapas, en orden. El orden ES el proceso: la pantalla lo dibuja desde
 // acá y marcar una etapa es moverse en esta lista.
+// Los estados, con los nombres de la operación. Se fue `captado` y se fue
+// `asignada`: una entrega empieza cuando se le asigna la máquina, y desde ahí
+// se está preparando. Dos estados para decir lo mismo obligan a marcar un
+// paso que no cambia nada.
+//
+// `capacitada` solo aparece en las que llevan capacitación. En el resto,
+// `entregada` es el final.
 const ETAPAS = [
-  { id: 'captado',      lbl: 'Captado' },
-  { id: 'asignada',     lbl: 'Máquina asignada' },
-  { id: 'preparacion',  lbl: 'En preparación' },
-  { id: 'lista',        lbl: 'Lista para salir' },
-  { id: 'entregada',    lbl: 'Entregada' },
-  { id: 'instalada',    lbl: 'Instalada' }
+  { id: 'preparando', lbl: 'Preparando' },
+  { id: 'lista',      lbl: 'Lista' },
+  { id: 'en_camino',  lbl: 'En camino' },
+  { id: 'entregada',  lbl: 'Entregada' },
+  { id: 'capacitada', lbl: 'Capacitación hecha', soloConCap: true }
 ];
 const idxEtapa = e => ETAPAS.findIndex(x => x.id === e);
+
+// Las etapas de UNA entrega. Sin capacitación, `entregada` es el final:
+// mostrar un paso que nunca se va a marcar deja la entrega pareciendo
+// incompleta para siempre.
+const etapasDe = c => ETAPAS.filter(e => !e.soloConCap || c.capacitacion);
 
 const ESTADO_UNIDAD = {
   disponible:  { lbl: 'Disponible',     cls: 'bok'  },
@@ -938,7 +925,6 @@ function goTab(id, btn) {
 function pintarPestana(id) {
   if (id === 'colocaciones') renderColocaciones();
   if (id === 'unidades')     renderUnidades();
-  if (id === 'modelos')      renderModelos();
 }
 function repintarActiva() {
   const a = document.querySelector('.sec.act');
@@ -955,8 +941,12 @@ function renderColocaciones() {
   const q = (document.getElementById('co-buscar').value || '').trim().toLowerCase();
 
   let lista = colocaciones.filter(c => {
-    if (f === 'abiertas')  return c.estado !== 'instalada' && c.estado !== 'cancelada';
-    if (f === 'instalada') return c.estado === 'instalada';
+    if (f === 'abiertas')
+      return !['entregada','capacitada','cancelada'].includes(c.estado) ||
+             (c.estado === 'entregada' && c.capacitacion && !c.capacitacion_hecha);
+    if (f === 'instalada')
+      return c.estado === 'capacitada' ||
+             (c.estado === 'entregada' && !c.capacitacion);
     if (f === 'cancelada') return c.estado === 'cancelada';
     return true;
   });
@@ -972,22 +962,25 @@ function renderColocaciones() {
   cont.innerHTML = lista.map(c => {
     const i = idxEtapa(c.estado);
     const cancelada = c.estado === 'cancelada';
+    const cerrada = cancelada || c.estado === 'capacitada' ||
+                    (c.estado === 'entregada' && !c.capacitacion);
     const u = c.unidad_id ? unidadPorId(c.unidad_id) : null;
     const dias = Math.floor((Date.now() - new Date(c.creada).getTime()) / 86400000);
     // Una colocación que lleva más de tres semanas sin terminar probablemente
     // se trabó. Marcarla no la resuelve, pero evita que se pierda entre las
     // demás, que es como se pierden.
-    const trabada = !cancelada && c.estado !== 'instalada' && dias > 21;
+    const trabada = !cerrada && dias > 21;
 
     const mis = precios.filter(p => String(p.colocacion_id) === String(c.id));
 
-    return `<div class="col ${trabada ? 'urge' : ''} ${
-        cancelada || c.estado === 'instalada' ? 'cerrada' : ''}">
+    return `<div class="col ${trabada ? 'urge' : ''} ${cerrada ? 'cerrada' : ''}">
       <div class="col-top">
         <div class="col-emp">${esc(c.cliente || 'sin nombre')}
           ${trabada ? `<span class="badge baju">${dias} días</span>` : ''}
           ${cancelada ? '<span class="badge bsal">cancelada</span>' : ''}</div>
         <button class="btn bol bsm" onclick="abrirColocacion(${c.id})">Editar</button>
+        <button class="btn bol bsm" onclick="borrarColocacion(${c.id})"
+          title="Borrarla del todo">🗑️</button>
       </div>
 
       <div class="dato">
@@ -1000,8 +993,10 @@ function renderColocaciones() {
       </div>
 
       ${cancelada ? '' : `<div class="etapas">
-        ${ETAPAS.map((e, k) => `<button class="et ${
-            k < i ? 'hecha' : k === i ? 'ahora' : ''}"
+        <button class="et" onclick="moverEtapa(${c.id},'cancelada')"
+          title="No se va a entregar, pero queda el registro">✕ Cancelar</button>
+        ${etapasDe(c).map(e => `<button class="et ${
+            idxEtapa(e.id) < i ? 'hecha' : e.id === c.estado ? 'ahora' : ''}"
             onclick="moverEtapa(${c.id},'${e.id}')"
             title="Marcar esta etapa">${esc(e.lbl)}</button>`).join('')}
       </div>`}
@@ -1024,6 +1019,41 @@ const nombreProducto = id => {
   return p ? p.nombre + (p.formato ? ' (' + p.formato + ')' : '') : 'producto #' + id;
 };
 
+// Borra la entrega del todo.
+//
+// Distinto de cancelarla: una cancelada queda como registro de algo que se
+// intentó y no salió, y eso a veces interesa. Borrar es para lo que nunca
+// debió existir —una creada por error, una duplicada—.
+//
+// Se pide confirmación escribiendo el nombre del cliente. Un `confirm`
+// normal se aprieta sin leer, y acá no hay deshacer.
+async function borrarColocacion(id) {
+  const c = colocaciones.find(x => String(x.id) === String(id));
+  if (!c) return toast('No encuentro esa entrega. Recarga la página.', true);
+
+  const esperado = (c.cliente || '').trim();
+  const v = prompt(
+    `Esto BORRA la entrega de "${esperado}" y no se puede deshacer.\n\n` +
+    'Si solo no se va a concretar, mejor márcala como cancelada: queda el ' +
+    'registro de que se intentó.\n\n' +
+    'Para borrarla, escribe el nombre del cliente:');
+  if (v === null) return;
+  if (v.trim().toLowerCase() !== esperado.toLowerCase())
+    return alerta('mq-alert', 'El nombre no calza. No se borró nada.', 'an');
+
+  try {
+    // Los precios se van solos: la tabla los borra en cascada con la
+    // colocación. La máquina NO: vuelve a quedar disponible.
+    await sbSend(`maq_colocaciones?id=eq.${id}`, 'DELETE');
+    if (c.unidad_id)
+      await sbSend(`maq_unidades?id=eq.${c.unidad_id}`, 'PATCH', { estado: 'disponible' });
+    await cargarTodo();
+    toast('Entrega borrada');
+  } catch (e) {
+    alerta('mq-alert', 'No se pudo borrar: ' + esc(e.message), 'ae');
+  }
+}
+
 // Mueve la colocación a una etapa. Se puede ir hacia atrás: las cosas se
 // devuelven, y obligar a cancelar y rehacer para corregir un clic perdería
 // todo lo anotado.
@@ -1035,8 +1065,9 @@ async function moverEtapa(id, etapa) {
   const fila = { estado: etapa };
   // Al instalarla se guarda cuándo, que es lo que después permite medir
   // cuánto demora el proceso completo.
-  if (etapa === 'instalada') fila.entregada = new Date().toISOString();
-  if (etapa === 'instalada' && c.capacitacion) fila.capacitacion_hecha = true;
+  if (etapa === 'entregada' || etapa === 'capacitada')
+    fila.entregada = fila.entregada || new Date().toISOString();
+  if (etapa === 'capacitada') fila.capacitacion_hecha = true;
 
   try {
     await sbSend(`maq_colocaciones?id=eq.${id}`, 'PATCH', fila);
@@ -1044,8 +1075,14 @@ async function moverEtapa(id, etapa) {
     // máquina instalada en un cliente no está disponible, y olvidar eso hace
     // que se prometa dos veces.
     if (c.unidad_id) {
-      const nuevo = etapa === 'instalada' || etapa === 'entregada' ? 'colocada'
-                  : etapa === 'preparacion' || etapa === 'lista' ? 'preparacion'
+      // La máquina sigue a la entrega: una que ya está en un cliente no está
+      // disponible, y olvidar eso lleva a prometerla dos veces.
+      //
+      // Retroceder de etapa NO la libera: corregir un clic no debería dejarla
+      // disponible para otro cliente sin que nadie lo decida.
+      const nuevo = ['entregada','capacitada'].includes(etapa) ? 'colocada'
+                  : ['preparando','lista','en_camino'].includes(etapa) ? 'preparacion'
+                  : etapa === 'cancelada' ? 'disponible'
                   : null;
       if (nuevo) await sbSend(`maq_unidades?id=eq.${c.unidad_id}`, 'PATCH', { estado: nuevo });
     }
@@ -1234,11 +1271,16 @@ function abrirUnidad(id) {
   edUni = id ? unidadPorId(id) : null;
   document.getElementById('mu-title').textContent = edUni ? 'Editar máquina' : 'Nueva máquina';
   document.getElementById('mu-alert').innerHTML = '';
-  const sm = document.getElementById('mu-modelo');
-  sm.innerHTML = modelos.filter(m => m.activo).map(m =>
-    `<option value="${m.id}"${edUni && String(edUni.modelo_id) === String(m.id) ? ' selected' : ''}>` +
-    `${esc(m.nombre)}</option>`).join('')
-    || '<option value="">— crea un modelo primero —</option>';
+  // El modelo se escribe. La lista solo sugiere los que ya existen, para que
+  // dos máquinas iguales no queden con el nombre escrito distinto.
+  document.getElementById('lista-modelos').innerHTML =
+    modelos.filter(m => m.activo).map(m => `<option value="${esc(m.nombre)}"></option>`).join('');
+  document.getElementById('mu-modelo').value =
+    edUni ? nombreModelo(edUni.modelo_id) : '';
+  document.getElementById('mu-marca').value = '';
+  document.getElementById('mu-modelo-nota').textContent = modelos.length
+    ? 'Si es un modelo nuevo, escríbelo y se crea solo.'
+    : 'Todavía no hay modelos: el que escribas será el primero.';
   document.getElementById('mu-serie').value     = edUni ? (edUni.serie || '') : '';
   document.getElementById('mu-ubicacion').value = edUni ? (edUni.ubicacion || '') : '';
   document.getElementById('mu-estado').value    = edUni ? edUni.estado : 'disponible';
@@ -1247,12 +1289,33 @@ function abrirUnidad(id) {
 }
 
 async function guardarUnidad() {
-  const modelo = document.getElementById('mu-modelo').value;
-  if (!modelo) return alerta('mu-alert',
-    'Elige el modelo. Si no hay ninguno, créalo primero en la pestaña Modelos.', 'ae');
+  const nomModelo = document.getElementById('mu-modelo').value.trim();
+  if (!nomModelo) return alerta('mu-alert', 'Escribe el modelo.', 'ae');
+
+  // Si el modelo ya existe se reusa; si no, se crea. Comparando sin tildes ni
+  // mayúsculas, porque "Pasmo S110F" y "pasmo s110f" son el mismo y dos
+  // modelos con el mismo nombre escritos distinto rompen el conteo.
+  const norm = t => String(t || '').toLowerCase().trim()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
+  let modelo = modelos.find(m => norm(m.nombre) === norm(nomModelo));
+  if (!modelo) {
+    try {
+      const r = await sbSend('maq_modelos', 'POST', {
+        nombre: nomModelo,
+        marca: document.getElementById('mu-marca').value.trim(),
+        activo: true
+      });
+      const d = await r.json();
+      modelo = Array.isArray(d) ? d[0] : d;
+      if (!modelo || !modelo.id) throw new Error('no se pudo crear el modelo');
+      modelos.push(modelo);
+    } catch (e) {
+      return alerta('mu-alert', 'No se pudo crear el modelo: ' + esc(e.message), 'ae');
+    }
+  }
 
   const fila = {
-    modelo_id: Number(modelo),
+    modelo_id: modelo.id,
     serie:     document.getElementById('mu-serie').value.trim(),
     ubicacion: document.getElementById('mu-ubicacion').value.trim(),
     estado:    document.getElementById('mu-estado').value,
@@ -1271,69 +1334,6 @@ async function guardarUnidad() {
     // está dónde.
     alerta('mu-alert', /duplicate|23505|serie/i.test(String(e.message))
       ? 'Ya hay otra máquina con ese número de serie.'
-      : 'No se pudo guardar: ' + esc(e.message), 'ae');
-  }
-  btn.innerHTML = 'Guardar'; btn.disabled = false;
-}
-
-// ══════════════════════════════════════════════════════════════
-//  MODELOS
-// ══════════════════════════════════════════════════════════════
-function renderModelos() {
-  const t = document.getElementById('tabla-modelos');
-  if (!t) return;
-  if (!modelos.length) {
-    t.innerHTML = '<tbody><tr><td><div class="sub">Crea el primer modelo con el ' +
-      'botón de arriba. Después podrás agregar máquinas de ese modelo.</div></td></tr></tbody>';
-    return;
-  }
-  t.innerHTML = `<thead><tr><th>Modelo</th><th>Marca</th><th>Máquinas</th>
-    <th>Estado</th><th></th></tr></thead><tbody>
-    ${modelos.map(m => {
-      const n = unidades.filter(u => String(u.modelo_id) === String(m.id)).length;
-      return `<tr>
-        <td><b>${esc(m.nombre)}</b>${m.notas
-          ? `<div class="sub" style="margin:2px 0 0">${esc(m.notas)}</div>` : ''}</td>
-        <td>${esc(m.marca || '—')}</td>
-        <td>${n}</td>
-        <td>${m.activo ? '<span class="badge bok">activo</span>'
-                       : '<span class="badge bsal">inactivo</span>'}</td>
-        <td class="num"><button class="btn bol bsm" onclick="abrirModelo(${m.id})">Editar</button></td>
-      </tr>`;
-    }).join('')}</tbody>`;
-}
-
-function abrirModelo(id) {
-  edMod = id ? modeloPorId(id) : null;
-  document.getElementById('mm-title').textContent = edMod ? 'Editar modelo' : 'Nuevo modelo';
-  document.getElementById('mm-alert').innerHTML = '';
-  document.getElementById('mm-nombre').value = edMod ? edMod.nombre : '';
-  document.getElementById('mm-marca').value  = edMod ? (edMod.marca || '') : '';
-  document.getElementById('mm-notas').value  = edMod ? (edMod.notas || '') : '';
-  document.getElementById('mm-activo').checked = edMod ? !!edMod.activo : true;
-  abrir('mod-modelo');
-}
-
-async function guardarModelo() {
-  const nombre = document.getElementById('mm-nombre').value.trim();
-  if (!nombre) return alerta('mm-alert', 'Pon el nombre del modelo.', 'ae');
-  const fila = {
-    nombre,
-    marca:  document.getElementById('mm-marca').value.trim(),
-    notas:  document.getElementById('mm-notas').value.trim(),
-    activo: document.getElementById('mm-activo').checked
-  };
-  const btn = document.getElementById('mm-guardar');
-  btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
-  try {
-    if (edMod) await sbSend(`maq_modelos?id=eq.${edMod.id}`, 'PATCH', fila);
-    else       await sbSend('maq_modelos', 'POST', fila);
-    cerrar('mod-modelo');
-    await cargarTodo();
-    toast(edMod ? 'Modelo actualizado' : 'Modelo creado');
-  } catch (e) {
-    alerta('mm-alert', /duplicate|23505/i.test(String(e.message))
-      ? 'Ya existe un modelo con ese nombre.'
       : 'No se pudo guardar: ' + esc(e.message), 'ae');
   }
   btn.innerHTML = 'Guardar'; btn.disabled = false;
