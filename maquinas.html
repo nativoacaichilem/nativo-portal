@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nativo · Máquinas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --mora:#6b35b8;--mora-d:#4a1f7a;--mora-l:#9b6fd4;--mora-xl:#f0e6ff;
+  --am:#f5c842;--am-l:#fef9c3;
+  --crema:#fdf8f0;--crema-d:#ede3d0;
+  --text:#1e1226;--textl:#8b7a9e;--white:#fff;
+  --vl:#d1fae5;--vd:#065f46;--rl:#fee2e2;--rd:#7f1d1d;
+  --nl:#ffedd5;--nd:#9a3412;
+  --shadow:0 2px 8px rgba(107,53,184,.07);
+  --linea:rgba(107,53,184,.14);--linea2:rgba(107,53,184,.07);
+  --ok:#2E8B6E;--medio:#D89A1E;--alto:#C0392B;--nada:#8A8494;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:#f0eaf8;color:var(--text);min-height:100vh}
+
+/* ══ LOGIN (idéntico al panel) ══ */
+#login{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,var(--mora-d),var(--mora));padding:20px}
+.login-logo{font-family:'DM Serif Display',serif;font-size:52px;color:var(--am);letter-spacing:2px;text-align:center;margin-bottom:6px}
+.login-sub{color:rgba(255,255,255,.45);font-size:12px;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-bottom:32px;font-weight:700}
+.lcard{background:var(--white);border-radius:20px;padding:28px;width:100%;max-width:340px;box-shadow:0 24px 64px rgba(0,0,0,.25)}
+.lcard h3{font-family:'DM Serif Display',serif;font-size:22px;color:var(--mora-d);margin-bottom:16px}
+.inp{width:100%;padding:11px 14px;border:1.5px solid var(--crema-d);border-radius:10px;font-size:14px;outline:none;font-family:'Nunito',sans-serif;margin-bottom:12px;background:var(--crema);color:var(--text)}
+.inp:focus{border-color:var(--mora);background:var(--white)}
+.bam-full{width:100%;padding:12px;border:none;border-radius:10px;background:var(--am);color:var(--mora-d);font-size:14px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif}
+
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:700;margin-bottom:12px}
+.ae{background:var(--rl);color:var(--rd)}
+.as{background:var(--vl);color:var(--vd)}
+.ai{background:var(--mora-xl);color:var(--mora-d)}
+.aw{background:var(--nl);color:var(--nd)}
+
+/* ══ NAV (idéntico al panel) ══ */
+nav{background:var(--mora);display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;position:sticky;top:0;z-index:40;box-shadow:0 2px 12px rgba(74,31,122,.25)}
+.nlogo{font-family:'DM Serif Display',serif;font-size:20px;color:var(--am);letter-spacing:1px}
+.ntabs{display:flex;overflow-x:auto}
+.tb{background:none;border:none;color:rgba(255,255,255,.5);padding:14px 15px;cursor:pointer;
+  font-size:13px;font-weight:800;border-bottom:2px solid transparent;font-family:'Nunito',sans-serif;white-space:nowrap}
+.tb.act{color:var(--am);border-bottom-color:var(--am);background:rgba(255,255,255,.06)}
+.tb:hover:not(.act){color:var(--white)}
+.nright{display:flex;align-items:center;gap:10px}
+.bout{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:var(--white);
+  padding:6px 14px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:800;font-family:'Nunito',sans-serif}
+
+/* ══ ESTRUCTURA ══ */
+.wrap{padding:20px;max-width:1320px;margin:0 auto}
+.card{background:var(--white);border-radius:14px;padding:18px;box-shadow:var(--shadow);margin-bottom:16px;border:1px solid rgba(107,53,184,.08)}
+.card h2{font-family:'DM Serif Display',serif;font-size:20px;color:var(--mora-d);margin-bottom:14px}
+.card-head{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.card-head h2{margin:0}
+.crece{flex:1 1 auto}
+.sep{width:1px;height:24px;background:var(--crema-d);margin:0 3px}
+
+.btn{padding:9px 18px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:800;font-family:'Nunito',sans-serif;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.bmora{background:var(--mora);color:var(--white)}
+.bam2{background:var(--am);color:var(--mora-d)}
+.bsm{padding:5px 12px;font-size:12px;border-radius:6px}
+.bol{background:var(--white);color:var(--mora);border:1.5px solid var(--mora)}
+.bdng{background:var(--rl);color:var(--rd);border:1px solid #fca5a5}
+.bgray{background:var(--crema-d);color:var(--textl)}
+.bgreen{background:var(--vl);color:var(--vd);border:1px solid #6ee7b7}
+label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--mora);margin-bottom:4px}
+input,textarea,select{width:100%;padding:9px 12px;border:1.5px solid var(--crema-d);border-radius:8px;
+  font-size:13px;outline:none;font-family:'Nunito',sans-serif;color:var(--text);background:var(--crema)}
+input:focus,textarea:focus,select:focus{border-color:var(--mora);background:var(--white)}
+input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--mora-l);outline-offset:1px}
+textarea{resize:vertical;min-height:56px}
+input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--mora);flex-shrink:0}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text);text-transform:none;letter-spacing:0}
+.chk input{width:16px;height:16px}
+.fb{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.fb input,.fb select{width:auto;flex:0 1 auto;min-width:140px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.f1{margin-bottom:12px}
+.hint{font-size:11px;font-weight:700;color:var(--textl);margin-top:4px;line-height:1.45}
+.empty{color:var(--textl);font-size:13px;font-weight:700;padding:26px 6px;text-align:center}
+.sp{display:inline-block;width:14px;height:14px;border:2px solid rgba(107,53,184,.2);border-top-color:var(--mora);
+  border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ SEGMENTOS ══ */
+.segs{display:flex;gap:3px;background:var(--crema);padding:3px;border-radius:10px;flex-wrap:wrap}
+.segs button{border:0;background:transparent;padding:7px 16px;border-radius:8px;font-weight:800;
+  font-size:13px;color:var(--textl);cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap}
+.segs button[aria-pressed=true]{background:var(--white);color:var(--mora-d);box-shadow:0 1px 3px rgba(107,53,184,.18)}
+
+/* ══ KPI ══ */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--white);border-radius:12px;padding:16px;text-align:center;box-shadow:var(--shadow);border:1px solid rgba(107,53,184,.08)}
+.stat.aviso{border-color:#fdba74;background:#fffbf5}
+.stat.grave{border-color:#fca5a5;background:#fff7f7}
+.sn{font-size:30px;font-weight:900;color:var(--mora);line-height:1.1}
+.stat.aviso .sn{color:var(--nd)}
+.stat.grave .sn{color:var(--alto)}
+.sl{font-size:10px;color:var(--textl);margin-top:2px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.sx{font-size:10.5px;color:var(--textl);margin-top:5px;font-weight:700}
+.stat.pulsa{cursor:pointer}
+.stat.pulsa:hover{border-color:var(--mora-l)}
+
+/* ══ TABLAS ══ */
+.tw{overflow-x:auto;border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--crema);color:var(--mora);font-weight:800;padding:9px 12px;text-align:left;font-size:11px;
+  text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid var(--crema-d);white-space:nowrap}
+th.num,td.num{text-align:right}
+td{padding:9px 12px;border-bottom:1px solid var(--crema-d);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#faf6ff}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+.bent{background:var(--vl);color:var(--vd)}
+.bsal{background:var(--rl);color:var(--rd)}
+.btra{background:#dbeafe;color:#1e40af}
+.baju{background:var(--mora-xl);color:var(--mora-d)}
+.brev{background:#f3f4f6;color:#6b7280;border:1px dashed #d1d5db}
+.chip{display:inline-block;background:var(--crema);border:1px solid var(--crema-d);border-radius:20px;
+  padding:2px 9px;font-size:10px;font-weight:800;color:var(--mora);white-space:nowrap}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;font-weight:700;letter-spacing:.2px}
+.sub{font-size:11px;color:var(--textl);font-weight:700;margin-top:2px}
+.pos{color:var(--ok);font-weight:900}
+.neg{color:var(--alto);font-weight:900}
+
+/* ══ MEDIDOR DE STOCK — el elemento central de la pantalla ══
+   Una barra por producto y bodega: el relleno es lo que hay, la muesca
+   vertical es el mínimo que definiste. De un vistazo se ve si el saldo
+   está por debajo de la línea sin tener que comparar dos números. */
+.med{position:relative;height:24px;background:var(--crema);border-radius:6px;overflow:hidden;
+  border:1px solid var(--crema-d);min-width:110px}
+.med .fill{position:absolute;left:0;top:0;bottom:0;border-radius:5px 0 0 5px;transition:width .45s cubic-bezier(.4,0,.2,1)}
+.med .marca{position:absolute;top:-1px;bottom:-1px;width:2px;background:var(--mora-d);opacity:.55}
+.med .marca::after{content:'';position:absolute;top:-1px;left:-2px;border-left:3px solid transparent;
+  border-right:3px solid transparent;border-top:4px solid var(--mora-d);opacity:.85}
+.med .val{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;
+  padding-right:7px;font-size:11.5px;font-weight:900;color:var(--text);text-shadow:0 0 3px rgba(255,255,255,.9)}
+.f-ok{background:linear-gradient(90deg,#5cbfa0,#2E8B6E)}
+.f-medio{background:linear-gradient(90deg,#f0c368,#D89A1E)}
+.f-alto{background:linear-gradient(90deg,#e08279,#C0392B)}
+.f-nada{background:repeating-linear-gradient(135deg,#d9d4e0 0 5px,#efecf3 5px 10px)}
+
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.d-ok{background:var(--ok)}.d-medio{background:var(--medio)}.d-alto{background:var(--alto)}.d-nada{background:var(--nada)}
+
+/* ══ CONGELADOS ══
+   No es decoración: el color y el hielo son lo que permite saber en qué
+   lista estás parado sin leer el encabezado. */
+.frio{--acento:#2563eb}
+.grupo-cab{display:flex;align-items:center;gap:9px;margin:4px 0 10px;padding-bottom:7px;
+  border-bottom:2px solid var(--crema-d)}
+.grupo-cab.frio{border-bottom-color:#bfdbfe}
+.grupo-t{font-family:'DM Serif Display',serif;font-size:16px;color:var(--mora-d)}
+.grupo-cab.frio .grupo-t{color:#1e40af}
+.grupo-s{font-size:11px;font-weight:700;color:var(--textl)}
+.badge-frio{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}
+.mtz.frio th{background:#eff6ff;color:#1e40af;border-bottom-color:#bfdbfe}
+.mtz.frio tr.fila-alerta td:first-child{box-shadow:inset 3px 0 0 #1e40af}
+.al.frio-crit{background:#eff6ff;border-color:#60a5fa}
+.al.frio-crit .al-n{color:#1e40af}
+
+/* ══ MATRIZ DE SALDOS ══ */
+.mtz td{padding:8px 12px}
+.mtz .cel-bod{min-width:170px}
+.mtz .prod{font-weight:800}
+.mtz tr.fila-alerta td:first-child{box-shadow:inset 3px 0 0 var(--alto)}
+.mtz tr.fila-aviso td:first-child{box-shadow:inset 3px 0 0 var(--medio)}
+.celda{cursor:pointer;border-radius:6px}
+.celda:hover .med{border-color:var(--mora-l)}
+
+/* ══ VISTA POR BODEGA ══
+   Con las bodegas en las filas y los productos en columnas, el número tiene
+   que leerse solo: no cabe una barra por celda. El color hace el trabajo. */
+.pbod td{text-align:center;padding:10px 8px;min-width:96px}
+.pbod td.nom{text-align:left;min-width:150px}
+.pbod th{text-align:center;font-size:10px;line-height:1.3;white-space:normal;min-width:96px;vertical-align:bottom}
+.pbod th.nom{text-align:left}
+.pbod .cifra{font-size:19px;font-weight:900;line-height:1.1}
+.pbod .bajo{font-size:10px;font-weight:700;color:var(--textl);margin-top:1px}
+.pbod .c-ok{color:var(--ok)}
+.pbod .c-medio{color:var(--medio)}
+.pbod .c-alto{color:var(--alto)}
+.pbod .c-nada{color:var(--alto);background:#fff1f1;border-radius:7px}
+.pbod .c-sinmin{color:var(--text)}
+.pbod tr.tot td{border-top:2px solid var(--crema-d);background:var(--crema);font-weight:900}
+.pbod .celda:hover{background:#faf6ff}
+
+/* ══ ALERTAS ══ */
+.al-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.al{border-radius:10px;padding:11px 13px;border:1px solid;display:flex;gap:11px;align-items:center;cursor:pointer}
+.al:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(107,53,184,.12)}
+.al.crit{background:#fff7f7;border-color:#fca5a5}
+.al.baja{background:#fffbf5;border-color:#fdba74}
+.al-n{font-family:'DM Serif Display',serif;font-size:26px;line-height:1;min-width:44px;text-align:center}
+.al.crit .al-n{color:var(--alto)}
+.al.baja .al-n{color:var(--nd)}
+.al-t{font-weight:800;font-size:13px;line-height:1.3}
+.al-s{font-size:11px;color:var(--textl);font-weight:700;margin-top:2px}
+
+/* ══ ACCIONES RÁPIDAS ══ */
+.acc{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.acc button{background:var(--white);border:1.5px solid var(--crema-d);border-radius:12px;padding:14px 12px;
+  cursor:pointer;font-family:'Nunito',sans-serif;text-align:left;box-shadow:var(--shadow);transition:border .15s,transform .15s}
+.acc button:hover{border-color:var(--mora);transform:translateY(-1px)}
+.acc .ai-ico{font-size:20px;display:block;margin-bottom:5px}
+.acc .ai-t{font-weight:900;font-size:13.5px;color:var(--mora-d);display:block}
+.acc .ai-s{font-size:10.5px;color:var(--textl);font-weight:700;display:block;margin-top:1px}
+
+/* ══ GRÁFICO DE MERMAS ══ */
+.graf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px;align-items:center}
+@media(max-width:760px){.graf{grid-template-columns:1fr}}
+.leg{display:flex;flex-direction:column;gap:7px}
+.leg-i{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:700}
+.leg-c{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+.leg-v{margin-left:auto;font-weight:900;color:var(--mora-d)}
+.barra-mes{display:flex;align-items:flex-end;gap:3px;height:80px}
+.barra-mes div{flex:1;background:var(--mora-xl);border-radius:3px 3px 0 0;min-height:2px;position:relative}
+.barra-mes div span{position:absolute;bottom:-16px;left:0;right:0;text-align:center;font-size:9px;font-weight:800;color:var(--textl)}
+
+/* ══ MODAL ══ */
+.mbg{display:none;position:fixed;inset:0;background:rgba(74,31,122,.5);z-index:100;
+  justify-content:center;align-items:center;padding:16px}
+.mbg.open{display:flex}
+.modal{background:var(--white);border-radius:16px;padding:26px;max-width:560px;width:100%;
+  box-shadow:0 24px 64px rgba(0,0,0,.25);max-height:90vh;overflow-y:auto}
+.modal.ancho{max-width:820px}
+.modal h3{font-family:'DM Serif Display',serif;font-size:20px;color:var(--mora-d);margin-bottom:16px}
+.modal-section{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--mora-l);
+  margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--crema-d)}
+.mact{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+
+/* ══ RESUMEN EN MODAL ══ */
+.res{background:var(--crema);border-radius:10px;padding:12px 14px;font-size:13px;font-weight:700;line-height:1.6}
+.res b{color:var(--mora-d)}
+.res .flecha{color:var(--mora-l);font-weight:900;margin:0 5px}
+
+/* ══ CONTEO ══ */
+.cnt-dif{font-weight:900;font-size:13px}
+.cnt input{width:96px;text-align:right}
+
+/* ══ TOAST ══ */
+#toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,120%);z-index:200;
+  background:var(--mora-d);color:var(--white);padding:12px 22px;border-radius:24px;font-weight:800;font-size:13.5px;
+  box-shadow:0 10px 34px rgba(74,31,122,.4);transition:transform .3s cubic-bezier(.4,0,.2,1);max-width:92vw;text-align:center}
+#toast.show{transform:translate(-50%,0)}
+#toast.err{background:var(--alto)}
+
+.page{display:none}
+.page.act{display:block}
+
+@media(max-width:640px){
+  .wrap{padding:12px}
+  .fg,.fg3{grid-template-columns:1fr}
+  .modal{padding:20px}
+  .sn{font-size:25px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+@media print{
+  nav,.acc,.fb,.btn,#toast{display:none!important}
+  body{background:#fff}
+  .card{box-shadow:none;border:1px solid #ddd;break-inside:avoid}
+}
+
+
+/* ══ BARRA DE MÓDULOS ══
+   Arriba SOLO se cambia de módulo. Las secciones de cada pantalla van en su
+   propia barra, abajo. Antes las dos cosas se veían igual y estaban en la
+   misma fila, así que no había forma de saber qué botón cambiaba de página y
+   cuál solo de vista.
+
+   Los colores van sobre el morado del nav, que es el fondo en las cinco
+   pantallas. Un gris pensado para fondo claro acá no se lee. */
+.modbar{display:flex;gap:2px;overflow-x:auto;flex:1;min-width:0}
+.mod{background:none;border:none;padding:14px 14px;font-size:12px;font-weight:800;
+  color:rgba(255,255,255,.62);cursor:pointer;font-family:'Nunito',sans-serif;
+  white-space:nowrap;border-bottom:3px solid transparent}
+.mod:hover{color:#fff;background:rgba(255,255,255,.08)}
+/* El módulo actual no es un botón: es dónde estás. Por eso no responde al
+   cursor y se marca con el amarillo de la casa. */
+.mod.act{color:#fff;border-bottom-color:var(--am);cursor:default;
+  background:rgba(0,0,0,.16)}
+.mod.act:hover{background:rgba(0,0,0,.16)}
+@media(max-width:640px){ .mod{padding:12px 10px;font-size:11px} }
+
+/* ══ BARRA DE SECCIONES ══
+   Las vistas DENTRO de esta pantalla. Se ve distinta de la barra de módulos a
+   propósito: fondo claro, píldoras en vez de solapas. Son dos cosas
+   diferentes y tienen que parecerlo. */
+.secbar{display:flex;gap:6px;overflow-x:auto;padding:12px 16px 0;max-width:1240px;
+  margin:0 auto;flex-wrap:wrap}
+.sec{background:var(--white);border:1.5px solid var(--crema-d);border-radius:20px;
+  padding:8px 15px;font-size:12px;font-weight:800;color:var(--textl);cursor:pointer;
+  font-family:'Nunito',sans-serif;white-space:nowrap}
+.sec:hover{border-color:var(--mora-l);color:var(--mora-d)}
+.sec.act{background:var(--mora);border-color:var(--mora);color:#fff}
+@media(max-width:640px){ .sec{padding:7px 12px;font-size:11px} }
+
+/* ── Clases que se usaban sin estar definidas ──
+   Se detectaron con `pruebas/prueba_integridad.mjs`. Una clase sin definir no
+   rompe nada visible: el elemento simplemente sale sin estilo, y eso es peor
+   que un error, porque nadie lo reporta. */
+
+/* Aviso naranjo. Se llama `an` en admin.html y así quedó escrito acá; sin la
+   definición, esos avisos salían como texto suelto. */
+.an{background:var(--nl);color:var(--nd)}
+
+/* Estado "recibida" y etiqueta de proveedor preferido. */
+.bok{background:var(--vl);color:var(--vd)}
+
+/* Nota bajo un campo del formulario. En admin nace oculta y se muestra desde
+   el JS; acá la mayoría son fijas, así que se muestran salvo que el JS diga
+   lo contrario. */
+.nota-campo{font-size:11px;font-weight:700;color:var(--mora);margin-top:4px;line-height:1.45}
+
+/* Fila seleccionable de una lista. */
+.pick{display:flex;gap:10px;align-items:center;background:var(--white);
+  border:1.5px solid var(--crema-d);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+
+/* Lo que escribió quien pidió, dentro de una tarjeta de la pizarra. */
+.msg-cli{background:var(--mora-xl);color:var(--mora-d);border-radius:7px;
+  padding:6px 9px;font-size:11px;font-weight:700;line-height:1.5}
+
+/* ── MÁQUINAS ──
+   Una colocación es un proceso con etapas, no una fila de tabla. Se muestra
+   como tarjeta porque hay que leer varias cosas a la vez: en qué etapa va,
+   quién la lleva, qué máquina tiene asignada y qué se acordó. */
+.col{background:var(--white);border:1.5px solid var(--crema-d);border-radius:12px;
+  padding:14px;margin-bottom:12px}
+.col.urge{border-color:var(--nd);background:var(--nl)}
+.col.cerrada{opacity:.6}
+.col-top{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.col-emp{font-weight:900;font-size:15px;flex:1;min-width:180px}
+
+/* Las etapas en línea. La actual en morado, las pasadas en verde: se ve de un
+   vistazo cuánto falta sin leer una sola palabra. */
+.etapas{display:flex;gap:4px;flex-wrap:wrap;margin:10px 0}
+.et{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800;
+  background:var(--crema);color:var(--textl);cursor:pointer;border:none;
+  font-family:'Nunito',sans-serif}
+.et.hecha{background:var(--vl);color:var(--vd)}
+.et.ahora{background:var(--mora);color:#fff}
+.et:disabled{cursor:default;opacity:.55}
+
+.dato{font-size:12px;font-weight:700;color:var(--textl);line-height:1.6}
+.dato b{color:var(--text)}
+.precio-fila{display:flex;gap:8px;align-items:center;padding:7px 0;
+  border-bottom:1px solid var(--crema)}
+.precio-fila:last-child{border-bottom:none}
+</style>
+</head>
+<body>
+<div id="login">
+  <div class="login-logo">nativo</div>
+  <div class="login-sub">Compras y proveedores</div>
+  <div class="lcard">
+    <h3>Equipo nativo</h3>
+    <div id="lerr"></div>
+    <input class="inp" type="password" id="pin" placeholder="Clave de acceso"
+      autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="bam-full" id="bentrar" onclick="doLogin()">Ingresar →</button>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app" style="display:none">
+  <nav>
+    <div class="modbar">
+      <button class="mod" onclick="location.href='admin.html#pedidos'">📋 Pedidos</button>
+      <button class="mod" onclick="location.href='bodega.html'">📦 Bodega</button>
+      <button class="mod" onclick="location.href='compras.html'">🛒 Compras</button>
+      <button class="mod act" aria-current="page">🔧 Máquinas</button>
+      <button class="mod" onclick="location.href='kpi.html'">📊 Indicadores</button>
+      <button class="mod" onclick="location.href='planner.html'">📅 Planner</button>
+    </div>
+    <div class="nlogo">nativo</div>
+    <div class="nright">
+      <span class="chip" id="quien-chip" onclick="pedirQuien()" title="Cambiar quién eres">—</span>
+      <button class="bout" onclick="salir()">Salir</button>
+    </div>
+  </nav>
+
+    <div class="secbar" role="group" aria-label="Secciones de máquinas">
+    <button class="sec act" id="sec-colocaciones" onclick="goTab('colocaciones',this)">🚀 Colocaciones</button>
+    <button class="sec"     id="sec-unidades"     onclick="goTab('unidades',this)">🔧 Máquinas</button>
+    <button class="sec"     id="sec-modelos"      onclick="goTab('modelos',this)">📐 Modelos</button>
+  </div>
+
+  <div class="wrap">
+    <div id="mq-alert"></div>
+
+    <!-- ══ COLOCACIONES ══ -->
+    <div id="page-colocaciones" class="page act">
+      <div class="card">
+        <div class="card-head">
+          <h2>🚀 Colocaciones</h2><div class="crece"></div>
+          <button class="btn bam2 bsm" onclick="abrirColocacion(null)">＋ Nueva</button>
+        </div>
+        <div class="sub">
+          El camino de una máquina desde que se capta el cliente hasta que queda
+          instalada y el equipo capacitado. Cada etapa se marca apretándola.
+        </div>
+        <div class="fb" style="margin-top:12px">
+          <select id="co-filtro" onchange="renderColocaciones()">
+            <option value="abiertas">En curso</option>
+            <option value="todas">Todas</option>
+            <option value="instalada">Terminadas</option>
+            <option value="cancelada">Canceladas</option>
+          </select>
+          <input type="text" id="co-buscar" placeholder="🔍 Cliente o encargado..."
+            oninput="renderColocaciones()" style="max-width:260px">
+        </div>
+        <div id="co-lista" style="margin-top:14px"></div>
+      </div>
+    </div>
+
+    <!-- ══ UNIDADES ══ -->
+    <div id="page-unidades" class="page">
+      <div class="card">
+        <div class="card-head">
+          <h2>🔧 Las máquinas</h2><div class="crece"></div>
+          <button class="btn bam2 bsm" onclick="abrirUnidad(null)">＋ Nueva máquina</button>
+        </div>
+        <div class="sub">
+          Cada máquina física, con su número de serie y dónde está ahora.
+          Separarlas de las colocaciones permite saber qué hay disponible y
+          seguir una máquina que vuelve y se coloca de nuevo.
+        </div>
+        <div id="un-stats" class="stats" style="margin-top:12px"></div>
+        <div class="tw" style="margin-top:12px"><table id="tabla-unidades"></table></div>
+      </div>
+    </div>
+
+    <!-- ══ MODELOS ══ -->
+    <div id="page-modelos" class="page">
+      <div class="card">
+        <div class="card-head">
+          <h2>📐 Modelos</h2><div class="crece"></div>
+          <button class="btn bam2 bsm" onclick="abrirModelo(null)">＋ Nuevo modelo</button>
+        </div>
+        <div class="sub">
+          Los tipos de máquina que se manejan. Un modelo agrupa a todas las
+          máquinas iguales.
+        </div>
+        <div class="tw" style="margin-top:12px"><table id="tabla-modelos"></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: COLOCACIÓN ══ -->
+<div class="mbg" id="mod-colocacion">
+  <div class="modal" style="max-width:620px">
+    <h3 id="mc-title">Nueva colocación</h3>
+    <div id="mc-alert"></div>
+
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Cliente *</label>
+        <input id="mc-cliente" type="text" placeholder="Nombre del local o empresa"
+          list="lista-clientes">
+        <datalist id="lista-clientes"></datalist>
+        <div class="nota-campo" style="display:block">Puede no estar todavía en el
+          directorio: la colocación empieza igual.</div></div>
+      <div><label>Encargado</label>
+        <input id="mc-encargado" type="text" placeholder="Quién la lleva"></div>
+    </div>
+
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Modelo que va</label><select id="mc-modelo"></select></div>
+      <div><label>Máquina asignada</label><select id="mc-unidad"></select>
+        <div class="nota-campo" style="display:block">Se puede dejar sin asignar
+          hasta que se sepa cuál.</div></div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label>¿Dónde queda instalada?</label>
+      <input id="mc-destino" type="text" placeholder="Dirección o local de destino">
+    </div>
+
+    <label class="chk" style="display:flex;align-items:center;gap:8px;margin:0 0 12px;
+      text-transform:none;font-size:13px;color:var(--text);font-weight:800">
+      <input type="checkbox" id="mc-capacitacion" style="width:auto">
+      🎓 Lleva capacitación
+    </label>
+
+    <div style="margin-bottom:12px">
+      <label>El trato que se acordó</label>
+      <textarea id="mc-trato" style="min-height:60px"
+        placeholder="Condiciones, plazos, lo que se habló con el cliente"></textarea>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label>Notas</label>
+      <textarea id="mc-notas" style="min-height:50px"></textarea>
+    </div>
+
+    <div class="modal-section">Precios ofrecidos</div>
+    <div class="sub" style="margin-bottom:8px">
+      Lo que se le cotizó a este cliente por producto. Queda acá porque es donde
+      se negocia.
+    </div>
+    <div id="mc-precios"></div>
+    <div class="fg" style="margin-top:10px">
+      <div><label>Producto</label><select id="mc-prod"></select></div>
+      <div><label>Precio</label>
+        <div style="display:flex;gap:6px">
+          <input id="mc-precio" type="number" step="any" min="0" placeholder="0">
+          <button class="btn bgray bsm" onclick="agregarPrecio()">Agregar</button>
+        </div></div>
+    </div>
+
+    <div class="mact">
+      <button class="btn bgray bsm" onclick="cerrar('mod-colocacion')">Cancelar</button>
+      <button class="btn bmora bsm" id="mc-guardar" onclick="guardarColocacion()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: UNIDAD ══ -->
+<div class="mbg" id="mod-unidad">
+  <div class="modal" style="max-width:520px">
+    <h3 id="mu-title">Nueva máquina</h3>
+    <div id="mu-alert"></div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Modelo *</label><select id="mu-modelo"></select></div>
+      <div><label>Número de serie</label><input id="mu-serie" type="text"
+        placeholder="El de la placa"></div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>¿Dónde está?</label><input id="mu-ubicacion" type="text"
+        placeholder="Bodega, taller, el local de..."></div>
+      <div><label>Estado</label>
+        <select id="mu-estado">
+          <option value="disponible">Disponible</option>
+          <option value="preparacion">En preparación</option>
+          <option value="colocada">Colocada en un cliente</option>
+          <option value="mantencion">En mantención</option>
+          <option value="baja">De baja</option>
+        </select></div>
+    </div>
+    <div style="margin-bottom:4px"><label>Notas</label>
+      <textarea id="mu-notas" style="min-height:50px"></textarea></div>
+    <div class="mact">
+      <button class="btn bgray bsm" onclick="cerrar('mod-unidad')">Cancelar</button>
+      <button class="btn bmora bsm" id="mu-guardar" onclick="guardarUnidad()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: MODELO ══ -->
+<div class="mbg" id="mod-modelo">
+  <div class="modal" style="max-width:460px">
+    <h3 id="mm-title">Nuevo modelo</h3>
+    <div id="mm-alert"></div>
+    <div style="margin-bottom:12px"><label>Nombre *</label>
+      <input id="mm-nombre" type="text" placeholder="Cómo se llama el modelo"></div>
+    <div style="margin-bottom:12px"><label>Marca</label>
+      <input id="mm-marca" type="text"></div>
+    <div style="margin-bottom:12px"><label>Notas</label>
+      <textarea id="mm-notas" style="min-height:50px"></textarea></div>
+    <label class="chk" style="display:flex;align-items:center;gap:8px;margin:0;
+      text-transform:none;font-size:13px;color:var(--text);font-weight:800">
+      <input type="checkbox" id="mm-activo" checked style="width:auto"> Activo
+    </label>
+    <div class="mact">
+      <button class="btn bgray bsm" onclick="cerrar('mod-modelo')">Cancelar</button>
+      <button class="btn bmora bsm" id="mm-guardar" onclick="guardarModelo()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script>
+
+// ══════════════════════════════════════════════════════════════
+//  compras.html — pizarra de solicitudes, reposición y proveedores
+//
+//  DEPENDE de las tablas com_proveedores, com_producto_proveedor y
+//  com_solicitudes, y de que las entradas `com_*` estén en TABLAS del Worker.
+//  Si falta algo, la pantalla lo dice en vez de fallar en silencio.
+//
+//  LO QUE ESTA PANTALLA NO HACE: mover stock. Una solicitud marcada como
+//  recibida NO suma inventario. Eso se anota en bodega como una entrada
+//  normal, y es a propósito: con dos caminos para modificar el inventario no
+//  habría forma de cuadrarlos. La pizarra es una lista de intenciones; el
+//  libro de bodega es la verdad.
+// ══════════════════════════════════════════════════════════════
+
+const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
+let TOKEN = '';
+
+// "Failed to fetch" es lo que devuelve el navegador tanto si se cayó la red
+// como si el Worker rechazó una cabecera antes de que la petición saliera.
+// El mensaje crudo no distingue los dos casos y no le dice nada a nadie.
+function explicarRed(e) {
+  const m = String(e && e.message || e);
+  if (/Failed to fetch|NetworkError|Load failed/i.test(m))
+    return 'No se pudo contactar el servidor. Revisa la conexión.';
+  return m;
+}
+
+async function pedir(url, opciones) {
+  try {
+    return await fetch(url, opciones);
+  } catch (e) {
+    throw new Error(explicarRed(e));
+  }
+}
+
+// El Worker declara qué cabeceras acepta:
+//   'Access-Control-Allow-Headers': 'Content-Type,X-Admin-Token'
+// Si el navegador ve una cabecera fuera de esa lista, hace una consulta previa,
+// el Worker no la autoriza y la petición NUNCA SALE. El error que llega es
+// "Failed to fetch", que parece un problema de red y no lo es.
+//
+// Por eso acá no se manda ninguna otra. Nada de `Prefer` ni de `Range`: el
+// Worker ya fuerza `Prefer: return=minimal` por su cuenta, y para paginar se
+// usan `limit` y `offset` en la dirección, que viajan como parte de la URL.
+const CABECERAS_PERMITIDAS = ['Content-Type', 'X-Admin-Token'];
+
+function cabeceras(conCuerpo) {
+  const h = { 'X-Admin-Token': TOKEN };
+  if (conCuerpo) h['Content-Type'] = 'application/json';
+  return h;
+}
+
+function revisarAuth(r) {
+  if (r.status === 401) {
+    TOKEN = '';
+    try { sessionStorage.removeItem('nativo_token'); } catch (_) {}
+    document.getElementById('app').style.display   = 'none';
+    document.getElementById('login').style.display = 'flex';
+    document.getElementById('lerr').innerHTML =
+      '<div class="alert ae">La sesión expiró o la clave cambió. Ingresa de nuevo.</div>';
+    throw new Error('Sesión no autorizada');
+  }
+  return r;
+}
+
+async function sbSend(path, method, body) {
+  const o = { method, headers: cabeceras(true) };
+  if (body !== undefined) o.body = JSON.stringify(body);
+  const r = revisarAuth(await pedir(`${PROXY}/supabase/${path}`, o));
+  if (!r.ok) {
+    let d = '';
+    try { d = (await r.text()).slice(0, 220); } catch (_) {}
+    throw new Error(`HTTP ${r.status}${d ? ' · ' + d : ''}`);
+  }
+  return r;
+}
+
+async function sbJson(path) {
+  const r = revisarAuth(await pedir(`${PROXY}/supabase/${path}`, { headers: cabeceras(false) }));
+  if (!r.ok) throw new Error('HTTP ' + r.status + ' en ' + path.split('?')[0]);
+  const d = await r.json();
+  if (!Array.isArray(d)) throw new Error('Respuesta inválida en ' + path.split('?')[0]);
+  return d;
+}
+
+
+// El libro de movimientos crece con los años y PostgREST corta en 1000 filas
+// por respuesta, así que se pide por tandas.
+//
+// La paginación va por `limit` y `offset` en la dirección, no por la cabecera
+// `Range`. El Worker arma sus propios headers hacia Supabase y descarta los del
+// navegador: un `Range` nunca llegaría, PostgREST devolvería siempre las mismas
+// mil filas y el libro quedaría cortado sin avisar. La dirección, en cambio, se
+// reenvía completa.
+//
+// El Set de ids es el cinturón de seguridad: si por lo que sea una tanda
+// repitiera filas, el ciclo corta en vez de inflar el libro con copias, que es
+// la falla que haría que los saldos mientan.
+// El techo evita que un error de paginación deje al navegador pidiendo tandas
+// para siempre. Pero alcanzarlo tiene una consecuencia peor acá que en admin:
+// si el libro viene incompleto, un pedido que YA se descargó pierde su marca,
+// la pantalla vuelve a ofrecer el botón de descargar, y el stock se descuenta
+// dos veces. Antes eso pasaba en silencio. Ahora no.
+const TECHO_FILAS = 60000;
+
+function avisarTruncado(tabla, cuantas) {
+  let caja = document.getElementById('aviso-truncado');
+  if (!caja) {
+    caja = document.createElement('div');
+    caja.id = 'aviso-truncado';
+    caja.style.cssText =
+      'position:fixed;left:0;right:0;top:0;z-index:9999;background:#7f1d1d;' +
+      'color:#fff;padding:12px 16px;font-size:13px;font-weight:800;' +
+      'line-height:1.5;box-shadow:0 2px 12px rgba(0,0,0,.3)';
+    document.body.appendChild(caja);
+  }
+  caja.textContent =
+    '⚠ EL LIBRO ESTÁ INCOMPLETO — "' + tabla + '" tiene más de ' +
+    cuantas.toLocaleString('es-CL') + ' movimientos y solo se cargaron esos. ' +
+    'Los saldos que ves están MAL y un pedido ya descargado puede volver a ' +
+    'ofrecerse. No anotes movimientos ni descargues pedidos hasta resolverlo.';
+}
+
+async function sbTodo(tabla, query) {
+  const paso = 1000, vistos = new Set(), out = [];
+  let completo = false;
+  for (let desde = 0; desde < TECHO_FILAS; desde += paso) {
+    const url = `${PROXY}/supabase/${tabla}?${query}&limit=${paso}&offset=${desde}`;
+    const r = revisarAuth(await pedir(url, { headers: cabeceras(false) }));
+    if (!r.ok) throw new Error('HTTP ' + r.status + ' en ' + tabla);
+    const d = await r.json();
+    if (!Array.isArray(d)) throw new Error('Respuesta inválida en ' + tabla);
+    let nuevos = 0;
+    for (const f of d) { if (!vistos.has(f.id)) { vistos.add(f.id); out.push(f); nuevos++; } }
+    // Salir acá significa que se acabaron las filas: el libro está completo.
+    if (d.length < paso || nuevos === 0) { completo = true; break; }
+  }
+  // Salir por agotar el for significa que se alcanzó el techo: falta data.
+  if (!completo) avisarTruncado(tabla, out.length);
+  return out;
+}
+
+function esc(s) {
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Las cantidades pueden ser fraccionarias (kilos, litros). Se muestran sin
+// decimales cuando son enteras, para que 12 no se lea "12,000".
+function num(n) {
+  const v = Number(n) || 0;
+  const dec = Math.abs(v % 1) > 0.0005 ? 3 : 0;
+  return v.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: dec });
+}
+function pesos(n) {
+  return '$' + Math.round(Number(n) || 0).toLocaleString('es-CL');
+}
+function fechaCorta(f) {
+  if (!f) return '';
+  const p = String(f).slice(0, 10).split('-');
+  return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : String(f);
+}
+function toast(msg, err) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (err ? ' err' : '');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => { t.className = ''; }, err ? 5200 : 3000);
+}
+// Misma firma que en admin.html y planner.html: el texto va segundo y la
+// clase tercera. Estaba al revés y una llamada copiada de un archivo al otro
+// no fallaba: metía la clase CSS en el mensaje y el mensaje en la clase.
+function alerta(id, msg, cls) {
+  const e = document.getElementById(id);
+  if (e) e.innerHTML = msg ? `<div class="alert ${cls}">${msg}</div>` : '';
+}
+
+
+
+
+
+// ══════════════════════════════════════════════════════════════
+//  ENTRAR Y MODALES
+// ══════════════════════════════════════════════════════════════
+//
+// Mismo mecanismo que el resto de los módulos. `quien` se guarda en el
+// navegador: no hay identidad real por persona —la clave de admin es una
+// sola, compartida— así que sirve para saber a quién preguntarle, no como
+// prueba de quién hizo qué.
+let quien = '';
+let focoPrevio = null;
+
+// ══════════════════════════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════════════════════════
+async function doLogin() {
+  const clave = document.getElementById('pin').value;
+  const btn   = document.getElementById('bentrar');
+  if (!clave) return;
+  btn.innerHTML = '<span class="sp"></span>Verificando...'; btn.disabled = true;
+  document.getElementById('lerr').innerHTML = '';
+  try {
+    const r = await pedir(`${PROXY}/supabase/maq_modelos?select=id&limit=1`, {
+      headers: { 'X-Admin-Token': clave }
+    });
+    if (r.status === 401) {
+      document.getElementById('lerr').innerHTML = '<div class="alert ae">Clave incorrecta.</div>';
+      btn.innerHTML = 'Ingresar →'; btn.disabled = false; return;
+    }
+    // 403 es el Worker rechazando la tabla; 404 es Supabase diciendo que no
+    // existe. Los dos significan lo mismo para quien mira: falta un paso de la
+    // instalación. Distinguirlos acá no ayuda a nadie.
+    if (r.status === 403 || r.status === 404) {
+      document.getElementById('lerr').innerHTML =
+        '<div class="alert ae" style="line-height:1.55">El módulo de compras no está instalado.<br><br>' +
+        'Falta correr <b>PREPARADO_compras.sql</b> en Supabase, o agregar las tablas ' +
+        '<b>com_*</b> a la lista TABLAS del Worker. Se ve en <b>/salud</b>.</div>';
+      btn.innerHTML = 'Ingresar →'; btn.disabled = false; return;
+    }
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+  } catch (e) {
+    document.getElementById('lerr').innerHTML = `<div class="alert ae">${esc(e.message)}</div>`;
+    btn.innerHTML = 'Ingresar →'; btn.disabled = false; return;
+  }
+  TOKEN = clave;
+  try { sessionStorage.setItem('nativo_token', clave); } catch (_) {}
+  document.getElementById('pin').value = '';
+  cargarQuien();
+  cargarTodo();
+  btn.innerHTML = 'Ingresar →'; btn.disabled = false;
+}
+
+function pedirQuien() {
+  const v = prompt('¿Quién eres? Tu nombre queda en las solicitudes que publiques.', quien || '');
+  if (v === null) return;
+  quien = v.trim().slice(0, 60);
+  try { localStorage.setItem('nativo_maq_quien', quien); } catch (_) {}
+  pintarQuien();
+}
+
+// Mismo mecanismo que el operador de bodega: se guarda en el navegador. No hay
+// identidad real —el token de admin es una sola clave compartida—, así que
+// esto sirve para saber a quién preguntarle por una solicitud, NO como prueba
+// de quién pidió qué. Está anotado como pendiente 10.
+function cargarQuien() {
+  try { quien = localStorage.getItem('nativo_maq_quien') || ''; } catch (_) { quien = ''; }
+  if (!quien) pedirQuien();
+  pintarQuien();
+}
+
+function pintarQuien() {
+  document.getElementById('quien-chip').textContent = quien || 'ponte tu nombre';
+}
+
+function salir() {
+  TOKEN = '';
+  try { sessionStorage.removeItem('nativo_token'); } catch (_) {}
+  document.getElementById('app').style.display   = 'none';
+  document.getElementById('login').style.display = 'flex';
+  document.getElementById('pin').value = '';
+}
+
+function cerrar(id) { document.getElementById(id).classList.remove('open'); }
+
+
+function abrirModal(id) {
+  focoPrevio = document.activeElement;
+  const m = document.getElementById(id);
+  m.classList.add('open');
+  const f = m.querySelector('input:not([type=hidden]),select,textarea,button');
+  if (f) setTimeout(() => f.focus(), 40);
+}
+
+// `abrir` es el nombre que usa el resto de este archivo. En admin.html
+// `abrir()` abre un PEDIDO y no un modal: son archivos distintos y cada uno
+// tiene su significado, pero conviene tenerlo presente al copiar código.
+const abrir = id => abrirModal(id);
+
+// ══════════════════════════════════════════════════════════════
+//  ESTADO
+// ══════════════════════════════════════════════════════════════
+//
+// Tres cosas separadas, y la separación importa:
+//
+//   modelos      los tipos de máquina que se manejan
+//   unidades     cada máquina física, con su serie y dónde está
+//   colocaciones el proceso con un cliente, desde que se capta
+//
+// Una máquina vuelve y se coloca de nuevo. Si la unidad y la colocación
+// fueran lo mismo, se perdería el historial de dónde estuvo.
+
+let modelos = [], unidades = [], colocaciones = [], precios = [];
+let productos = [], clientes = [];
+let edCol = null, edUni = null, edMod = null;
+let preciosTmp = [];     // los de una colocación que todavía no se guarda
+
+// Las etapas, en orden. El orden ES el proceso: la pantalla lo dibuja desde
+// acá y marcar una etapa es moverse en esta lista.
+const ETAPAS = [
+  { id: 'captado',      lbl: 'Captado' },
+  { id: 'asignada',     lbl: 'Máquina asignada' },
+  { id: 'preparacion',  lbl: 'En preparación' },
+  { id: 'lista',        lbl: 'Lista para salir' },
+  { id: 'entregada',    lbl: 'Entregada' },
+  { id: 'instalada',    lbl: 'Instalada' }
+];
+const idxEtapa = e => ETAPAS.findIndex(x => x.id === e);
+
+const ESTADO_UNIDAD = {
+  disponible:  { lbl: 'Disponible',     cls: 'bok'  },
+  preparacion: { lbl: 'En preparación', cls: 'baju' },
+  colocada:    { lbl: 'Colocada',       cls: 'bruta' },
+  mantencion:  { lbl: 'En mantención',  cls: 'baju' },
+  baja:        { lbl: 'De baja',        cls: 'bsal' }
+};
+
+const modeloPorId = id => modelos.find(m => String(m.id) === String(id)) || null;
+const unidadPorId = id => unidades.find(u => String(u.id) === String(id)) || null;
+const nombreModelo = id => (modeloPorId(id) || {}).nombre || '—';
+
+// ══════════════════════════════════════════════════════════════
+//  CARGA
+// ══════════════════════════════════════════════════════════════
+async function cargarTodo() {
+  alerta('mq-alert', '<span class="sp"></span>Cargando...', 'ai');
+  try {
+    const [mo, un, co, pr] = await Promise.all([
+      sbJson('maq_modelos?select=*&order=nombre.asc'),
+      sbJson('maq_unidades?select=*&order=id.asc'),
+      sbJson('maq_colocaciones?select=*&order=creada.desc'),
+      sbJson('maq_precios?select=*')
+    ]);
+    modelos = mo; unidades = un; colocaciones = co; precios = pr;
+    alerta('mq-alert', '', 'ai');
+  } catch (e) {
+    alerta('mq-alert',
+      '<b>No se pudo cargar el módulo de máquinas.</b><br>' +
+      (/404|PGRST205|does not exist/i.test(String(e.message))
+        ? 'Las tablas no existen todavía: corre <b>PREPARADO_todo_v43.sql</b> en Supabase.'
+        : /403/.test(String(e.message))
+          ? 'El Worker no las tiene habilitadas: sube el <b>worker.js</b> nuevo.'
+          : '') +
+      '<br><span style="font-weight:400;font-size:12px">Detalle: ' + esc(e.message) +
+      '</span>', 'ae');
+    return;
+  }
+
+  // El catálogo y el directorio son opcionales: sirven para sugerir nombres y
+  // productos, y si no están el módulo funciona igual escribiéndolos a mano.
+  try { productos = await sbJson('bod_productos?select=id,nombre,formato&activo=is.true&order=nombre.asc'); }
+  catch (_) { productos = []; }
+  try { clientes = await sbJson('clientes?select=id,emp&order=emp.asc'); }
+  catch (_) { clientes = []; }
+
+  repintarActiva();
+}
+
+function goTab(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('act'));
+  document.querySelectorAll('.sec').forEach(b => b.classList.remove('act'));
+  document.getElementById('page-' + id).classList.add('act');
+  if (btn) btn.classList.add('act');
+  pintarPestana(id);
+  window.scrollTo({ top: 0 });
+}
+function pintarPestana(id) {
+  if (id === 'colocaciones') renderColocaciones();
+  if (id === 'unidades')     renderUnidades();
+  if (id === 'modelos')      renderModelos();
+}
+function repintarActiva() {
+  const a = document.querySelector('.sec.act');
+  pintarPestana(a ? a.id.replace('sec-', '') : 'colocaciones');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  COLOCACIONES
+// ══════════════════════════════════════════════════════════════
+function renderColocaciones() {
+  const cont = document.getElementById('co-lista');
+  if (!cont) return;
+  const f = document.getElementById('co-filtro').value;
+  const q = (document.getElementById('co-buscar').value || '').trim().toLowerCase();
+
+  let lista = colocaciones.filter(c => {
+    if (f === 'abiertas')  return c.estado !== 'instalada' && c.estado !== 'cancelada';
+    if (f === 'instalada') return c.estado === 'instalada';
+    if (f === 'cancelada') return c.estado === 'cancelada';
+    return true;
+  });
+  if (q) lista = lista.filter(c =>
+    ((c.cliente || '') + ' ' + (c.encargado || '') + ' ' + (c.destino || ''))
+      .toLowerCase().includes(q));
+
+  if (!lista.length) {
+    cont.innerHTML = '<div class="alert ai">Nada que mostrar con este filtro.</div>';
+    return;
+  }
+
+  cont.innerHTML = lista.map(c => {
+    const i = idxEtapa(c.estado);
+    const cancelada = c.estado === 'cancelada';
+    const u = c.unidad_id ? unidadPorId(c.unidad_id) : null;
+    const dias = Math.floor((Date.now() - new Date(c.creada).getTime()) / 86400000);
+    // Una colocación que lleva más de tres semanas sin terminar probablemente
+    // se trabó. Marcarla no la resuelve, pero evita que se pierda entre las
+    // demás, que es como se pierden.
+    const trabada = !cancelada && c.estado !== 'instalada' && dias > 21;
+
+    const mis = precios.filter(p => String(p.colocacion_id) === String(c.id));
+
+    return `<div class="col ${trabada ? 'urge' : ''} ${
+        cancelada || c.estado === 'instalada' ? 'cerrada' : ''}">
+      <div class="col-top">
+        <div class="col-emp">${esc(c.cliente || 'sin nombre')}
+          ${trabada ? `<span class="badge baju">${dias} días</span>` : ''}
+          ${cancelada ? '<span class="badge bsal">cancelada</span>' : ''}</div>
+        <button class="btn bol bsm" onclick="abrirColocacion(${c.id})">Editar</button>
+      </div>
+
+      <div class="dato">
+        ${c.modelo_id ? `<b>${esc(nombreModelo(c.modelo_id))}</b>` : 'Sin modelo definido'}
+        ${u ? ` · máquina ${esc(u.serie || '#' + u.id)}` : ' · sin máquina asignada'}
+        ${c.destino ? `<br>📍 ${esc(c.destino)}` : ''}
+        ${c.encargado ? `<br>👤 ${esc(c.encargado)}` : ''}
+        ${c.capacitacion ? `<br>🎓 Lleva capacitación${
+          c.capacitacion_hecha ? ' · <b>hecha</b>' : ' · pendiente'}` : ''}
+      </div>
+
+      ${cancelada ? '' : `<div class="etapas">
+        ${ETAPAS.map((e, k) => `<button class="et ${
+            k < i ? 'hecha' : k === i ? 'ahora' : ''}"
+            onclick="moverEtapa(${c.id},'${e.id}')"
+            title="Marcar esta etapa">${esc(e.lbl)}</button>`).join('')}
+      </div>`}
+
+      ${c.trato ? `<div class="dato" style="background:var(--mora-xl);
+        border-radius:8px;padding:8px 10px;margin-top:8px;color:var(--mora-d)">
+        <b>Trato:</b> ${esc(c.trato)}</div>` : ''}
+      ${c.notas ? `<div class="dato" style="margin-top:6px">${esc(c.notas)}</div>` : ''}
+
+      ${mis.length ? `<div class="dato" style="margin-top:8px">
+        <b>Precios ofrecidos:</b><br>${mis.map(p =>
+          `· ${esc(p.producto || nombreProducto(p.producto_id))}: $${num(p.precio)}`
+        ).join('<br>')}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+const nombreProducto = id => {
+  const p = productos.find(x => String(x.id) === String(id));
+  return p ? p.nombre + (p.formato ? ' (' + p.formato + ')' : '') : 'producto #' + id;
+};
+
+// Mueve la colocación a una etapa. Se puede ir hacia atrás: las cosas se
+// devuelven, y obligar a cancelar y rehacer para corregir un clic perdería
+// todo lo anotado.
+async function moverEtapa(id, etapa) {
+  const c = colocaciones.find(x => String(x.id) === String(id));
+  if (!c) return toast('No encuentro esa colocación. Recarga la página.', true);
+  if (c.estado === etapa) return;
+
+  const fila = { estado: etapa };
+  // Al instalarla se guarda cuándo, que es lo que después permite medir
+  // cuánto demora el proceso completo.
+  if (etapa === 'instalada') fila.entregada = new Date().toISOString();
+  if (etapa === 'instalada' && c.capacitacion) fila.capacitacion_hecha = true;
+
+  try {
+    await sbSend(`maq_colocaciones?id=eq.${id}`, 'PATCH', fila);
+    // Si hay máquina asignada, su estado sigue al de la colocación: una
+    // máquina instalada en un cliente no está disponible, y olvidar eso hace
+    // que se prometa dos veces.
+    if (c.unidad_id) {
+      const nuevo = etapa === 'instalada' || etapa === 'entregada' ? 'colocada'
+                  : etapa === 'preparacion' || etapa === 'lista' ? 'preparacion'
+                  : null;
+      if (nuevo) await sbSend(`maq_unidades?id=eq.${c.unidad_id}`, 'PATCH', { estado: nuevo });
+    }
+    await cargarTodo();
+    toast('Etapa actualizada');
+  } catch (e) {
+    alerta('mq-alert', 'No se pudo mover de etapa: ' + esc(e.message), 'ae');
+  }
+}
+
+function abrirColocacion(id) {
+  edCol = id ? colocaciones.find(c => String(c.id) === String(id)) : null;
+  preciosTmp = edCol
+    ? precios.filter(p => String(p.colocacion_id) === String(edCol.id)).map(p => ({ ...p }))
+    : [];
+
+  document.getElementById('mc-title').textContent = edCol ? 'Editar colocación' : 'Nueva colocación';
+  document.getElementById('mc-alert').innerHTML = '';
+  document.getElementById('mc-cliente').value     = edCol ? (edCol.cliente || '') : '';
+  document.getElementById('mc-encargado').value   = edCol ? (edCol.encargado || '') : '';
+  document.getElementById('mc-destino').value     = edCol ? (edCol.destino || '') : '';
+  document.getElementById('mc-trato').value       = edCol ? (edCol.trato || '') : '';
+  document.getElementById('mc-notas').value       = edCol ? (edCol.notas || '') : '';
+  document.getElementById('mc-capacitacion').checked = edCol ? !!edCol.capacitacion : false;
+
+  document.getElementById('lista-clientes').innerHTML =
+    clientes.map(c => `<option value="${esc(c.emp)}"></option>`).join('');
+
+  const sm = document.getElementById('mc-modelo');
+  sm.innerHTML = '<option value="">— Sin definir —</option>' +
+    modelos.filter(m => m.activo).map(m =>
+      `<option value="${m.id}"${edCol && String(edCol.modelo_id) === String(m.id) ? ' selected' : ''}>` +
+      `${esc(m.nombre)}</option>`).join('');
+
+  pintarUnidadesDisponibles();
+  const sp = document.getElementById('mc-prod');
+  sp.innerHTML = '<option value="">— Elige —</option>' +
+    productos.map(p => `<option value="${p.id}">${esc(p.nombre)}` +
+      `${p.formato ? ' · ' + esc(p.formato) : ''}</option>`).join('');
+
+  pintarPreciosTmp();
+  abrir('mod-colocacion');
+}
+
+// Solo las máquinas que se pueden asignar: las disponibles, más la que ya
+// tiene esta colocación. Ofrecer una que está puesta en otro cliente es
+// invitar a prometerla dos veces.
+function pintarUnidadesDisponibles() {
+  const su = document.getElementById('mc-unidad');
+  const libres = unidades.filter(u =>
+    u.estado === 'disponible' || u.estado === 'preparacion' ||
+    (edCol && String(u.id) === String(edCol.unidad_id)));
+  su.innerHTML = '<option value="">— Sin asignar —</option>' + libres.map(u =>
+    `<option value="${u.id}"${edCol && String(edCol.unidad_id) === String(u.id) ? ' selected' : ''}>` +
+    `${esc(nombreModelo(u.modelo_id))}${u.serie ? ' · ' + esc(u.serie) : ' · #' + u.id}` +
+    `${u.ubicacion ? ' · ' + esc(u.ubicacion) : ''}</option>`).join('');
+}
+
+function pintarPreciosTmp() {
+  const c = document.getElementById('mc-precios');
+  c.innerHTML = preciosTmp.length
+    ? preciosTmp.map((p, i) => `<div class="precio-fila">
+        <div style="flex:1">${esc(p.producto || nombreProducto(p.producto_id))}</div>
+        <b>$${num(p.precio)}</b>
+        <button class="btn bol bsm" onclick="quitarPrecio(${i})">Quitar</button>
+      </div>`).join('')
+    : '<div class="sub">Todavía no hay precios ofrecidos.</div>';
+}
+
+function agregarPrecio() {
+  const id = document.getElementById('mc-prod').value;
+  const v = Number(document.getElementById('mc-precio').value);
+  if (!id)      return alerta('mc-alert', 'Elige el producto.', 'ae');
+  if (!(v >= 0)) return alerta('mc-alert', 'Pon el precio.', 'ae');
+  if (preciosTmp.some(p => String(p.producto_id) === String(id)))
+    return alerta('mc-alert', 'Ese producto ya tiene precio en esta colocación.', 'ae');
+  preciosTmp.push({ producto_id: Number(id), producto: nombreProducto(id), precio: v });
+  document.getElementById('mc-prod').value = '';
+  document.getElementById('mc-precio').value = '';
+  alerta('mc-alert', '', 'ai');
+  pintarPreciosTmp();
+}
+function quitarPrecio(i) { preciosTmp.splice(i, 1); pintarPreciosTmp(); }
+
+async function guardarColocacion() {
+  const cliente = document.getElementById('mc-cliente').value.trim();
+  if (!cliente) return alerta('mc-alert', 'Pon el nombre del cliente.', 'ae');
+
+  const unidadId = document.getElementById('mc-unidad').value || null;
+  const fila = {
+    cliente,
+    encargado:    document.getElementById('mc-encargado').value.trim(),
+    modelo_id:    Number(document.getElementById('mc-modelo').value) || null,
+    unidad_id:    unidadId ? Number(unidadId) : null,
+    destino:      document.getElementById('mc-destino').value.trim(),
+    capacitacion: document.getElementById('mc-capacitacion').checked,
+    trato:        document.getElementById('mc-trato').value.trim(),
+    notas:        document.getElementById('mc-notas').value.trim()
+  };
+  // Si se asigna una máquina y la colocación recién empieza, avanza sola a
+  // "asignada": marcar la etapa a mano después de elegir la máquina es un
+  // paso que nadie recuerda y que deja el proceso mintiendo.
+  if (!edCol && unidadId) fila.estado = 'asignada';
+  if (edCol && unidadId && edCol.estado === 'captado') fila.estado = 'asignada';
+
+  const btn = document.getElementById('mc-guardar');
+  btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
+  try {
+    let colId = edCol ? edCol.id : null;
+    if (edCol) {
+      await sbSend(`maq_colocaciones?id=eq.${edCol.id}`, 'PATCH', fila);
+    } else {
+      const r = await sbSend('maq_colocaciones', 'POST', fila);
+      try { const d = await r.json(); colId = (Array.isArray(d) ? d[0] : d).id; } catch (_) {}
+    }
+
+    // Los precios se reescriben enteros: son pocos y así no hay que llevar
+    // la cuenta de cuáles se agregaron, cuáles se quitaron y cuáles cambiaron.
+    if (colId) {
+      if (edCol) await sbSend(`maq_precios?colocacion_id=eq.${colId}`, 'DELETE');
+      if (preciosTmp.length)
+        await sbSend('maq_precios', 'POST', preciosTmp.map(p => ({
+          colocacion_id: colId, producto_id: p.producto_id,
+          producto: p.producto || '', precio: p.precio
+        })));
+    }
+
+    // La máquina asignada pasa a preparación, si estaba libre.
+    if (unidadId) {
+      const u = unidadPorId(unidadId);
+      if (u && u.estado === 'disponible')
+        await sbSend(`maq_unidades?id=eq.${unidadId}`, 'PATCH', { estado: 'preparacion' });
+    }
+
+    cerrar('mod-colocacion');
+    await cargarTodo();
+    toast(edCol ? 'Colocación actualizada' : 'Colocación creada');
+  } catch (e) {
+    alerta('mc-alert', 'No se pudo guardar: ' + esc(e.message), 'ae');
+  }
+  btn.innerHTML = 'Guardar'; btn.disabled = false;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  UNIDADES
+// ══════════════════════════════════════════════════════════════
+function renderUnidades() {
+  const t = document.getElementById('tabla-unidades');
+  if (!t) return;
+
+  const cuenta = {};
+  unidades.forEach(u => { cuenta[u.estado] = (cuenta[u.estado] || 0) + 1; });
+  document.getElementById('un-stats').innerHTML = Object.keys(ESTADO_UNIDAD)
+    .filter(k => cuenta[k])
+    .map(k => `<div class="stat"><div class="sn">${cuenta[k]}</div>
+      <div class="sl">${esc(ESTADO_UNIDAD[k].lbl)}</div></div>`).join('')
+    || '<div class="sub">Todavía no hay máquinas registradas.</div>';
+
+  if (!unidades.length) {
+    t.innerHTML = '<tbody><tr><td><div class="sub">Agrega la primera con el botón de arriba.</div></td></tr></tbody>';
+    return;
+  }
+
+  t.innerHTML = `<thead><tr><th>Modelo</th><th>Serie</th><th>Dónde está</th>
+    <th>Estado</th><th>En</th><th></th></tr></thead><tbody>
+    ${unidades.map(u => {
+      // Dónde está colocada, si lo está. Saberlo desde la lista evita tener
+      // que buscarla entre las colocaciones.
+      const col = colocaciones.find(c => String(c.unidad_id) === String(u.id) &&
+        c.estado !== 'cancelada' && c.estado !== 'instalada');
+      const inst = colocaciones.find(c => String(c.unidad_id) === String(u.id) &&
+        c.estado === 'instalada');
+      const e = ESTADO_UNIDAD[u.estado] || ESTADO_UNIDAD.disponible;
+      return `<tr>
+        <td><b>${esc(nombreModelo(u.modelo_id))}</b></td>
+        <td>${esc(u.serie || '—')}</td>
+        <td>${esc(u.ubicacion || '—')}</td>
+        <td><span class="badge ${e.cls}">${esc(e.lbl)}</span></td>
+        <td>${col ? esc(col.cliente) : inst ? esc(inst.cliente) : '—'}</td>
+        <td class="num"><button class="btn bol bsm" onclick="abrirUnidad(${u.id})">Editar</button></td>
+      </tr>`;
+    }).join('')}</tbody>`;
+}
+
+function abrirUnidad(id) {
+  edUni = id ? unidadPorId(id) : null;
+  document.getElementById('mu-title').textContent = edUni ? 'Editar máquina' : 'Nueva máquina';
+  document.getElementById('mu-alert').innerHTML = '';
+  const sm = document.getElementById('mu-modelo');
+  sm.innerHTML = modelos.filter(m => m.activo).map(m =>
+    `<option value="${m.id}"${edUni && String(edUni.modelo_id) === String(m.id) ? ' selected' : ''}>` +
+    `${esc(m.nombre)}</option>`).join('')
+    || '<option value="">— crea un modelo primero —</option>';
+  document.getElementById('mu-serie').value     = edUni ? (edUni.serie || '') : '';
+  document.getElementById('mu-ubicacion').value = edUni ? (edUni.ubicacion || '') : '';
+  document.getElementById('mu-estado').value    = edUni ? edUni.estado : 'disponible';
+  document.getElementById('mu-notas').value     = edUni ? (edUni.notas || '') : '';
+  abrir('mod-unidad');
+}
+
+async function guardarUnidad() {
+  const modelo = document.getElementById('mu-modelo').value;
+  if (!modelo) return alerta('mu-alert',
+    'Elige el modelo. Si no hay ninguno, créalo primero en la pestaña Modelos.', 'ae');
+
+  const fila = {
+    modelo_id: Number(modelo),
+    serie:     document.getElementById('mu-serie').value.trim(),
+    ubicacion: document.getElementById('mu-ubicacion').value.trim(),
+    estado:    document.getElementById('mu-estado').value,
+    notas:     document.getElementById('mu-notas').value.trim()
+  };
+  const btn = document.getElementById('mu-guardar');
+  btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
+  try {
+    if (edUni) await sbSend(`maq_unidades?id=eq.${edUni.id}`, 'PATCH', fila);
+    else       await sbSend('maq_unidades', 'POST', fila);
+    cerrar('mod-unidad');
+    await cargarTodo();
+    toast(edUni ? 'Máquina actualizada' : 'Máquina agregada');
+  } catch (e) {
+    // La serie es única: dos máquinas con la misma hacen imposible saber cuál
+    // está dónde.
+    alerta('mu-alert', /duplicate|23505|serie/i.test(String(e.message))
+      ? 'Ya hay otra máquina con ese número de serie.'
+      : 'No se pudo guardar: ' + esc(e.message), 'ae');
+  }
+  btn.innerHTML = 'Guardar'; btn.disabled = false;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MODELOS
+// ══════════════════════════════════════════════════════════════
+function renderModelos() {
+  const t = document.getElementById('tabla-modelos');
+  if (!t) return;
+  if (!modelos.length) {
+    t.innerHTML = '<tbody><tr><td><div class="sub">Crea el primer modelo con el ' +
+      'botón de arriba. Después podrás agregar máquinas de ese modelo.</div></td></tr></tbody>';
+    return;
+  }
+  t.innerHTML = `<thead><tr><th>Modelo</th><th>Marca</th><th>Máquinas</th>
+    <th>Estado</th><th></th></tr></thead><tbody>
+    ${modelos.map(m => {
+      const n = unidades.filter(u => String(u.modelo_id) === String(m.id)).length;
+      return `<tr>
+        <td><b>${esc(m.nombre)}</b>${m.notas
+          ? `<div class="sub" style="margin:2px 0 0">${esc(m.notas)}</div>` : ''}</td>
+        <td>${esc(m.marca || '—')}</td>
+        <td>${n}</td>
+        <td>${m.activo ? '<span class="badge bok">activo</span>'
+                       : '<span class="badge bsal">inactivo</span>'}</td>
+        <td class="num"><button class="btn bol bsm" onclick="abrirModelo(${m.id})">Editar</button></td>
+      </tr>`;
+    }).join('')}</tbody>`;
+}
+
+function abrirModelo(id) {
+  edMod = id ? modeloPorId(id) : null;
+  document.getElementById('mm-title').textContent = edMod ? 'Editar modelo' : 'Nuevo modelo';
+  document.getElementById('mm-alert').innerHTML = '';
+  document.getElementById('mm-nombre').value = edMod ? edMod.nombre : '';
+  document.getElementById('mm-marca').value  = edMod ? (edMod.marca || '') : '';
+  document.getElementById('mm-notas').value  = edMod ? (edMod.notas || '') : '';
+  document.getElementById('mm-activo').checked = edMod ? !!edMod.activo : true;
+  abrir('mod-modelo');
+}
+
+async function guardarModelo() {
+  const nombre = document.getElementById('mm-nombre').value.trim();
+  if (!nombre) return alerta('mm-alert', 'Pon el nombre del modelo.', 'ae');
+  const fila = {
+    nombre,
+    marca:  document.getElementById('mm-marca').value.trim(),
+    notas:  document.getElementById('mm-notas').value.trim(),
+    activo: document.getElementById('mm-activo').checked
+  };
+  const btn = document.getElementById('mm-guardar');
+  btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
+  try {
+    if (edMod) await sbSend(`maq_modelos?id=eq.${edMod.id}`, 'PATCH', fila);
+    else       await sbSend('maq_modelos', 'POST', fila);
+    cerrar('mod-modelo');
+    await cargarTodo();
+    toast(edMod ? 'Modelo actualizado' : 'Modelo creado');
+  } catch (e) {
+    alerta('mm-alert', /duplicate|23505/i.test(String(e.message))
+      ? 'Ya existe un modelo con ese nombre.'
+      : 'No se pudo guardar: ' + esc(e.message), 'ae');
+  }
+  btn.innerHTML = 'Guardar'; btn.disabled = false;
+}
+</script>
+</body>
+</html>
