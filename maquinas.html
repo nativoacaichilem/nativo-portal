@@ -414,7 +414,7 @@ tbody tr:hover td{background:#faf6ff}
           <select id="co-filtro" onchange="renderColocaciones()">
             <option value="abiertas">En curso</option>
             <option value="todas">Todas</option>
-            <option value="instalada">Terminadas</option>
+            <option value="terminadas">Terminadas</option>
             <option value="cancelada">Canceladas</option>
           </select>
           <input type="text" id="co-buscar" placeholder="🔍 Cliente o encargado..."
@@ -944,7 +944,7 @@ function renderColocaciones() {
     if (f === 'abiertas')
       return !['entregada','capacitada','cancelada'].includes(c.estado) ||
              (c.estado === 'entregada' && c.capacitacion && !c.capacitacion_hecha);
-    if (f === 'instalada')
+    if (f === 'terminadas')
       return c.estado === 'capacitada' ||
              (c.estado === 'entregada' && !c.capacitacion);
     if (f === 'cancelada') return c.estado === 'cancelada';
@@ -1182,11 +1182,10 @@ async function guardarColocacion() {
     trato:        document.getElementById('mc-trato').value.trim(),
     notas:        document.getElementById('mc-notas').value.trim()
   };
-  // Si se asigna una máquina y la colocación recién empieza, avanza sola a
-  // "asignada": marcar la etapa a mano después de elegir la máquina es un
-  // paso que nadie recuerda y que deja el proceso mintiendo.
-  if (!edCol && unidadId) fila.estado = 'asignada';
-  if (edCol && unidadId && edCol.estado === 'captado') fila.estado = 'asignada';
+  // No se toca el estado al asignar: una entrega NACE en "preparando", que
+  // es el valor por omisión de la tabla. Antes había un estado "asignada"
+  // aparte y se seteaba acá; al renombrar los estados ese valor quedó escrito
+  // y la base lo rechazaba.
 
   const btn = document.getElementById('mc-guardar');
   btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
@@ -1252,9 +1251,11 @@ function renderUnidades() {
       // Dónde está colocada, si lo está. Saberlo desde la lista evita tener
       // que buscarla entre las colocaciones.
       const col = colocaciones.find(c => String(c.unidad_id) === String(u.id) &&
-        c.estado !== 'cancelada' && c.estado !== 'instalada');
+        !['cancelada','capacitada'].includes(c.estado) &&
+        !(c.estado === 'entregada' && !c.capacitacion));
       const inst = colocaciones.find(c => String(c.unidad_id) === String(u.id) &&
-        c.estado === 'instalada');
+        c.estado === 'capacitada' ||
+        (c.estado === 'entregada' && !c.capacitacion));
       const e = ESTADO_UNIDAD[u.estado] || ESTADO_UNIDAD.disponible;
       return `<tr>
         <td><b>${esc(nombreModelo(u.modelo_id))}</b></td>
