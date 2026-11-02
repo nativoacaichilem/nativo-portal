@@ -459,6 +459,24 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
   .tabla-pedidos tr.row-bloq{border-color:var(--rd);border-left-width:5px;background:#fff5f5}
 }
 
+/* ══ EL PANEL DEL DÍA ══
+   Aparece sobre la lista cuando se está mirando un día. Reúne lo que antes
+   estaba repartido entre esta pantalla y la pestaña Ruta. */
+.panel-dia{background:var(--mora-xl);border:2px solid var(--mora-l);
+  border-radius:12px;padding:13px 15px;margin-bottom:14px}
+.pd-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.pd-fecha{font-weight:900;font-size:16px;color:var(--mora-d);white-space:nowrap}
+.pd-top input{flex:1;min-width:200px;padding:8px 11px;border:1.5px solid var(--mora-l);
+  border-radius:8px;font-size:13px;font-weight:700;font-family:'Nunito',sans-serif;
+  background:var(--white);color:var(--text)}
+.pd-nums{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;font-weight:800;
+  color:var(--mora-d);margin-bottom:11px}
+.pd-nums .pd-mal{color:var(--nd)}
+.pd-nums .pd-ok{color:var(--vd)}
+.pd-acc{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pd-hint{flex:1;min-width:170px;font-size:12px;font-weight:700;color:var(--textl)}
+.pd-hint.pd-listo{color:var(--mora-d);font-weight:900}
+
 /* ══ BARRA DE MÓDULOS ══
    Arriba SOLO se cambia de módulo. Las secciones de cada pantalla van en su
    propia barra, abajo. Antes las dos cosas se veían igual y estaban en la
@@ -1701,21 +1719,29 @@ function partesAFecha(dia, hora) {
 // Admin avisa dentro de cada sección con `alerta()`, pero cuando falla al
 // ABRIR algo todavía no se sabe en qué sección va a caer el mensaje. Sin
 // esto, esos errores no se ven en ninguna parte y el botón parece muerto.
-function toastRojo(msg) {
+// Aviso verde, para confirmar que algo salió bien. Mismo mecanismo que el
+// rojo: hay acciones —asignar a un camión, guardar una nota— que no cuelgan
+// de ninguna sección y sin confirmación parecen no haber hecho nada.
+function toast(msg) { pintarToast(msg, false); }
+function toastRojo(msg) { pintarToast(msg, true); }
+
+function pintarToast(msg, mal) {
   let t = document.getElementById('toast-admin');
   if (!t) {
     t = document.createElement('div');
     t.id = 'toast-admin';
     t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);' +
-      'background:var(--rd);color:#fff;padding:13px 20px;border-radius:12px;' +
+      'color:#fff;padding:13px 20px;border-radius:12px;' +
       'font-weight:800;font-size:14px;z-index:300;max-width:90vw;text-align:center;' +
       'box-shadow:0 6px 20px rgba(0,0,0,.25)';
     document.body.appendChild(t);
   }
+  t.style.background = mal ? 'var(--rd)' : 'var(--vd)';
   t.textContent = msg;
   t.style.display = 'block';
-  clearTimeout(toastRojo._t);
-  toastRojo._t = setTimeout(() => { t.style.display = 'none'; }, 4000);
+  clearTimeout(pintarToast._t);
+  // El error se queda más rato: hay que alcanzar a leerlo y a veces a copiarlo.
+  pintarToast._t = setTimeout(() => { t.style.display = 'none'; }, mal ? 5000 : 2600);
 }
 
 function hoyISO() {
@@ -2256,15 +2282,7 @@ function render() {
   // con cuarenta pedidos viejos generaba una alarma enorme por algo que ya
   // pasó. La marca en la tarjeta de cada pedido es donde se decide, y basta.
 
-  // Un filtro activo que no se ve hace creer que desaparecieron pedidos.
-  const cajaDia = document.getElementById('aviso-dia');
-  if (cajaDia) cajaDia.innerHTML = filtroDia
-    ? `<div class="alert ai" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <span style="flex:1;min-width:200px">Mostrando solo las entregas del
-          <b>${hesc(filtroDia.split('-').reverse().join('-'))}</b>.</span>
-        <button class="btn bol bsm" onclick="verDia('${filtroDia}')">Ver todos</button>
-      </div>`
-    : '';
+  pintarPanelDia(f);
 
   // Los prioritarios van primero, sin importar el resto del orden.
   //
@@ -2479,6 +2497,8 @@ function deselTabla() {
 }
 
 function updateActionBar() {
+  // El panel del día dice cuántos hay marcados, así que se mueve con esto.
+  actualizarSelDia();
   const bar = document.getElementById('action-bar');
   if (checked.length > 0) {
     bar.classList.add('visible');
@@ -3850,9 +3870,147 @@ let agenda = [], agendaOK = false, semanaOffset = 0;
 // El día que se está mirando en la lista. Vacío = todos.
 let filtroDia = '';
 
-// Apretar un día muestra solo sus pedidos. Apretarlo de nuevo los muestra
-// todos: sin esa salida, quedar filtrado sin darse cuenta es la forma más
-// rápida de creer que desaparecieron pedidos.
+// ── el día como superficie de trabajo ──
+//
+// Apretar un día no solo filtra: abre un panel con todo lo que se hace con
+// ese día —ver qué hay, cuánto falta facturar, asignar los pedidos a un
+// camión y generar la ruta—.
+//
+// Antes había que filtrar acá, irse a la pestaña Ruta, y volver a seleccionar
+// los mismos pedidos desde cero. Dos pantallas y una selección repetida para
+// una sola tarea.
+//
+// Apretar el mismo día de nuevo lo cierra: sin esa salida, quedar filtrado
+// sin darse cuenta es la forma más rápida de creer que desaparecieron
+// pedidos.
+
+// El panel del día: lo que hay, lo que falta y qué hacer con ello.
+//
+// Reúne en un lugar lo que antes estaba repartido entre esta lista y la
+// pestaña Ruta. La nota se edita en línea y no con un `prompt`, que además de
+// feo bloquea el navegador y no deja ver lo que uno está anotando.
+function pintarPanelDia(lista) {
+  const caja = document.getElementById('aviso-dia');
+  if (!caja) return;
+  if (!filtroDia) { caja.innerHTML = ''; return; }
+
+  const nota = (agenda.find(x => String(x.fecha).slice(0, 10) === filtroDia) || {}).nota || '';
+  const dd = filtroDia.split('-').reverse().join('-');
+
+  // Lo que importa saber antes de armar la ruta de ese día.
+  const sinFact = lista.filter(p => sinFacturar(p)).length;
+  const sinZona = lista.filter(p => !esRetiro(p) && !p.zona).length;
+  const yaEnRuta = lista.filter(p => p.ruta_id).length;
+  const prio = lista.filter(p => p.prioritario).length;
+
+  caja.innerHTML = `
+  <div class="panel-dia">
+    <div class="pd-top">
+      <div class="pd-fecha">📅 ${hesc(dd)}</div>
+      <input id="pd-nota" type="text" value="${hesc(nota)}"
+        placeholder="¿A qué ciudad o zona se despacha este día?"
+        onchange="guardarNotaDia()">
+      <button class="btn bgray bsm" onclick="verDia('${filtroDia}')">✕ Ver todos</button>
+    </div>
+
+    <div class="pd-nums">
+      <span><b>${lista.length}</b> pedido(s)</span>
+      ${prio ? `<span class="pd-ok">⚡ ${prio} prioritario(s)</span>` : ''}
+      ${sinFact ? `<span class="pd-mal">${sinFact} sin facturar</span>` : ''}
+      ${sinZona ? `<span class="pd-mal">${sinZona} sin zona</span>` : ''}
+      ${yaEnRuta ? `<span class="pd-ok">${yaEnRuta} ya en una ruta</span>` : ''}
+    </div>
+
+    <div class="pd-acc">
+      <span class="pd-hint" id="pd-sel">Marca pedidos de la lista para asignarlos</span>
+      <button class="btn bmora bsm" onclick="asignarDiaCamion('camion-1')">🚚 A Camión 1</button>
+      <button class="btn bmora bsm" onclick="asignarDiaCamion('camion-2')">🚚 A Camión 2</button>
+      <button class="btn bam2 bsm" onclick="promptDelDia()">✨ Prompt de ruta</button>
+    </div>
+  </div>`;
+
+  actualizarSelDia();
+}
+
+// Cuántos hay marcados, dicho en el panel. Sin esto hay que mirar la barra
+// flotante de abajo para saber si la acción va a hacer algo.
+function actualizarSelDia() {
+  const e = document.getElementById('pd-sel');
+  if (!e) return;
+  e.textContent = checked.length
+    ? `${checked.length} marcado(s) · listos para asignar`
+    : 'Marca pedidos de la lista para asignarlos';
+  e.className = 'pd-hint' + (checked.length ? ' pd-listo' : '');
+}
+
+async function guardarNotaDia() {
+  const v = (document.getElementById('pd-nota').value || '').trim().slice(0, 200);
+  await escribirNotaDia(filtroDia, v);
+}
+
+// Asigna lo marcado al camión de ese día, creando la ruta si no existe.
+//
+// Esto es lo que antes obligaba a cambiar de pestaña: ahí había que elegir
+// día y camión de nuevo, crear la ruta a mano y volver a marcar los pedidos.
+async function asignarDiaCamion(camion) {
+  if (!filtroDia) return;
+  if (!checked.length)
+    return toastRojo('Marca primero los pedidos que van en ese camión.');
+
+  const bodDef = bodBodegas.find(b => b.activa);
+
+  try {
+    // ¿Ya hay ruta para ese día y camión? Si no, se crea.
+    let rs = [];
+    try {
+      rs = await sbPagina('bod_rutas',
+        `select=*&fecha=eq.${encodeURIComponent(filtroDia)}&camion=eq.${camion}`);
+    } catch (e) {
+      return toastRojo('No se pudo leer las rutas: ' + e.message);
+    }
+    let ruta = rs[0];
+    if (!ruta) {
+      const r = await sbSend('bod_rutas', 'POST', {
+        fecha: filtroDia, camion,
+        bodega_id: bodDef ? bodDef.id : null
+      });
+      try { const d = await r.json(); ruta = Array.isArray(d) ? d[0] : d; } catch (_) {}
+      if (!ruta || !ruta.id) return toastRojo('No se pudo crear la ruta del día.');
+    }
+
+    let bien = 0; const mal = [];
+    for (const id of checked) {
+      try { await sbPatch(id, { ruta_id: ruta.id }); bien++; }
+      catch (e) { mal.push(id); }
+    }
+    checked = [];
+    await cargar();
+    await cargarRutas();
+    toast(`${bien} pedido(s) al ${camion === 'camion-1' ? 'Camión 1' : 'Camión 2'}` +
+      (ruta.chofer ? ' · ' + ruta.chofer : ' · falta ponerle chofer') +
+      (mal.length ? ` · ${mal.length} fallaron` : ''));
+  } catch (e) {
+    toastRojo('No se pudo asignar: ' + e.message);
+  }
+}
+
+// El prompt de ruta, pero del día que se está mirando: toma los pedidos
+// filtrados y no exige volver a marcarlos uno por uno.
+function promptDelDia() {
+  if (!filtroDia) return;
+  const dia = filtrados().filter(p => !esRetiro(p));
+  if (!dia.length) return toastRojo('Ese día no tiene despachos que rutear.');
+  selRuta = dia.map(p => p.id);
+  goTab('rutas', document.getElementById('sec-rutas'));
+  // Se espera a que la pestaña termine de dibujarse antes de generar.
+  setTimeout(() => {
+    const d = document.getElementById('ruta-dia');
+    if (d) d.value = filtroDia;
+    renderChecksRuta();
+    genPrompt();
+  }, 80);
+}
+
 function verDia(iso) {
   filtroDia = (filtroDia === iso) ? '' : iso;
   pintarAgenda();
@@ -3929,13 +4087,9 @@ function pintarAgenda() {
   cont.innerHTML = `<div class="semana">${h}</div>`;
 }
 
-async function editarDia(iso) {
-  const actual = (agenda.find(x => String(x.fecha).slice(0, 10) === iso) || {}).nota || '';
-  const v = prompt(`¿A dónde se despacha el ${iso.split('-').reverse().join('-')}?\n\n` +
-    'Deja vacío para borrar la nota.', actual);
-  if (v === null) return;
-  const nota = v.trim().slice(0, 200);
-
+// Guarda la nota de un día. Separada de quien la pide, porque ahora la
+// escriben dos: el campo del panel y el lápiz de la franja.
+async function escribirNotaDia(iso, nota) {
   try {
     // Sin upsert: el Worker no reenvía la cabecera `Prefer` del cliente, así
     // que PostgREST no sabe resolver el conflicto. Se crea, y si ya existe se
@@ -3952,9 +4106,20 @@ async function editarDia(iso) {
         await sbSend(`agenda_dias?fecha=eq.${iso}`, 'PATCH', fila);
       }
     await cargarAgenda();
+    return true;
   } catch (e) {
-    alerta('agenda-alert', 'No se pudo guardar la nota: ' + hesc(e.message), 'ae');
+    toastRojo('No se pudo guardar la nota: ' + e.message);
+    return false;
   }
+}
+
+// El lápiz de la franja, para anotar un día sin tener que abrirlo.
+async function editarDia(iso) {
+  const actual = (agenda.find(x => String(x.fecha).slice(0, 10) === iso) || {}).nota || '';
+  const v = prompt(`¿A dónde se despacha el ${iso.split('-').reverse().join('-')}?\n\n` +
+    'Deja vacío para borrar la nota.', actual);
+  if (v === null) return;
+  await escribirNotaDia(iso, v.trim().slice(0, 200));
 }
 
 // ══════════════════════════════════════════════════════════════
