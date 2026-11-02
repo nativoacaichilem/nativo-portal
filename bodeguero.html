@@ -117,6 +117,99 @@ h2{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:4px}
 #listo .tic{font-size:76px;line-height:1;margin-bottom:14px}
 #listo .txt{font-size:25px;font-weight:900;line-height:1.3}
 #listo .sub{font-size:17px;font-weight:700;opacity:.9;margin-top:12px;line-height:1.5}
+</style><style>
+/* ── LO QUE AGREGA ESTA VERSIÓN ──
+   El encargado pasó de confirmar a operar: arma rutas, lleva el stock y
+   despacha. Necesita ver más cosas a la vez sin que la pantalla se llene. */
+
+/* Una parada de la ruta. Se lee de corrido: quién, dónde, qué lleva. */
+.parada{background:var(--white);border:2px solid var(--crema-d);border-radius:14px;
+  padding:14px;margin-bottom:10px}
+.parada.hecha{border-color:var(--verde);background:#f4fdf8}
+.parada.urge{border-color:var(--am);background:#fffdf0}
+.parada-n{display:inline-block;width:26px;height:26px;border-radius:50%;
+  background:var(--mora);color:#fff;font-weight:900;font-size:14px;
+  text-align:center;line-height:26px;margin-right:7px;flex:0 0 auto}
+
+/* La semana, en pestañas. Siete días no caben como botones grandes, así que
+   van en una tira que se desliza. */
+.dias{display:flex;gap:7px;overflow-x:auto;padding:2px 0 10px;
+  -webkit-overflow-scrolling:touch}
+.dia-b{flex:0 0 auto;background:var(--white);border:2px solid var(--crema-d);
+  border-radius:13px;padding:9px 13px;font-size:15px;font-weight:900;
+  color:var(--textl);cursor:pointer;font-family:'Nunito',sans-serif;
+  min-height:56px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:1px;min-width:64px}
+.dia-b small{font-size:11px;font-weight:800;opacity:.75}
+.dia-b.hoy{border-color:var(--am)}
+.dia-b.act{background:var(--mora);border-color:var(--mora);color:#fff}
+
+/* Los camiones, uno al lado del otro. */
+.camiones{display:flex;gap:9px;margin-bottom:12px}
+.cam-b{flex:1;background:var(--white);border:2px solid var(--crema-d);
+  border-radius:13px;padding:11px;font-size:15px;font-weight:900;cursor:pointer;
+  font-family:'Nunito',sans-serif;color:var(--textl);min-height:62px;line-height:1.3}
+.cam-b small{display:block;font-size:12px;font-weight:700;opacity:.8;margin-top:2px}
+.cam-b.act{background:var(--mora);border-color:var(--mora);color:#fff}
+
+/* Un producto en la lista de stock, con su barra de color. */
+.prod-f{display:flex;gap:11px;align-items:center;padding:12px 0;
+  border-bottom:2px solid var(--crema)}
+.prod-f:last-child{border-bottom:none}
+.barra{width:7px;border-radius:4px;align-self:stretch;flex:0 0 7px}
+.b-rojo{background:var(--rojo)}
+.b-naranjo{background:var(--naranjo)}
+.b-amarillo{background:#e3c64a}
+.b-verde{background:var(--verde)}
+.b-gris{background:var(--crema-d)}
+
+.chip-f{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;
+  font-weight:900;background:var(--crema);color:var(--textl)}
+.chip-f.on{background:var(--mora);color:#fff}
+
+@media print{
+  .barra,.tabs,.b,.dias,.camiones,#listo{display:none !important}
+  body{background:#fff;font-size:13px}
+  .parada{page-break-inside:avoid;border-color:#999;margin-bottom:8px}
+  .caja{max-width:100%;padding:0}
+}
+
+/* La zona del pistoleo: es donde está la atención mientras se carga. */
+.pistola{background:var(--mora-xl);border-radius:16px;padding:14px;margin-bottom:14px}
+.pistola input{font-size:21px;text-align:center;letter-spacing:1px}
+.pistola.ok input{border-color:var(--verde);background:var(--verde-l)}
+.pistola.mal input{border-color:var(--rojo);background:var(--rojo-l)}
+
+/* ── CLASES QUE VENÍAN DE LA VERSIÓN ANTERIOR ──
+   Se perdieron al rehacer la hoja. Una clase sin definir no rompe nada
+   visible: el elemento sale sin estilo, que es peor que un error porque
+   nadie lo reporta. */
+
+/* Las cuatro pestañas de abajo. */
+.tabs{display:flex;gap:7px;padding:11px 14px 0;max-width:620px;margin:0 auto}
+.tab{flex:1;background:var(--white);border:2px solid var(--crema-d);
+  border-radius:13px;padding:11px 5px;font-size:13px;font-weight:900;
+  color:var(--textl);cursor:pointer;font-family:'Nunito',sans-serif;min-height:52px}
+.tab.act{background:var(--mora);border-color:var(--mora);color:#fff}
+
+/* Los modales suben desde abajo: en un teléfono es donde está el pulgar. */
+.mbg{display:none;position:fixed;inset:0;background:rgba(74,31,122,.55);z-index:100;
+  justify-content:center;align-items:flex-end}
+.mbg.open{display:flex}
+.modal{background:var(--white);border-radius:20px 20px 0 0;padding:20px 16px 26px;
+  width:100%;max-width:620px;max-height:92vh;overflow-y:auto}
+.modal h3{font-size:20px;font-weight:900;color:var(--mora-d);margin-bottom:12px}
+
+/* Lo que lleva un pedido, dentro de su parada. */
+.ped-items{background:var(--mora-xl);border-radius:10px;padding:10px 12px}
+.ped-item{font-size:15px;font-weight:800;color:var(--mora-d);line-height:1.7}
+
+/* Un aviso dentro de una tarjeta. */
+.dif{background:var(--naranjo-l);border-radius:10px;padding:9px 11px;margin-top:8px;
+  font-size:14px;font-weight:800;color:var(--naranjo);line-height:1.45}
+
+/* Lo que no va en la hoja impresa. */
+@media print{ .noimp{display:none !important} }
 </style>
 </head>
 <body>
@@ -132,7 +225,7 @@ h2{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:4px}
         <label>Tu nombre</label>
         <input id="in-nombre" type="text" placeholder="Para saber quién anotó" maxlength="40">
       </div>
-      <div style="margin-bottom:16px">
+      <div style="margin-bottom:18px">
         <label>Clave</label>
         <input id="in-clave" type="password" inputmode="numeric" placeholder="Clave"
           onkeydown="if(event.key==='Enter')entrar()">
@@ -142,154 +235,147 @@ h2{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:4px}
   </div>
 </div>
 
-<!-- ══ LA APLICACIÓN ══ -->
 <div id="app" style="display:none">
   <div class="barra">
     <div class="quien" id="barra-quien">—</div>
-    <button onclick="irInicio()">Inicio</button>
+    <button onclick="cargarTodo(true)">Actualizar</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab act" id="t-rutas"  onclick="ir('rutas')">🚚 Rutas</button>
+    <button class="tab"     id="t-asig"   onclick="ir('asig')">📋 Asignar</button>
+    <button class="tab"     id="t-stock"  onclick="ir('stock')">📦 Stock</button>
+    <button class="tab"     id="t-dia"    onclick="ir('dia')">📊 Mi día</button>
   </div>
 
   <div class="caja">
     <div id="aviso-global"></div>
 
-    <!-- ── INICIO: tres botones y nada más ── -->
-    <div id="p-inicio" class="p on">
-      <h1>Hola <span id="hola-nombre"></span></h1>
-      <div class="gris" style="margin-bottom:18px" id="hola-bodega"></div>
-
-      <button class="b b-mora" onclick="abrirCargar()">
-        🚚 Cargar el camión<br><small style="font-size:15px;font-weight:700;opacity:.85"
-        id="res-camion">—</small></button>
-
-      <button class="b b-verde" onclick="abrirLlego()">
-        📥 Llegó producto<br><small style="font-size:15px;font-weight:700;opacity:.85"
-        >Anotar lo que trajo el proveedor</small></button>
-
-      <button class="b b-am" onclick="abrirContar()">
-        🔢 Contar la bodega<br><small style="font-size:15px;font-weight:700;opacity:.8"
-        >Revisar cuánto hay de cada cosa</small></button>
-
-      <button class="b b-gris" onclick="abrirMandado()">
-        📋 Lo que mandé<br><small style="font-size:15px;font-weight:700"
-        id="res-mandado">—</small></button>
+    <!-- ══ RUTAS ══ -->
+    <div id="p-rutas" class="p on">
+      <div id="dias"></div>
+      <div id="urgente"></div>
+      <div id="camiones"></div>
+      <div id="rutas-cont"></div>
     </div>
 
-    <!-- ── CARGAR: elegir pedido ── -->
-    <div id="p-cargar" class="p">
-      <div class="paso" id="cargar-paso">Cargar el camión</div>
-      <div id="cargar-aviso"></div>
-      <div id="cargar-lista"></div>
-      <button class="b b-gris" onclick="irInicio()">← Volver</button>
-    </div>
-
-    <!-- ── CARGAR: un pedido ── -->
-    <div id="p-pedido" class="p">
-      <div class="paso" id="pedido-paso"></div>
-      <div class="tarj">
-        <h2 id="pedido-emp"></h2>
-        <div class="gris" id="pedido-dir"></div>
-        <div class="gris" id="pedido-extra" style="margin-top:6px"></div>
-      </div>
-      <div id="pedido-aviso"></div>
-
-      <div class="pistola">
-        <label style="color:var(--mora-d)">Pasa la pistola por cada caja</label>
-        <input id="pedido-ean" type="text" inputmode="numeric" autocomplete="off"
-          placeholder="o escribe el código"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();leerCodigo()}">
-        <div class="gris" id="pedido-ean-msg" style="margin-top:8px"></div>
-      </div>
-
-      <div class="tarj" id="pedido-lineas"></div>
-      <div id="pedido-dif"></div>
-
-      <button class="b b-verde" id="b-confirmar" onclick="confirmarCarga()">
-        Listo, ya subió al camión</button>
-      <button class="b b-gris" onclick="abrirCargar()">← Volver</button>
-    </div>
-
-    <!-- ── LLEGÓ PRODUCTO ── -->
-    <div id="p-llego" class="p">
-      <div class="paso">Llegó producto</div>
-      <div id="llego-aviso"></div>
-      <div class="tarj">
-        <div style="margin-bottom:16px">
-          <label>¿Qué llegó?</label>
-          <select id="llego-prod" onchange="llegoCambio()"></select>
-        </div>
-        <div id="llego-caja" style="display:none">
-          <label id="llego-lbl">¿Cuántas cajas llegaron?</label>
-          <div class="cont">
-            <button onclick="sumar('llego-cant',-1)">−</button>
-            <input id="llego-cant" type="number" inputmode="numeric" value="0"
-              onfocus="this.select()">
-            <button onclick="sumar('llego-cant',1)">+</button>
-          </div>
-          <div style="margin-bottom:16px">
-            <label>Número de la guía o factura</label>
-            <input id="llego-doc" type="text" inputmode="numeric" placeholder="Opcional">
-          </div>
-          <div style="margin-bottom:16px">
-            <label>¿Algo que avisar?</label>
-            <input id="llego-nota" type="text" placeholder="Opcional">
-          </div>
-          <button class="b b-verde" id="b-llego" onclick="mandarLlego()">
-            Mandar a la oficina</button>
+    <!-- ══ POR ASIGNAR ══ -->
+    <div id="p-asig" class="p">
+      <div id="asig-dias"></div>
+      <div id="asig-aviso"></div>
+      <div id="asig-lista"></div>
+      <div id="asig-acc" style="display:none;position:sticky;bottom:10px;
+        background:var(--white);border:2px solid var(--mora);border-radius:16px;
+        padding:12px;box-shadow:0 -4px 16px rgba(0,0,0,.12)">
+        <div class="gris" id="asig-sel" style="margin-bottom:9px"></div>
+        <div style="display:flex;gap:9px">
+          <button class="b b-mora b-chico" style="flex:1" onclick="asignarA('camion-1')">
+            A Camión 1</button>
+          <button class="b b-mora b-chico" style="flex:1" onclick="asignarA('camion-2')">
+            A Camión 2</button>
         </div>
       </div>
-      <button class="b b-gris" onclick="irInicio()">← Volver</button>
     </div>
 
-    <!-- ── CONTAR ── -->
-    <div id="p-contar" class="p">
-      <div class="paso" id="contar-paso"></div>
-      <div id="contar-aviso"></div>
+    <!-- ══ STOCK ══ -->
+    <div id="p-stock" class="p">
       <div class="tarj">
-        <h2 id="contar-prod"></h2>
-        <div class="gris" id="contar-fmt"></div>
-        <label style="margin-top:16px" id="contar-lbl">¿Cuántas cajas hay?</label>
-        <div class="cont">
-          <button onclick="sumar('contar-cant',-1)">−</button>
-          <input id="contar-cant" type="number" inputmode="numeric" value="0"
-            onfocus="this.select()">
-          <button onclick="sumar('contar-cant',1)">+</button>
+        <h2>📦 Lo que hay</h2>
+        <div class="gris">El color dice cuánto alcanza según lo que se vende.</div>
+        <div style="display:flex;gap:7px;margin-top:12px;flex-wrap:wrap">
+          <button class="chip-f on" id="f-todo"  onclick="filtrarStock('')">Todo</button>
+          <button class="chip-f"    id="f-frio"  onclick="filtrarStock('frio')">❄️ Congelados</button>
+          <button class="chip-f"    id="f-seco"  onclick="filtrarStock('seco')">El resto</button>
+          <button class="chip-f"    id="f-poco"  onclick="filtrarStock('poco')">⚠️ Poco stock</button>
         </div>
-        <button class="b b-mora" onclick="contarSiguiente()">Anotar y seguir →</button>
-        <button class="b b-gris b-chico" onclick="contarSaltar()">
-          No lo encuentro, saltar</button>
+        <input type="text" id="stock-q" placeholder="🔍 Buscar producto..."
+          oninput="renderStock()" style="margin-top:11px">
       </div>
-      <button class="b b-gris" onclick="contarSalir()">← Dejar el conteo</button>
+      <div id="stock-lista"></div>
     </div>
 
-    <!-- ── CONTAR: diferencia ── -->
-    <div id="p-dif" class="p">
-      <div class="paso">Hay una diferencia</div>
+    <!-- ══ MI DÍA ══ -->
+    <div id="p-dia" class="p">
       <div class="tarj">
-        <h2 id="dif-prod"></h2>
-        <div class="aviso a-naranjo" style="margin-top:14px" id="dif-texto"></div>
-        <label>¿Qué crees que pasó?</label>
-        <input id="dif-razon" type="text" placeholder="Se rompió, estaba en otro lado...">
-        <button class="b b-mora" style="margin-top:14px" onclick="guardarDif()">
-          Anotar y seguir →</button>
+        <h2>📊 Mi día</h2>
+        <div class="gris">Lo que hiciste hoy, para revisar antes de irte.</div>
       </div>
+      <div id="dia-cont"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CARGAR AL CAMIÓN ══
+     Acá se descuenta el stock. Marcar "en ruta" sin descontar dejaría el
+     inventario diciendo que hay producto que ya va en la carretera. -->
+<div class="mbg" id="mod-carga">
+  <div class="modal">
+    <h3 id="cg-title">Cargar al camión</h3>
+    <div id="cg-alert"></div>
+    <div id="cg-ficha" class="aviso a-mora"></div>
+
+    <div class="pistola">
+      <label style="color:var(--mora-d)">Pasa la pistola por cada caja</label>
+      <input id="cg-ean" type="text" inputmode="numeric" autocomplete="off"
+        placeholder="o escribe el código"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();leerCodigo()}">
+      <div class="gris" id="cg-ean-msg" style="margin-top:8px"></div>
     </div>
 
-    <!-- ── CONTAR: fin ── -->
-    <div id="p-fin" class="p">
-      <div class="paso">Conteo terminado</div>
-      <div id="fin-aviso"></div>
-      <div class="tarj" id="fin-resumen"></div>
-      <button class="b b-verde" id="b-fin" onclick="mandarConteo()">
-        Mandar a la oficina</button>
-      <button class="b b-gris" onclick="irInicio()">← Volver sin mandar</button>
+    <div class="tarj" id="cg-lineas" style="box-shadow:none;padding:0"></div>
+    <div id="cg-dif"></div>
+
+    <button class="b b-verde" id="b-cg" onclick="confirmarCarga()">
+      Listo, ya subió al camión</button>
+    <button class="b b-gris" onclick="cerrar('mod-carga')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ══ MOVER STOCK ══ -->
+<div class="mbg" id="mod-stock">
+  <div class="modal">
+    <h3 id="ms-title">Mover stock</h3>
+    <div id="ms-alert"></div>
+    <div id="ms-ficha" class="aviso a-mora"></div>
+
+    <label>¿Qué pasó?</label>
+    <select id="ms-tipo" onchange="msTipoCambio()" style="margin-bottom:14px">
+      <option value="entrada">📥 Llegó producto</option>
+      <option value="ajuste">🔢 Conté y hay una diferencia</option>
+      <option value="merma">🗑️ Se echó a perder o se rompió</option>
+      <option value="traslado">↔️ Lo mandé a otra bodega</option>
+    </select>
+
+    <label id="ms-lbl">¿Cuántas cajas?</label>
+    <div class="cont">
+      <button onclick="sumar('ms-cant',-1)">−</button>
+      <input id="ms-cant" type="number" inputmode="numeric" value="0" oninput="msPrevio()"
+        onfocus="this.select()">
+      <button onclick="sumar('ms-cant',1)">+</button>
     </div>
 
-    <!-- ── LO QUE MANDÉ ── -->
-    <div id="p-mandado" class="p">
-      <div class="paso">Lo que mandé a la oficina</div>
-      <div id="mandado-lista"></div>
-      <button class="b b-gris" onclick="irInicio()">← Volver</button>
+    <div id="ms-box-destino" style="display:none;margin-bottom:14px">
+      <label>¿A qué bodega?</label>
+      <select id="ms-destino"></select>
     </div>
+    <div id="ms-box-doc" style="margin-bottom:14px">
+      <label>Guía o factura</label>
+      <input id="ms-doc" type="text" placeholder="Número del documento">
+    </div>
+    <div id="ms-box-motivo" style="margin-bottom:14px">
+      <label>Motivo</label>
+      <select id="ms-motivo"></select>
+    </div>
+
+    <div style="margin-bottom:14px">
+      <label id="ms-lbl-nota">¿Algo que avisar?</label>
+      <input id="ms-nota" type="text" placeholder="Opcional">
+    </div>
+
+    <div id="ms-previo" class="aviso a-mora" style="display:none"></div>
+
+    <button class="b b-verde" id="b-ms" onclick="guardarMov()">Guardar</button>
+    <button class="b b-gris" onclick="cerrar('mod-stock')">Cancelar</button>
   </div>
 </div>
 
@@ -298,37 +384,16 @@ h2{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:4px}
   <div class="txt" id="listo-txt">Listo</div>
   <div class="sub" id="listo-sub"></div>
 </div>
-
 <script>
-// ══════════════════════════════════════════════════════════════
-//  bodeguero.html — el portal de quien trabaja en la bodega
-//
-//  Tres tareas: cargar el camión, anotar lo que llegó, y contar.
-//
-//  ══ LA REGLA, QUE NO TIENE EXCEPCIONES ══
-//
-//  Nada de lo que se hace acá cambia el stock. Todo va a la oficina y espera
-//  aprobación. Una sola frase, sin casos especiales que alguien tenga que
-//  recordar mirando la pantalla.
-//
-//  Los permisos NO los controla esta pantalla: los controla el Worker con la
-//  clave de bodega. Una pantalla se saltea con la consola del navegador en
-//  diez segundos. Lo de acá es para que el trabajo sea cómodo y claro.
-//
-//  ══ POR QUÉ ESTÁ ESCRITO ASÍ ══
-//
-//  Quien lo usa no es de computadores. De ahí salen todas las decisiones:
-//  una tarea por pantalla, números con botones en vez de teclado, cero
-//  palabras de sistema, y una confirmación verde a pantalla completa que no
-//  deja dudas de que se guardó.
-// ══════════════════════════════════════════════════════════════
-
 const PROXY = 'https://nativo-proxy.mkitzing.workers.dev';
 let TOKEN = '', quien = '', miBodega = null;
 
-let bodegas = [], productos = [], motivos = [], saldos = [], rutas = [], pedidos = [], mandado = [];
-let ruta = null, ped = null, lineas = [];
-let conteo = null;     // { lista, i, resultados }
+let bodegas = [], productos = [], motivos = [], saldos = [];
+let rutas = [], pedidos = [], movs = [], lotes = [];
+
+// Qué se está mirando. El día manda: casi todo lo que hace cuelga de un día.
+let diaSel = '', camionSel = 'camion-1', filtroStock = '';
+let aAsignar = new Set();
 
 // ── red ───────────────────────────────────────────────────────
 function explicarRed(e) {
@@ -362,6 +427,18 @@ async function leer(path) {
   if (!Array.isArray(d)) throw new Error('Respuesta rara del servidor');
   return d;
 }
+// Actualizar una fila. El rol nuevo lo exige: asignar pedidos a una ruta,
+// cambiar su estado, ponerle chofer a un camión.
+async function actualizar(path, filas) {
+  const r = revisarAuth(await pedir(`${PROXY}/supabase/${path}`,
+    { method: 'PATCH', headers: cab(true), body: JSON.stringify(filas) }));
+  if (!r.ok) {
+    let d = ''; try { d = (await r.text()).slice(0, 180); } catch (_) {}
+    throw new Error(`HTTP ${r.status}${d ? ' · ' + d : ''}`);
+  }
+  return r;
+}
+
 async function crear(tabla, filas) {
   const r = revisarAuth(await pedir(`${PROXY}/supabase/${tabla}`,
     { method: 'POST', headers: cab(true), body: JSON.stringify(filas) }));
@@ -397,6 +474,9 @@ function mostrar(id) {
 }
 // La confirmación a pantalla completa. Es lo que le dice que puede soltar el
 // teléfono: un mensaje chico arriba se pierde y deja la duda de si se guardó.
+const abrir  = id => document.getElementById(id).classList.add('open');
+const cerrar = id => document.getElementById(id).classList.remove('open');
+
 function listo(txt, sub, luego) {
   document.getElementById('listo-txt').textContent = txt;
   document.getElementById('listo-sub').textContent = sub || '';
@@ -409,7 +489,8 @@ function sumar(id, cuanto) {
   const e = document.getElementById(id);
   const v = Math.max(0, (Number(e.value) || 0) + cuanto);
   e.value = v;
-  if (id === 'llego-cant') llegoCambio();
+  // Repinta lo que dependa del número, si quien usa el contador lo pidió.
+  if (typeof msPrevio === 'function' && id === 'ms-cant') msPrevio();
 }
 
 // ── catálogo ──────────────────────────────────────────────────
@@ -439,9 +520,25 @@ function saldoDe(prodId) {
   return f ? Number(f.saldo) || 0 : 0;
 }
 
+
 // ══════════════════════════════════════════════════════════════
-//  ENTRAR
+//  ENTRAR Y CARGAR
 // ══════════════════════════════════════════════════════════════
+//
+// ══ LA REGLA QUE ORDENA TODA ESTA PANTALLA ══
+//
+// No es "facturado = administrable". Es por origen:
+//
+//   pedido de cliente FACTURADO     lo administra
+//   pedido de cliente SIN facturar  solo lo ve
+//   pedido de PRODUCCIÓN            lo administra, y va primero
+//
+// Los de producción nunca se facturan —son internos, de la sala— y son los
+// que más urgen. Atarlos a la factura los dejaría fuera justo a ellos.
+const ESTADOS_FACT = ['facturado', 'en-ruta', 'entregado', 'entregado-sin-facturar'];
+const esProduccion = p => (p.tipo || '') === 'produccion';
+const sePuedeTocar = p => esProduccion(p) || ESTADOS_FACT.includes(p.estado);
+
 async function entrar() {
   const nombre = document.getElementById('in-nombre').value.trim().slice(0, 40);
   let guardada = '';
@@ -456,26 +553,23 @@ async function entrar() {
   av('login-aviso', '');
   try {
     TOKEN = clave;
-    // Si es la clave del panel, este portal no es el que corresponde.
     try {
       const rr = await pedir(`${PROXY}/rol`, { headers: cab(false) });
-      if (rr.ok && (await rr.json()).rol === 'admin') {
-        try { sessionStorage.setItem('nativo_token', clave); } catch (_) {}
-        location.href = 'admin.html#pedidos';
-        return;
+      if (rr.ok) {
+        const rol = (await rr.json()).rol;
+        if (rol === 'admin')      { location.href = 'admin.html#pedidos'; return; }
+        if (rol === 'produccion') { location.href = 'produccion.html'; return; }
       }
       if (rr.status === 401) {
         TOKEN = '';
         try { sessionStorage.removeItem('nativo_bod_token'); } catch (_) {}
         av('login-aviso', 'La clave no es correcta.', 'rojo');
-        btn.innerHTML = 'Entrar'; btn.disabled = false;
-        return;
+        btn.innerHTML = 'Entrar'; btn.disabled = false; return;
       }
       if (rr.status === 429) {
         TOKEN = '';
         av('login-aviso', 'Probaste muchas veces. Espera quince minutos.', 'rojo');
-        btn.innerHTML = 'Entrar'; btn.disabled = false;
-        return;
+        btn.innerHTML = 'Entrar'; btn.disabled = false; return;
       }
     } catch (_) { /* sin /rol se sigue igual */ }
 
@@ -483,9 +577,8 @@ async function entrar() {
     if (!miBodega) {
       TOKEN = '';
       av('login-aviso', '<b>La oficina todavía no definió la bodega de este portal.</b>' +
-        '<br>Avísales: lo configuran en Bodega → Configuración.', 'rojo');
-      btn.innerHTML = 'Entrar'; btn.disabled = false;
-      return;
+        '<br>Avísales: se configura en Bodega → Configuración.', 'rojo');
+      btn.innerHTML = 'Entrar'; btn.disabled = false; return;
     }
     quien = nombre;
     try {
@@ -503,11 +596,9 @@ async function entrar() {
   btn.innerHTML = 'Entrar'; btn.disabled = false;
 }
 
-// La bodega del portal la fija la oficina, en `bod_config`.
-//
-// No se le pregunta al bodeguero. No es una decisión suya, y si apretara el
-// botón equivocado anotaría todo el día en otra bodega: el inventario
-// quedaría mal en las dos a la vez, de menos en una y de más en la otra.
+// La bodega del portal la fija la oficina, en `bod_config`. No se le pregunta:
+// no es decisión suya, y si apretara el botón equivocado anotaría todo el día
+// en otra bodega.
 async function buscarBodega() {
   try {
     const cfg = await leer('bod_config?select=clave,valor&clave=eq.bodega_portal');
@@ -521,204 +612,586 @@ async function buscarBodega() {
 function arrancar() {
   document.getElementById('barra-quien').innerHTML =
     esc(quien) + '<small>' + esc(miBodega ? miBodega.nombre : '') + '</small>';
-  document.getElementById('hola-nombre').textContent = quien;
-  document.getElementById('hola-bodega').textContent =
-    'Estás en ' + (miBodega ? miBodega.nombre : '');
+  if (!diaSel) diaSel = hoyISO();
   cargarTodo();
 }
 
-function irInicio() { mostrar('p-inicio'); cargarTodo(); }
+function ir(id) {
+  document.querySelectorAll('.p').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('act'));
+  document.getElementById('p-' + id).classList.add('on');
+  document.getElementById('t-' + id).classList.add('act');
+  pintar(id);
+  window.scrollTo({ top: 0 });
+}
+function pintar(id) {
+  if (id === 'rutas') renderRutas();
+  if (id === 'asig')  renderAsignar();
+  if (id === 'stock') renderStock();
+  if (id === 'dia')   renderMiDia();
+}
+function repintar() {
+  const a = document.querySelector('.tab.act');
+  pintar(a ? a.id.replace('t-', '') : 'rutas');
+}
 
-async function cargarTodo() {
+// El lunes de la semana que se está mirando, para la tira de días.
+function lunesDe(iso) {
+  const d = new Date(iso + 'T12:00:00');
+  const corr = (d.getDay() + 6) % 7;     // getDay() da 0 el domingo
+  d.setDate(d.getDate() - corr);
+  return d;
+}
+const aISO = d =>
+  `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const DIAS_C = ['dom','lun','mar','mié','jue','vie','sáb'];
+const fechaCorta = f => String(f || '').slice(0,10).split('-').reverse().join('-');
+
+// La fecha de entrega viene como texto chileno. Se traduce a ISO para poder
+// comparar por día, que es como se ordena toda esta pantalla.
+function diaDe(p) {
+  const m = String(p.fecha_entrega || '').trim()
+    .match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  return m ? `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}` : '';
+}
+
+async function cargarTodo(avisar) {
   try {
-    const [pr, mo, sa] = await Promise.all([
+    const [b, pr, mo, sa] = await Promise.all([
+      leer('bod_bodegas?select=*&order=nombre.asc'),
       leer('bod_productos?select=*&order=nombre.asc'),
       leer('bod_motivos?select=*&order=orden.asc'),
       leer('bod_saldos?select=bodega_id,producto_id,saldo')
     ]);
-    productos = pr.filter(p => p.activo); motivos = mo; saldos = sa;
+    bodegas = b; productos = pr.filter(x => x.activo); motivos = mo; saldos = sa;
 
-    // Solo las rutas publicadas de hoy para esta bodega. Una ruta que la
-    // oficina todavía está armando no tiene por qué aparecer: cargar algo que
-    // va a cambiar es peor que no cargar nada.
-    rutas = await leer(`bod_rutas?select=*&fecha=eq.${hoyISO()}&estado=eq.en_bodega` +
-      `&bodega_id=eq.${miBodega.id}&order=camion.asc`);
+    // La semana entera, no solo hoy: lo pidió así y tiene sentido —hay que
+    // preparar lo de mañana antes de que llegue mañana—.
+    const l = lunesDe(diaSel);
+    const f = new Date(l); f.setDate(f.getDate() + 6);
+    rutas = await leer(`bod_rutas?select=*&fecha=gte.${aISO(l)}&fecha=lte.${aISO(f)}` +
+      `&order=fecha.asc,camion.asc`);
 
-    pedidos = [];
-    for (const r of rutas) {
-      const ps = await leer(`pedidos?select=*&ruta_id=eq.${r.id}&order=id.asc`);
-      ps.forEach(p => { p._ruta = r; pedidos.push(p); });
-    }
+    pedidos = await leer('pedidos?select=*&order=id.desc&limit=400');
+    lotes   = await leer('prod_lotes?select=*&estado=neq.recibido&order=fecha_retiro.asc');
 
-    mandado = await leer('bod_propuestas?select=*&order=id.desc&limit=40');
-    const mios = mandado.filter(x => (x.quien || '').toLowerCase() === quien.toLowerCase());
-    const esperando = mios.filter(x => x.estado === 'pendiente').length;
+    // Los movimientos de hoy, para el reporte del día.
+    movs = await leer(`bod_movimientos?select=*&fecha=eq.${hoyISO()}&order=id.desc`);
 
-    document.getElementById('res-camion').textContent = rutas.length
-      ? `${pedidos.filter(p => !yaMandado(p)).length} pedido(s) por cargar`
-      : 'Hoy no hay ruta publicada';
-    document.getElementById('res-mandado').textContent = esperando
-      ? `${esperando} esperando respuesta` : 'Nada esperando';
     av('aviso-global', '');
+    if (avisar) listo('Actualizado', '', null);
   } catch (e) {
     av('aviso-global', '<b>No se pudieron cargar los datos.</b><br>' +
-      esc(e.message), 'rojo');
+      esc(e.message) + '<br>Revisa la señal y aprieta Actualizar.', 'rojo');
   }
+  repintar();
 }
 
-// Un pedido ya mandado es el que tiene una propuesta suya. Se mira contra lo
-// enviado y no contra el estado del pedido: el estado lo cambia la oficina.
-const yaMandado = p => mandado.some(x =>
-  x.estado !== 'rechazada' && String(x.nota || '').includes('Pedido ' + p.id));
+// ══════════════════════════════════════════════════════════════
+//  RUTAS — la semana, los dos camiones, las paradas en orden
+// ══════════════════════════════════════════════════════════════
+function pintarDias(contId, alElegir) {
+  const cont = document.getElementById(contId);
+  if (!cont) return;
+  const l = lunesDe(diaSel), hoy = hoyISO();
+  let h = '';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(l); d.setDate(d.getDate() + i);
+    const iso = aISO(d);
+    // Cuántos hay ese día, contando lo de producción, que es lo que más urge.
+    const n = pedidos.filter(p => diaDe(p) === iso).length;
+    const pro = pedidos.filter(p => diaDe(p) === iso && esProduccion(p)).length
+              + lotes.filter(x => String(x.fecha_retiro).slice(0,10) === iso).length;
+    h += `<button class="dia-b ${iso === diaSel ? 'act' : ''} ${iso === hoy ? 'hoy' : ''}"
+            onclick="${alElegir}('${iso}')">
+      ${DIAS_C[d.getDay()]} ${d.getDate()}
+      <small>${n ? n + (pro ? ' · ' + pro + '🏭' : '') : '—'}</small>
+    </button>`;
+  }
+  cont.innerHTML = `<div class="dias">${h}</div>`;
+}
 
-// ══════════════════════════════════════════════════════════════
-//  CARGAR EL CAMIÓN
-// ══════════════════════════════════════════════════════════════
-function abrirCargar() {
-  mostrar('p-cargar');
-  const cont = document.getElementById('cargar-lista');
-  if (!rutas.length) {
-    document.getElementById('cargar-paso').textContent = 'Cargar el camión';
-    cont.innerHTML = '<div class="tarj"><h2>Hoy no hay ruta</h2>' +
-      '<div class="gris" style="margin-top:8px">La oficina todavía no publicó ' +
-      'la ruta de hoy. Si crees que ya debería estar, avísales.</div></div>';
+function verDia(iso) { diaSel = iso; cargarTodo(); }
+
+// Lo de producción va arriba de todo y aparte.
+//
+// No se factura y es lo que más urge: si se mezcla con los veinte pedidos de
+// clientes, se pierde. Por eso tiene su propio bloque y no una etiqueta.
+function pintarUrgente() {
+  const cont = document.getElementById('urgente');
+  if (!cont) return;
+  const pro = pedidos.filter(p => esProduccion(p) && diaDe(p) === diaSel);
+  const lot = lotes.filter(x => String(x.fecha_retiro).slice(0,10) === diaSel);
+  if (!pro.length && !lot.length) { cont.innerHTML = ''; return; }
+
+  cont.innerHTML = `<div class="tarj" style="border:3px solid var(--am)">
+    <h2>🏭 Producción · lo primero del día</h2>
+    <div class="gris" style="margin-bottom:10px">
+      Estos no llevan factura y son la prioridad.
+    </div>
+    ${lot.map(l => `<div class="fila">
+      <div class="fila-n">📥 Retirar ${esc(nombreProd(l.producto_id))}
+        <div class="gris" style="font-size:14px">
+          ${num(l.declarada)} ${l.medida === 'caja' ? 'cajas' : 'un'} ·
+          ${l.turno === 'manana' ? '☀️ mañana' : '🌙 tarde'}</div></div>
+    </div>`).join('')}
+    ${pro.map(p => `<div class="fila">
+      <div class="fila-n">📦 ${esc(p.emp)}
+        <div class="gris" style="font-size:14px">${esc(p.detalle || '')}
+          ${p.turno ? ' · ' + (p.turno === 'manana' ? '☀️ mañana' : '🌙 tarde') : ''}</div></div>
+      <button class="b b-mora b-chico" style="width:auto;flex:0 0 auto"
+        onclick="verParada(${p.id})">Ver</button>
+    </div>`).join('')}
+  </div>`;
+}
+
+function pintarCamiones() {
+  const cont = document.getElementById('camiones');
+  if (!cont) return;
+  let h = '';
+  for (const c of ['camion-1', 'camion-2']) {
+    const r = rutas.find(x => x.fecha === diaSel && x.camion === c);
+    const n = r ? pedidos.filter(p => String(p.ruta_id) === String(r.id)).length : 0;
+    const hechos = r ? pedidos.filter(p =>
+      String(p.ruta_id) === String(r.id) && p.estado === 'entregado').length : 0;
+    h += `<button class="cam-b ${c === camionSel ? 'act' : ''}" onclick="verCamion('${c}')">
+      🚚 ${c === 'camion-1' ? 'Camión 1' : 'Camión 2'}
+      <small>${r ? (r.chofer || 'sin chofer') : 'sin ruta'}</small>
+      <small>${n ? `${hechos}/${n} entregados` : 'vacío'}</small>
+    </button>`;
+  }
+  cont.innerHTML = `<div class="camiones">${h}</div>`;
+}
+
+function verCamion(c) { camionSel = c; renderRutas(); }
+
+function renderRutas() {
+  pintarDias('dias', 'verDia');
+  pintarUrgente();
+  pintarCamiones();
+
+  const cont = document.getElementById('rutas-cont');
+  if (!cont) return;
+  const r = rutas.find(x => x.fecha === diaSel && x.camion === camionSel);
+  const nom = camionSel === 'camion-1' ? 'Camión 1' : 'Camión 2';
+
+  if (!r) {
+    cont.innerHTML = `<div class="tarj">
+      <h2>Sin ruta para este día</h2>
+      <div class="gris" style="margin:8px 0 14px">
+        El ${nom} no tiene ruta armada el ${esc(fechaCorta(diaSel))}.
+        Créala y después asígnale pedidos desde <b>Asignar</b>.
+      </div>
+      <button class="b b-mora" onclick="crearRuta('${camionSel}')">
+        ＋ Crear la ruta del ${nom}</button>
+    </div>`;
     return;
   }
-  document.getElementById('cargar-paso').textContent =
-    rutas.map(r => (r.camion === 'camion-1' ? 'Camión 1' : 'Camión 2') +
-      (r.chofer ? ' · ' + r.chofer : '')).join('   |   ');
 
-  cont.innerHTML = rutas.map(r => {
-    const mios = pedidos.filter(p => String(p.ruta_id) === String(r.id));
-    const faltan = mios.filter(p => !yaMandado(p));
-    return `<div class="tarj">
-      <h2>${r.camion === 'camion-1' ? '🚚 Camión 1' : '🚚 Camión 2'}</h2>
-      <div class="gris">${r.chofer ? 'Chofer: ' + esc(r.chofer) : 'Sin chofer anotado'}
-        · ${mios.length} pedido(s)</div>
-      ${r.notas ? `<div class="aviso a-mora" style="margin-top:12px">${esc(r.notas)}</div>` : ''}
-      ${mios.map(p => {
-        const hecho = yaMandado(p);
-        return `<div class="fila">
-          <div class="fila-n">${esc(p.emp)}
-            ${hecho ? '<span class="marca m-verde">ya lo mandé</span>' : ''}
-            <div class="gris" style="font-size:14px">${esc(p.dir || '')}</div></div>
-          ${hecho ? '' :
-            `<button class="b b-mora b-chico" style="width:auto;flex:0 0 auto"
-               onclick="abrirPedido(${p.id})">Cargar</button>`}
-        </div>`;
-      }).join('')}
-      ${faltan.length === 0 && mios.length
-        ? '<div class="aviso a-verde" style="margin-top:12px">✔ Este camión está listo</div>' : ''}
-    </div>`;
-  }).join('');
+  const mis = pedidos.filter(p => String(p.ruta_id) === String(r.id));
+  cont.innerHTML = `
+    <div class="tarj">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div style="flex:1;min-width:150px">
+          <h2 style="margin:0">🚚 ${nom}</h2>
+          <div class="gris">${esc(fechaCorta(diaSel))} · ${mis.length} parada(s)</div>
+        </div>
+        <button class="b b-gris b-chico" style="width:auto" onclick="window.print()">
+          🖨️ Imprimir</button>
+      </div>
+      <label style="margin-top:12px">Chofer a cargo</label>
+      <input id="chofer-${r.id}" type="text" value="${esc(r.chofer || '')}"
+        placeholder="Quién maneja hoy" onchange="guardarChofer(${r.id}, this.value)">
+    </div>
+
+    ${mis.length
+      ? mis.map((p, i) => tarjetaParada(p, i + 1)).join('')
+      : '<div class="tarj"><div class="gris">Sin paradas todavía. ' +
+        'Agrégalas desde <b>Asignar</b>.</div></div>'}
+  `;
 }
 
-// Arma las líneas del pedido a partir de su detalle.
+function tarjetaParada(p, n) {
+  const hecho = p.estado === 'entregado' || p.estado === 'entregado-sin-facturar';
+  const enRuta = p.estado === 'en-ruta';
+  return `<div class="parada ${hecho ? 'hecha' : ''} ${esProduccion(p) ? 'urge' : ''}">
+    <div style="display:flex;gap:4px;align-items:flex-start">
+      <div class="parada-n">${n}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:900;font-size:17px;line-height:1.25">${esc(p.emp)}</div>
+        <div class="gris">📍 ${esc(p.dir || 'sin dirección')}</div>
+        ${p.contacto || p.telefono ? `<div class="gris">👤 ${esc(p.contacto || '')}${
+          p.telefono ? ' · <a href="tel:' + esc(p.telefono) + '">' + esc(p.telefono) + '</a>' : ''}</div>` : ''}
+        <div class="gris">${p.factura_num
+          ? '🧾 Factura ' + esc(p.factura_num)
+          : esProduccion(p) ? '🏭 Producción · sin factura'
+          : '<b style="color:var(--naranjo)">🧾 Sin número de factura</b>'}</div>
+      </div>
+    </div>
+
+    <div class="ped-items" style="margin-top:10px">
+      ${(p.detalle || '').split(/,\s*(?=[A-ZÁÉÍÓÚÑ])/).filter(Boolean)
+        .map(d => `<div class="ped-item">· ${esc(d.trim())}</div>`).join('')
+        || '<div class="ped-item">Sin detalle</div>'}
+    </div>
+    ${p.mensaje ? `<div class="dif" style="background:var(--mora-xl);color:var(--mora-d)">
+      💬 ${esc(p.mensaje)}</div>` : ''}
+
+    <div style="display:flex;gap:8px;margin-top:11px" class="noimp">
+      ${hecho
+        ? '<div class="gris" style="flex:1"><b>✔ Entregado</b></div>'
+        : enRuta
+          ? `<button class="b b-verde b-chico" style="flex:1"
+               onclick="marcar(${p.id}, 'entregado')">Entregado</button>`
+          : `<button class="b b-mora b-chico" style="flex:1"
+               onclick="abrirCarga(${p.id})">📦 Cargar al camión</button>`}
+    </div>
+  </div>`;
+}
+
+async function crearRuta(camion) {
+  try {
+    await crear('bod_rutas', [{
+      fecha: diaSel, camion, bodega_id: miBodega.id, estado: 'en_bodega'
+    }]);
+    await cargarTodo();
+    listo('Ruta creada', 'Ahora agrégale pedidos', null);
+  } catch (e) {
+    av('aviso-global', 'No se pudo crear la ruta: ' + esc(e.message), 'rojo');
+  }
+}
+
+async function guardarChofer(rutaId, nombre) {
+  try { await actualizar(`bod_rutas?id=eq.${rutaId}`, { chofer: nombre.trim() }); }
+  catch (e) { av('aviso-global', 'No se pudo guardar el chofer: ' + esc(e.message), 'rojo'); }
+}
+
+async function marcar(id, estado) {
+  const p = pedidos.find(x => String(x.id) === String(id));
+  if (!p) return;
+  if (!sePuedeTocar(p))
+    return av('aviso-global',
+      'Ese pedido todavía no está facturado. La oficina lo factura y ahí lo puedes mover.',
+      'naranjo');
+  try {
+    await actualizar(`pedidos?id=eq.${id}`, { estado });
+    await cargarTodo();
+  } catch (e) {
+    av('aviso-global', 'No se pudo cambiar el estado: ' + esc(e.message), 'rojo');
+  }
+}
+
+function verParada(id) {
+  const p = pedidos.find(x => String(x.id) === String(id));
+  if (!p) return;
+  // Se lleva a la ruta de su día: ahí está con todo lo demás del viaje.
+  const d = diaDe(p);
+  if (d) { diaSel = d; cargarTodo(); }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ASIGNAR — los pedidos del día que todavía no tienen camión
+// ══════════════════════════════════════════════════════════════
+function renderAsignar() {
+  pintarDias('asig-dias', 'verDiaAsig');
+  const cont = document.getElementById('asig-lista');
+  if (!cont) return;
+
+  const delDia = pedidos.filter(p => diaDe(p) === diaSel);
+  const libres = delDia.filter(p => !p.ruta_id && sePuedeTocar(p));
+  // Los que no se pueden tocar se MUESTRAN igual. Esconderlos haría creer que
+  // ese día tiene menos trabajo del que tiene, y el bodeguero necesita saber
+  // qué viene aunque todavía no pueda moverlo.
+  const bloqueados = delDia.filter(p => !p.ruta_id && !sePuedeTocar(p));
+
+  if (!delDia.length) {
+    cont.innerHTML = '<div class="tarj"><div class="gris">Nada agendado para ' +
+      esc(fechaCorta(diaSel)) + '.</div></div>';
+    document.getElementById('asig-acc').style.display = 'none';
+    return;
+  }
+
+  cont.innerHTML = `
+    ${libres.length ? `<div class="tarj">
+      <h2>Por asignar</h2>
+      <div class="gris" style="margin-bottom:10px">Marca los que van juntos en un camión.</div>
+      ${libres.map(p => `<div class="fila" onclick="togAsig(${p.id})"
+          style="cursor:pointer">
+        <div style="flex:0 0 auto;font-size:22px">${aAsignar.has(p.id) ? '☑️' : '⬜'}</div>
+        <div class="fila-n">${esProduccion(p) ? '🏭 ' : ''}${esc(p.emp)}
+          <div class="gris" style="font-size:14px">${esc(p.dir || 'sin dirección')}</div>
+          <div class="gris" style="font-size:14px">${esc(p.detalle || '')}</div>
+        </div>
+      </div>`).join('')}
+    </div>` : '<div class="tarj"><div class="gris">Todos los pedidos de este día ' +
+      'ya están en un camión.</div></div>'}
+
+    ${bloqueados.length ? `<div class="tarj" style="opacity:.7">
+      <h2>Todavía sin facturar</h2>
+      <div class="gris" style="margin-bottom:10px">
+        Los puedes ver, pero no moverlos hasta que la oficina los facture.
+      </div>
+      ${bloqueados.map(p => `<div class="fila">
+        <div class="fila-n">${esc(p.emp)}
+          <div class="gris" style="font-size:14px">${esc(p.dir || '')}</div></div>
+        <span class="marca m-gris">esperando factura</span>
+      </div>`).join('')}
+    </div>` : ''}
+  `;
+  pintarAccAsig();
+}
+
+function verDiaAsig(iso) { diaSel = iso; aAsignar.clear(); cargarTodo(); }
+
+function togAsig(id) {
+  if (aAsignar.has(id)) aAsignar.delete(id); else aAsignar.add(id);
+  renderAsignar();
+}
+
+function pintarAccAsig() {
+  const caja = document.getElementById('asig-acc');
+  if (!caja) return;
+  caja.style.display = aAsignar.size ? 'block' : 'none';
+  const e = document.getElementById('asig-sel');
+  if (e) e.textContent = `${aAsignar.size} pedido(s) marcado(s)`;
+}
+
+// Asigna lo marcado al camión, creando la ruta del día si no existe.
+async function asignarA(camion) {
+  if (!aAsignar.size) return;
+  let r = rutas.find(x => x.fecha === diaSel && x.camion === camion);
+  try {
+    if (!r) {
+      const resp = await crear('bod_rutas', [{
+        fecha: diaSel, camion, bodega_id: miBodega.id, estado: 'en_bodega'
+      }]);
+      const d = await resp.json();
+      r = Array.isArray(d) ? d[0] : d;
+      if (!r || !r.id) throw new Error('no se pudo crear la ruta');
+    }
+    let bien = 0; const mal = [];
+    for (const id of aAsignar) {
+      try { await actualizar(`pedidos?id=eq.${id}`, { ruta_id: r.id }); bien++; }
+      catch (_) { mal.push(id); }
+    }
+    aAsignar.clear();
+    await cargarTodo();
+    listo(`${bien} al ${camion === 'camion-1' ? 'Camión 1' : 'Camión 2'}`,
+      mal.length ? `${mal.length} no se pudieron` : '', null);
+  } catch (e) {
+    av('asig-aviso', 'No se pudo asignar: ' + esc(e.message), 'rojo');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  STOCK
+// ══════════════════════════════════════════════════════════════
+//
+// El color se calcula contra lo que se VENDE, no contra un mínimo escrito a
+// mano. Es el mismo criterio que usa el panel: un producto que se vende 10
+// por semana se pone rojo con 5 en bodega.
+const VENTANA = 60;   // días que se miran para estimar el consumo
+
+function consumoSemanal(prodId) {
+  // Se estima desde las salidas de venta del período. Sin salidas no hay con
+  // qué medir, y decir "está bien" de algo que nadie midió sería inventar
+  // tranquilidad.
+  const venta = new Set(motivos.filter(m => m.es_venta).map(m => String(m.id)));
+  const d = new Date(); d.setDate(d.getDate() - VENTANA);
+  const desde = aISO(d);
+  let total = 0;
+  for (const m of movs) {
+    if (m.tipo !== 'salida' || !venta.has(String(m.motivo_id))) continue;
+    if (String(m.producto_id) !== String(prodId)) continue;
+    if (String(m.fecha).slice(0,10) < desde) continue;
+    total += aBase(m.producto_id, Math.abs(Number(m.cantidad) || 0), m.medida);
+  }
+  return total / (VENTANA / 7);
+}
+
+function colorStock(saldo, semanal) {
+  if (saldo <= 0) return { c: 'b-rojo', t: 'Agotado' };
+  if (!(semanal > 0)) return { c: 'b-gris', t: 'Sin movimiento' };
+  const sem = saldo / semanal;
+  if (sem <= 0.5) return { c: 'b-rojo',     t: 'Menos de media semana' };
+  if (sem < 1)    return { c: 'b-naranjo',  t: 'Menos de una semana' };
+  if (sem < 2)    return { c: 'b-amarillo', t: 'Menos de dos semanas' };
+  return { c: 'b-verde', t: 'Con holgura' };
+}
+
+function filtrarStock(f) {
+  filtroStock = (filtroStock === f) ? '' : f;
+  ['todo','frio','seco','poco'].forEach(k => {
+    const b = document.getElementById('f-' + k);
+    if (b) b.className = 'chip-f' +
+      ((k === 'todo' && !filtroStock) || k === filtroStock ? ' on' : '');
+  });
+  renderStock();
+}
+
+function renderStock() {
+  const cont = document.getElementById('stock-lista');
+  if (!cont) return;
+  const q = (document.getElementById('stock-q').value || '').trim().toLowerCase();
+
+  let lista = productos.slice();
+  if (filtroStock === 'frio') lista = lista.filter(p => p.congelado);
+  if (filtroStock === 'seco') lista = lista.filter(p => !p.congelado);
+  if (q) lista = lista.filter(p =>
+    (p.nombre + ' ' + (p.formato || '')).toLowerCase().includes(q));
+
+  const filas = lista.map(p => {
+    const s = saldoDe(p.id);
+    const sem = consumoSemanal(p.id);
+    return { p, s, sem, col: colorStock(s, sem) };
+  });
+
+  const ver = filtroStock === 'poco'
+    ? filas.filter(x => x.col.c === 'b-rojo' || x.col.c === 'b-naranjo')
+    : filas;
+
+  if (!ver.length) {
+    cont.innerHTML = '<div class="tarj"><div class="gris">Nada que mostrar ' +
+      'con este filtro.</div></div>';
+    return;
+  }
+
+  // Lo que urge arriba: con cuarenta productos, lo que falta no debería
+  // estar al final de la lista.
+  const orden = { 'b-rojo': 0, 'b-naranjo': 1, 'b-amarillo': 2, 'b-verde': 3, 'b-gris': 4 };
+  ver.sort((a, b) => orden[a.col.c] - orden[b.col.c]);
+
+  cont.innerHTML = '<div class="tarj">' + ver.map(x => `
+    <div class="prod-f">
+      <div class="barra ${x.col.c}"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:800;font-size:16px;line-height:1.3">
+          ${x.p.congelado ? '❄️ ' : ''}${esc(x.p.nombre)}</div>
+        <div class="gris" style="font-size:14px">${esc(x.p.formato || '')}
+          ${x.sem > 0 ? ` · se van ~${num(Math.round(x.sem))} por semana` : ''}</div>
+        <div class="gris" style="font-size:13px">${esc(x.col.t)}</div>
+      </div>
+      <div style="text-align:right;flex:0 0 auto">
+        <div style="font-size:22px;font-weight:900">${num(x.s)}</div>
+        <div class="gris" style="font-size:12px">${esc(x.p.unidad || 'un')}</div>
+      </div>
+      <button class="b b-gris b-chico" style="width:auto;flex:0 0 auto;padding:10px 12px"
+        onclick="abrirMov(${x.p.id})">Mover</button>
+    </div>`).join('') + '</div>';
+}
+
+
+// ══════════════════════════════════════════════════════════════
+//  CARGAR AL CAMIÓN — acá se descuenta el stock
+// ══════════════════════════════════════════════════════════════
+//
+// Marcar "en ruta" sin descontar dejaría el inventario diciendo que hay
+// producto que ya va en la carretera, y alguien en la oficina lo prometería.
+//
+// Se descuenta al CARGAR y no al entregar: el producto sale de la bodega
+// cuando sube al camión, no cuando llega al cliente.
+let cgPed = null, cgLineas = [];
+
 const RE_LINEA = /^(.*?)\s*\(([^)]*)\)\s*[x×]\s*([\d.,]+)\s*(cajas?|un|unidades?)?\s*$/i;
 const normTxt = t => String(t || '').toLowerCase().trim().replace(/\s+/g, ' ');
-function splitDet(s) {
-  if (!s || !s.trim()) return [];
-  return s.split(/,\s*(?=[A-ZÁÉÍÓÚÑ])/).map(d => d.trim()).filter(Boolean);
-}
+
 function prepararLineas(p) {
   const out = [], fuera = [];
-  splitDet(p.detalle).forEach(it => {
-    const m = String(it).match(RE_LINEA);
-    const nombre = m ? m[1].trim() : it.trim();
-    const fmt = m ? m[2].trim() : '';
-    const cant = m ? Number(String(m[3]).replace(',', '.')) || 0 : 0;
-    const suf = m ? (m[4] || '').toLowerCase() : '';
-    const medida = suf.startsWith('un') ? 'unidad' : 'caja';
-    let pr = productos.find(x => normTxt(x.nombre) === normTxt(nombre) &&
-                                 normTxt(x.formato || '') === normTxt(fmt));
-    if (!pr) pr = productos.find(x => normTxt(x.nombre) === normTxt(nombre));
-    if (!pr || !(cant > 0)) { fuera.push(it); return; }
-    out.push({ producto_id: pr.id, pedida: cant, cantidad: cant, medida, pistoleada: false });
-  });
+  String(p.detalle || '').split(/,\s*(?=[A-ZÁÉÍÓÚÑ])/).map(x => x.trim()).filter(Boolean)
+    .forEach(it => {
+      const m = it.match(RE_LINEA);
+      const nombre = m ? m[1].trim() : it;
+      const fmt = m ? m[2].trim() : '';
+      const cant = m ? Number(String(m[3]).replace(',', '.')) || 0 : 0;
+      const med = m && (m[4] || '').toLowerCase().startsWith('un') ? 'unidad' : 'caja';
+      let pr = productos.find(x => normTxt(x.nombre) === normTxt(nombre) &&
+                                   normTxt(x.formato || '') === normTxt(fmt));
+      if (!pr) pr = productos.find(x => normTxt(x.nombre) === normTxt(nombre));
+      // Una línea de muestra sale igual de bodega: lo que cambia es que no se
+      // cobra, y eso lo decidió la oficina al crear el pedido.
+      const esMuestra = /\[muestra\]/i.test(it);
+      if (!pr || !(cant > 0)) { fuera.push(it); return; }
+      out.push({ producto_id: pr.id, pedida: cant, cantidad: cant,
+                 medida: med, muestra: esMuestra, pistoleada: false });
+    });
   return { out, fuera };
 }
 
-function abrirPedido(id) {
-  ped = pedidos.find(p => String(p.id) === String(id));
-  if (!ped) return;
-  const r = prepararLineas(ped);
-  lineas = r.out;
+function abrirCarga(id) {
+  const p = pedidos.find(x => String(x.id) === String(id));
+  if (!p) return;
+  if (!sePuedeTocar(p))
+    return av('aviso-global', 'Ese pedido todavía no está facturado.', 'naranjo');
 
-  document.getElementById('pedido-paso').textContent =
-    (ped._ruta.camion === 'camion-1' ? 'Camión 1' : 'Camión 2') + ' · pedido';
-  document.getElementById('pedido-emp').textContent = ped.emp;
-  document.getElementById('pedido-dir').textContent = '📍 ' + (ped.dir || 'sin dirección');
-  document.getElementById('pedido-extra').innerHTML =
-    (ped.contacto ? '👤 ' + esc(ped.contacto) : '') +
-    (ped.telefono ? ' · ' + esc(ped.telefono) : '') +
-    (ped.factura_num ? '<br>🧾 Factura ' + esc(ped.factura_num) : '');
-  document.getElementById('pedido-aviso').innerHTML = r.fuera.length
-    ? `<div class="aviso a-naranjo">Hay ${r.fuera.length} cosa(s) en este pedido que
-       no reconozco. Súbelas igual si están, y avisa a la oficina:<br>` +
-      r.fuera.map(t => '· ' + esc(t)).join('<br>') + '</div>'
-    : '';
-  document.getElementById('pedido-ean').value = '';
-  pistolaMsg('', 'Si no tienes pistola, cambia los números abajo con + y −');
-  pintarLineas();
-  mostrar('p-pedido');
-  setTimeout(() => document.getElementById('pedido-ean').focus(), 80);
+  const r = prepararLineas(p);
+  cgPed = p; cgLineas = r.out;
+
+  document.getElementById('cg-title').textContent = p.emp;
+  document.getElementById('cg-alert').innerHTML = '';
+  document.getElementById('cg-ficha').innerHTML =
+    `${esc(p.dir || 'sin dirección')}` +
+    (p.factura_num ? `<br>🧾 Factura ${esc(p.factura_num)}` : '') +
+    (r.fuera.length
+      ? `<br><b>Ojo:</b> ${r.fuera.length} línea(s) que no reconozco. Súbelas ` +
+        'igual y avisa a la oficina.'
+      : '');
+  document.getElementById('cg-ean').value = '';
+  pistolaMsg('', 'Si no tienes pistola, ajusta los números abajo con + y −');
+  pintarLineasCarga();
+  abrir('mod-carga');
+  setTimeout(() => document.getElementById('cg-ean').focus(), 80);
 }
 
-function pintarLineas() {
-  const cont = document.getElementById('pedido-lineas');
-  if (!lineas.length) {
-    cont.innerHTML = '<div class="aviso a-naranjo">No reconozco nada de este pedido. ' +
-      'Cárgalo igual y avisa a la oficina.</div>';
-    document.getElementById('b-confirmar').disabled = true;
+function pintarLineasCarga() {
+  const cont = document.getElementById('cg-lineas');
+  if (!cgLineas.length) {
+    cont.innerHTML = '<div class="aviso a-naranjo">No reconozco nada de este ' +
+      'pedido. Cárgalo igual y avisa a la oficina.</div>';
+    document.getElementById('b-cg').disabled = true;
     return;
   }
-  document.getElementById('b-confirmar').disabled = false;
-  cont.innerHTML = lineas.map((l, i) => {
-    const dif = l.cantidad - l.pedida;
-    return `<div class="fila">
-      <div class="fila-n">${esc(nombreProd(l.producto_id))}
-        <div class="gris" style="font-size:14px">
-          piden ${num(l.pedida)} ${l.medida === 'caja' ? 'cajas' : 'unidades'}
-          ${dif ? `<span class="marca m-naranjo">${dif > 0 ? '+' : ''}${num(dif)}</span>` : ''}
-        </div></div>
-      <div style="display:flex;gap:8px;align-items:center;flex:0 0 auto">
-        <button class="b b-gris b-chico" style="width:52px;padding:10px"
-          onclick="cambiarLinea(${i},-1)">−</button>
-        <div class="fila-c" style="min-width:44px;text-align:center">${num(l.cantidad)}</div>
-        <button class="b b-gris b-chico" style="width:52px;padding:10px"
-          onclick="cambiarLinea(${i},1)">+</button>
-      </div>
-    </div>`;
-  }).join('');
-  pintarDif();
+  document.getElementById('b-cg').disabled = false;
+  cont.innerHTML = cgLineas.map((l, i) => `<div class="fila">
+    <div class="fila-n">${esc(nombreProd(l.producto_id))}
+      ${l.muestra ? '<span class="marca m-naranjo">muestra</span>' : ''}
+      <div class="gris" style="font-size:14px">piden ${num(l.pedida)}
+        ${l.medida === 'caja' ? 'cajas' : 'un'}</div></div>
+    <div style="display:flex;gap:8px;align-items:center;flex:0 0 auto">
+      <button class="b b-gris b-chico" style="width:48px;padding:10px"
+        onclick="cgChg(${i},-1)">−</button>
+      <div class="fila-c" style="min-width:38px;text-align:center">${num(l.cantidad)}</div>
+      <button class="b b-gris b-chico" style="width:48px;padding:10px"
+        onclick="cgChg(${i},1)">+</button>
+    </div>
+  </div>`).join('');
+  pintarDifCarga();
 }
 
-function cambiarLinea(i, cuanto) {
-  if (!lineas[i]) return;
-  lineas[i].cantidad = Math.max(0, Math.round((lineas[i].cantidad + cuanto) * 100) / 100);
-  lineas[i].pistoleada = true;
-  pintarLineas();
+function cgChg(i, d) {
+  if (!cgLineas[i]) return;
+  cgLineas[i].cantidad = Math.max(0, cgLineas[i].cantidad + d);
+  cgLineas[i].pistoleada = true;
+  pintarLineasCarga();
 }
 
-function pintarDif() {
-  const difs = lineas.map(l => ({ l, d: l.cantidad - l.pedida }))
-                     .filter(x => Math.abs(x.d) > 0.001);
-  document.getElementById('pedido-dif').innerHTML = difs.length
-    ? `<div class="aviso a-naranjo">Esto sale distinto a lo que pidieron:<br>` +
+function pintarDifCarga() {
+  const difs = cgLineas.map(l => ({ l, d: l.cantidad - l.pedida }))
+                       .filter(x => Math.abs(x.d) > 0.001);
+  document.getElementById('cg-dif').innerHTML = difs.length
+    ? `<div class="dif">Sale distinto a lo que pidieron:<br>` +
       difs.map(x => `· ${esc(nombreProd(x.l.producto_id))}: piden ${num(x.l.pedida)},
         subes ${num(x.l.cantidad)}`).join('<br>') +
       '<br><br>Está bien si es así. La oficina lo va a ver.</div>'
     : '';
 }
 
-// ── PISTOLEO ──
+// ── pistoleo ──
 //
 // La pistola se comporta como un teclado: escribe los dígitos y manda Enter.
-// Por eso no necesita librerías ni permiso de cámara, y funciona con guantes
-// y a un metro de distancia.
+// Sin librerías ni permiso de cámara, y funciona con guantes.
 //
-// Cada producto tiene dos códigos, el de la caja y el de la unidad. Eso evita
-// preguntarle si lo que escaneó era caja o unidad: lo dice el código.
+// Cada producto tiene dos códigos, el de la caja y el de la unidad: eso evita
+// preguntarle qué escaneó. Lo dice el código.
 function ean13Valido(p) {
   const v = String(p || '').replace(/[^0-9]/g, '');
   if (v.length !== 13) return false;
@@ -738,7 +1211,7 @@ function porCodigo(cod) {
 function pistolaMsg(clase, msg) {
   const c = document.querySelector('.pistola');
   if (c) c.className = 'pistola' + (clase ? ' ' + clase : '');
-  const m = document.getElementById('pedido-ean-msg');
+  const m = document.getElementById('cg-ean-msg');
   if (m) m.innerHTML = msg;
   clearTimeout(pistolaMsg._t);
   pistolaMsg._t = setTimeout(() => {
@@ -747,309 +1220,283 @@ function pistolaMsg(clase, msg) {
   }, 2500);
 }
 function leerCodigo() {
-  const campo = document.getElementById('pedido-ean');
+  const campo = document.getElementById('cg-ean');
   const cod = String(campo.value || '').replace(/[^0-9]/g, '');
   campo.value = ''; campo.focus();
-  if (!cod || !ped) return;
+  if (!cod || !cgPed) return;
 
   if (!ean13Valido(cod))
     return pistolaMsg('mal', '❌ No se leyó bien. Pásalo otra vez.');
   const hit = porCodigo(cod);
   if (!hit)
     return pistolaMsg('mal', '❓ Este código no lo conozco.<br>Súbelo igual y avisa.');
-  const i = lineas.findIndex(l => String(l.producto_id) === String(hit.producto.id));
+  const i = cgLineas.findIndex(l => String(l.producto_id) === String(hit.producto.id));
   if (i < 0)
     return pistolaMsg('mal', `⚠️ <b>${esc(hit.producto.nombre)}</b> no va en este pedido.`);
 
-  const l = lineas[i];
+  const l = cgLineas[i];
   const suma = hit.medida === l.medida ? 1
              : hit.medida === 'caja'   ? factorDe(l.producto_id)
              : 1 / factorDe(l.producto_id);
-  // El primer escaneo de una línea parte de cero: se cuenta lo que sube, no se
-  // suma sobre lo que decía el pedido. Si no, pistolear tres de un pedido de
-  // veinte daría veintitrés.
+  // El primer escaneo parte de cero: se cuenta lo que sube, no se suma sobre
+  // lo que decía el pedido.
   if (!l.pistoleada) { l.cantidad = 0; l.pistoleada = true; }
   l.cantidad = Math.round((l.cantidad + suma) * 100) / 100;
   pistolaMsg('ok', `✔ ${esc(hit.producto.nombre)} · llevas ${num(l.cantidad)} de ${num(l.pedida)}`);
-  pintarLineas();
-  document.getElementById('pedido-ean').focus();
+  pintarLineasCarga();
+  document.getElementById('cg-ean').focus();
 }
 
 async function confirmarCarga() {
-  if (!ped) return;
-  const utiles = lineas.filter(l => l.cantidad > 0);
-  if (!utiles.length)
-    return av('pedido-aviso', 'No anotaste ninguna cantidad.', 'rojo');
+  if (!cgPed) return;
+  const utiles = cgLineas.filter(l => l.cantidad > 0);
+  if (!utiles.length) return av('cg-alert', 'No anotaste ninguna cantidad.', 'rojo');
 
-  const mot = motivos.find(m => m.activo && m.tipo === 'salida' && m.es_venta)
-           || motivos.find(m => m.activo && m.tipo === 'salida');
-  if (!mot) return av('pedido-aviso',
-    'La oficina no tiene configurados los motivos de salida. Avísales.', 'rojo');
+  const salidas = motivos.filter(m => m.activo && m.tipo === 'salida');
+  const venta = salidas.find(m => m.es_venta);
+  const sinVenta = salidas.find(m => !m.es_venta && !m.es_perdida);
+  if (!venta && !sinVenta) return av('cg-alert',
+    'La oficina no tiene motivos de salida configurados. Avísales.', 'rojo');
 
-  const btn = document.getElementById('b-confirmar');
-  btn.innerHTML = '<span class="sp"></span>Mandando...'; btn.disabled = true;
+  const btn = document.getElementById('b-cg');
+  btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
   try {
-    await crear('bod_propuestas', utiles.map(l => ({
+    // El stock PRIMERO y el estado después. Si falla el estado, el descuento
+    // ya quedó —que es lo que importa— y la oficina corrige el estado. Al
+    // revés sería peor: un pedido en ruta sin stock descontado.
+    await crear('bod_movimientos', utiles.map(l => ({
       tipo: 'salida',
+      fecha: hoyISO(),
       producto_id: l.producto_id,
       bodega_id: miBodega.id,
       cantidad: l.cantidad,
       medida: l.medida,
-      motivo_id: mot.id,
-      doc: String(ped.factura_num || '').trim(),
-      nota: `Subido al camión · Pedido ${ped.id} · ${ped.emp}` +
+      // Una línea de muestra no es venta: lleva el motivo que corresponde o
+      // la cuadratura del mes la cuenta como vendida.
+      motivo_id: (l.muestra ? (sinVenta || venta) : (venta || sinVenta)).id,
+      doc: String(cgPed.factura_num || '').trim() || null,
+      pedido_id: cgPed.id,
+      usuario: quien,
+      nota: `Cargado al camión · ${cgPed.emp}` +
         (Math.abs(l.cantidad - l.pedida) > 0.001
-          ? ` · pedían ${num(l.pedida)}, subieron ${num(l.cantidad)}` : ''),
-      quien,
-      camion: ped._ruta.camion
+          ? ` · pedían ${num(l.pedida)}, subieron ${num(l.cantidad)}` : '')
     })));
+
+    try { await actualizar(`pedidos?id=eq.${cgPed.id}`, { estado: 'en-ruta' }); }
+    catch (_) {
+      av('aviso-global', 'Se descontó el stock, pero el pedido no quedó en ruta. ' +
+        'Avisa a la oficina.', 'naranjo');
+    }
+    cerrar('mod-carga');
+    cgPed = null;
     await cargarTodo();
-    listo('Mandado', 'La oficina lo va a revisar', () => abrirCargar());
+    listo('Cargado', 'El stock ya se descontó', null);
   } catch (e) {
-    av('pedido-aviso', '<b>No se pudo mandar.</b> ' + esc(e.message) +
-      '<br>No se guardó nada. Revisa la señal y prueba otra vez.', 'rojo');
-    btn.innerHTML = 'Listo, ya subió al camión'; btn.disabled = false;
-    return;
+    av('cg-alert', '<b>No se pudo guardar.</b> ' + esc(e.message) +
+      '<br>No se descontó nada: puedes reintentar.', 'rojo');
   }
   btn.innerHTML = 'Listo, ya subió al camión'; btn.disabled = false;
 }
 
 // ══════════════════════════════════════════════════════════════
-//  LLEGÓ PRODUCTO
-// ══════════════════════════════════════════════════════════════
-function abrirLlego() {
-  mostrar('p-llego');
-  const sel = document.getElementById('llego-prod');
-  if (sel.options.length <= 1)
-    sel.innerHTML = '<option value="">— Elige qué llegó —</option>' +
-      productos.map(p => `<option value="${p.id}">${esc(p.nombre)}` +
-        `${p.formato ? ' · ' + esc(p.formato) : ''}</option>`).join('');
-  sel.value = '';
-  document.getElementById('llego-cant').value = 0;
-  document.getElementById('llego-nota').value = '';
-  document.getElementById('llego-caja').style.display = 'none';
-  av('llego-aviso', '');
-}
-
-function llegoCambio() {
-  const id = document.getElementById('llego-prod').value;
-  document.getElementById('llego-caja').style.display = id ? 'block' : 'none';
-  if (!id) return;
-  const f = factorDe(id);
-  document.getElementById('llego-lbl').textContent =
-    f > 1 ? `¿Cuántas cajas llegaron? (cada una trae ${f})` : '¿Cuántas llegaron?';
-}
-
-async function mandarLlego() {
-  const id = document.getElementById('llego-prod').value;
-  const c = Number(document.getElementById('llego-cant').value) || 0;
-  if (!id)      return av('llego-aviso', 'Elige qué llegó.', 'rojo');
-  if (!(c > 0)) return av('llego-aviso', 'Pon cuántas llegaron.', 'rojo');
-
-  const mot = motivos.find(m => m.activo && m.tipo === 'entrada');
-  if (!mot) return av('llego-aviso',
-    'La oficina no tiene configurados los motivos de entrada. Avísales.', 'rojo');
-
-  const btn = document.getElementById('b-llego');
-  btn.innerHTML = '<span class="sp"></span>Mandando...'; btn.disabled = true;
-  try {
-    await crear('bod_propuestas', [{
-      tipo: 'entrada', producto_id: Number(id), bodega_id: miBodega.id,
-      cantidad: c, medida: 'caja', motivo_id: mot.id,
-      doc: document.getElementById('llego-doc').value.trim(),
-      nota: 'Llegó producto' +
-        (document.getElementById('llego-nota').value.trim()
-          ? ' · ' + document.getElementById('llego-nota').value.trim() : ''),
-      quien, camion: ''
-    }]);
-    await cargarTodo();
-    listo('Mandado', 'Entra al stock cuando la oficina lo apruebe', () => abrirLlego());
-  } catch (e) {
-    av('llego-aviso', '<b>No se pudo mandar.</b> ' + esc(e.message) +
-      '<br>No se guardó nada.', 'rojo');
-  }
-  btn.innerHTML = 'Mandar a la oficina'; btn.disabled = false;
-}
-
-// ══════════════════════════════════════════════════════════════
-//  CONTAR LA BODEGA
+//  MOVER STOCK
 // ══════════════════════════════════════════════════════════════
 //
-// Producto por producto, porque así está la bodega: amontonada por producto.
+// Cuatro casos con el mismo camino. Todos se aplican al instante: un
+// encargado cuya cuenta de stock espera aprobación no está llevando la
+// cuenta, está pidiendo permiso para llevarla.
 //
-// LO MÁS IMPORTANTE DE ESTA PANTALLA: mientras cuenta, NO se le muestra
-// cuánto debería haber. Si la pantalla dijera "deberían haber 47", va a
-// escribir 47 — no por deshonestidad, sino porque es lo que hace cualquiera
-// cuando el número ya está ahí y contar cuesta. Un conteo que confirma lo que
-// el sistema ya creía no sirve para nada.
-//
-// La comparación aparece DESPUÉS de que anota su número, y ahí se le pide la
-// razón de la diferencia.
-//
-// Solo los productos donde hay diferencia generan algo que aprobar. Contar
-// cuarenta con tres diferencias manda tres cosas, no cuarenta.
-function abrirContar() {
-  // El avance se guarda en el teléfono: un conteo de cuarenta productos que se
-  // pierde porque se cerró la pantalla no se vuelve a hacer nunca.
-  let previo = null;
-  try { previo = JSON.parse(localStorage.getItem('nativo_bod_conteo') || 'null'); } catch (_) {}
-
-  if (previo && previo.lista && previo.i < previo.lista.length &&
-      confirm(`Tenías un conteo a medias: ibas en ${previo.i} de ${previo.lista.length}.\n\n` +
-              '¿Seguir donde quedaste?')) {
-    conteo = previo;
-  } else {
-    conteo = { lista: productos.map(p => p.id), i: 0, resultados: [] };
-  }
-  guardarConteo();
-  pintarContar();
-}
-
-function guardarConteo() {
-  try { localStorage.setItem('nativo_bod_conteo', JSON.stringify(conteo)); } catch (_) {}
-}
-
-function pintarContar() {
-  if (!conteo) return irInicio();
-  if (conteo.i >= conteo.lista.length) return pintarFin();
-
-  const id = conteo.lista[conteo.i];
-  const f = factorDe(id);
-  document.getElementById('contar-paso').textContent =
-    `Producto ${conteo.i + 1} de ${conteo.lista.length}`;
-  document.getElementById('contar-prod').textContent = (prod(id) || {}).nombre || '';
-  document.getElementById('contar-fmt').textContent = (prod(id) || {}).formato || '';
-  document.getElementById('contar-lbl').textContent =
-    f > 1 ? `¿Cuántas cajas hay? (cada una trae ${f})` : '¿Cuántas hay?';
-  document.getElementById('contar-cant').value = 0;
-  av('contar-aviso', '');
-  mostrar('p-contar');
-}
-
-function contarSiguiente() {
-  const id = conteo.lista[conteo.i];
-  const contadas = Number(document.getElementById('contar-cant').value) || 0;
-  const enBase = aBase(id, contadas, 'caja');
-  const segun = saldoDe(id);
-  const dif = enBase - segun;
-
-  // Sin diferencia no hay nada que mandar ni que preguntar: se sigue de largo.
-  if (Math.abs(dif) < 0.001) {
-    conteo.resultados.push({ id, contadas, dif: 0 });
-    conteo.i++; guardarConteo(); pintarContar();
-    return;
-  }
-
-  conteo.pendiente = { id, contadas, enBase, segun, dif };
-  document.getElementById('dif-prod').textContent = nombreProd(id);
-  document.getElementById('dif-texto').innerHTML =
-    `Contaste <b>${num(enBase)} ${esc(unidadDe(id))}</b>.<br>` +
-    `El sistema tenía <b>${num(segun)}</b>.<br><br>` +
-    (dif < 0 ? `Faltan <b>${num(Math.abs(dif))}</b>.` : `Sobran <b>${num(dif)}</b>.`);
-  document.getElementById('dif-razon').value = '';
-  mostrar('p-dif');
-}
-
-function guardarDif() {
-  const razon = document.getElementById('dif-razon').value.trim();
-  const p = conteo.pendiente;
-  conteo.resultados.push({ ...p, razon });
-  conteo.pendiente = null;
-  conteo.i++; guardarConteo(); pintarContar();
-}
-
-function contarSaltar() {
-  conteo.i++; guardarConteo(); pintarContar();
-}
-
-function contarSalir() {
-  if (!confirm('El conteo queda guardado donde vas y puedes seguir después.\n\n¿Salir?'))
-    return;
-  guardarConteo(); irInicio();
-}
-
-function pintarFin() {
-  const difs = conteo.resultados.filter(r => Math.abs(r.dif || 0) > 0.001);
-  document.getElementById('fin-resumen').innerHTML =
-    `<h2>Contaste ${conteo.resultados.length} producto(s)</h2>` +
-    (difs.length
-      ? `<div class="gris" style="margin:8px 0 14px">Hay ${difs.length} con diferencia.
-          Solo esos se mandan a la oficina.</div>` +
-        difs.map(r => `<div class="fila">
-          <div class="fila-n">${esc(nombreProd(r.id))}
-            <div class="gris" style="font-size:14px">${esc(r.razon || 'sin explicación')}</div></div>
-          <div class="fila-c" style="color:${r.dif < 0 ? 'var(--rojo)' : 'var(--naranjo)'}">
-            ${r.dif > 0 ? '+' : ''}${num(r.dif)}</div>
-        </div>`).join('')
-      : '<div class="aviso a-verde" style="margin-top:12px">✔ Todo calzó. ' +
-        'No hay nada que mandar.</div>');
-  document.getElementById('b-fin').style.display = difs.length ? '' : 'none';
-  av('fin-aviso', '');
-  mostrar('p-fin');
-}
-
-async function mandarConteo() {
-  const difs = conteo.resultados.filter(r => Math.abs(r.dif || 0) > 0.001);
-  if (!difs.length) return irInicio();
-
-  const btn = document.getElementById('b-fin');
-  btn.innerHTML = '<span class="sp"></span>Mandando...'; btn.disabled = true;
-  try {
-    // La diferencia va en unidades base y con su signo: así la oficina ve
-    // exactamente lo que hay que sumar o restar, sin recalcular nada.
-    await crear('bod_propuestas', difs.map(r => ({
-      tipo: 'ajuste', producto_id: r.id, bodega_id: miBodega.id,
-      cantidad: r.dif, medida: 'unidad',
-      nota: `Conteo · contó ${num(r.enBase)}, el sistema tenía ${num(r.segun)}` +
-        (r.razon ? ` · ${r.razon}` : ''),
-      quien, camion: ''
-    })));
-    try { localStorage.removeItem('nativo_bod_conteo'); } catch (_) {}
-    conteo = null;
-    await cargarTodo();
-    listo('Conteo mandado', 'La oficina lo va a revisar', () => irInicio());
-  } catch (e) {
-    av('fin-aviso', '<b>No se pudo mandar.</b> ' + esc(e.message) +
-      '<br>El conteo quedó guardado: prueba otra vez.', 'rojo');
-  }
-  btn.innerHTML = 'Mandar a la oficina'; btn.disabled = false;
-}
-
-// ══════════════════════════════════════════════════════════════
-//  LO QUE MANDÉ
-// ══════════════════════════════════════════════════════════════
-const ESTADO_TXT = {
-  pendiente: { t: 'Esperando a la oficina', m: 'm-naranjo' },
-  aprobada:  { t: 'Aprobado',               m: 'm-verde' },
-  rechazada: { t: 'No lo aceptaron',        m: 'm-rojo' }
+// Lo que cambia es qué queda anotado. Un AJUSTE y una MERMA son los únicos
+// sin nada que los contraste —no hay guía, no hay pedido— así que exigen
+// explicación y quedan marcados para que la oficina los revise.
+const TIPOS_MOV = {
+  entrada:  { lbl: 'Llegó producto', mov: 'entrada', signo: +1,
+              doc: true,  motivo: 'entrada', destino: false, razon: false,
+              cant: '¿Cuántas cajas llegaron?',
+              nota: '¿Algo que avisar? Pallet golpeado, falta algo' },
+  ajuste:   { lbl: 'Conteo', mov: 'ajuste', signo: 0,
+              doc: false, motivo: null, destino: false, razon: true,
+              cant: '¿Cuántas CONTASTE en total?',
+              nota: '¿Qué crees que pasó con la diferencia?' },
+  merma:    { lbl: 'Se perdió', mov: 'salida', signo: -1,
+              doc: false, motivo: 'salida', destino: false, razon: true,
+              cant: '¿Cuántas se perdieron?',
+              nota: '¿Qué le pasó? Se cayó, estaba vencido, se cortó el frío' },
+  traslado: { lbl: 'Traslado', mov: 'traslado', signo: -1,
+              doc: false, motivo: null, destino: true, razon: false,
+              cant: '¿Cuántas mandaste?',
+              nota: '¿Por qué se movió?' }
 };
+let prodMov = null;
 
-function abrirMandado() {
-  mostrar('p-mandado');
-  const mios = mandado.filter(x => (x.quien || '').toLowerCase() === quien.toLowerCase());
-  const cont = document.getElementById('mandado-lista');
-  if (!mios.length) {
-    cont.innerHTML = '<div class="tarj"><div class="gris">Todavía no has mandado nada.</div></div>';
+function abrirMov(id) {
+  prodMov = productos.find(p => String(p.id) === String(id));
+  if (!prodMov) return;
+  document.getElementById('ms-title').textContent = prodMov.nombre;
+  document.getElementById('ms-alert').innerHTML = '';
+  document.getElementById('ms-cant').value = 0;
+  document.getElementById('ms-nota').value = '';
+  document.getElementById('ms-doc').value = '';
+  document.getElementById('ms-tipo').value = 'entrada';
+
+  const sd = document.getElementById('ms-destino');
+  sd.innerHTML = '<option value="">— Elige —</option>' + bodegas
+    .filter(b => b.activa && String(b.id) !== String(miBodega.id))
+    .map(b => `<option value="${b.id}">${esc(b.nombre)}</option>`).join('');
+
+  msTipoCambio();
+  abrir('mod-stock');
+}
+
+function msTipoCambio() {
+  const t = TIPOS_MOV[document.getElementById('ms-tipo').value];
+  if (!t || !prodMov) return;
+  document.getElementById('ms-box-doc').style.display     = t.doc ? 'block' : 'none';
+  document.getElementById('ms-box-motivo').style.display  = t.motivo ? 'block' : 'none';
+  document.getElementById('ms-box-destino').style.display = t.destino ? 'block' : 'none';
+  document.getElementById('ms-lbl').textContent = t.cant;
+  document.getElementById('ms-nota').placeholder = t.nota;
+  document.getElementById('ms-lbl-nota').textContent =
+    t.razon ? 'Explica qué pasó *' : '¿Algo que avisar?';
+
+  if (t.motivo) {
+    const sel = document.getElementById('ms-motivo');
+    const lista = motivos.filter(m => m.activo && m.tipo === t.motivo &&
+      (document.getElementById('ms-tipo').value !== 'merma' || m.es_perdida));
+    sel.innerHTML = lista.length
+      ? lista.map(m => `<option value="${m.id}">${esc(m.nombre)}</option>`).join('')
+      : '<option value="">— no hay motivos configurados —</option>';
+  }
+  msPrevio();
+}
+
+function msPrevio() {
+  const clave = document.getElementById('ms-tipo').value;
+  const t = TIPOS_MOV[clave];
+  const c = Number(document.getElementById('ms-cant').value) || 0;
+  const caja = document.getElementById('ms-previo');
+  if (!t || !prodMov || !c) { caja.style.display = 'none'; return; }
+
+  const hay = saldoDe(prodMov.id);
+  const base = aBase(prodMov.id, Math.abs(c), 'caja');
+
+  // En un conteo, lo que se escribe es el TOTAL contado, no la diferencia.
+  // Pedir la diferencia obliga a restar de cabeza delante del producto, que
+  // es exactamente donde se cometen los errores.
+  if (clave === 'ajuste') {
+    const dif = base - hay;
+    caja.style.display = 'block';
+    caja.innerHTML = Math.abs(dif) < 0.001
+      ? `Contaste <b>${num(base)}</b> y el sistema tiene <b>${num(hay)}</b>. Calza.`
+      : `Contaste <b>${num(base)}</b>, el sistema tiene <b>${num(hay)}</b>.<br>` +
+        `<b>${dif < 0 ? 'Faltan ' + num(-dif) : 'Sobran ' + num(dif)}</b>.`;
     return;
   }
-  const viejas = mios.filter(x => x.estado === 'pendiente' &&
-    (Date.now() - new Date(x.creada).getTime()) > 2 * 86400000);
+  const efecto = t.signo * base;
+  caja.style.display = 'block';
+  caja.innerHTML = `El stock pasa de <b>${num(hay)}</b> a <b>${num(hay + efecto)}</b>` +
+    (t.destino ? '. La otra bodega lo recibe.' : '.');
+}
 
-  cont.innerHTML =
-    (viejas.length ? `<div class="aviso a-naranjo">Hay ${viejas.length} cosa(s) esperando
-      hace más de dos días. <b>No las vuelvas a mandar</b>, ya están. Avisa a la oficina.</div>` : '') +
-    '<div class="tarj">' + mios.slice(0, 30).map(x => {
-      const e = ESTADO_TXT[x.estado] || ESTADO_TXT.pendiente;
-      const d = Math.floor((Date.now() - new Date(x.creada).getTime()) / 86400000);
-      return `<div class="fila">
-        <div class="fila-n"><span class="marca ${e.m}">${esc(e.t)}</span>
-          <div style="margin-top:5px">${esc(nombreProd(x.producto_id))}</div>
-          <div class="gris" style="font-size:14px">${esc(x.nota || '')}
-            · ${d > 0 ? 'hace ' + d + ' día(s)' : 'hoy'}
-            ${x.respuesta ? '<br><b>Oficina:</b> ' + esc(x.respuesta) : ''}</div></div>
-        <div class="fila-c">${num(x.cantidad)}</div>
-      </div>`;
-    }).join('') + '</div>';
+async function guardarMov() {
+  const clave = document.getElementById('ms-tipo').value;
+  const t = TIPOS_MOV[clave];
+  const c = Number(document.getElementById('ms-cant').value) || 0;
+  const nota = document.getElementById('ms-nota').value.trim();
+  if (!t || !prodMov) return;
+
+  if (clave !== 'ajuste' && !(c > 0))
+    return av('ms-alert', 'Pon la cantidad.', 'rojo');
+  if (t.razon && !nota) {
+    av('ms-alert', 'Explica qué pasó: sin eso, en un mes nadie va a saber por qué.', 'rojo');
+    document.getElementById('ms-nota').focus();
+    return;
+  }
+
+  const hay = saldoDe(prodMov.id);
+  const base = aBase(prodMov.id, Math.abs(c), 'caja');
+  const dif = base - hay;
+  if (clave === 'ajuste' && Math.abs(dif) < 0.001)
+    return av('ms-alert', 'El conteo calza con el sistema: no hay nada que anotar.', 'mora');
+
+  const fila = {
+    tipo: t.mov,
+    fecha: hoyISO(),
+    producto_id: prodMov.id,
+    bodega_id: miBodega.id,
+    // En un ajuste va la DIFERENCIA con su signo, en unidades: es lo que hay
+    // que sumar o restar. En el resto, lo que se movió, en cajas.
+    cantidad: clave === 'ajuste' ? dif : Math.abs(c),
+    medida: clave === 'ajuste' ? 'unidad' : 'caja',
+    usuario: quien,
+    nota: clave === 'ajuste'
+      ? `Conteo · contó ${num(base)}, el sistema tenía ${num(hay)} · ${nota}`
+      : [t.lbl, nota].filter(Boolean).join(' · ')
+  };
+  if (t.doc) fila.doc = document.getElementById('ms-doc').value.trim() || null;
+  if (t.motivo) {
+    const m = document.getElementById('ms-motivo').value;
+    if (!m) return av('ms-alert', 'Elige el motivo.', 'rojo');
+    fila.motivo_id = Number(m);
+  }
+  if (t.destino) {
+    const d = document.getElementById('ms-destino').value;
+    if (!d) return av('ms-alert', '¿A qué bodega la mandaste?', 'rojo');
+    fila.bodega_destino_id = Number(d);
+  }
+
+  const btn = document.getElementById('b-ms');
+  btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
+  try {
+    await crear('bod_movimientos', [fila]);
+    cerrar('mod-stock');
+    await cargarTodo();
+    listo('Anotado', t.razon ? 'La oficina lo va a revisar' : '', null);
+  } catch (e) {
+    av('ms-alert', '<b>No se pudo guardar.</b> ' + esc(e.message) +
+      '<br>Nada quedó anotado.', 'rojo');
+  }
+  btn.innerHTML = 'Guardar'; btn.disabled = false;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MI DÍA
+// ══════════════════════════════════════════════════════════════
+function renderMiDia() {
+  const cont = document.getElementById('dia-cont');
+  if (!cont) return;
+  const hoy = hoyISO();
+  const mios = movs.filter(m => (m.usuario || '').toLowerCase() === quien.toLowerCase());
+  const entregados = pedidos.filter(p =>
+    diaDe(p) === hoy && (p.estado === 'entregado' || p.estado === 'entregado-sin-facturar'));
+  const porEntregar = pedidos.filter(p =>
+    diaDe(p) === hoy && p.ruta_id && p.estado !== 'entregado' &&
+    p.estado !== 'entregado-sin-facturar');
+
+  cont.innerHTML = `
+    <div class="tarj">
+      <div class="fila"><div class="fila-n">Entregas hechas hoy</div>
+        <div class="fila-c">${entregados.length}</div></div>
+      <div class="fila"><div class="fila-n">Por entregar</div>
+        <div class="fila-c">${porEntregar.length}</div></div>
+      <div class="fila"><div class="fila-n">Movimientos que anoté</div>
+        <div class="fila-c">${mios.length}</div></div>
+    </div>
+
+    ${mios.length ? `<div class="tarj">
+      <div class="gris" style="margin-bottom:8px"><b>Lo que anoté hoy</b></div>
+      ${mios.map(m => `<div class="fila">
+        <div class="fila-n">
+          <span class="marca ${m.tipo === 'entrada' ? 'm-verde' : 'm-naranjo'}">
+            ${m.tipo === 'entrada' ? '📥 entró' : m.tipo === 'ajuste' ? '🔢 conteo'
+              : m.tipo === 'traslado' ? '↔️ traslado' : '📤 salió'}</span>
+          <div style="margin-top:4px">${esc(nombreProd(m.producto_id))}</div>
+          <div class="gris" style="font-size:14px">${esc(m.nota || '')}</div>
+        </div>
+        <div class="fila-c">${num(m.cantidad)}</div>
+      </div>`).join('')}
+    </div>` : ''}
+  `;
 }
 
 // ── reanudar ──────────────────────────────────────────────────
@@ -1060,12 +1507,10 @@ function abrirMandado() {
     const g = sessionStorage.getItem('nativo_bod_token');
     if (g && !n) {
       document.getElementById('in-clave').placeholder = 'Ya está lista — pon tu nombre';
-      av('login-aviso', 'Solo falta tu nombre y la bodega.', 'mora');
+      av('login-aviso', 'Solo falta tu nombre.', 'mora');
       return;
     }
     if (!g || !n) return;
-    // Con la sesión guardada se entra solo, pero hay que reponer la bodega:
-    // sin ella no se puede anotar nada.
     TOKEN = g; quien = n;
     (async () => {
       try {
