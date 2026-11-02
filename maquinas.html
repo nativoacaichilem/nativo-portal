@@ -706,24 +706,6 @@ function avisarTruncado(tabla, cuantas) {
     'ofrecerse. No anotes movimientos ni descargues pedidos hasta resolverlo.';
 }
 
-async function sbTodo(tabla, query) {
-  const paso = 1000, vistos = new Set(), out = [];
-  let completo = false;
-  for (let desde = 0; desde < TECHO_FILAS; desde += paso) {
-    const url = `${PROXY}/supabase/${tabla}?${query}&limit=${paso}&offset=${desde}`;
-    const r = revisarAuth(await pedir(url, { headers: cabeceras(false) }));
-    if (!r.ok) throw new Error('HTTP ' + r.status + ' en ' + tabla);
-    const d = await r.json();
-    if (!Array.isArray(d)) throw new Error('Respuesta inválida en ' + tabla);
-    let nuevos = 0;
-    for (const f of d) { if (!vistos.has(f.id)) { vistos.add(f.id); out.push(f); nuevos++; } }
-    // Salir acá significa que se acabaron las filas: el libro está completo.
-    if (d.length < paso || nuevos === 0) { completo = true; break; }
-  }
-  // Salir por agotar el for significa que se alcanzó el techo: falta data.
-  if (!completo) avisarTruncado(tabla, out.length);
-  return out;
-}
 
 function esc(s) {
   return String(s === null || s === undefined ? '' : s)
@@ -737,14 +719,6 @@ function num(n) {
   const v = Number(n) || 0;
   const dec = Math.abs(v % 1) > 0.0005 ? 3 : 0;
   return v.toLocaleString('es-CL', { minimumFractionDigits: 0, maximumFractionDigits: dec });
-}
-function pesos(n) {
-  return '$' + Math.round(Number(n) || 0).toLocaleString('es-CL');
-}
-function fechaCorta(f) {
-  if (!f) return '';
-  const p = String(f).slice(0, 10).split('-');
-  return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : String(f);
 }
 function toast(msg, err) {
   const t = document.getElementById('toast');
@@ -764,6 +738,10 @@ function alerta(id, msg, cls) {
 
 
 
+
+// Se retiraron `fechaCorta()`, `pesos()` y `sbTodo()`: venían de la base
+// común de los otros módulos y acá no se usan. Una función que nadie llama
+// confunde a quien lee el archivo buscando entender qué hace.
 
 // ══════════════════════════════════════════════════════════════
 //  ENTRAR Y MODALES
@@ -811,8 +789,7 @@ async function doLogin() {
   TOKEN = clave;
   try { sessionStorage.setItem('nativo_token', clave); } catch (_) {}
   document.getElementById('pin').value = '';
-  cargarQuien();
-  cargarTodo();
+  entrar();
   btn.innerHTML = 'Ingresar →'; btn.disabled = false;
 }
 
@@ -836,6 +813,15 @@ function cargarQuien() {
 
 function pintarQuien() {
   document.getElementById('quien-chip').textContent = quien || 'ponte tu nombre';
+}
+
+// Muestra la aplicación. El login la valida y llama acá; el arranque del
+// final también, cuando ya hay sesión guardada.
+function entrar() {
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display   = 'block';
+  cargarQuien();
+  cargarTodo();
 }
 
 function salir() {
@@ -1352,6 +1338,28 @@ async function guardarModelo() {
   }
   btn.innerHTML = 'Guardar'; btn.disabled = false;
 }
+
+// Cerrar modales con Escape, igual que el resto de los módulos.
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const m = document.querySelector('.mbg.open');
+  if (m) { m.classList.remove('open'); if (focoPrevio) focoPrevio.focus(); }
+});
+
+// Va al FINAL del archivo a propósito, no a mitad del script: acá todas las
+// variables de estado ya existen.
+//
+// Faltaba por completo, y por eso este módulo pedía la clave cada vez aunque
+// ya hubiera sesión abierta en los demás. Es el mismo error que documenta
+// bodega.html: reanudar antes de que los `let` se declaren deja la pantalla
+// sin datos.
+(function reanudar() {
+  let guardado = null;
+  try { guardado = sessionStorage.getItem('nativo_token'); } catch (_) { return; }
+  if (!guardado) return;
+  TOKEN = guardado;
+  entrar();
+})();
 </script>
 </body>
 </html>
