@@ -435,6 +435,13 @@ input[type=checkbox]{
    en que uno está no debería costar. */
 .dia.hoy{background:var(--am-l);border-color:var(--am);border-width:2.5px}
 .dia.pas{opacity:.55}
+/* El día que está filtrando. Tiene que verse distinto de "hoy": son dos cosas
+   que pueden coincidir y significan algo diferente. */
+.dia.elegido{border-color:var(--mora);border-width:2.5px;background:var(--mora-xl)}
+.dia{position:relative}
+.dlapiz{position:absolute;top:5px;right:5px;background:none;border:none;
+  cursor:pointer;font-size:12px;opacity:.4;padding:2px 4px;line-height:1}
+.dia:hover .dlapiz{opacity:1}
 
 /* Pedido prioritario. Franja amarilla al costado, distinta de la roja del
    cliente bloqueado: son dos avisos que pueden darse a la vez en la misma
@@ -609,6 +616,7 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
         <button class="btn bol bsm" id="b-corte" onclick="abrirCorte()"
           style="display:none" title="Poner una raya en el suelo: de acá para atrás no se reclama">🪧 Corte de bodega</button>
       </div>
+      <div id="aviso-dia"></div>
       <div class="tw">
         <table class="tabla-pedidos">
           <thead>
@@ -1374,6 +1382,13 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
     <option value="entregado-sin-facturar">Entregado · sin facturar</option>
     <option value="entregado">Entregado</option>
   </select>
+  <input type="date" id="ab-fecha" title="Fecha de entrega para todos"
+    style="padding:7px 9px;max-width:150px">
+  <select id="ab-turno" title="Momento del día" style="max-width:130px">
+    <option value="">— Turno —</option>
+    <option value="manana">☀️ Mañana</option>
+    <option value="tarde">🌙 Tarde</option>
+  </select>
   <button class="btn bsm ab-apply" id="ab-btn" onclick="aplicarMasivo()">Aplicar</button>
   <button class="btn bsm ab-cancel" onclick="deselTabla()">✕ Deseleccionar</button>
 </div>
@@ -2115,6 +2130,7 @@ function filtrados() {
   const fe = document.getElementById('festado').value;
   const fn = document.getElementById('fentrega').value;
   return pedidos.filter(p =>
+    (!filtroDia || fechaAPartes(p.fecha_entrega).dia === filtroDia) &&
     (!q  || (p.emp||'').toLowerCase().includes(q) ||
              (p.rut||'').includes(q) ||
              (p.contacto||'').toLowerCase().includes(q) ||
@@ -2239,6 +2255,16 @@ function render() {
   // bloqueados. Se retiró: contaba el histórico completo, así que un cliente
   // con cuarenta pedidos viejos generaba una alarma enorme por algo que ya
   // pasó. La marca en la tarjeta de cada pedido es donde se decide, y basta.
+
+  // Un filtro activo que no se ve hace creer que desaparecieron pedidos.
+  const cajaDia = document.getElementById('aviso-dia');
+  if (cajaDia) cajaDia.innerHTML = filtroDia
+    ? `<div class="alert ai" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span style="flex:1;min-width:200px">Mostrando solo las entregas del
+          <b>${hesc(filtroDia.split('-').reverse().join('-'))}</b>.</span>
+        <button class="btn bol bsm" onclick="verDia('${filtroDia}')">Ver todos</button>
+      </div>`
+    : '';
 
   // Los prioritarios van primero, sin importar el resto del orden.
   //
@@ -2461,20 +2487,34 @@ function updateActionBar() {
   } else {
     bar.classList.remove('visible');
     document.getElementById('ab-estado').value = '';
+    document.getElementById('ab-fecha').value  = '';
+    document.getElementById('ab-turno').value  = '';
   }
 }
 
 async function aplicarMasivo() {
   const nuevoEstado = document.getElementById('ab-estado').value;
-  if (!nuevoEstado) { alert('Selecciona un estado para aplicar.'); return; }
+  const nuevaFecha  = document.getElementById('ab-fecha').value;
+  const nuevoTurno  = document.getElementById('ab-turno').value;
+  if (!nuevoEstado && !nuevaFecha && !nuevoTurno) {
+    alert('Elige un estado, una fecha de entrega o un turno para aplicar.');
+    return;
+  }
   if (!checked.length) return;
+
+  // Solo lo que se eligió. Mandar los tres campos siempre borraría la fecha
+  // de diez pedidos por cambiarles el estado.
+  const fila = {};
+  if (nuevoEstado) fila.estado = nuevoEstado;
+  if (nuevaFecha)  fila.fecha_entrega = partesAFecha(nuevaFecha, '');
+  if (nuevoTurno)  fila.turno = nuevoTurno;
 
   const btn = document.getElementById('ab-btn');
   btn.innerHTML = '<span class="sp"></span>'; btn.disabled = true;
 
   // Se informa cuántos alcanzaron a cambiar: antes, si uno fallaba, el aviso
   // era genérico y no se sabía en qué estado quedó la tanda.
-  const r = await Promise.allSettled(checked.map(id => sbPatch(id, { estado: nuevoEstado })));
+  const r = await Promise.allSettled(checked.map(id => sbPatch(id, fila)));
   const malos = r.filter(x => x.status === 'rejected').length;
   // El cambio masivo NO descarga bodega: no se pueden abrir diez ventanas a la
   // vez, y descontar a ciegas de la bodega equivocada es peor que no descontar.
@@ -2483,6 +2523,8 @@ async function aplicarMasivo() {
     ? '\n\nEl stock NO se descontó: hazlo desde el botón 📦 Descargar de cada fila.' : '';
   await cargar();
   document.getElementById('ab-estado').value = '';
+  document.getElementById('ab-fecha').value  = '';
+  document.getElementById('ab-turno').value  = '';
   if (malos) alert(`${r.length - malos} de ${r.length} pedidos se actualizaron. ` +
                    `${malos} falló(aron); vuelve a intentar con esos.` + avisoBod);
   else if (avisoBod) alert(`${r.length} pedido(s) actualizados.` + avisoBod);
@@ -3805,6 +3847,19 @@ function exportCSV() {
 
 let agenda = [], agendaOK = false, semanaOffset = 0;
 
+// El día que se está mirando en la lista. Vacío = todos.
+let filtroDia = '';
+
+// Apretar un día muestra solo sus pedidos. Apretarlo de nuevo los muestra
+// todos: sin esa salida, quedar filtrado sin darse cuenta es la forma más
+// rápida de creer que desaparecieron pedidos.
+function verDia(iso) {
+  filtroDia = (filtroDia === iso) ? '' : iso;
+  pintarAgenda();
+  render();
+  document.getElementById('tbody').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 const DIAS_CORTOS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 
 // El lunes de la semana que se está mirando.
@@ -3854,9 +3909,18 @@ function pintarAgenda() {
     const iso = aISO(d);
     const nota = (agenda.find(x => String(x.fecha).slice(0, 10) === iso) || {}).nota || '';
     const cuantos = pedidos.filter(p => String(p.fecha_entrega || '').slice(0, 10) === iso).length;
-    h += `<div class="dia ${iso === hoyIso ? 'hoy' : ''} ${iso < hoyIso ? 'pas' : ''}"
-            onclick="editarDia('${iso}')" title="Escribir a dónde se despacha">
-      <div class="dnom">${DIAS_CORTOS[d.getDay()]} ${d.getDate()}</div>
+    // Apretar el día FILTRA la lista; el lápiz edita la nota.
+    //
+    // Antes el día entero abría la nota, y no había forma de ver los pedidos
+    // de ese día: la franja mostraba cuántos eran y no dejaba llegar a ellos,
+    // que es justo lo que uno quiere al mirarla.
+    h += `<div class="dia ${iso === hoyIso ? 'hoy' : ''} ${iso < hoyIso ? 'pas' : ''}
+            ${filtroDia === iso ? 'elegido' : ''}"
+            onclick="verDia('${iso}')"
+            title="${cuantos ? 'Ver los ' + cuantos + ' pedidos de este día' : 'Sin entregas este día'}">
+      <div class="dnom">${DIAS_CORTOS[d.getDay()]} ${d.getDate()}
+        <button class="dlapiz" onclick="event.stopPropagation();editarDia('${iso}')"
+          title="Escribir a dónde se despacha">✏️</button></div>
       ${nota ? `<div class="dnota">${hesc(nota)}</div>`
              : '<div class="dvacio">— sin anotar —</div>'}
       ${cuantos ? `<div class="dnom" style="margin-top:auto">${cuantos} entrega(s)</div>` : ''}
