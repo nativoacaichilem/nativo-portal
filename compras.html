@@ -306,6 +306,31 @@ tbody tr:hover td{background:#faf6ff}
 .sec:hover{border-color:var(--mora-l);color:var(--mora-d)}
 .sec.act{background:var(--mora);border-color:var(--mora);color:#fff}
 @media(max-width:640px){ .sec{padding:7px 12px;font-size:11px} }
+
+/* ── Clases que se usaban sin estar definidas ──
+   Se detectaron con `pruebas/prueba_integridad.mjs`. Una clase sin definir no
+   rompe nada visible: el elemento simplemente sale sin estilo, y eso es peor
+   que un error, porque nadie lo reporta. */
+
+/* Aviso naranjo. Se llama `an` en admin.html y así quedó escrito acá; sin la
+   definición, esos avisos salían como texto suelto. */
+.an{background:var(--nl);color:var(--nd)}
+
+/* Estado "recibida" y etiqueta de proveedor preferido. */
+.bok{background:var(--vl);color:var(--vd)}
+
+/* Nota bajo un campo del formulario. En admin nace oculta y se muestra desde
+   el JS; acá la mayoría son fijas, así que se muestran salvo que el JS diga
+   lo contrario. */
+.nota-campo{font-size:11px;font-weight:700;color:var(--mora);margin-top:4px;line-height:1.45}
+
+/* Fila seleccionable de una lista. */
+.pick{display:flex;gap:10px;align-items:center;background:var(--white);
+  border:1.5px solid var(--crema-d);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+
+/* Lo que escribió quien pidió, dentro de una tarjeta de la pizarra. */
+.msg-cli{background:var(--mora-xl);color:var(--mora-d);border-radius:7px;
+  padding:6px 9px;font-size:11px;font-weight:700;line-height:1.5}
 </style>
 </head>
 <body>
@@ -330,6 +355,7 @@ tbody tr:hover td{background:#faf6ff}
       <button class="mod" onclick="location.href='admin.html#pedidos'">📋 Pedidos</button>
       <button class="mod" onclick="location.href='bodega.html'">📦 Bodega</button>
       <button class="mod act" aria-current="page">🛒 Compras</button>
+      <button class="mod" onclick="location.href='maquinas.html'">🔧 Máquinas</button>
       <button class="mod" onclick="location.href='kpi.html'">📊 Indicadores</button>
       <button class="mod" onclick="location.href='planner.html'">📅 Planner</button>
     </div>
