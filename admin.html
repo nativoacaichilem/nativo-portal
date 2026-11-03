@@ -3991,7 +3991,11 @@ function pintarPanelDia(lista) {
       <div class="pd-fecha">📅 ${hesc(dd)}</div>
       <input id="pd-nota" type="text" value="${hesc(nota)}"
         placeholder="¿A qué ciudad o zona se despacha este día?"
-        onchange="guardarNotaDia()">
+        onkeydown="if(event.key==='Enter'){event.preventDefault();guardarNotaDia()}">
+      <!-- Un botón visible. Antes guardaba solo al salir del campo, sin
+           ningún botón: se reportó "pongo Santiago y al guardar no guarda",
+           buscando un botón que no existía. -->
+      <button class="btn bmora bsm" onclick="guardarNotaDia()">Guardar</button>
       <button class="btn bgray bsm" onclick="verDia('${filtroDia}')">✕ Ver todos</button>
     </div>
 
@@ -4009,6 +4013,7 @@ function pintarPanelDia(lista) {
       <span class="pd-hint" id="pd-sel">Marca pedidos de la lista para asignarlos</span>
       <button class="btn bmora bsm" onclick="asignarDiaCamion('camion-1')">🚚 A Camión 1</button>
       <button class="btn bmora bsm" onclick="asignarDiaCamion('camion-2')">🚚 A Camión 2</button>
+      <button class="btn bol bsm" onclick="sacarDeCamion()">✕ Sacar del camión</button>
       <button class="btn bam2 bsm" onclick="promptDelDia()">✨ Prompt de ruta</button>
     </div>
   </div>`;
@@ -4097,6 +4102,12 @@ async function asignarDiaCamion(camion) {
     }
 
     let bien = 0; const mal = [];
+    // Cuántos ya estaban en OTRO camión: asignar también mueve, y antes no se
+    // decía, así que parecía que no se podía cambiar un pedido de camión.
+    const movidos = checked.filter(id => {
+      const p = pedidos.find(x => String(x.id) === String(id));
+      return p && p.ruta_id && String(p.ruta_id) !== String(ruta.id);
+    }).length;
     for (const id of checked) {
       try { await sbPatch(id, { ruta_id: ruta.id }); bien++; }
       catch (e) { mal.push(id); }
@@ -4106,11 +4117,40 @@ async function asignarDiaCamion(camion) {
     await cargar();
     await cargarRutas();
     toast(`${bien} pedido(s) al ${nombreCamion(camion)}` +
+      (movidos ? ` (${movidos} venía(n) del otro camión)` : '') +
       (ruta.chofer ? ' · ' + ruta.chofer : ' · ponle el chofer en el panel') +
       (mal.length ? ` · ${mal.length} fallaron` : ''));
   } catch (e) {
     toastRojo('No se pudo asignar: ' + e.message);
   }
+}
+
+// Saca lo marcado de su camión: vuelve a quedar sin asignar.
+//
+// No existía: una vez asignado, un pedido no se podía sacar de un camión.
+//
+// Si alguno ya se cargó, se avisa antes: el stock ya salió de bodega, y
+// sacarlo del camión deja el producto afuera sin ruta que lo explique. La
+// oficina puede hacerlo igual —a veces un pedido se baja del camión—, pero
+// que sea a sabiendas.
+async function sacarDeCamion() {
+  if (!checked.length) return toastRojo('Marca los pedidos que quieres sacar del camión.');
+  const marcados = checked.map(id => pedidos.find(p => String(p.id) === String(id))).filter(Boolean);
+  const conRuta = marcados.filter(p => p.ruta_id);
+  if (!conRuta.length) return toastRojo('Ninguno de los marcados está en un camión.');
+  const cargados = conRuta.filter(p => p.estado === 'en-ruta');
+  if (cargados.length && !confirm(
+      `${cargados.length} de los marcados ya se cargó: el stock ya salió de bodega.\n\n` +
+      'Si lo sacas del camión, revisa también el descargo de bodega.\n\n¿Sacarlos igual?')) return;
+
+  let bien = 0, mal = 0;
+  for (const p of conRuta) {
+    try { await sbPatch(p.id, { ruta_id: null }); bien++; } catch (_) { mal++; }
+  }
+  checked = [];
+  await cargarRutasRecientes();
+  await cargar();
+  toast(`${bien} pedido(s) fuera del camión` + (mal ? ` · ${mal} fallaron` : ''));
 }
 
 // El prompt de ruta, pero del día que se está mirando: toma los pedidos
@@ -4225,6 +4265,20 @@ async function escribirNotaDia(iso, nota) {
         await sbSend(`agenda_dias?fecha=eq.${iso}`, 'PATCH', fila);
       }
     await cargarAgenda();
+
+    // Se confirma LEYENDO DE VUELTA, no suponiendo. Se reportó que la nota
+    // "no se guardaba" sin ningún mensaje de error: un guardado que puede
+    // fallar en silencio es peor que uno que avisa. Si lo escrito no aparece
+    // al releer, se dice con el detalle.
+    const quedo = (agenda.find(x => String(x.fecha).slice(0, 10) === iso) || {}).nota;
+    const dd = iso.split('-').reverse().join('-');
+    if (nota && quedo !== nota) {
+      toastRojo(`La nota del ${dd} no quedó guardada. ` +
+        (agendaOK ? 'La base respondió, pero no la tiene.' : 'No se pudo releer la agenda.') +
+        ' Avisa con este mensaje.');
+      return false;
+    }
+    toast(nota ? `✔ ${dd}: ${nota}` : `✔ Nota del ${dd} borrada`);
     return true;
   } catch (e) {
     toastRojo('No se pudo guardar la nota: ' + e.message);
