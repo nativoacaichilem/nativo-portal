@@ -156,7 +156,18 @@ h2{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:4px}
 .prod-f{display:flex;gap:11px;align-items:center;padding:12px 0;
   border-bottom:2px solid var(--crema)}
 .prod-f:last-child{border-bottom:none}
-.barra{width:7px;border-radius:4px;align-self:stretch;flex:0 0 7px}
+/* El selector de bodega, dentro de la barra morada. */
+.bod-sel{display:block;margin-top:4px;background:rgba(255,255,255,.18);color:#fff;
+  border:1.5px solid rgba(255,255,255,.35);border-radius:9px;padding:5px 8px;
+  font-size:14px;font-weight:800;font-family:'Nunito',sans-serif;max-width:100%}
+.bod-sel option{color:var(--text)}
+
+/* La barrita de color al costado de cada producto.
+   Se llamaba `.barra`, igual que la barra de arriba, y esta definición —que
+   va después— le pisaba el ancho a la otra: la barra superior quedaba en 7
+   píxeles en el teléfono, con el botón Actualizar cortado y sin ver quién
+   entró. Dos cosas distintas con el mismo nombre. */
+.semaforo{width:7px;border-radius:4px;align-self:stretch;flex:0 0 7px}
 .b-rojo{background:var(--rojo)}
 .b-naranjo{background:var(--naranjo)}
 .b-amarillo{background:#e3c64a}
@@ -168,7 +179,7 @@ h2{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:4px}
 .chip-f.on{background:var(--mora);color:#fff}
 
 @media print{
-  .barra,.tabs,.b,.dias,.camiones,#listo{display:none !important}
+  .barra,.tabs,.b,.dias,.camiones,#listo,.semaforo{display:none !important}
   body{background:#fff;font-size:13px}
   .parada{page-break-inside:avoid;border-color:#999;margin-bottom:8px}
   .caja{max-width:100%;padding:0}
@@ -290,6 +301,8 @@ h2{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:4px}
         </div>
         <input type="text" id="stock-q" placeholder="🔍 Buscar producto..."
           oninput="renderStock()" style="margin-top:11px">
+        <button class="b b-gris b-chico" style="margin-top:11px" onclick="imprimirConteo()">
+          🖨️ Imprimir hoja para contar</button>
       </div>
       <div id="stock-lista"></div>
     </div>
@@ -557,7 +570,14 @@ async function entrar() {
       const rr = await pedir(`${PROXY}/rol`, { headers: cab(false) });
       if (rr.ok) {
         const rol = (await rr.json()).rol;
-        if (rol === 'admin')      { location.href = 'admin.html#pedidos'; return; }
+        // La clave de admin ENTRA a este portal, no redirige.
+        //
+        // Antes mandaba al panel en silencio, sin decir por qué: tecleabas
+        // una clave y aparecías en otra pantalla. Admin puede hacer todo lo
+        // que hace el encargado, así que entrar acá es lo menos sorpresivo y
+        // sirve para ver exactamente lo que él ve.
+        //
+        // La de producción sí redirige: desde acá no podría hacer nada.
         if (rol === 'produccion') { location.href = 'produccion.html'; return; }
       }
       if (rr.status === 401) {
@@ -576,8 +596,8 @@ async function entrar() {
     miBodega = await buscarBodega();
     if (!miBodega) {
       TOKEN = '';
-      av('login-aviso', '<b>La oficina todavía no definió la bodega de este portal.</b>' +
-        '<br>Avísales: se configura en Bodega → Configuración.', 'rojo');
+      av('login-aviso', '<b>No hay ninguna bodega activa.</b><br>' +
+        'Avisa a la oficina: se crean en Bodega → Configuración.', 'rojo');
       btn.innerHTML = 'Entrar'; btn.disabled = false; return;
     }
     quien = nombre;
@@ -596,22 +616,46 @@ async function entrar() {
   btn.innerHTML = 'Entrar'; btn.disabled = false;
 }
 
-// La bodega del portal la fija la oficina, en `bod_config`. No se le pregunta:
-// no es decisión suya, y si apretara el botón equivocado anotaría todo el día
-// en otra bodega.
+// ── en qué bodega está trabajando ──
+//
+// El encargado maneja TODAS las bodegas: es una empresa chica y él es el
+// responsable del stock. Elige en cuál está trabajando y se recuerda en su
+// teléfono.
+//
+// Antes la fijaba la oficina en `bod_config.bodega_portal`. Si nadie la
+// configuraba —y nadie lo hizo, porque el portal no se había usado— el
+// encargado no podía entrar. Era el motivo por el que el portal no abría.
 async function buscarBodega() {
   try {
-    const cfg = await leer('bod_config?select=clave,valor&clave=eq.bodega_portal');
-    const id = cfg.length ? String(cfg[0].valor || '') : '';
-    if (!id) return null;
-    const bods = await leer('bod_bodegas?select=*');
-    return bods.find(b => String(b.id) === id && b.activa) || null;
+    const bods = (await leer('bod_bodegas?select=*&order=nombre.asc')).filter(b => b.activa);
+    if (!bods.length) return null;
+    let guardada = '';
+    try { guardada = localStorage.getItem('nativo_bod_bodega') || ''; } catch (_) {}
+    return bods.find(b => String(b.id) === guardada) || bods[0];
   } catch (_) { return null; }
 }
 
-function arrancar() {
+// Cambiar de bodega. Lo que se anota y lo que se ve pasa a ser de la nueva.
+async function cambiarBodega(id) {
+  const b = bodegas.find(x => String(x.id) === String(id));
+  if (!b) return;
+  miBodega = b;
+  try { localStorage.setItem('nativo_bod_bodega', String(b.id)); } catch (_) {}
+  pintarBarra();
+  repintar();
+}
+
+function pintarBarra() {
+  const sel = bodegas.filter(b => b.activa).map(b =>
+    `<option value="${b.id}"${String(b.id) === String(miBodega && miBodega.id) ? ' selected' : ''}>` +
+    `${esc(b.nombre)}</option>`).join('');
   document.getElementById('barra-quien').innerHTML =
-    esc(quien) + '<small>' + esc(miBodega ? miBodega.nombre : '') + '</small>';
+    `${esc(quien)}<select class="bod-sel" onchange="cambiarBodega(this.value)"
+       title="En qué bodega estás trabajando">${sel}</select>`;
+}
+
+function arrancar() {
+  // El selector se pinta cuando ya están cargadas las bodegas.
   if (!diaSel) diaSel = hoyISO();
   cargarTodo();
 }
@@ -649,9 +693,18 @@ const fechaCorta = f => String(f || '').slice(0,10).split('-').reverse().join('-
 
 // La fecha de entrega viene como texto chileno. Se traduce a ISO para poder
 // comparar por día, que es como se ordena toda esta pantalla.
+// El día de entrega en ISO, o '' si no tiene.
+//
+// Desde la migración la base lo entrega como "2026-11-03". Se entiende
+// también el formato viejo —"03/11/2026"— por si este archivo sube un rato
+// antes que el SQL.
+//
+// La versión anterior SOLO entendía el viejo: después de migrar, este portal
+// no habría mostrado ni un pedido en ningún día.
 function diaDe(p) {
-  const m = String(p.fecha_entrega || '').trim()
-    .match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  const v = String(p.fecha_entrega || '').trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(v)) return v.slice(0, 10);
+  const m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   return m ? `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}` : '';
 }
 
@@ -664,6 +717,7 @@ async function cargarTodo(avisar) {
       leer('bod_saldos?select=bodega_id,producto_id,saldo')
     ]);
     bodegas = b; productos = pr.filter(x => x.activo); motivos = mo; saldos = sa;
+    pintarBarra();
 
     // La semana entera, no solo hoy: lo pidió así y tiene sentido —hay que
     // preparar lo de mañana antes de que llegue mañana—.
@@ -1063,7 +1117,7 @@ function renderStock() {
 
   cont.innerHTML = '<div class="tarj">' + ver.map(x => `
     <div class="prod-f">
-      <div class="barra ${x.col.c}"></div>
+      <div class="semaforo ${x.col.c}"></div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:800;font-size:16px;line-height:1.3">
           ${x.p.congelado ? '❄️ ' : ''}${esc(x.p.nombre)}</div>
@@ -1299,6 +1353,76 @@ async function confirmarCarga() {
 }
 
 // ══════════════════════════════════════════════════════════════
+//  HOJA PARA CONTAR
+// ══════════════════════════════════════════════════════════════
+//
+// Una hoja impresa para contar con lápiz y después pasarlo al sistema.
+//
+// Lleva una columna para lo que se cuenta y NO muestra cuánto dice el
+// sistema. Si la cifra está a la vista, se tiende a "confirmarla" en vez de
+// contar de verdad, y el conteo deja de servir para lo único que sirve:
+// encontrar las diferencias.
+//
+// Respeta el filtro de pantalla: con "Congelados" elegido, sale solo eso.
+// Contar el freezer y la bodega seca suelen ser recorridos distintos.
+function imprimirConteo() {
+  let lista = productos.slice();
+  if (filtroStock === 'frio') lista = lista.filter(p => p.congelado);
+  if (filtroStock === 'seco') lista = lista.filter(p => !p.congelado);
+  // Agrupados como están en la bodega: primero lo congelado, después lo
+  // demás, y dentro de cada grupo por nombre.
+  lista.sort((a, b) => (b.congelado ? 1 : 0) - (a.congelado ? 1 : 0) ||
+                       a.nombre.localeCompare(b.nombre, 'es'));
+
+  const que = filtroStock === 'frio' ? 'Congelados'
+            : filtroStock === 'seco' ? 'Sin cadena de frío' : 'Todo';
+  const fecha = new Date().toLocaleDateString('es-CL',
+    { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  const fila = p => {
+    const f = Number(p.unidades_caja) > 1 ? Number(p.unidades_caja) : 1;
+    return `<tr>
+      <td><b>${esc(p.nombre)}</b><br><small>${esc(p.formato || '')}${
+        f > 1 ? ` · caja de ${f}` : ''}</small></td>
+      <td class="c">${f > 1 ? 'cajas' : esc(p.unidad || 'un')}</td>
+      <td class="casilla"></td>
+      ${f > 1 ? '<td class="c">sueltas</td><td class="casilla"></td>'
+              : '<td></td><td></td>'}
+    </tr>`;
+  };
+
+  const v = window.open('', '_blank');
+  if (!v) return av('aviso-global',
+    'El navegador bloqueó la ventana de impresión. Permite las ventanas emergentes ' +
+    'para este sitio y vuelve a apretar.', 'naranjo');
+  v.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<title>Conteo · ${esc(miBodega ? miBodega.nombre : '')}</title>
+<style>
+  body{font-family:Arial,sans-serif;font-size:13px;margin:18px;color:#111}
+  h1{font-size:19px;margin:0 0 4px} .sub{color:#555;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:11px;text-transform:uppercase;border-bottom:2px solid #111;padding:6px 4px}
+  td{border-bottom:1px solid #bbb;padding:9px 4px;vertical-align:middle}
+  td small{color:#555}
+  .c{text-align:center;color:#555;font-size:11px;width:52px}
+  .casilla{width:70px;border:1.5px solid #111;height:26px}
+  .pie{margin-top:22px;display:flex;gap:40px}
+  .pie div{flex:1;border-top:1px solid #111;padding-top:5px;font-size:11px;color:#555}
+  @media print{ body{margin:8mm} tr{page-break-inside:avoid} }
+</style></head><body>
+<h1>Conteo de stock · ${esc(miBodega ? miBodega.nombre : '')}</h1>
+<div class="sub">${esc(fecha)} · ${esc(que)} · ${lista.length} producto(s)<br>
+  Cuenta lo que hay de verdad. Si un producto viene en cajas, anota las cajas
+  completas y aparte las unidades sueltas.</div>
+<table><thead><tr><th>Producto</th><th></th><th>Cuenta</th><th></th><th></th></tr></thead>
+<tbody>${lista.map(fila).join('')}</tbody></table>
+<div class="pie"><div>Contó</div><div>Hora</div><div>Revisó</div></div>
+<script>window.onload = () => setTimeout(() => window.print(), 150);<\/script>
+</body></html>`);
+  v.document.close();
+}
+
+// ══════════════════════════════════════════════════════════════
 //  MOVER STOCK
 // ══════════════════════════════════════════════════════════════
 //
@@ -1312,19 +1436,19 @@ async function confirmarCarga() {
 const TIPOS_MOV = {
   entrada:  { lbl: 'Llegó producto', mov: 'entrada', signo: +1,
               doc: true,  motivo: 'entrada', destino: false, razon: false,
-              cant: '¿Cuántas cajas llegaron?',
+              verbo: 'llegaron',
               nota: '¿Algo que avisar? Pallet golpeado, falta algo' },
   ajuste:   { lbl: 'Conteo', mov: 'ajuste', signo: 0,
               doc: false, motivo: null, destino: false, razon: true,
-              cant: '¿Cuántas CONTASTE en total?',
+              verbo: 'CONTASTE en total', total: true,
               nota: '¿Qué crees que pasó con la diferencia?' },
   merma:    { lbl: 'Se perdió', mov: 'salida', signo: -1,
               doc: false, motivo: 'salida', destino: false, razon: true,
-              cant: '¿Cuántas se perdieron?',
+              verbo: 'se perdieron',
               nota: '¿Qué le pasó? Se cayó, estaba vencido, se cortó el frío' },
   traslado: { lbl: 'Traslado', mov: 'traslado', signo: -1,
               doc: false, motivo: null, destino: true, razon: false,
-              cant: '¿Cuántas mandaste?',
+              verbo: 'mandaste',
               nota: '¿Por qué se movió?' }
 };
 let prodMov = null;
@@ -1334,6 +1458,13 @@ function abrirMov(id) {
   if (!prodMov) return;
   document.getElementById('ms-title').textContent = prodMov.nombre;
   document.getElementById('ms-alert').innerHTML = '';
+  // Este recuadro estaba siempre vacío: se veía como una franja morada sin
+  // nada. Ahora dice lo que hay que tener a mano antes de anotar.
+  const f = factorDe(prodMov.id);
+  document.getElementById('ms-ficha').innerHTML =
+    `${esc(prodMov.formato || '')}${f > 1 ? ` · <b>caja de ${f}</b>` : ''}` +
+    `<br>En ${esc(miBodega ? miBodega.nombre : 'esta bodega')} hay ` +
+    `<b>${num(saldoDe(prodMov.id))} ${esc(prodMov.unidad || 'un')}</b>`;
   document.getElementById('ms-cant').value = 0;
   document.getElementById('ms-nota').value = '';
   document.getElementById('ms-doc').value = '';
@@ -1354,7 +1485,12 @@ function msTipoCambio() {
   document.getElementById('ms-box-doc').style.display     = t.doc ? 'block' : 'none';
   document.getElementById('ms-box-motivo').style.display  = t.motivo ? 'block' : 'none';
   document.getElementById('ms-box-destino').style.display = t.destino ? 'block' : 'none';
-  document.getElementById('ms-lbl').textContent = t.cant;
+  // La pregunta dice SIEMPRE la unidad. En un producto que viene de a 12,
+  // "contaste 30" puede ser 30 cajas o 30 unidades: una diferencia de 330.
+  const fCaja = factorDe(prodMov.id);
+  document.getElementById('ms-lbl').textContent =
+    `¿Cuántas ${fCaja > 1 ? 'CAJAS' : esc(prodMov.unidad === 'un' || !prodMov.unidad
+      ? 'unidades' : prodMov.unidad)} ${t.verbo}?`;
   document.getElementById('ms-nota').placeholder = t.nota;
   document.getElementById('ms-lbl-nota').textContent =
     t.razon ? 'Explica qué pasó *' : '¿Algo que avisar?';
@@ -1521,7 +1657,7 @@ function renderMiDia() {
         arrancar();
       } catch (_) {
         TOKEN = '';
-        av('login-aviso', 'La oficina todavía no definió la bodega de este portal.', 'rojo');
+        av('login-aviso', 'No hay ninguna bodega activa. Avisa a la oficina.', 'rojo');
       }
     })();
   } catch (_) {}
