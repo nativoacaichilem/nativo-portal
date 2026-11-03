@@ -891,6 +891,14 @@ function tarjetaParada(p, n) {
     ${p.mensaje ? `<div class="dif" style="background:var(--mora-xl);color:var(--mora-d)">
       💬 ${esc(p.mensaje)}</div>` : ''}
 
+    ${hecho ? '' : `<div style="display:flex;gap:8px;margin-top:9px" class="noimp">
+      <button class="b b-gris b-chico" style="flex:1;font-size:14px"
+        onclick="moverParada(${p.id})">↔ Al ${
+          camionSel === 'camion-1' ? 'Camión 2' : 'Camión 1'}</button>
+      ${enRuta ? '' : `<button class="b b-gris b-chico" style="flex:1;font-size:14px"
+        onclick="quitarParada(${p.id})">✕ Sacar del camión</button>`}
+    </div>`}
+
     <div style="display:flex;gap:8px;margin-top:11px" class="noimp">
       ${hecho
         ? '<div class="gris" style="flex:1"><b>✔ Entregado</b></div>'
@@ -901,6 +909,60 @@ function tarjetaParada(p, n) {
                onclick="abrirCarga(${p.id})">📦 Cargar al camión</button>`}
     </div>
   </div>`;
+}
+
+// ── mover y sacar paradas ──
+//
+// Antes, una vez asignado un pedido a un camión, no había vuelta atrás: no se
+// podía pasar al otro ni sacarlo. Se reportó usándolo.
+//
+// MOVER se puede mientras no esté entregado: si ya se cargó, el producto va
+// arriba de un camión y pasarlo al otro antes de salir es solo cambiar de
+// vehículo.
+//
+// SACAR solo ANTES de cargar. Una vez cargado, el stock ya se descontó: sacar
+// el pedido del camión dejaría el producto fuera de bodega sin ruta que lo
+// explique.
+async function rutaDelDia(camion) {
+  let r = rutas.find(x => x.fecha === diaSel && x.camion === camion);
+  if (r) return r;
+  const resp = await crear('bod_rutas', [{
+    fecha: diaSel, camion, bodega_id: miBodega.id, estado: 'en_bodega'
+  }]);
+  const d = await resp.json();
+  return Array.isArray(d) ? d[0] : d;
+}
+
+async function moverParada(id) {
+  const p = pedidos.find(x => String(x.id) === String(id));
+  if (!p) return av('aviso-global', 'No encuentro ese pedido. Actualiza.', 'rojo');
+  const otro = camionSel === 'camion-1' ? 'camion-2' : 'camion-1';
+  const nom = otro === 'camion-1' ? 'Camión 1' : 'Camión 2';
+  try {
+    const r = await rutaDelDia(otro);
+    if (!r || !r.id) throw new Error('no se pudo preparar la ruta del ' + nom);
+    await actualizar(`pedidos?id=eq.${id}`, { ruta_id: r.id });
+    await cargarTodo();
+    listo('Movido', `${p.emp} pasó al ${nom}`, null);
+  } catch (e) {
+    av('aviso-global', 'No se pudo mover: ' + esc(e.message), 'rojo');
+  }
+}
+
+async function quitarParada(id) {
+  const p = pedidos.find(x => String(x.id) === String(id));
+  if (!p) return av('aviso-global', 'No encuentro ese pedido. Actualiza.', 'rojo');
+  if (p.estado === 'en-ruta' || p.estado === 'entregado')
+    return av('aviso-global', 'Ese pedido ya se cargó: el stock ya salió de bodega. ' +
+      'Avisa a la oficina para corregirlo.', 'naranjo');
+  if (!confirm(`¿Sacar a ${p.emp} del camión?\n\nVuelve a quedar en "Asignar".`)) return;
+  try {
+    await actualizar(`pedidos?id=eq.${id}`, { ruta_id: null });
+    await cargarTodo();
+    listo('Sacado del camión', 'Vuelve a estar en Asignar', null);
+  } catch (e) {
+    av('aviso-global', 'No se pudo sacar: ' + esc(e.message), 'rojo');
+  }
 }
 
 async function crearRuta(camion) {
