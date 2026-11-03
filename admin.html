@@ -319,6 +319,13 @@ input[type=checkbox]{
 .prod.on{background:#faf6ff}
 .prod-n{flex:1;font-size:12px;font-weight:700;line-height:1.35}
 .prod-f{font-size:10px;color:var(--textl);font-weight:700}
+/* El botón para empezar a regalar. Chico y discreto: el caso normal es
+   vender sin regalar, y no debe estorbar. */
+.b-muestra{display:inline-block;margin-top:5px;padding:2px 9px;border-radius:7px;
+  border:1.5px dashed #e3c64a;background:none;color:#92700c;font-size:11px;
+  font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif}
+.b-muestra:hover{background:var(--am-l)}
+
 /* El contador de muestra va bajo el nombre del producto y se ve distinto del
    de venta —fondo amarillo, más chico—: son dos números en la misma fila y
    confundirlos significa regalar lo que había que cobrar. */
@@ -439,9 +446,13 @@ input[type=checkbox]{
    que pueden coincidir y significan algo diferente. */
 .dia.elegido{border-color:var(--mora);border-width:2.5px;background:var(--mora-xl)}
 .dia{position:relative}
-.dlapiz{position:absolute;top:5px;right:5px;background:none;border:none;
-  cursor:pointer;font-size:12px;opacity:.4;padding:2px 4px;line-height:1}
-.dia:hover .dlapiz{opacity:1}
+/* El lápiz para nombrar el día. Era chico y casi transparente, y como el
+   día entero filtra, nombrarlo quedó escondido: se reportó como "no puedo
+   ponerle nombre al día". Ahora se ve siempre. */
+.dlapiz{position:absolute;top:4px;right:4px;background:var(--white);
+  border:1.5px solid var(--crema-d);border-radius:7px;cursor:pointer;
+  font-size:13px;padding:3px 6px;line-height:1}
+.dlapiz:hover{border-color:var(--mora);background:var(--mora-xl)}
 
 /* Pedido prioritario. Franja amarilla al costado, distinta de la roja del
    cliente bloqueado: son dos avisos que pueden darse a la vez en la misma
@@ -474,6 +485,12 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
 .pd-nums .pd-mal{color:var(--nd)}
 .pd-nums .pd-ok{color:var(--vd)}
 .pd-acc{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pd-choferes{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:11px}
+.pd-choferes label{display:flex;align-items:center;gap:7px;font-size:12px;
+  font-weight:800;color:var(--mora-d);text-transform:none}
+.pd-choferes input{padding:6px 9px;border:1.5px solid var(--mora-l);border-radius:8px;
+  font-size:13px;font-weight:700;width:150px;font-family:'Nunito',sans-serif}
+.pd-choferes input.pd-falta{border-color:var(--rd);background:#fff5f5}
 .pd-hint{flex:1;min-width:170px;font-size:12px;font-weight:700;color:var(--textl)}
 .pd-hint.pd-listo{color:var(--mora-d);font-weight:900}
 
@@ -1109,6 +1126,10 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
         <option value="muestra">🎁 Muestra — se entrega sin cobrar</option>
         <option value="merma">🗑️ Merma — salió y se perdió</option>
         <option value="tarea">🔧 Tarea interna — no se entrega producto</option>
+        <!-- Solo aparece en los pedidos que ya son de producción, para que
+             abrir uno y guardarlo no lo convierta en venta. No se puede
+             elegir: esos pedidos los crea la sala desde su portal. -->
+        <option value="produccion" id="mtipo-prod" disabled hidden>🏭 Producción — pedido interno de la sala</option>
       </select>
       <div class="nota-campo" id="mtipo-nota"></div>
     </div>
@@ -1184,9 +1205,6 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
           <input id="mfentrega-dia" type="date" style="flex:1">
           <input id="mfentrega-hora" type="time" style="width:110px;display:none">
         </div>
-        <!-- El valor que se guarda sigue siendo texto en formato chileno, que
-             es como está toda la base. El calendario solo evita teclearlo. -->
-        <input id="mfentrega" type="hidden">
         <div class="nota-campo" id="mfentrega-crudo" style="display:none"></div>
       </div>
       <div><label id="mrecibe-lbl">Recibe</label><input id="mrecibe" type="text" placeholder="Nombre de quien recibe"></div>
@@ -1691,27 +1709,54 @@ function num(v) {
 
 // Hoy en formato ISO. `hoy()` devuelve el formato chileno, que sirve para
 // mostrar y NO para guardar: una columna `date` de Postgres lo rechaza.
-// ── fecha de entrega: texto chileno ↔ calendario ──
+// ── la fecha de entrega ──
 //
-// En la base `fecha_entrega` es TEXTO en formato chileno, y en los retiros
-// lleva la hora pegada: "28/10/2026 11:00". Se conserva así a propósito:
-// cambiar el formato obligaría a migrar cuatrocientos pedidos y a tocar los
-// doce lugares que lo leen.
+// Desde `PREPARADO_fecha_entrega.sql` es una columna de FECHA: la base la
+// devuelve como "2026-11-03". La hora de los retiros va aparte, en
+// `hora_entrega`.
 //
-// El calendario solo evita teclearlo. Estas dos funciones traducen.
-function fechaAPartes(txt) {
-  const m = String(txt || '').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/);
-  if (!m) return { dia: '', hora: '', crudo: String(txt || '').trim() };
-  return {
-    dia: `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`,
-    hora: m[4] ? `${m[4].padStart(2,'0')}:${m[5]}` : '',
-    crudo: ''
-  };
+// Antes era texto chileno —"03/11/2026 11:00"— y cada pantalla lo traducía a
+// su manera. La franja de la semana comparaba "03/11/2026" contra
+// "2026-11-03" y nunca calzaba; el filtro del mismo día usaba otra
+// traducción y sí funcionaba. Dos lecturas de la misma fecha en el mismo
+// archivo, una buena y una mala.
+//
+// AHORA HAY UNA SOLA FORMA DE LEERLA: estas tres funciones. Nada más en este
+// archivo debe tocar `p.fecha_entrega` directamente.
+//
+// Entienden también el formato viejo, a propósito: así no importa si la
+// migración corre un rato antes o después de subir este archivo.
+
+// El día de entrega en ISO —"2026-11-03"—, o '' si no tiene.
+function diaEntrega(p) {
+  const v = String((p && p.fecha_entrega) || '').trim();
+  if (!v) return '';
+  if (/^\d{4}-\d{2}-\d{2}/.test(v)) return v.slice(0, 10);
+  const m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);      // formato viejo
+  return m ? `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` : '';
 }
-function partesAFecha(dia, hora) {
-  if (!dia) return '';
-  const [a, m, d] = dia.split('-');
-  return `${d}/${m}/${a}` + (hora ? ' ' + hora : '');
+
+// La hora, "09:30", o ''. Del campo propio, o del texto viejo si aún no se
+// migró.
+function horaEntrega(p) {
+  if (p && p.hora_entrega) return String(p.hora_entrega);
+  const m = String((p && p.fecha_entrega) || '').match(/\s(\d{1,2}):(\d{2})/);
+  return m ? `${m[1].padStart(2, '0')}:${m[2]}` : '';
+}
+
+// Lo que había escrito y no es una fecha —"la próxima semana"—, para poder
+// mostrarlo en vez de perderlo. Después de migrar vive en el respaldo.
+function textoEntregaCrudo(p) {
+  if (!p || diaEntrega(p)) return '';
+  return String(p.fecha_entrega_txt || p.fecha_entrega || '').trim();
+}
+
+// Para mostrar: "03-11-2026" o "03-11-2026 · 11:00".
+function fechaEntregaVisible(p) {
+  const d = diaEntrega(p);
+  if (!d) return '';
+  const h = horaEntrega(p);
+  return d.split('-').reverse().join('-') + (h ? ' · ' + h : '');
 }
 
 // Un aviso flotante para los casos que no cuelgan de ninguna pantalla.
@@ -1867,7 +1912,7 @@ function zbadge(z) {
 function entregaBadge(p) {
   if (!esRetiro(p)) return zbadge(p.zona);
   // un retiro ya entregado no hay que coordinarlo, esté facturado o no
-  const falta = !String(p.fecha_entrega || '').trim() && !yaEntregado(p.estado);
+  const falta = !diaEntrega(p) && !yaEntregado(p.estado);
   return '<span class="badge bret">🏢 Retiro</span>' +
     (falta ? '<div class="coord">⏳ coordinar horario</div>' : '');
 }
@@ -2136,6 +2181,7 @@ async function cargar() {
     repintarPestanaActiva();
     // En segundo plano: si bodega no está instalada, el panel funciona igual
     // y el indicador simplemente no aparece.
+    cargarRutasRecientes().then(() => render());
     cargarBodega().then(() => render());
     cargarPropuestas();
     cargarAgenda();
@@ -2156,7 +2202,7 @@ function filtrados() {
   const fe = document.getElementById('festado').value;
   const fn = document.getElementById('fentrega').value;
   return pedidos.filter(p =>
-    (!filtroDia || fechaAPartes(p.fecha_entrega).dia === filtroDia) &&
+    (!filtroDia || diaEntrega(p) === filtroDia) &&
     (!q  || (p.emp||'').toLowerCase().includes(q) ||
              (p.rut||'').includes(q) ||
              (p.contacto||'').toLowerCase().includes(q) ||
@@ -2183,7 +2229,7 @@ function filtrados() {
 // así que sale de la cuenta: el contador se apaga con el trabajo hecho, no
 // con un tilde.
 const retirosPendientes = () => pedidos.filter(p =>
-  esRetiro(p) && !String(p.fecha_entrega || '').trim() && !yaEntregado(p.estado));
+  esRetiro(p) && !diaEntrega(p) && !yaEntregado(p.estado));
 
 // Cortesías que todavía no salen: es la lista de trabajo de las muestras.
 const cortesiasPendientes = () => pedidos.filter(p =>
@@ -2330,8 +2376,15 @@ function render() {
     const recibeHtml = p.recibe
       ? `<div style="font-size:11px;color:var(--vd);font-weight:700;margin-top:3px">✔ ${esRetiro(p) ? 'Retira' : 'Recibe'}: ${hesc(p.recibe)}</div>` : '';
 
-    const entregaHtml = p.fecha_entrega
-      ? `<div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:2px">📅 ${esRetiro(p) ? 'Retiro' : 'Entrega'}: ${hesc(p.fecha_entrega)}</div>` : '';
+    // A qué camión va. El panel del día decía "1 ya en una ruta" sin decir
+    // cuál, y la fila no mostraba nada.
+    const ruta = p.ruta_id ? rutasPorId.get(String(p.ruta_id)) : null;
+    const camionHtml = ruta
+      ? `<div style="font-size:11px;color:var(--mora-d);font-weight:800;margin-top:2px">🚚 ${
+          nombreCamion(ruta.camion)}${ruta.chofer ? ' · ' + hesc(ruta.chofer) : ' · <span style="color:var(--rd)">sin chofer</span>'}</div>`
+      : '';
+    const entregaHtml = diaEntrega(p)
+      ? `<div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:2px">📅 ${esRetiro(p) ? 'Retiro' : 'Entrega'}: ${hesc(fechaEntregaVisible(p))}</div>` : '';
 
     // El nombre de la sucursal, cuando el pedido está asociado a una. Leer
     // "Local Providencia" es mucho más rápido que reconocer una dirección, y
@@ -2373,7 +2426,7 @@ function render() {
       <td data-rot="Estado">
         ${ebadge(p.estado, p)}
         ${recibeHtml}
-        ${entregaHtml}
+        ${entregaHtml}${camionHtml}
       </td>
       <td data-rot="Factura" style="font-size:12px;color:var(--textl);font-weight:600">${
         noEsVenta(p) ? `<span style="color:#3730a3;font-weight:800">${
@@ -2526,7 +2579,7 @@ async function aplicarMasivo() {
   // de diez pedidos por cambiarles el estado.
   const fila = {};
   if (nuevoEstado) fila.estado = nuevoEstado;
-  if (nuevaFecha)  fila.fecha_entrega = partesAFecha(nuevaFecha, '');
+  if (nuevaFecha)  fila.fecha_entrega = nuevaFecha;          // ya viene en ISO
   if (nuevoTurno)  fila.turno = nuevoTurno;
 
   const btn = document.getElementById('ab-btn');
@@ -3333,7 +3386,7 @@ async function agregar() {
       factura_num: fact, factura_nombre: '',
       estado: 'pendiente', fecha, entrega,
       contacto, telefono: tel,
-      fecha_entrega: '', recibe: '', comentario: ''
+      fecha_entrega: null, recibe: '', comentario: ''
     }, catLineas('man'));
     const nm = catLineas('man').filter(l => l.tipo === 'muestra').length;
     alerta('anv', '✅ Pedido guardado correctamente.' +
@@ -3380,6 +3433,10 @@ function motivosDeTipo(tipo) {
   const sal = bodMotivos.filter(m => m.activo && m.tipo === 'salida');
   if (tipo === 'merma')   return sal.filter(m => m.es_perdida);
   if (tipo === 'muestra') return sal.filter(m => !m.es_venta && !m.es_perdida);
+  // La materia prima que va a la sala sale de bodega sin venderse ni
+  // perderse: es consumo interno. Sin esto el pedido no tenía motivo de
+  // salida, y la base exige uno: descargarlo fallaba.
+  if (tipo === 'produccion') return sal.filter(m => !m.es_venta && !m.es_perdida);
   if (tipo === 'venta')   return sal.filter(m => m.es_venta);
   return [];                 // una tarea no saca producto: no lleva motivo
 }
@@ -3517,7 +3574,7 @@ async function guardarCortesia() {
     factura_num: '', factura_nombre: '',
     estado: 'pendiente',
     fecha: dato('co-fecha') || hoy(),
-    fecha_entrega: '', recibe: '',
+    fecha_entrega: null, recibe: '',
     comentario: dato('co-com'),
     encargado: dato('co-encargado'),
     tipo, razon, motivo_id: motivoId
@@ -3556,11 +3613,26 @@ async function guardarCortesia() {
 //   merma    salió de bodega y se perdió: se rompió, se venció, se botó.
 //   tarea    algo que el equipo tiene que hacer en esa parada y que no es
 //            entregar producto. Va en la ruta porque el camión pasa igual.
+// ── los tipos de pedido ──
+//
+// TIENE QUE CALZAR con la regla `pedidos_tipo_valido` de la base. Hay una
+// prueba que lo verifica.
+//
+// Por qué importa tanto: `tipoDe()` convierte en "venta" cualquier tipo que
+// no esté acá. Cuando se agregó `produccion` a la base y no a esta lista, un
+// pedido de la sala se mostraba como venta, aparecía en lo que falta facturar,
+// y abrirlo y apretar Guardar lo CONVERTÍA en venta. Nadie lo habría notado
+// hasta que no cuadrara el mes.
+//
+// `soloLectura`: el tipo existe y se respeta, pero no se puede elegir a mano.
+// Un pedido de producción lo crea la sala desde su portal; elegirlo acá para
+// un cliente no tiene sentido.
 const TIPOS_PEDIDO = {
-  venta:   { lbl: 'Venta',          corto: 'venta',       ico: '💵' },
-  muestra: { lbl: 'Muestra',        corto: 'muestra',     ico: '🎁' },
-  merma:   { lbl: 'Merma',          corto: 'merma',       ico: '🗑️' },
-  tarea:   { lbl: 'Tarea interna',  corto: 'tarea',       ico: '🔧' }
+  venta:      { lbl: 'Venta',          corto: 'venta',      ico: '💵' },
+  muestra:    { lbl: 'Muestra',        corto: 'muestra',    ico: '🎁' },
+  merma:      { lbl: 'Merma',          corto: 'merma',      ico: '🗑️' },
+  tarea:      { lbl: 'Tarea interna',  corto: 'tarea',      ico: '🔧' },
+  produccion: { lbl: 'Producción',     corto: 'producción', ico: '🏭', soloLectura: true }
 };
 const tipoDe = p => TIPOS_PEDIDO[p && p.tipo] ? p.tipo : 'venta';
 
@@ -3661,16 +3733,15 @@ function abrir(id) {
   document.getElementById('mfecha').value    = p.fecha         || '';
   document.getElementById('mcontacto').value = p.contacto      || '';
   document.getElementById('mtel').value      = p.telefono      || '';
-  const fe = fechaAPartes(p.fecha_entrega);
-  document.getElementById('mfentrega-dia').value  = fe.dia;
-  document.getElementById('mfentrega-hora').value = fe.hora;
-  document.getElementById('mfentrega').value = p.fecha_entrega || '';
-  // Si lo guardado no calza con el formato esperado, se muestra tal cual en
-  // vez de borrarlo en silencio: un dato raro escrito a mano sigue siendo un
-  // dato, y perderlo al abrir la ficha sería peor que mostrarlo.
+  document.getElementById('mfentrega-dia').value  = diaEntrega(p);
+  document.getElementById('mfentrega-hora').value = horaEntrega(p);
+  // Si había algo escrito que no es una fecha —"la próxima semana"—, se
+  // muestra tal cual. Después de la migración eso vive en el respaldo
+  // `fecha_entrega_txt`; acá solo se avisa que el día está vacío.
   const crudo = document.getElementById('mfentrega-crudo');
-  crudo.style.display = fe.crudo ? 'block' : 'none';
-  crudo.textContent = fe.crudo ? 'Guardado como: ' + fe.crudo : '';
+  const raro = textoEntregaCrudo(p);
+  crudo.style.display = raro ? 'block' : 'none';
+  crudo.textContent = raro ? 'Tenía anotado: ' + raro + ' — elige el día en el calendario.' : '';
   document.getElementById('mturno').value = p.turno || '';
   document.getElementById('mrecibe').value   = p.recibe        || '';
   document.getElementById('mcom').value      = p.comentario    || '';
@@ -3681,7 +3752,18 @@ function abrir(id) {
 
   document.getElementById('mprio').checked = !!p.prioritario;
   document.getElementById('mtotal').value = p.total_factura != null ? p.total_factura : '';
-  document.getElementById('mtipo').value = tipoDe(p);
+  // Un pedido de producción muestra su tipo y lo deja bloqueado. Antes se
+  // mostraba como "Venta" —el único que el selector conocía— y guardar sin
+  // mirar lo convertía en venta.
+  const selTipo = document.getElementById('mtipo');
+  const esProd = tipoDe(p) === 'produccion';
+  const optProd = document.getElementById('mtipo-prod');
+  optProd.hidden = !esProd;
+  optProd.disabled = !esProd;
+  selTipo.value = tipoDe(p);
+  selTipo.disabled = esProd;
+  selTipo.title = esProd
+    ? 'Lo creó la sala de producción. No se cambia a otro tipo.' : '';
   document.getElementById('mencargado').value = p.encargado || '';
   pintarEncargados();
   mTipoCambio(p.motivo_id || '');
@@ -3743,14 +3825,14 @@ async function guardar() {
     fecha:         document.getElementById('mfecha').value.trim(),
     contacto:      document.getElementById('mcontacto').value.trim(),
     telefono:      document.getElementById('mtel').value.trim(),
-    fecha_entrega: (() => {
-      const d = document.getElementById('mfentrega-dia').value;
-      const h = document.getElementById('mfentrega-hora').value;
-      // Sin día elegido se conserva lo que hubiera: un texto raro que el
-      // calendario no supo leer no debe borrarse por abrir la ficha.
-      return d ? partesAFecha(d, h)
-               : document.getElementById('mfentrega').value.trim();
-    })(),
+    // La fecha y la hora van cada una en su campo. Sin día elegido va null:
+    // una columna de fecha no acepta texto vacío.
+    fecha_entrega: document.getElementById('mfentrega-dia').value || null,
+    // La hora solo en los retiros: un despacho no tiene hora de retiro. Se
+    // mira el selector y no el pedido guardado, porque se puede haber
+    // cambiado de despacho a retiro en esta misma ficha.
+    hora_entrega:  document.getElementById('mentrega').value === 'retiro'
+                   ? (document.getElementById('mfentrega-hora').value || '') : '',
     turno: document.getElementById('mturno').value,
     recibe:        document.getElementById('mrecibe').value.trim(),
     comentario:    document.getElementById('mcom').value.trim(),
@@ -3830,7 +3912,7 @@ function exportCSV() {
     esRetiro(p) ? 'Retiro en oficina' : 'Despacho',
     p.dir, p.zona||'', p.detalle||'', p.mensaje||'',
     estadoLabel(p.estado), p.factura_num||'',
-    p.fecha_entrega||'', p.recibe||'', p.comentario||''
+    fechaEntregaVisible(p), p.recibe||'', p.comentario||''
   ].map(esc).join(';'));
 
   const csv = [headers.map(esc).join(';'), ...rows].join('\r\n');
@@ -3921,6 +4003,8 @@ function pintarPanelDia(lista) {
       ${yaEnRuta ? `<span class="pd-ok">${yaEnRuta} ya en una ruta</span>` : ''}
     </div>
 
+    ${choferesDelDia()}
+
     <div class="pd-acc">
       <span class="pd-hint" id="pd-sel">Marca pedidos de la lista para asignarlos</span>
       <button class="btn bmora bsm" onclick="asignarDiaCamion('camion-1')">🚚 A Camión 1</button>
@@ -3930,6 +4014,30 @@ function pintarPanelDia(lista) {
   </div>`;
 
   actualizarSelDia();
+}
+
+// El chofer de cada camión de ese día, editable ahí mismo.
+//
+// Antes asignar a un camión avisaba "falta ponerle chofer" y no había dónde
+// ponérselo: había que ir a la pestaña Ruta, elegir el día otra vez y buscar
+// el camión. Un aviso que no dice dónde arreglarlo es solo ruido.
+function choferesDelDia() {
+  const del = [...rutasPorId.values()].filter(r => String(r.fecha).slice(0, 10) === filtroDia);
+  if (!del.length) return '';
+  return `<div class="pd-choferes">${del.sort((a, b) => a.camion.localeCompare(b.camion))
+    .map(r => `<label>🚚 ${nombreCamion(r.camion)}
+      <input type="text" value="${hesc(r.chofer || '')}" placeholder="¿Quién maneja?"
+        onchange="guardarChoferDia(${r.id}, this.value)"
+        class="${r.chofer ? '' : 'pd-falta'}"></label>`).join('')}</div>`;
+}
+
+async function guardarChoferDia(id, v) {
+  try {
+    await sbSend(`bod_rutas?id=eq.${id}`, 'PATCH', { chofer: v.trim() });
+    await cargarRutasRecientes();
+    render();
+    toast('Chofer guardado');
+  } catch (e) { toastRojo('No se pudo guardar el chofer: ' + e.message); }
 }
 
 // Cuántos hay marcados, dicho en el panel. Sin esto hay que mirar la barra
@@ -3956,6 +4064,16 @@ async function asignarDiaCamion(camion) {
   if (!filtroDia) return;
   if (!checked.length)
     return toastRojo('Marca primero los pedidos que van en ese camión.');
+
+  // Un pedido sin facturar llega a la ruta del bodeguero y él NO puede
+  // cargarlo: su portal solo le deja mover lo facturado. Se puede hacer
+  // igual —a veces se factura en el camino—, pero que sea a sabiendas.
+  const sinFact = checked.map(id => pedidos.find(p => String(p.id) === String(id)))
+                         .filter(p => p && sinFacturar(p));
+  if (sinFact.length && !confirm(
+      `${sinFact.length} de los marcados todavía no está facturado.\n\n` +
+      'El bodeguero los va a ver en su ruta, pero no los va a poder cargar ' +
+      'hasta que los factures.\n\n¿Asignarlos igual?')) return;
 
   const bodDef = bodBodegas.find(b => b.activa);
 
@@ -3984,10 +4102,11 @@ async function asignarDiaCamion(camion) {
       catch (e) { mal.push(id); }
     }
     checked = [];
+    await cargarRutasRecientes();
     await cargar();
     await cargarRutas();
-    toast(`${bien} pedido(s) al ${camion === 'camion-1' ? 'Camión 1' : 'Camión 2'}` +
-      (ruta.chofer ? ' · ' + ruta.chofer : ' · falta ponerle chofer') +
+    toast(`${bien} pedido(s) al ${nombreCamion(camion)}` +
+      (ruta.chofer ? ' · ' + ruta.chofer : ' · ponle el chofer en el panel') +
       (mal.length ? ` · ${mal.length} fallaron` : ''));
   } catch (e) {
     toastRojo('No se pudo asignar: ' + e.message);
@@ -4066,7 +4185,7 @@ function pintarAgenda() {
     const d = new Date(l); d.setDate(d.getDate() + i);
     const iso = aISO(d);
     const nota = (agenda.find(x => String(x.fecha).slice(0, 10) === iso) || {}).nota || '';
-    const cuantos = pedidos.filter(p => String(p.fecha_entrega || '').slice(0, 10) === iso).length;
+    const cuantos = pedidos.filter(p => diaEntrega(p) === iso).length;
     // Apretar el día FILTRA la lista; el lápiz edita la nota.
     //
     // Antes el día entero abría la nota, y no había forma de ver los pedidos
@@ -4137,6 +4256,19 @@ async function editarDia(iso) {
 // todavía va a cambiar.
 
 let rutas = [], rutasOK = false;
+
+// Las rutas de las últimas semanas, por id. Aparte de `rutas` —que solo trae
+// las del día elegido en la pestaña Ruta— porque la lista de pedidos necesita
+// saber a qué camión va CUALQUIER pedido, sea del día que sea.
+let rutasPorId = new Map();
+async function cargarRutasRecientes() {
+  const d = new Date(); d.setDate(d.getDate() - 14);
+  try {
+    const r = await sbPagina('bod_rutas', `select=*&fecha=gte.${aISO(d)}`);
+    rutasPorId = new Map(r.map(x => [String(x.id), x]));
+  } catch (_) { rutasPorId = new Map(); }
+}
+const nombreCamion = c => c === 'camion-2' ? 'Camión 2' : 'Camión 1';
 
 const ESTADO_RUTA = {
   armada:    { lbl: 'Armándose',  sub: 'El bodeguero todavía NO la ve', cls: 'bpend' },
@@ -4564,6 +4696,11 @@ const CATS = [
     {n:'Balde Acai Nativo', f:'3,6 L'},
     {n:'Balde Pitaya Blue Monkey', f:'3,6 L'},
     {n:'Balde Pitaya Zero Blue Monkey', f:'5 L'},
+    // Estaban en el portal de clientes y no acá: un cliente los podía pedir,
+    // pero el panel no los reconocía y al despacharlos no se descontaba
+    // stock. Hay una prueba que compara los tres catálogos.
+    {n:'Acai Puro Blue Monkey', f:'60×100 g · 6 kg'},
+    {n:'Pitaya Puro Blue Monkey', f:'60×100 g · 6 kg'},
     {n:'Balde Acai Blue Monkey', f:'3,6 L'},
     {n:'Balde Acai Zero Blue Monkey', f:'5 L'},
     {n:'Balde Pistacho Soft Blue Monkey', f:'5 L'},
@@ -5385,12 +5522,18 @@ function prodRow(p, pre) {
 
   // ── la muestra, al lado de la venta ──
   //
-  // Aparece solo cuando ya hay cantidad vendida o cuando ya hay muestra: un
-  // segundo contador en cada uno de los cuarenta productos convierte el
-  // catálogo en un muro de números y hace más lento el caso normal, que es
-  // vender sin regalar nada.
+  // El contador completo aparece cuando ya hay muestra. Antes de eso hay un
+  // botón chico, "🎁 + muestra", que lo abre.
+  //
+  // La versión anterior escondía el contador hasta que hubiera cantidad
+  // VENDIDA: para regalar algo sin venderlo había que agregar una venta,
+  // agregar la muestra y después sacar la venta. Nadie lo iba a adivinar.
+  // Se encontró usándolo, no leyendo el código.
   const qm = CTX[pre].muestras ? (CTX[pre].muestras[p.n] || 0) : 0;
-  const cajaMuestra = (CTX[pre].conMuestras && (q || qm))
+  const botonMuestra = (CTX[pre].conMuestras && !qm)
+    ? `<button type="button" class="b-muestra" onclick="qMuestra('${pre}','${p.id}',1)"
+         title="Agregar unidades de regalo, sin cobrar">🎁 + muestra</button>` : '';
+  const cajaMuestra = (CTX[pre].conMuestras && qm)
     ? `<div class="stp stp-muestra" title="Cuántas van de regalo, sin cobrar">
          <span class="mlbl">🎁</span>
          <button type="button" onclick="qMuestra('${pre}','${p.id}',-1)">−</button>
@@ -5399,7 +5542,7 @@ function prodRow(p, pre) {
          <button type="button" onclick="qMuestra('${pre}','${p.id}',1)">+</button>
        </div>` : '';
   return `<div class="prod ${q || qm ? 'on' : ''}" id="pr-${pre}-${p.id}">
-    <div class="prod-n">${hesc(p.n)}${pie}${cajaMuestra}</div>
+    <div class="prod-n">${hesc(p.n)}${pie}${cajaMuestra}${botonMuestra}</div>
     <div class="stp">
       ${selMed}
       <button type="button" onclick="qChg('${pre}','${p.id}',-1)">−</button>
@@ -5449,7 +5592,10 @@ function qMuestraSet(pre, id, val) {
 function qMuestraApply(pre, p, v, saltarInput) {
   const c = CTX[pre];
   if (!c.muestras) c.muestras = {};
+  const antes = c.muestras[p.n] || 0;
   if (v > 0) c.muestras[p.n] = v; else delete c.muestras[p.n];
+  // Entre 0 y algo cambia lo que se muestra: el botón o el contador.
+  if ((antes > 0) !== (v > 0)) { pintarCat(pre); if (c.alCambiar) c.alCambiar(); return; }
   const inp = document.getElementById(`qm-${pre}-${p.id}`);
   if (inp && !saltarInput) inp.value = v;
   const row = document.getElementById(`pr-${pre}-${p.id}`);
@@ -5499,13 +5645,6 @@ function qApply(pre, p, v, saltarInput) {
     const cel = row && row.querySelector('.prod-f');
     if (cel) cel.textContent = `${p.f} · caja de ${p.u}` +
       (v && medDe(pre, p.n) === 'caja' ? ` · son ${v * p.u} un` : '');
-  }
-  // Cuando la cantidad pasa de 0 a algo —o al revés— aparece o desaparece el
-  // contador de muestra, así que hay que redibujar la fila entera.
-  if (c.conMuestras && row) {
-    const tenia = !!row.querySelector('.stp-muestra');
-    const deberia = v > 0 || (c.muestras && c.muestras[p.n] > 0);
-    if (tenia !== deberia) pintarCat(pre);
   }
   if (c.alCambiar) c.alCambiar();
 }
@@ -5653,7 +5792,7 @@ async function guardarWz() {
     factura_nombre: '',
     estado: 'pendiente',
     fecha: document.getElementById('wfecha').value.trim() || hoy(),
-    fecha_entrega: '', recibe: '',
+    fecha_entrega: null, recibe: '',
     comentario: document.getElementById('wcom').value.trim()
   };
   if (dirOK && !c._local && !s._local) { row.cliente_id = c.id; row.sucursal_id = s.id; }
@@ -5925,7 +6064,7 @@ async function moverRetiro(fecha, turno) {
   // El pedido de retiro se mueve con ellos: si no, la ruta seguiría diciendo
   // el día viejo y el camión pasaría cuando no corresponde.
   for (const pid of pedidosTocados) {
-    try { await sbPatch(pid, { fecha_entrega: nueva.trim(), turno: t }); }
+    try { await sbPatch(pid, { fecha_entrega: nueva.trim(), turno: t }); }   // ISO
     catch (e) { if (!porQue) porQue = String(e.message || e); }
   }
 
