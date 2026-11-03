@@ -537,15 +537,10 @@ tbody tr:hover td{background:#faf6ff}
     </div>
     <div class="fg" style="margin-bottom:12px">
       <div><label>¿Dónde está?</label><input id="mu-ubicacion" type="text"
-        placeholder="Bodega, taller, el local de..."></div>
-      <div><label>Estado</label>
-        <select id="mu-estado">
-          <option value="disponible">Disponible</option>
-          <option value="preparacion">En preparación</option>
-          <option value="colocada">Colocada en un cliente</option>
-          <option value="mantencion">En mantención</option>
-          <option value="baja">De baja</option>
-        </select></div>
+        placeholder="En la fábrica, en bodega, en el taller...">
+        <div class="nota-campo" style="display:block">Solo mientras no tenga
+          entrega asignada. Después sale del estado de esa entrega.</div></div>
+      <div></div>
     </div>
     <div style="margin-bottom:4px"><label>Notas</label>
       <textarea id="mu-notas" style="min-height:50px"></textarea></div>
@@ -851,12 +846,14 @@ let preciosTmp = [];     // los de una colocación que todavía no se guarda
 //
 // `capacitada` solo aparece en las que llevan capacitación. En el resto,
 // `entregada` es el final.
+// El estado de la entrega ES dónde está la máquina. Había dos listas que
+// mantener en sincronía a mano; hay un solo viaje.
 const ETAPAS = [
-  { id: 'preparando', lbl: 'Preparando' },
-  { id: 'lista',      lbl: 'Lista' },
-  { id: 'en_camino',  lbl: 'En camino' },
-  { id: 'entregada',  lbl: 'Entregada' },
-  { id: 'capacitada', lbl: 'Capacitación hecha', soloConCap: true }
+  { id: 'en_fabrica', lbl: '🏭 En fábrica', donde: 'En la fábrica' },
+  { id: 'en_bodega',  lbl: '📦 En bodega',  donde: 'En bodega' },
+  { id: 'en_camino',  lbl: '🚚 En camino',  donde: 'Arriba de la camioneta' },
+  { id: 'entregada',  lbl: '✔ Entregada',   donde: 'En el cliente' },
+  { id: 'capacitada', lbl: '🎓 Capacitada', donde: 'En el cliente', soloConCap: true }
 ];
 const idxEtapa = e => ETAPAS.findIndex(x => x.id === e);
 
@@ -865,13 +862,28 @@ const idxEtapa = e => ETAPAS.findIndex(x => x.id === e);
 // incompleta para siempre.
 const etapasDe = c => ETAPAS.filter(e => !e.soloConCap || c.capacitacion);
 
-const ESTADO_UNIDAD = {
-  disponible:  { lbl: 'Disponible',     cls: 'bok'  },
-  preparacion: { lbl: 'En preparación', cls: 'baju' },
-  colocada:    { lbl: 'Colocada',       cls: 'bruta' },
-  mantencion:  { lbl: 'En mantención',  cls: 'baju' },
-  baja:        { lbl: 'De baja',        cls: 'bsal' }
-};
+// Dónde está una máquina y a quién va. Sale de su entrega, no de un campo
+// aparte: mantener los dos obligaba a acordarse de mover el segundo, y el
+// día que alguien se olvidara la pantalla diría una cosa y la realidad otra.
+function situacion(u) {
+  const c = colocaciones.find(x => String(x.unidad_id) === String(u.id) &&
+                                   x.estado !== 'cancelada');
+  if (!c) return {
+    donde: u.ubicacion || 'Sin ubicación anotada',
+    cliente: '', libre: true, cls: 'bok', lbl: 'Libre'
+  };
+  const e = ETAPAS.find(x => x.id === c.estado);
+  const cerrada = c.estado === 'capacitada' ||
+                  (c.estado === 'entregada' && !c.capacitacion);
+  return {
+    donde: e ? e.donde : '—',
+    cliente: c.cliente || '',
+    libre: false,
+    cls: cerrada ? 'bruta' : 'baju',
+    lbl: cerrada ? 'Entregada' : 'Comprometida',
+    col: c
+  };
+}
 
 const modeloPorId = id => modelos.find(m => String(m.id) === String(id)) || null;
 const unidadPorId = id => unidades.find(u => String(u.id) === String(id)) || null;
@@ -1044,9 +1056,9 @@ async function borrarColocacion(id) {
   try {
     // Los precios se van solos: la tabla los borra en cascada con la
     // colocación. La máquina NO: vuelve a quedar disponible.
+    // La máquina queda libre sola: su situación sale de las entregas, y
+    // esta deja de existir.
     await sbSend(`maq_colocaciones?id=eq.${id}`, 'DELETE');
-    if (c.unidad_id)
-      await sbSend(`maq_unidades?id=eq.${c.unidad_id}`, 'PATCH', { estado: 'disponible' });
     await cargarTodo();
     toast('Entrega borrada');
   } catch (e) {
@@ -1059,8 +1071,27 @@ async function borrarColocacion(id) {
 // todo lo anotado.
 async function moverEtapa(id, etapa) {
   const c = colocaciones.find(x => String(x.id) === String(id));
-  if (!c) return toast('No encuentro esa colocación. Recarga la página.', true);
+  if (!c) return toast('No encuentro esa entrega. Recarga la página.', true);
   if (c.estado === etapa) return;
+
+  // No se puede saltar un paso del viaje.
+  //
+  // Una entrega no pasa a "en camino" si la máquina sigue en fábrica: no la
+  // tenemos. Esto antes no se podía ni expresar, porque el estado de la
+  // máquina y el de la entrega eran dos listas separadas; con una sola, la
+  // regla es el orden de la lista.
+  //
+  // Hacia atrás sí se puede libremente: las cosas se devuelven, y obligar a
+  // cancelar para corregir un clic perdería todo lo anotado.
+  if (etapa !== 'cancelada' && c.estado !== 'cancelada') {
+    const de = idxEtapa(c.estado), a = idxEtapa(etapa);
+    if (de >= 0 && a > de + 1) {
+      const falta = ETAPAS[de + 1];
+      return alerta('mq-alert',
+        `Primero hay que pasar por <b>${esc(falta.lbl)}</b>. ` +
+        'No se puede despachar una máquina que todavía no tenemos.', 'an');
+    }
+  }
 
   const fila = { estado: etapa };
   // Al instalarla se guarda cuándo, que es lo que después permite medir
@@ -1071,20 +1102,13 @@ async function moverEtapa(id, etapa) {
 
   try {
     await sbSend(`maq_colocaciones?id=eq.${id}`, 'PATCH', fila);
-    // Si hay máquina asignada, su estado sigue al de la colocación: una
     // máquina instalada en un cliente no está disponible, y olvidar eso hace
     // que se prometa dos veces.
     if (c.unidad_id) {
-      // La máquina sigue a la entrega: una que ya está en un cliente no está
-      // disponible, y olvidar eso lleva a prometerla dos veces.
-      //
-      // Retroceder de etapa NO la libera: corregir un clic no debería dejarla
-      // disponible para otro cliente sin que nadie lo decida.
-      const nuevo = ['entregada','capacitada'].includes(etapa) ? 'colocada'
-                  : ['preparando','lista','en_camino'].includes(etapa) ? 'preparacion'
-                  : etapa === 'cancelada' ? 'disponible'
-                  : null;
-      if (nuevo) await sbSend(`maq_unidades?id=eq.${c.unidad_id}`, 'PATCH', { estado: nuevo });
+      // Ya no hay nada que sincronizar: dónde está la máquina SE LEE del
+      // estado de esta entrega. Antes había que moverle un campo propio, y
+      // el día que alguien se olvidara la pantalla diría una cosa y la
+      // realidad otra.
     }
     await cargarTodo();
     toast('Etapa actualizada');
@@ -1132,9 +1156,10 @@ function abrirColocacion(id) {
 // invitar a prometerla dos veces.
 function pintarUnidadesDisponibles() {
   const su = document.getElementById('mc-unidad');
+  // Las que no están comprometidas con otra entrega, más la de esta. Ofrecer
+  // una ya prometida a otro cliente es invitar a prometerla dos veces.
   const libres = unidades.filter(u =>
-    u.estado === 'disponible' || u.estado === 'preparacion' ||
-    (edCol && String(u.id) === String(edCol.unidad_id)));
+    situacion(u).libre || (edCol && String(u.id) === String(edCol.unidad_id)));
   su.innerHTML = '<option value="">— Sin asignar —</option>' + libres.map(u =>
     `<option value="${u.id}"${edCol && String(edCol.unidad_id) === String(u.id) ? ' selected' : ''}>` +
     `${esc(nombreModelo(u.modelo_id))}${u.serie ? ' · ' + esc(u.serie) : ' · #' + u.id}` +
@@ -1209,13 +1234,6 @@ async function guardarColocacion() {
         })));
     }
 
-    // La máquina asignada pasa a preparación, si estaba libre.
-    if (unidadId) {
-      const u = unidadPorId(unidadId);
-      if (u && u.estado === 'disponible')
-        await sbSend(`maq_unidades?id=eq.${unidadId}`, 'PATCH', { estado: 'preparacion' });
-    }
-
     cerrar('mod-colocacion');
     await cargarTodo();
     toast(edCol ? 'Colocación actualizada' : 'Colocación creada');
@@ -1232,40 +1250,67 @@ function renderUnidades() {
   const t = document.getElementById('tabla-unidades');
   if (!t) return;
 
-  const cuenta = {};
-  unidades.forEach(u => { cuenta[u.estado] = (cuenta[u.estado] || 0) + 1; });
-  document.getElementById('un-stats').innerHTML = Object.keys(ESTADO_UNIDAD)
-    .filter(k => cuenta[k])
-    .map(k => `<div class="stat"><div class="sn">${cuenta[k]}</div>
-      <div class="sl">${esc(ESTADO_UNIDAD[k].lbl)}</div></div>`).join('')
-    || '<div class="sub">Todavía no hay máquinas registradas.</div>';
+  const sit = unidades.map(u => ({ u, s: situacion(u) }));
+  const libres = sit.filter(x => x.s.libre).length;
+  const enFab = sit.filter(x => x.s.col && x.s.col.estado === 'en_fabrica').length;
+  const puestas = sit.filter(x => !x.s.libre && x.s.lbl === 'Entregada').length;
+
+  document.getElementById('un-stats').innerHTML = unidades.length
+    ? `<div class="stat"><div class="sn">${unidades.length}</div><div class="sl">En total</div></div>
+       <div class="stat"><div class="sn">${libres}</div><div class="sl">Sin asignar</div></div>
+       <div class="stat"><div class="sn">${enFab}</div><div class="sl">En fábrica</div></div>
+       <div class="stat"><div class="sn">${puestas}</div><div class="sl">Entregadas</div></div>`
+    : '<div class="sub">Todavía no hay máquinas registradas.</div>';
 
   if (!unidades.length) {
-    t.innerHTML = '<tbody><tr><td><div class="sub">Agrega la primera con el botón de arriba.</div></td></tr></tbody>';
+    t.innerHTML = '<tbody><tr><td><div class="sub">Agrega la primera con el ' +
+      'botón de arriba. Si todavía no tiene número de serie, déjalo vacío: ' +
+      'se puede poner después.</div></td></tr></tbody>';
     return;
   }
 
   t.innerHTML = `<thead><tr><th>Modelo</th><th>Serie</th><th>Dónde está</th>
-    <th>Estado</th><th>En</th><th></th></tr></thead><tbody>
-    ${unidades.map(u => {
-      // Dónde está colocada, si lo está. Saberlo desde la lista evita tener
-      // que buscarla entre las colocaciones.
-      const col = colocaciones.find(c => String(c.unidad_id) === String(u.id) &&
-        !['cancelada','capacitada'].includes(c.estado) &&
-        !(c.estado === 'entregada' && !c.capacitacion));
-      const inst = colocaciones.find(c => String(c.unidad_id) === String(u.id) &&
-        c.estado === 'capacitada' ||
-        (c.estado === 'entregada' && !c.capacitacion));
-      const e = ESTADO_UNIDAD[u.estado] || ESTADO_UNIDAD.disponible;
-      return `<tr>
-        <td><b>${esc(nombreModelo(u.modelo_id))}</b></td>
-        <td>${esc(u.serie || '—')}</td>
-        <td>${esc(u.ubicacion || '—')}</td>
-        <td><span class="badge ${e.cls}">${esc(e.lbl)}</span></td>
-        <td>${col ? esc(col.cliente) : inst ? esc(inst.cliente) : '—'}</td>
-        <td class="num"><button class="btn bol bsm" onclick="abrirUnidad(${u.id})">Editar</button></td>
-      </tr>`;
-    }).join('')}</tbody>`;
+    <th>Para quién</th><th></th></tr></thead><tbody>
+    ${sit.map(({ u, s }) => `<tr>
+      <td><b>${hescM(nombreModelo(u.modelo_id))}</b>
+        ${u.notas ? `<div class="sub" style="margin:2px 0 0">${hescM(u.notas)}</div>` : ''}</td>
+      <td>${u.serie ? hescM(u.serie) : '<span class="sub">sin serie todavía</span>'}</td>
+      <td>${hescM(s.donde)}</td>
+      <td>${s.cliente
+        ? `${hescM(s.cliente)} <span class="badge ${s.cls}">${hescM(s.lbl)}</span>`
+        : '<span class="badge bok">Libre</span>'}</td>
+      <td class="num" style="white-space:nowrap">
+        <button class="btn bol bsm" onclick="abrirUnidad(${u.id})">Editar</button>
+        <button class="btn bol bsm" onclick="borrarUnidad(${u.id})" title="Borrarla">🗑️</button>
+      </td>
+    </tr>`).join('')}</tbody>`;
+}
+
+// Alias corto, porque esta tabla escapa mucho texto.
+const hescM = t => esc(t);
+
+// Borra una máquina.
+//
+// Si tiene una entrega activa no se borra: habría que decidir qué pasa con
+// esa entrega, y adivinarlo acá sería peor que pedirlo.
+async function borrarUnidad(id) {
+  const u = unidadPorId(id);
+  if (!u) return toast('No encuentro esa máquina. Recarga la página.', true);
+  const s = situacion(u);
+  if (!s.libre)
+    return alerta('mq-alert',
+      `Esa máquina está comprometida con <b>${esc(s.cliente)}</b>. ` +
+      'Cancela o borra esa entrega primero, y después bórrala.', 'an');
+
+  if (!confirm(`¿Borrar esta máquina?\n\n${nombreModelo(u.modelo_id)}` +
+      (u.serie ? ' · ' + u.serie : '') + '\n\nNo se puede deshacer.')) return;
+  try {
+    await sbSend(`maq_unidades?id=eq.${id}`, 'DELETE');
+    await cargarTodo();
+    toast('Máquina borrada');
+  } catch (e) {
+    alerta('mq-alert', 'No se pudo borrar: ' + esc(e.message), 'ae');
+  }
 }
 
 function abrirUnidad(id) {
@@ -1284,7 +1329,6 @@ function abrirUnidad(id) {
     : 'Todavía no hay modelos: el que escribas será el primero.';
   document.getElementById('mu-serie').value     = edUni ? (edUni.serie || '') : '';
   document.getElementById('mu-ubicacion').value = edUni ? (edUni.ubicacion || '') : '';
-  document.getElementById('mu-estado').value    = edUni ? edUni.estado : 'disponible';
   document.getElementById('mu-notas').value     = edUni ? (edUni.notas || '') : '';
   abrir('mod-unidad');
 }
@@ -1319,7 +1363,6 @@ async function guardarUnidad() {
     modelo_id: modelo.id,
     serie:     document.getElementById('mu-serie').value.trim(),
     ubicacion: document.getElementById('mu-ubicacion').value.trim(),
-    estado:    document.getElementById('mu-estado').value,
     notas:     document.getElementById('mu-notas').value.trim()
   };
   const btn = document.getElementById('mu-guardar');
