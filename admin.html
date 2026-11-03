@@ -2027,7 +2027,18 @@ function avisarTruncado(tabla, cuantas) {
 
 async function sbPagina(tabla, query, clave) {
   const paso = 1000, vistos = new Set(), out = [];
-  const k = clave || (f => f.id);
+  // Con qué se reconoce una fila repetida entre tandas. Por omisión, su `id`.
+  //
+  // Si la fila NO TIENE `id`, se usa la fila completa. Antes se usaba `f.id`
+  // a secas, y en una tabla sin esa columna —`agenda_dias`, cuya llave es la
+  // fecha— todas las filas daban "sin id", así que la primera se guardaba y
+  // TODAS LAS DEMÁS SE DESCARTABAN COMO REPETIDAS. La base tenía once notas y
+  // la franja mostraba solo la del lunes. Siempre guardó bien; nunca mostró
+  // bien. Se reportó como "la nota no se guarda".
+  //
+  // El simulador de pruebas no lo reproducía porque le inventaba un `id` a
+  // cada fila. Ahora respeta las tablas que no lo tienen.
+  const k = clave || (f => (f.id !== undefined && f.id !== null) ? f.id : JSON.stringify(f));
   let completo = false;
   for (let desde = 0; desde < TECHO_FILAS; desde += paso) {
     const r = revisarAuth(await fetch(
@@ -4202,8 +4213,9 @@ async function cargarAgenda() {
   const l = lunesDe(semanaOffset);
   const f = new Date(l); f.setDate(f.getDate() + 6);
   try {
+    // La llave de `agenda_dias` es la fecha, no un `id`.
     agenda = await sbPagina('agenda_dias',
-      `select=*&fecha=gte.${aISO(l)}&fecha=lte.${aISO(f)}&order=fecha.asc`);
+      `select=*&fecha=gte.${aISO(l)}&fecha=lte.${aISO(f)}&order=fecha.asc`, x => x.fecha);
     agendaOK = true;
   } catch (e) { agenda = []; agendaOK = false; }
   pintarAgenda();
