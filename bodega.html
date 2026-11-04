@@ -3276,7 +3276,8 @@ function imprimirHojaConteo() {
       <th style="width:56px">Cajas</th><th style="width:56px">Sueltas</th></tr></thead>
       <tbody>${filas}</tbody></table>
     <div class="pie">Anota solo lo que cuentes. Las filas en blanco no se tocan al pasarlo al sistema.</div>
-    </body></html>`);
+    <div id="version-marca" style="position:fixed;bottom:4px;right:8px;font-size:10px;font-weight:700;color:#9b8ab0;opacity:.7;z-index:5;pointer-events:none;font-family:sans-serif">v61</div>
+</body></html>`);
   w.document.close();
   setTimeout(() => { w.focus(); w.print(); }, 350);
 }
