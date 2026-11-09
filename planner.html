@@ -343,6 +343,37 @@ textarea{resize:vertical;min-height:60px}
   background:rgba(0,0,0,.16)}
 .mod.act:hover{background:rgba(0,0,0,.16)}
 @media(max-width:640px){ .mod{padding:12px 10px;font-size:11px} }
+
+/* ══ BARRA LATERAL COMÚN (v63) ══════════════════════════════════════════
+   Igual en las seis pantallas de oficina. En pantallas de 1100 px o más
+   reemplaza a la barra de módulos de arriba; en el celular no aparece y se
+   navega como siempre. */
+.lat-comun{display:none}
+@media (min-width:1100px){
+  .lat-comun{display:flex;flex-direction:column;gap:1px;position:fixed;left:0;top:0;bottom:0;width:224px;
+    overflow-y:auto;background:#4a1f7a;color:#e9dcff;padding:14px 10px 12px;z-index:45;
+    font-family:'Nunito',sans-serif;box-shadow:2px 0 16px rgba(74,31,122,.18)}
+  .lat-comun .lat-logo{font-family:'DM Serif Display',serif;font-size:28px;line-height:1;color:#fff;padding:4px 10px 12px;text-decoration:none}
+  .lat-comun .lat-grupo{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#9b6fd4;padding:14px 10px 4px}
+  .lat-comun .lat-item{display:flex;align-items:center;gap:10px;min-height:34px;padding:0 10px;border-radius:10px;
+    font-weight:700;font-size:13.5px;color:#e9dcff;text-decoration:none;line-height:1.2}
+  .lat-comun .lat-item .ico{width:20px;text-align:center;flex:none}
+  .lat-comun .lat-item:hover{background:rgba(255,255,255,.09);color:#fff}
+  .lat-comun .lat-item.act{background:#fff;color:#4a1f7a;font-weight:900}
+  .lat-comun .lat-item:focus-visible{outline:3px solid #f5c842;outline-offset:2px}
+  .lat-comun .lat-pie{margin-top:auto;padding:14px 4px 0;border-top:1px solid rgba(255,255,255,.14);display:flex}
+  .lat-comun .lat-salir{flex:1;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:transparent;
+    color:#e9dcff;font-weight:800;font-size:13px;cursor:pointer;font-family:'Nunito',sans-serif}
+  .lat-comun .lat-salir:hover{background:rgba(255,255,255,.1);color:#fff}
+  #app.con-lateral{padding-left:224px}
+  #app.con-lateral > nav .modbar,#app.con-lateral > nav .nlogo{display:none}
+  #app.con-lateral > nav{justify-content:flex-end;min-height:48px}
+  /* Salir ya está abajo en la barra; si la cabecera queda vacía, se esconde */
+  #app.con-lateral > nav .bout{display:none}
+  #app.con-lateral > nav:not(:has(.chip,.btn)){display:none}
+  #app.con-lateral.sin-secbar .secbar{display:none}
+  body.lat-activa .action-bar{left:224px}
+}
 </style>
 </head>
 <body>
@@ -362,6 +393,85 @@ textarea{resize:vertical;min-height:60px}
 
 <!-- ══ APP ══ -->
 <div id="app" style="display:none">
+
+  <!-- ══ BARRA LATERAL COMÚN (v63) ══
+       La misma en las seis pantallas de oficina: si cambias una, cambia
+       todas. Cada ítem apunta a archivo.html#sección; los archivos no se
+       juntaron, así que el riesgo de romper algo es bajo. -->
+  <aside class="lat-comun" id="lat-comun" aria-label="Navegación de oficina"></aside>
+  <script>
+  (function barraLateralComun() {
+    const GRUPOS = [
+      ['Operación', [
+        ['📋', 'Pedidos',     'admin.html',  'pedidos'],
+        ['🚚', 'Rutas',       'admin.html',  'rutas'],
+        ['🏭', 'Producción',  'admin.html',  'produccion']]],
+      ['Inventario', [
+        ['📦', 'Stock',                'bodega.html', 'panorama'],
+        ['📖', 'Movimientos',          'bodega.html', 'movimientos'],
+        ['✅', 'Aprobaciones',         'admin.html',  'aprobar'],
+        ['🔢', 'Conteos',              'bodega.html', 'conteo'],
+        ['🧾', 'Cuadratura de ventas', 'bodega.html', 'ventas'],
+        ['🛒', 'Compras',              'compras.html', '']]],
+      ['Clientes y equipos', [
+        ['👥', 'Clientes', 'admin.html',    'clientes'],
+        ['🔧', 'Máquinas', 'maquinas.html', '']]],
+      ['Análisis', [
+        ['📊', 'Indicadores', 'kpi.html',     ''],
+        ['📅', 'Planner',     'planner.html', '']]],
+      ['Configuración', [
+        ['🗺️', 'Zonas y comunas',     'admin.html',  'zonas'],
+        ['⚙️', 'Bodegas y productos', 'bodega.html', 'maestros'],
+        ['🩺', 'Diagnóstico',         'bodega.html', 'diag']]]
+    ];
+    // Secciones que no tienen ítem propio y se marcan en su ítem padre.
+    const PADRE = { nuevo: 'pedidos' };
+    const POR_OMISION = { 'admin.html': 'pedidos', 'bodega.html': 'panorama' };
+    const archivo = (decodeURIComponent(location.pathname.split('/').pop()) || 'admin.html').toLowerCase();
+    const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+    const lat = document.getElementById('lat-comun');
+    lat.innerHTML = '<a class="lat-logo" href="admin.html#pedidos">nativo</a>' +
+      GRUPOS.map(([g, items]) => '<div class="lat-grupo">' + esc(g) + '</div>' +
+        items.map(([ico, nom, arch, sec]) =>
+          '<a class="lat-item" href="' + arch + (sec ? '#' + sec : '') + '" data-arch="' + arch +
+          '" data-sec="' + sec + '"><span class="ico" aria-hidden="true">' + ico + '</span>' + esc(nom) + '</a>'
+        ).join('')).join('') +
+      '<div class="lat-pie"><button class="lat-salir" type="button">Salir</button></div>';
+
+    // Marca el ítem de la pantalla y sección en que uno está.
+    window.marcarLateral = function (sec) {
+      const s = PADRE[sec] || sec || '';
+      lat.querySelectorAll('.lat-item').forEach(a => {
+        const act = a.dataset.arch === archivo && (a.dataset.sec === s || (!a.dataset.sec && !s) ||
+          (!a.dataset.sec && !POR_OMISION[archivo]));
+        a.classList.toggle('act', act);
+        if (act) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+      });
+    };
+
+    // Dentro de la misma pantalla no se recarga: se cambia de sección.
+    lat.addEventListener('click', e => {
+      const sal = e.target.closest('.lat-salir');
+      if (sal) { if (typeof salir === 'function') salir(); return; }
+      const a = e.target.closest('.lat-item');
+      if (!a || a.dataset.arch !== archivo || !a.dataset.sec) return;
+      if (typeof window.irSeccionLateral === 'function') {
+        e.preventDefault();
+        window.irSeccionLateral(a.dataset.sec);
+      }
+    });
+
+    const app = document.getElementById('app');
+    app.classList.add('con-lateral');
+    // Admin y bodega tienen todas sus secciones en la barra: su fila de
+    // secciones sobra en pantalla ancha. Las demás la conservan.
+    if (POR_OMISION[archivo]) app.classList.add('sin-secbar');
+    document.body.classList.add('lat-activa');
+    const h = (location.hash || '').slice(1);
+    window.marcarLateral(h || POR_OMISION[archivo] || '');
+  })();
+  </script>
   <nav>
     <div class="modbar">
       <button class="mod" onclick="location.href='admin.html#pedidos'">📋 Pedidos</button>
