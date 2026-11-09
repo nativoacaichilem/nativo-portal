@@ -526,6 +526,88 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
 .sec:hover{border-color:var(--mora-l);color:var(--mora-d)}
 .sec.act{background:var(--mora);border-color:var(--mora);color:#fff}
 @media(max-width:640px){ .sec{padding:7px 12px;font-size:11px} }
+
+/* ══════════ Etapa 3 · Pedidos por pestañas ══════════
+   Colores de la escala de estados aprobada: un color, un significado. */
+:root{ --azul-l:#dbeafe; --azul-d:#1e40af; --borde:#e4daf0; --borde-fuerte:#cfc0e3; --texto-medio:#5a4a6b; }
+.bentrsf{background:var(--rl);color:var(--rd);border:1px solid #fbc4c4}
+.ped-otras[hidden],.barra-periodo[hidden],.rango-per[hidden],.filtros-mas[hidden],#card-semana[hidden],#fnods-caja[hidden]{display:none!important}
+.ped-tabs{display:flex;gap:4px;border-bottom:1px solid var(--borde);overflow-x:auto;margin:0 0 14px}
+.ptab{display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 16px;border:0;background:transparent;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;color:var(--texto-medio);border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap;cursor:pointer}
+.ptab:hover{color:var(--mora-d)}
+.ptab .cnt{min-width:24px;height:22px;padding:0 7px;border-radius:999px;display:grid;place-items:center;font-size:12px;font-weight:900;background:#e7def3;color:var(--texto-medio)}
+.ptab.act{color:var(--mora);border-bottom-color:var(--mora)}
+.ptab.act .cnt{background:var(--mora);color:#fff}
+.ptab .ojo{background:var(--rl);color:var(--rd);border-radius:999px;font-size:11px;font-weight:900;padding:2px 8px}
+.ped-otras{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12.5px;color:var(--texto-medio);font-weight:700;margin:-6px 0 12px}
+.ped-otras button{border:1px solid var(--borde-fuerte);background:var(--white);border-radius:999px;height:26px;padding:0 10px;font-size:12px;font-weight:800;color:var(--mora-d);cursor:pointer;font-family:'Nunito',sans-serif}
+.ped-cab input{flex:2}
+.barra-periodo{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+.seg-per{display:inline-flex;background:#ece4f6;border-radius:10px;padding:3px;gap:2px}
+.seg-per button{height:32px;padding:0 12px;border:0;border-radius:8px;background:transparent;font-weight:800;font-size:12.5px;color:var(--texto-medio);cursor:pointer;font-family:'Nunito',sans-serif}
+.seg-per button.on{background:var(--white);color:var(--mora-d);box-shadow:0 1px 3px rgba(30,18,38,.1)}
+.rango-per{display:inline-flex;gap:8px;align-items:center}
+.rango-per label{display:flex;gap:6px;align-items:center;font-size:12px;font-weight:800;color:var(--textl)}
+.rango-per input{width:auto;padding:6px 8px}
+.periodo-txt{font-size:12.5px;color:var(--textl);font-weight:700}
+.descargas-per{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.chips-ped{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.chip-ped{height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--borde-fuerte);background:var(--white);font-weight:800;font-size:12.5px;color:var(--texto-medio);display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:'Nunito',sans-serif}
+.chip-ped:hover{border-color:var(--mora-l)}
+.chip-ped.on{background:var(--mora-xl);border-color:var(--mora-l);color:var(--mora-d)}
+.chip-ped .bola{background:var(--mora);color:#fff;border-radius:99px;min-width:18px;height:18px;font-size:11px;display:grid;place-items:center;padding:0 5px}
+.conteo-ped{margin-left:auto;font-size:12.5px;color:var(--textl);font-weight:700}
+.filtros-mas{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;background:#faf7fd;border:1px solid var(--borde);border-radius:12px;padding:12px 14px;margin:0 0 12px}
+.filtros-mas label{display:flex;flex-direction:column;gap:4px;font-size:11.5px;font-weight:800;color:var(--textl);margin:0}
+.filtros-mas select{width:auto;min-width:170px}
+.filtros-mas .casilla{text-transform:none;letter-spacing:0;flex-direction:row;align-items:center;gap:8px;height:38px;font-size:13px;color:var(--texto-medio)}
+.filtros-mas .casilla input{width:16px;height:16px;accent-color:var(--mora)}
+.tabla-pedidos tr.fila-ped{cursor:pointer}
+.tabla-pedidos tr.fila-ped:hover td{background:#fbf8ff}
+.tabla-pedidos tr.fila-ped.abierto td{background:var(--mora-xl)}
+.tabla-pedidos tr.fila-ped.abierto td:first-child{box-shadow:inset 3px 0 0 var(--mora)}
+.tabla-pedidos tr.grupo td{background:#fcfaff;font-size:12.5px;font-weight:900;color:var(--texto-medio);padding:9px 14px;border-top:1px solid var(--borde)}
+.tabla-pedidos tr.grupo.rojo td{background:#fff7f7;color:var(--rd)}
+.grupo .gcnt{background:#ece4f6;border-radius:999px;padding:0 8px;font-size:11px;margin-left:6px}
+.grupo.rojo .gcnt{background:var(--rl)}
+.grupo .gder{float:right;font-weight:700;color:var(--textl);font-size:12px;display:inline-flex;gap:8px;align-items:center}
+.cli-ped b{font-weight:800;font-size:13.5px}
+.cli-ped .sub-ped{font-size:12px;color:var(--textl);font-weight:600;margin-top:1px;max-width:340px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.folio-chico{font-size:11.5px;font-weight:700;color:var(--textl);font-variant-numeric:tabular-nums;white-space:nowrap}
+.dia-ped{font-weight:800;font-size:13px;white-space:nowrap}
+.dia-ped.apagado{color:var(--textl);font-weight:700}
+.tipo-ped{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:6px;background:var(--crema);border:1px solid var(--crema-d);color:var(--texto-medio);font-size:11.5px;font-weight:800;white-space:nowrap}
+.camion-ped{font-size:11px;color:var(--mora-d);font-weight:800;margin-top:3px;white-space:nowrap}
+.fact-ped{font-size:12.5px;font-weight:800;white-space:nowrap}
+.fact-ped.apagado{color:var(--textl);font-weight:700}
+.mk{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:800;color:var(--texto-medio);background:#f5f0fa;border-radius:6px;padding:2px 6px;white-space:nowrap;margin:0 3px 3px 0}
+.mk-am{background:var(--am-l);color:#854d0e}
+.mk-ok{background:var(--vl);color:var(--vd)}
+.btn-desc{border:1px solid #fdba74;background:var(--nl);color:var(--nd);border-radius:6px;font-size:11px;font-weight:900;padding:3px 7px;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap}
+.btn-desc:hover{background:#ffe4c7}
+.tabla-pedidos tr.fila-ped td{vertical-align:middle;padding-top:10px;padding-bottom:10px}
+.cli-ped .nota-wrap{margin-top:2px}
+.cli-ped .nota-add{opacity:0;transition:opacity .15s;font-size:11px;padding:1px 6px;height:auto;line-height:1.5}
+.tabla-pedidos tr.fila-ped:hover .nota-add,.nota-add:focus{opacity:1}
+.vacio-ped{text-align:center;padding:36px 16px;color:var(--textl);font-weight:700}
+.vacio-ped b{display:block;color:var(--text);font-size:15px;margin-bottom:4px}
+@media(max-width:640px){
+  .nota-add{opacity:1}
+  .tabla-pedidos tr.grupo{border:0;background:transparent;padding:0;margin:14px 0 6px}
+  .tabla-pedidos tr.grupo td{display:block;background:transparent!important;padding:0 2px;border:0}
+  .grupo .gder{float:none;display:flex;margin-top:2px}
+  .descargas-per{margin-left:0}
+  .conteo-ped{margin-left:0;width:100%}
+}
+/* El detalle se abre al costado y la lista sigue a la vista. En pantallas
+   chicas sigue siendo la ventana de siempre. */
+@media(min-width:1100px){
+  #modal.mbg{background:transparent;pointer-events:none;justify-content:flex-end;align-items:stretch;padding:0}
+  #modal.mbg .modal{pointer-events:auto;width:440px;max-width:440px;height:100vh;max-height:100vh;border-radius:0;box-shadow:-12px 0 32px rgba(74,31,122,.16);border-left:1px solid var(--borde)}
+  body.panel-abierto #page-pedidos{margin-right:456px;margin-left:16px;max-width:none}
+  body.panel-abierto .tabla-pedidos .c-tipo,body.panel-abierto .tabla-pedidos .c-marcas{display:none}
+  body.panel-abierto .action-bar{right:440px}
+}
 </style>
 </head>
 <body>
@@ -582,31 +664,15 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
   <!-- ── PEDIDOS ── -->
   <div id="page-pedidos" class="page act">
     <div id="aviso-corte"></div>
-    <div class="stats">
-      <div class="stat"><div class="sn" id="st">0</div><div class="sl">Total</div></div>
-      <div class="stat pulsa" id="stat-sf" onclick="verSinFacturar()" title="Todo lo que no se ha facturado">
-        <div class="sn" id="sp">0</div><div class="sl">Sin facturar</div></div>
-      <div class="stat"><div class="sn" id="sr">0</div><div class="sl">En ruta</div></div>
-      <div class="stat"><div class="sn" id="se">0</div><div class="sl">Entregados</div></div>
-      <div class="stat pulsa" id="stat-esf" onclick="verEntregadoSinFacturar()"
-           title="Ya se entregó pero todavía no se factura">
-        <div class="sn" id="sesf">0</div><div class="sl">Entregado sin facturar</div></div>
-      <div class="stat pulsa" id="stat-ret" onclick="verRetirosPendientes()" title="Retiros sin fecha acordada">
-        <div class="sn" id="sret">0</div><div class="sl">Retiros por coordinar</div>
-      </div>
-      <div class="stat pulsa" id="stat-nods" onclick="verSinDescargo()"
-           title="Ya salieron pero nadie descontó el stock" style="display:none">
-        <div class="sn" id="snods">0</div><div class="sl">Sin descargar bodega</div>
-      </div>
-      <div class="stat pulsa" id="stat-cort" onclick="verCortesias()"
-           title="Muestras y regalos por entregar" style="display:none">
-        <div class="sn" id="scort">0</div><div class="sl">Muestras por entregar</div>
-      </div>
-    </div>
+    <!-- Pestañas por estado. Cada pedido vive en una sola: la de lo próximo
+         que hay que hacer con él. Reemplazan a los 8 contadores y al
+         desplegable de 13 opciones, que mezclaban estado, tipo y canal. -->
+    <div class="ped-tabs" id="ped-tabs" role="tablist" aria-label="Pedidos por estado"></div>
+    <div class="ped-otras" id="ped-otras" hidden></div>
     <!-- La semana. Cada día lleva una nota escrita, pensada para dejar
          anotado a qué ciudad o zona se despacha. Es lo que hoy se dice de
          palabra y se olvida. -->
-    <div class="card" style="padding-bottom:12px">
+    <div class="card" id="card-semana" style="padding-bottom:12px">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px">
         <h2 style="margin:0">🗓️ La semana</h2>
         <div style="flex:1"></div>
@@ -619,37 +685,52 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
     </div>
 
     <div class="card">
-      <h2>📋 Pedidos</h2>
-      <div class="fb">
-        <input type="text" id="buscar" placeholder="🔍 Buscar empresa, RUT, contacto o folio..." oninput="render()">
-        <select id="fentrega" onchange="render()">
-          <option value="">Despachos y retiros</option>
-          <option value="despacho">Solo despachos</option>
-          <option value="retiro">Solo retiros</option>
-        </select>
-        <select id="fzona" onchange="render()">
-          <option value="">Todas las zonas</option>
-          <!-- Las zonas las llena pintarZonas() desde la tabla `zonas`. -->
-        </select>
-        <select id="festado" onchange="render()">
-          <option value="">Todos los estados</option>
-          <option value="prio">⚡ Prioritarios</option>
-          <option value="sf">▸ Todo lo que falta facturar</option>
-          <option value="cortesia">▸ Todo lo que no es venta</option>
-          <option value="t-muestra">🎁 Muestras</option>
-          <option value="t-merma">🗑️ Mermas</option>
-          <option value="t-tarea">🔧 Tareas internas</option>
-          <option value="web">🌐 Ventas página web</option>
-          <option value="pendiente">Sin facturar</option>
-          <option value="facturado">Facturado</option>
-          <option value="en-ruta">En ruta</option>
-          <option value="entregado-sin-facturar">Entregado · sin facturar</option>
-          <option value="entregado">Entregado</option>
-        </select>
+      <div class="fb ped-cab">
+        <input type="text" id="buscar" placeholder="🔍 Buscar empresa, RUT, contacto, folio o factura (busca en todas las pestañas)" oninput="render()">
         <button class="btn bol bsm" onclick="cargar()">🔄 Actualizar</button>
-        <button class="btn bgreen bsm" onclick="exportCSV()">⬇️ Exportar CSV</button>
+        <button class="btn bgreen bsm" onclick="exportCSV()" title="Descarga lo que estás viendo, con los filtros puestos">⬇️ Descargar</button>
         <button class="btn bol bsm" id="b-corte" onclick="abrirCorte()"
           style="display:none" title="Poner una raya en el suelo: de acá para atrás no se reclama">🪧 Corte de bodega</button>
+      </div>
+
+      <!-- Solo en Entregados: el período y las dos descargas completas. -->
+      <div class="barra-periodo" id="barra-periodo" hidden>
+        <div class="seg-per" id="seg-periodo" role="group" aria-label="Período">
+          <button data-per="30" class="on" onclick="cambiarPeriodo('30')">Últimos 30 días</button>
+          <button data-per="mes" onclick="cambiarPeriodo('mes')">Este mes</button>
+          <button data-per="todo" onclick="cambiarPeriodo('todo')">Ver todos</button>
+          <button data-per="rango" onclick="cambiarPeriodo('rango')">📅 Rango</button>
+        </div>
+        <span class="rango-per" id="rango-per" hidden>
+          <label>Desde <input type="date" id="pp-desde" onchange="render()"></label>
+          <label>Hasta <input type="date" id="pp-hasta" onchange="render()"></label>
+        </span>
+        <span class="periodo-txt" id="periodo-txt"></span>
+        <span class="descargas-per">
+          <button class="btn bgreen bsm" onclick="exportCSV()">⬇️ Resumen por pedido</button>
+          <button class="btn bgreen bsm" onclick="exportDetalle()">⬇️ Detalle por producto</button>
+        </span>
+      </div>
+
+      <div class="chips-ped" id="chips-ped"></div>
+
+      <!-- Filtros secundarios, plegados. Los ids se mantienen: otras
+           funciones los leen y los llenan (las zonas, por ejemplo). -->
+      <div class="filtros-mas" id="filtros-mas" hidden>
+        <label>Zona
+          <select id="fzona" onchange="render()">
+            <option value="">Todas las zonas</option>
+            <!-- Las zonas las llena pintarZonas() desde la tabla `zonas`. -->
+          </select></label>
+        <label>Despacho o retiro
+          <select id="fentrega" onchange="render()">
+            <option value="">Despachos y retiros</option>
+            <option value="despacho">Solo despachos</option>
+            <option value="retiro">Solo retiros</option>
+          </select></label>
+        <label class="casilla"><input type="checkbox" id="fprio" onchange="render()"> Solo prioritarios</label>
+        <label class="casilla" id="fnods-caja" hidden><input type="checkbox" id="fnods" onchange="filtroSinDescargo=this.checked;render()"> Solo sin descargar bodega</label>
+        <button class="btn bgray bsm" onclick="limpiarFiltrosPed()">Quitar filtros</button>
       </div>
       <div id="aviso-dia"></div>
       <div class="tw">
@@ -660,13 +741,12 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
                 <input type="checkbox" id="chk-all" onclick="toggleAll(this)"
                   title="Seleccionar todos">
               </th>
-              <th>Fecha</th>
-              <th>Empresa / Contacto</th>
-              <th>Dirección</th>
-              <th>Zona / Entrega</th>
-              <th>Estado / Recibe</th>
+              <th>Cliente</th>
+              <th id="th-dia">Día y zona</th>
+              <th class="c-tipo">Tipo</th>
+              <th>Estado</th>
               <th>Factura</th>
-              <th></th>
+              <th class="c-marcas">Marcas</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -1681,6 +1761,8 @@ function repintarPestanaActiva() {
 }
 
 function goTab(id, btn) {
+  // El detalle de un pedido no se queda flotando sobre otra sección.
+  if (document.getElementById('modal').classList.contains('open')) cerrar();
   document.querySelectorAll('.page').forEach(p => p.classList.remove('act'));
   // Solo los botones de la barra de secciones. La barra de módulos de arriba
   // marca en qué PANTALLA estás y no la toca el cambio de sección: si se
@@ -2207,33 +2289,136 @@ async function cargar() {
 // ══════════════════════════════════════════
 //  RENDER TABLA
 // ══════════════════════════════════════════
-function filtrados() {
-  const q  = (document.getElementById('buscar').value || '').toLowerCase().trim();
+// ══════════════════════════════════════════
+//  PESTAÑAS POR ESTADO
+// ══════════════════════════════════════════
+// Cada pedido vive en una sola pestaña: la de lo próximo que hay que hacer
+// con él. Se calcula con los estados que ya existen: la base no cambia.
+// Lo que no se cobra (muestras, mermas, tareas, producción) se salta
+// «Por facturar» y entra directo a «Por despachar».
+const PED_TABS = [
+  ['facturar',   'Por facturar'],
+  ['despachar',  'Por despachar'],
+  ['ruta',       'En ruta'],
+  ['entregados', 'Entregados']
+];
+let pedTab = 'facturar';
+let pedTipo = 'todos';
+let pedPeriodo = '30';
+let pedVerFiltros = false;
+let pedAbierto = null;
+
+function tabDe(p) {
+  const e = p.estado || 'pendiente';
+  if (e === 'en-ruta') return 'ruta';
+  if (e === 'entregado') return 'entregados';
+  if (noEsVenta(p)) return e === 'entregado-sin-facturar' ? 'entregados' : 'despachar';
+  if (e === 'facturado') return 'despachar';
+  // pendiente, entregado sin facturar o un estado desconocido: lo que falta
+  // es la factura, así que se ve aquí y no se pierde.
+  return 'facturar';
+}
+
+function isoMenosDias(n) {
+  const d = new Date(); d.setDate(d.getDate() - n);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+// La fecha con que se ordena y se filtra lo entregado: el día de entrega, o
+// el de creación si nunca se le puso uno.
+function fechaEntregado(p) { return diaEntrega(p) || String(p.created_at || '').slice(0, 10); }
+function enPeriodo(p) {
+  if (pedPeriodo === 'todo') return true;
+  const f = fechaEntregado(p);
+  if (!f) return false;
+  if (pedPeriodo === '30')  return f >= isoMenosDias(30);
+  if (pedPeriodo === 'mes') return f.slice(0, 7) === hoyISO().slice(0, 7);
+  const d = (document.getElementById('pp-desde') || {}).value || '';
+  const h = (document.getElementById('pp-hasta') || {}).value || '';
+  return (!d || f >= d) && (!h || f <= h);
+}
+function textoPeriodo() {
+  if (pedPeriodo === '30')  return 'Últimos 30 días';
+  if (pedPeriodo === 'mes') return 'Este mes';
+  if (pedPeriodo === 'todo') return 'Todo el historial';
+  const d = (document.getElementById('pp-desde') || {}).value || '';
+  const h = (document.getElementById('pp-hasta') || {}).value || '';
+  const f = x => x ? x.split('-').reverse().join('-') : '…';
+  return `Del ${f(d)} al ${f(h)}`;
+}
+
+function coincideBusqueda(p) {
+  const q = (document.getElementById('buscar').value || '').toLowerCase().trim();
+  if (!q) return true;
+  return [p.emp, p.rut, p.contacto, p.folio, p.factura_num]
+    .map(x => String(x || '').toLowerCase()).join(' ').includes(q);
+}
+function pasaTipo(p) {
+  if (pedTipo === 'todos') return true;
+  if (pedTipo === 'venta') return tipoDe(p) === 'venta' && !esWeb(p);
+  if (pedTipo === 'web')   return esWeb(p);
+  return tipoDe(p) === pedTipo;
+}
+// Filtros comunes a todas las pestañas. `conDia` decide si la franja de la
+// semana filtra: en Entregados manda el período, no el día.
+function pasaBase(p, conDia) {
   const fz = document.getElementById('fzona').value;
-  const fe = document.getElementById('festado').value;
   const fn = document.getElementById('fentrega').value;
-  return pedidos.filter(p =>
-    (!filtroDia || diaEntrega(p) === filtroDia) &&
-    (!q  || (p.emp||'').toLowerCase().includes(q) ||
-             (p.rut||'').includes(q) ||
-             (p.contacto||'').toLowerCase().includes(q) ||
-             (p.folio||'').toLowerCase().includes(q)) &&
+  const fp = (document.getElementById('fprio') || {}).checked;
+  return coincideBusqueda(p) && pasaTipo(p) &&
+    (!conDia || !filtroDia || diaEntrega(p) === filtroDia) &&
     (!fz || p.zona === fz) &&
-    // 'sf' no es un estado: es "falta facturar", que son dos estados distintos
-    (!fe || (fe === 'prio' ? !!p.prioritario
-           : fe === 'sf' ? sinFacturar(p)
-           : fe === 'cortesia' ? noEsVenta(p)
-           // `t-muestra`, `t-merma`, `t-tarea`: un tipo a la vez. Cuadrar el
-           // mes es mirar las mermas por separado de las muestras, no todo
-           // junto como "lo que no se cobró".
-           : fe.startsWith('t-') ? tipoDe(p) === fe.slice(2)
-           : fe === 'web' ? esWeb(p)
-           : p.estado === fe)) &&
     (!fn || (p.entrega || 'despacho') === fn) &&
-    (!filtroSinDescargo || (
-      ['en-ruta','entregado','entregado-sin-facturar'].includes(p.estado) &&
-      !bodPedidosConMov.has(String(p.id))))
-  );
+    (!fp || !!p.prioritario);
+}
+// Lo que se ve: la pestaña activa con todos sus filtros.
+function filtrados() {
+  const sd = (filtroSinDescargo && (pedTab === 'ruta' || pedTab === 'entregados'))
+    ? new Set(pedidosSinDescargo().map(p => String(p.id))) : null;
+  return pedidos.filter(p => tabDe(p) === pedTab &&
+    pasaBase(p, pedTab !== 'entregados') &&
+    (pedTab !== 'entregados' || enPeriodo(p)) &&
+    (!sd || sd.has(String(p.id))));
+}
+// Sin mirar la pestaña. Lo usan el panel del día y el prompt de ruta, que
+// necesitan todos los pedidos del día, estén facturados o no.
+function filtradosTodos() { return pedidos.filter(p => pasaBase(p, true)); }
+
+function contarTab(id) {
+  return pedidos.filter(p => tabDe(p) === id && (id !== 'entregados' || enPeriodo(p))).length;
+}
+function irTabPed(id) {
+  pedTab = id;
+  if (id === 'facturar' || id === 'despachar') {
+    filtroSinDescargo = false;
+    const c = document.getElementById('fnods'); if (c) c.checked = false;
+  }
+  checked = []; updateActionBar();
+  render();
+}
+function cambiarPeriodo(p) {
+  pedPeriodo = p;
+  document.querySelectorAll('#seg-periodo button').forEach(b =>
+    b.classList.toggle('on', b.dataset.per === p));
+  document.getElementById('rango-per').hidden = p !== 'rango';
+  if (p === 'rango' && !document.getElementById('pp-desde').value)
+    document.getElementById('pp-desde').value = isoMenosDias(30);
+  render();
+}
+function cambiarTipoPed(t) { pedTipo = t; render(); }
+function alternarFiltrosPed() { pedVerFiltros = !pedVerFiltros; render(); }
+function cuantosFiltrosPed() {
+  return (document.getElementById('fzona').value ? 1 : 0) +
+    (document.getElementById('fentrega').value ? 1 : 0) +
+    ((document.getElementById('fprio') || {}).checked ? 1 : 0) +
+    (filtroSinDescargo ? 1 : 0);
+}
+function limpiarFiltrosPed() {
+  document.getElementById('fzona').value = '';
+  document.getElementById('fentrega').value = '';
+  const fp = document.getElementById('fprio'); if (fp) fp.checked = false;
+  const fn = document.getElementById('fnods'); if (fn) fn.checked = false;
+  filtroSinDescargo = false;
+  render();
 }
 
 // Retiros que todavía no tienen fecha acordada. Un retiro entregado ya pasó,
@@ -2248,54 +2433,22 @@ const cortesiasPendientes = () => pedidos.filter(p =>
 
 // Los contadores pinchables llevan la tabla a lo que representan
 function verSinFacturar() {
-  filtroSinDescargo = false;
-  // el contador cuenta dos estados, así que el filtro tiene que cubrir los dos
-  document.getElementById('festado').value = 'sf';
-  document.getElementById('fentrega').value = '';
   document.getElementById('buscar').value = '';
-  render();
-  document.getElementById('tbody').scrollIntoView({ behavior:'smooth', block:'center' });
+  irTabPed('facturar');
 }
 
-function verEntregadoSinFacturar() {
-  filtroSinDescargo = false;
-  document.getElementById('festado').value = 'entregado-sin-facturar';
-  document.getElementById('fentrega').value = '';
-  document.getElementById('buscar').value = '';
-  render();
-  document.getElementById('tbody').scrollIntoView({ behavior:'smooth', block:'center' });
-}
+function verEntregadoSinFacturar() { verSinFacturar(); }
 
 function verRetirosPendientes() {
-  filtroSinDescargo = false;
   document.getElementById('fentrega').value = 'retiro';
   document.getElementById('fzona').value = '';
-  document.getElementById('festado').value = '';
   document.getElementById('buscar').value = '';
-  render();
-  document.getElementById('tbody').scrollIntoView({ behavior:'smooth', block:'center' });
+  pedVerFiltros = true;
+  irTabPed('despachar');
 }
 
 function render() {
-  const f = filtrados();
-  // "Sin facturar" y "Entregados" cuentan las dos dimensiones por separado, así
-  // que un entregado sin facturar aparece en ambas: salió de la bodega Y falta
-  // cobrarlo. El contador propio destaca justamente ese cruce, que es el
-  // accionable: mercadería entregada que todavía no se factura.
-  const nEsf = pedidos.filter(p => p.estado === 'entregado-sin-facturar' && !noEsVenta(p)).length;
-  document.getElementById('st').textContent   = pedidos.length;
-  document.getElementById('sp').textContent   = pedidos.filter(p => sinFacturar(p)).length;
-  document.getElementById('sr').textContent   = pedidos.filter(p => p.estado === 'en-ruta').length;
-  document.getElementById('se').textContent   = pedidos.filter(p => yaEntregado(p.estado)).length;
-  document.getElementById('sesf').textContent = nEsf;
-  document.getElementById('stat-esf').classList.toggle('aviso', nEsf > 0);
-
-  const nret = retirosPendientes().length;
-  document.getElementById('sret').textContent = nret;
-  document.getElementById('stat-ret').classList.toggle('aviso', nret > 0);
-
-  // Solo se muestra si bodega está andando: sin el módulo instalado, este
-  // indicador diría que todo está pendiente y no significaría nada.
+  // Corte de bodega: solo se ofrece si bodega está andando.
   const bc = document.getElementById('b-corte');
   if (bc) {
     bc.style.display = bodListo ? '' : 'none';
@@ -2304,20 +2457,10 @@ function render() {
       : '🪧 Corte de bodega';
   }
 
-  const ncort = cortesiasPendientes().length;
-  const cajaCort = document.getElementById('stat-cort');
-  cajaCort.style.display = pedidos.some(noEsVenta) ? '' : 'none';
-  document.getElementById('scort').textContent = ncort;
-
-  const nods = pedidosSinDescargo().length;
-  const cajaNods = document.getElementById('stat-nods');
-  cajaNods.style.display = bodListo ? '' : 'none';
-  document.getElementById('snods').textContent = nods;
-  cajaNods.classList.toggle('aviso', nods > 0);
-
   // Con muchos pendientes de golpe no es que el equipo esté atrasado: es que
   // el módulo se instaló sobre un historial que nunca pasó por bodega. Ahí
   // pedir que se descarguen uno por uno es pedir lo imposible.
+  const nods = pedidosSinDescargo().length;
   const avisoC = document.getElementById('aviso-corte');
   if (bodListo && nods >= 10) {
     avisoC.innerHTML = `<div class="alert an" style="line-height:1.6;display:flex;
@@ -2331,127 +2474,244 @@ function render() {
     avisoC.innerHTML = '';
   }
 
+  pintarTabsPed();
+  pintarOtrasPed();
+
+  // La franja de la semana y su panel no aplican a lo ya entregado.
+  const enEntregados = pedTab === 'entregados';
+  document.getElementById('card-semana').hidden = enEntregados;
+  document.getElementById('barra-periodo').hidden = !enEntregados;
+  document.getElementById('periodo-txt').textContent = enEntregados ? textoPeriodo() : '';
+  document.getElementById('th-dia').textContent = enEntregados ? 'Entregado' : 'Día y zona';
+  document.getElementById('fnods-caja').hidden = !(bodListo && (pedTab === 'ruta' || enEntregados));
+
+  const f = filtrados();
+  pintarChipsPed(f.length);
+  document.getElementById('filtros-mas').hidden = !pedVerFiltros;
+
   const chkAll = document.getElementById('chk-all');
   if (chkAll) chkAll.checked = false;
 
-  // Acá había un aviso arriba de la lista con la cuenta de pedidos de clientes
-  // bloqueados. Se retiró: contaba el histórico completo, así que un cliente
-  // con cuarenta pedidos viejos generaba una alarma enorme por algo que ya
-  // pasó. La marca en la tarjeta de cada pedido es donde se decide, y basta.
-
-  pintarPanelDia(f);
-
-  // Los prioritarios van primero, sin importar el resto del orden.
-  //
-  // Se eligió esto en vez de una pestaña aparte: una pestaña hay que
-  // acordarse de ir a mirarla, y un pedido urgente que vive en otra pantalla
-  // se olvida igual. Acá aparece sin que nadie lo vaya a buscar.
-  //
-  // Va en una variable nueva y no encima de `f`, que está declarada `const`:
-  // asignarle encima lanza un error en ejecución y mata el dibujado de la
-  // tabla entera. Los contadores seguían funcionando —se calculan en otra
-  // función— así que la pantalla mostraba "23 pedidos" y una lista vacía.
-  const lista = f.slice()
-    .sort((a, b) => (b.prioritario ? 1 : 0) - (a.prioritario ? 1 : 0));
+  // El panel del día mira todos los pedidos de ese día, no solo la pestaña.
+  pintarPanelDia(enEntregados ? [] : filtradosTodos());
+  if (enEntregados) document.getElementById('aviso-dia').innerHTML = '';
 
   const tb = document.getElementById('tbody');
-  if (!lista.length) {
-    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--textl);padding:28px;font-weight:700">Sin resultados</td></tr>';
+  if (!f.length) {
+    tb.innerHTML = `<tr><td colspan="8" class="vacio-ped">${vacioPed()}</td></tr>`;
     return;
   }
+  tb.innerHTML = gruposPed(f).map(g =>
+    `<tr class="grupo${g.cls ? ' ' + g.cls : ''}"><td colspan="8">${g.ico} ${hesc(g.t)}<span class="gcnt">${g.items.length}</span>${
+      g.der ? `<span class="gder">${g.der}</span>` : ''}</td></tr>` +
+    g.items.map(filaPed).join('')
+  ).join('');
+}
 
-  tb.innerHTML = lista.map(p => {
-    const isChecked = checked.includes(p.id);
-    const items = splitDet(p.detalle);
-    const dhtml = items.length
-      ? '<div style="margin-top:6px;background:var(--mora-xl);border-radius:7px;padding:6px 8px">' +
-        items.map(d => `<div style="font-size:11px;color:var(--mora-d);font-weight:700;line-height:1.6">· ${hesc(d)}</div>`).join('') +
-        '</div>'
-      : '<div style="font-size:11px;color:#d1d5db;margin-top:4px;font-weight:600">Sin detalle</div>';
-
-    const contactoHtml = (p.contacto || p.telefono)
-      ? `<div style="margin-top:3px;display:flex;gap:8px;flex-wrap:wrap">
-           ${p.contacto ? `<span style="font-size:11px;color:var(--textl);font-weight:700">👤 ${hesc(p.contacto)}</span>` : ''}
-           ${p.telefono ? `<span style="font-size:11px;color:var(--textl);font-weight:700">📞 ${hesc(p.telefono)}</span>` : ''}
-         </div>` : '';
-
-    const folioHtml = (p.folio ? `<div class="folio">${hesc(p.folio)}</div>` : '') +
-      (esWeb(p) ? '<div style="margin-top:3px"><span class="badge bweb">🌐 página web</span></div>' : '');
-
-    // El mensaje lo escribió el cliente; la nota, tú. Cada uno con su marca y su
-    // color, para que nunca se confunda quién lo escribió.
-    const msgHtml = String(p.mensaje || '').trim()
-      ? `<div class="msg-cli">💬 <b>Dice el cliente:</b> ${hesc(p.mensaje)}</div>` : '';
-    const notaHtml = notaCelda(p);
-
-    const recibeHtml = p.recibe
-      ? `<div style="font-size:11px;color:var(--vd);font-weight:700;margin-top:3px">✔ ${esRetiro(p) ? 'Retira' : 'Recibe'}: ${hesc(p.recibe)}</div>` : '';
-
-    // A qué camión va. El panel del día decía "1 ya en una ruta" sin decir
-    // cuál, y la fila no mostraba nada.
-    const ruta = p.ruta_id ? rutasPorId.get(String(p.ruta_id)) : null;
-    const camionHtml = ruta
-      ? `<div style="font-size:11px;color:var(--mora-d);font-weight:800;margin-top:2px">🚚 ${
-          nombreCamion(ruta.camion)}${ruta.chofer ? ' · ' + hesc(ruta.chofer) : ' · <span style="color:var(--rd)">sin chofer</span>'}</div>`
-      : '';
-    const entregaHtml = diaEntrega(p)
-      ? `<div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:2px">📅 ${esRetiro(p) ? 'Retiro' : 'Entrega'}: ${hesc(fechaEntregaVisible(p))}</div>` : '';
-
-    // El nombre de la sucursal, cuando el pedido está asociado a una. Leer
-    // "Local Providencia" es mucho más rápido que reconocer una dirección, y
-    // en un cliente con varios locales la dirección sola obliga a recordar
-    // cuál es cuál. La dirección sigue abajo porque es la que se necesita
-    // para llegar.
-    const suc = p.sucursal_id != null ? findSuc(p.sucursal_id) : null;
-    const sucHtml = suc
-      ? `<div style="font-size:11px;font-weight:800;color:var(--mora);margin-bottom:2px">🏠 ${hesc(suc.nombre)}</div>`
-      : '';
-
-    // Los data-rot son los rótulos que el CSS de celular pone delante de cada
-    // celda. En pantalla ancha no se ven: los encabezados de la tabla ya
-    // dicen lo mismo.
-    // La fila completa se marca, no solo con una etiqueta. Entregarle a un
-    // cliente moroso cuesta plata, así que tiene que verse desde el otro lado
-    // de la pantalla y sin buscarlo.
-    const cliBloq = estaBloqueado(clienteDelPedido(p));
-    return `<tr class="${isChecked ? 'row-sel' : ''}${cliBloq ? ' row-bloq' : ''}${
-      p.prioritario ? ' row-prio' : ''}">
-      <td class="td-check">
-        <input type="checkbox" ${isChecked ? 'checked' : ''}
-          onchange="toggleRow(${p.id}, this.checked)">
-      </td>
-      <td data-rot="Fecha" style="font-size:12px;color:var(--textl);font-weight:600;white-space:nowrap">${hesc(p.fecha)||'—'}</td>
-      <td class="td-emp">
-        <div style="font-weight:800;font-size:13px">${p.prioritario ? '⚡ ' : ''}${hesc(p.emp)}${
-          p.turno ? ` <span class="badge bpend">${p.turno === 'manana' ? '☀️ mañana' : '🌙 tarde'}</span>` : ''}
-          ${chipBloqueo(clienteDelPedido(p))}</div>
-        <div style="font-size:11px;color:var(--textl);font-weight:600;margin-top:1px">${hesc(p.rut)}</div>
-        ${folioHtml}
-        ${contactoHtml}
-        ${dhtml}
-        ${msgHtml}
-        ${notaHtml}
-      </td>
-      <td class="td-dir" data-rot="Dirección" style="font-size:12px;font-weight:600;max-width:210px">${sucHtml}${hesc(p.dir)}</td>
-      <td data-rot="Entrega">${entregaBadge(p)}</td>
-      <td data-rot="Estado">
-        ${ebadge(p.estado, p)}
-        ${recibeHtml}
-        ${entregaHtml}${camionHtml}
-      </td>
-      <td data-rot="Factura" style="font-size:12px;color:var(--textl);font-weight:600">${
-        noEsVenta(p) ? `<span style="color:#3730a3;font-weight:800">${
-          TIPOS_PEDIDO[tipoDe(p)].ico} ${TIPOS_PEDIDO[tipoDe(p)].corto}</span>`
-                      : (hesc(p.factura_num) || '—')}</td>
-      <td class="td-acc"><button class="btn bol bsm" onclick="abrir(${p.id})">Editar</button>
-        ${bodListo && ['en-ruta','entregado','entregado-sin-facturar'].includes(p.estado)
-          ? (bodPedidosConMov.has(String(p.id))
-              ? '<div class="sub" style="font-size:10px;color:var(--vd);font-weight:800;margin-top:4px">✔ bodega descargada</div>'
-              : `<button class="btn bam2 bsm" style="margin-top:4px" onclick="abrirDescargo(${p.id},null)"
-                   title="Anotar qué salió de bodega para este pedido">📦 Descargar</button>`)
-          : ''}</td>
-    </tr>`;
+function pintarTabsPed() {
+  const nEsf = pedidos.filter(p => p.estado === 'entregado-sin-facturar' && !noEsVenta(p)).length;
+  document.getElementById('ped-tabs').innerHTML = PED_TABS.map(([id, lbl]) => {
+    const act = pedTab === id;
+    const ojo = id === 'facturar' && nEsf
+      ? `<span class="ojo" title="Ya se entregaron y falta la factura">${nEsf} ya entregado${nEsf === 1 ? '' : 's'}</span>` : '';
+    return `<button class="ptab${act ? ' act' : ''}" role="tab" aria-selected="${act}"
+      onclick="irTabPed('${id}')">${lbl}<span class="cnt">${contarTab(id)}</span>${ojo}</button>`;
   }).join('');
+}
+
+// Al buscar, avisa si lo que se busca está en otra pestaña: un folio nunca
+// debería parecer perdido porque se está mirando la pestaña equivocada.
+function pintarOtrasPed() {
+  const caja = document.getElementById('ped-otras');
+  const q = (document.getElementById('buscar').value || '').trim();
+  if (!q) { caja.hidden = true; caja.innerHTML = ''; return; }
+  const partes = PED_TABS.filter(([id]) => id !== pedTab).map(([id, lbl]) => {
+    const n = pedidos.filter(p => tabDe(p) === id && coincideBusqueda(p)).length;
+    return n ? `<button onclick="${id === 'entregados' ? "cambiarPeriodo('todo');" : ''}irTabPed('${id}')">${lbl} (${n})</button>` : '';
+  }).join('');
+  caja.hidden = !partes;
+  caja.innerHTML = partes ? 'También en: ' + partes : '';
+}
+
+function pintarChipsPed(nVisibles) {
+  const chips = [['todos','Todos'],['venta','💵 Ventas'],['web','🌐 Web'],['produccion','🏭 Producción'],
+                 ['muestra','🎁 Muestras'],['tarea','🔧 Tareas'],['merma','🗑️ Mermas']];
+  const nf = cuantosFiltrosPed();
+  const filtrando = !!(filtroDia && pedTab !== 'entregados') || pedTipo !== 'todos' || nf ||
+    (document.getElementById('buscar').value || '').trim();
+  document.getElementById('chips-ped').innerHTML =
+    chips.map(([k, l]) => `<button class="chip-ped${pedTipo === k ? ' on' : ''}" aria-pressed="${pedTipo === k}"
+      onclick="cambiarTipoPed('${k}')">${l}</button>`).join('') +
+    `<button class="chip-ped${pedVerFiltros || nf ? ' on' : ''}" aria-expanded="${pedVerFiltros}"
+      onclick="alternarFiltrosPed()">⚙️ Filtros${nf ? `<span class="bola">${nf}</span>` : ''}</button>` +
+    `<span class="conteo-ped">${nVisibles} pedido${nVisibles === 1 ? '' : 's'}${filtrando ? ' con estos filtros' : ''}</span>`;
+}
+
+function vacioPed() {
+  const filtrando = (filtroDia && pedTab !== 'entregados') || pedTipo !== 'todos' || cuantosFiltrosPed() ||
+    (document.getElementById('buscar').value || '').trim();
+  if (filtrando) return '<b>Sin resultados</b>Ningún pedido de esta pestaña calza con los filtros puestos.';
+  return {
+    facturar:   '<b>✅ Todo facturado</b>No hay pedidos esperando factura.',
+    despachar:  '<b>Nada por despachar</b>Todo lo facturado ya salió o se entregó.',
+    ruta:       '<b>Ningún pedido en la calle</b>Cuando un pedido pase a «En ruta», aparece aquí.',
+    entregados: '<b>Sin entregas en este período</b>Prueba con «Ver todos» o con otro rango de fechas.'
+  }[pedTab];
+}
+
+const DIA_SEM_PED = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MES_PED = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+// «Mar 10» si es de esta semana o la que viene; «10 nov» si no.
+function diaCortoPed(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-').map(Number);
+  const f = new Date(y, m - 1, d);
+  const h = new Date(); h.setHours(0, 0, 0, 0);
+  const dif = Math.round((f - h) / 864e5);
+  return (dif >= -6 && dif <= 6) ? `${DIA_SEM_PED[f.getDay()]} ${d}` : `${d} ${MES_PED[m - 1]}`;
+}
+
+function gruposPed(lista) {
+  const prio = (a, b) => (b.prioritario ? 1 : 0) - (a.prioritario ? 1 : 0);
+  const g = [];
+  if (pedTab === 'facturar') {
+    const ya  = lista.filter(p => p.estado === 'entregado-sin-facturar').sort(prio);
+    const con = lista.filter(p => p.estado !== 'entregado-sin-facturar' && diaEntrega(p))
+      .sort((a, b) => diaEntrega(a).localeCompare(diaEntrega(b)) || prio(a, b));
+    const sin = lista.filter(p => p.estado !== 'entregado-sin-facturar' && !diaEntrega(p)).sort(prio);
+    if (ya.length)  g.push({ t: 'Ya entregados · falta la factura', ico: '⚠️', cls: 'rojo', items: ya });
+    if (con.length) g.push({ t: 'Con día asignado, el más cercano primero', ico: '📅', items: con });
+    if (sin.length) g.push({ t: 'Sin día', ico: '📅', items: sin });
+    return g;
+  }
+  if (pedTab === 'despachar') {
+    // Por día y camión. Los retiros van aparte: no suben a ningún camión.
+    const ret = lista.filter(esRetiro)
+      .sort((a, b) => (diaEntrega(a) ? 1 : 0) - (diaEntrega(b) ? 1 : 0) || prio(a, b));
+    const mapa = new Map();
+    lista.filter(p => !esRetiro(p)).forEach(p => {
+      const d = diaEntrega(p);
+      const r = p.ruta_id ? rutasPorId.get(String(p.ruta_id)) : null;
+      const cam = r ? r.camion : (p.ruta_id ? 'otra' : 'zz-sin');
+      const k = (d || '9999-99-99') + '|' + cam;
+      if (!mapa.has(k)) mapa.set(k, { d, r, cam, items: [] });
+      mapa.get(k).items.push(p);
+    });
+    [...mapa.keys()].sort().forEach(k => {
+      const x = mapa.get(k);
+      const dia = x.d ? diaCortoPed(x.d) : 'Sin día';
+      let t, der = '';
+      if (x.r) {
+        const e = ESTADO_RUTA[x.r.estado] || ESTADO_RUTA.armada;
+        t = `${dia} · ${nombreCamion(x.r.camion)}`;
+        der = `<span class="badge ${e.cls}">${hesc(e.lbl)}</span>${x.r.chofer ? hesc(x.r.chofer) : '<span style="color:var(--rd)">sin chofer</span>'}`;
+      } else if (x.cam === 'otra') {
+        t = `${dia} · en una ruta`;
+      } else {
+        t = x.d ? `${dia} · sin camión` : 'Sin día';
+        der = 'Asígnalo a un camión desde «La semana» o en Ruta';
+      }
+      g.push({ t, ico: x.d ? '🚚' : '📅', items: x.items.sort(prio), der });
+    });
+    if (ret.length) g.push({ t: 'Retiros en oficina', ico: '🏢', items: ret, der: 'El cliente viene a buscarlo' });
+    return g;
+  }
+  if (pedTab === 'ruta') {
+    const mapa = new Map();
+    lista.forEach(p => {
+      const r = p.ruta_id ? rutasPorId.get(String(p.ruta_id)) : null;
+      const k = r ? String(p.ruta_id) : 'zz';
+      if (!mapa.has(k)) mapa.set(k, { r, items: [] });
+      mapa.get(k).items.push(p);
+    });
+    [...mapa.keys()].sort().forEach(k => {
+      const x = mapa.get(k);
+      g.push(x.r
+        ? { t: `${nombreCamion(x.r.camion)} · ${x.r.chofer || 'sin chofer'}`, ico: '🚚', items: x.items.sort(prio),
+            der: `Ruta del ${diaCortoPed(String(x.r.fecha).slice(0, 10))} · bodega marca al volver` }
+        : { t: 'En ruta sin camión asignado', ico: '🚚', items: x.items.sort(prio) });
+    });
+    return g;
+  }
+  const e = lista.slice().sort((a, b) => fechaEntregado(b).localeCompare(fechaEntregado(a)));
+  g.push({ t: textoPeriodo(), ico: '✅', items: e });
+  return g;
+}
+
+// Una fila: lo primero que se lee es el cliente. El folio va chico, al lado.
+function filaPed(p) {
+  const isChecked = checked.includes(p.id);
+  const suc = p.sucursal_id != null ? findSuc(p.sucursal_id) : null;
+  const ruta = p.ruta_id ? rutasPorId.get(String(p.ruta_id)) : null;
+  const cli = clienteDelPedido(p);
+  const cliBloq = estaBloqueado(cli);
+  const tp = TIPOS_PEDIDO[tipoDe(p)];
+  const tipoTxt = (esWeb(p) && tipoDe(p) === 'venta') ? '🌐 Web' : `${tp.ico} ${tp.lbl}`;
+  const lugar = suc ? suc.nombre : (p.dir || '');
+
+  // Día y zona
+  let diaHtml;
+  if (pedTab === 'entregados') {
+    const f = fechaEntregado(p);
+    diaHtml = f ? `<div class="dia-ped">${diaCortoPed(f)}</div>` : '<div class="dia-ped apagado">—</div>';
+  } else {
+    const d = diaEntrega(p);
+    diaHtml = d
+      ? `<div class="dia-ped">${diaCortoPed(d)}${horaEntrega(p) ? ' · ' + hesc(horaEntrega(p)) : ''}</div>`
+      : `<div class="dia-ped apagado">${esRetiro(p) ? 'Por coordinar' : 'Sin día'}</div>`;
+  }
+  diaHtml += `<div style="margin-top:3px">${entregaBadge(p)}</div>`;
+
+  // Factura o monto
+  let factHtml;
+  if (noEsVenta(p)) factHtml = '<span class="fact-ped apagado">Sin cobro</span>';
+  else if (p.factura_num) factHtml = `<span class="fact-ped">N° ${hesc(p.factura_num)}</span>`;
+  else if (p.total_factura != null && p.total_factura !== '')
+    factHtml = `<span class="fact-ped apagado">$${Number(p.total_factura).toLocaleString('es-CL')}</span>`;
+  else factHtml = '<span class="fact-ped apagado">—</span>';
+
+  // Marcas: lo que hay que ver sin abrir el pedido
+  const m = [];
+  if (cliBloq) m.push(chipBloqueo(cli));
+  if (p.prioritario) m.push('<span class="mk mk-am">⚡ Prioritario</span>');
+  if (p.turno) m.push(`<span class="mk">${p.turno === 'manana' ? '☀️ Mañana' : '🌙 Tarde'}</span>`);
+  if (String(p.mensaje || '').trim()) m.push(`<span class="mk" title="${hesc(p.mensaje)}">💬 Mensaje</span>`);
+  if (p.recibe) m.push(`<span class="mk mk-ok">✔ ${esRetiro(p) ? 'Retiró' : 'Recibió'}: ${hesc(p.recibe)}</span>`);
+  let desc = '';
+  if (bodListo && ['en-ruta', 'entregado', 'entregado-sin-facturar'].includes(p.estado)) {
+    desc = bodPedidosConMov.has(String(p.id))
+      ? '<span class="mk mk-ok">✔ Bodega descargada</span>'
+      : `<button class="btn-desc" onclick="abrirDescargo(${p.id},null)" title="Anotar qué salió de bodega para este pedido">📦 Descargar bodega</button>`;
+  }
+  const marcasHtml = m.slice(0, 2).join('') + desc;
+
+  const camionHtml = (ruta && pedTab !== 'despachar')
+    ? `<div class="camion-ped">🚚 ${nombreCamion(ruta.camion)}${ruta.chofer ? ' · ' + hesc(ruta.chofer) : ''}</div>` : '';
+
+  return `<tr class="fila-ped${isChecked ? ' row-sel' : ''}${cliBloq ? ' row-bloq' : ''}${
+      p.prioritario ? ' row-prio' : ''}${String(pedAbierto) === String(p.id) ? ' abierto' : ''}"
+      data-id="${p.id}" onclick="filaClickPed(event, ${p.id})">
+    <td class="td-check">
+      <input type="checkbox" ${isChecked ? 'checked' : ''}
+        onchange="toggleRow(${p.id}, this.checked)" aria-label="Seleccionar ${hesc(p.emp)}">
+    </td>
+    <td class="td-emp cli-ped">
+      <b>${hesc(p.emp) || '(sin nombre)'}</b>
+      <div class="sub-ped">${hesc(lugar)}${lugar ? ' · ' : ''}<span class="folio-chico">${hesc(p.folio || '#' + p.id)}</span></div>
+      ${notaCelda(p)}
+    </td>
+    <td data-rot="Día">${diaHtml}</td>
+    <td class="c-tipo" data-rot="Tipo"><span class="tipo-ped">${tipoTxt}</span></td>
+    <td data-rot="Estado">${ebadge(p.estado, p)}${camionHtml}</td>
+    <td data-rot="Factura">${factHtml}</td>
+    <td class="c-marcas" data-rot="Marcas">${marcasHtml}</td>
+  </tr>`;
+}
+
+// Toda la fila abre el detalle; la casilla, los botones y la nota no.
+function filaClickPed(ev, id) {
+  if (ev.target.closest('input,button,a,select,textarea,.nota-wrap')) return;
+  abrir(id);
 }
 
 // ══════════════════════════════════════════
@@ -2632,6 +2892,7 @@ async function aplicarMasivo() {
 // ══════════════════════════════════════════════════════════════
 let bodBodegas = [], bodProductos = [], bodMotivos = [], bodSaldos = [];
 let bodPedidosConMov = new Map();   // pedido_id -> nº de movimientos
+let bodMovsPorPedido = new Map();   // pedido_id -> movimientos (bodega, producto, cantidad)
 let bodListo = false, bodFalla = '';
 
 let ds = { pedido: null, lineas: [], tras: null };   // tras = qué hacer al terminar
@@ -2661,7 +2922,9 @@ async function cargarBodega(forzar) {
       sbPagina(T_BOD_S,
         'select=bodega_id,producto_id,saldo,minimo,unidades_caja&order=bodega_id.asc,producto_id.asc',
         f => f.bodega_id + '|' + f.producto_id),
-      sbPagina(T_BOD_MV, 'select=id,pedido_id&pedido_id=not.is.null&order=id.asc'),
+      // Con bodega, producto y cantidad: la descarga de Entregados dice de qué
+      // bodega salió cada cosa. Son columnas que este mismo archivo ya escribe.
+      sbPagina(T_BOD_MV, 'select=id,pedido_id,bodega_id,producto_id,cantidad,medida&pedido_id=not.is.null&order=id.asc'),
       // Si la tabla de ajustes todavía no existe, no es un problema: significa
       // que no hay corte puesto y se reclama por todo.
       sbJson(`${T_BOD_C}?select=*&clave=eq.corte_pedidos`).catch(() => [])
@@ -2670,9 +2933,12 @@ async function cargarBodega(forzar) {
     bodCorteQuien = cfg.length ? (cfg[0].quien || '') : '';
     bodBodegas = b; bodProductos = p; bodMotivos = mo; bodSaldos = s;
     bodPedidosConMov = new Map();
+    bodMovsPorPedido = new Map();
     mv.forEach(x => {
       const k = String(x.pedido_id);
       bodPedidosConMov.set(k, (bodPedidosConMov.get(k) || 0) + 1);
+      if (!bodMovsPorPedido.has(k)) bodMovsPorPedido.set(k, []);
+      bodMovsPorPedido.get(k).push(x);
     });
     bodListo = true; bodFalla = '';
     return true;
@@ -3281,21 +3547,18 @@ async function quitarCorte() {
 }
 
 function verCortesias() {
-  filtroSinDescargo = false;
-  document.getElementById('festado').value = 'cortesia';
-  document.getElementById('fentrega').value = '';
   document.getElementById('buscar').value = '';
-  render();
-  document.getElementById('tbody').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  pedTipo = 'muestra';
+  irTabPed('despachar');
 }
 
 function verSinDescargo() {
-  document.getElementById('festado').value = '';
-  document.getElementById('fentrega').value = '';
   document.getElementById('buscar').value = '';
+  pedTab = 'entregados';
   filtroSinDescargo = true;
-  render();
-  document.getElementById('tbody').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const c = document.getElementById('fnods'); if (c) c.checked = true;
+  pedVerFiltros = true;
+  cambiarPeriodo('todo');
 }
 
 let filtroSinDescargo = false;
@@ -3785,9 +4048,22 @@ function abrir(id) {
   if (!ret) proponerZona('mzona', 'mzona-nota', p.dir || '');
 
   document.getElementById('modal').classList.add('open');
+  marcarAbierto(id);
 }
 
-function cerrar() { document.getElementById('modal').classList.remove('open'); }
+function cerrar() {
+  document.getElementById('modal').classList.remove('open');
+  marcarAbierto(null);
+}
+
+// En pantalla ancha el detalle se abre al costado: la fila abierta queda
+// marcada y la lista se corre para no quedar tapada.
+function marcarAbierto(id) {
+  pedAbierto = id;
+  document.body.classList.toggle('panel-abierto', id != null);
+  document.querySelectorAll('#tbody tr.fila-ped').forEach(tr =>
+    tr.classList.toggle('abierto', id != null && tr.dataset.id === String(id)));
+}
 
 async function guardar() {
   const btn = document.getElementById('bguardar');
@@ -3898,44 +4174,93 @@ async function eliminar() {
 // ══════════════════════════════════════════
 //  EXPORTAR CSV
 // ══════════════════════════════════════════
-function exportCSV() {
-  const data = filtrados();
-  if (!data.length) { alert('No hay pedidos para exportar con los filtros actuales.'); return; }
-
-  const headers = [
-    'ID','Folio','Fecha','Empresa','RUT','Contacto','Teléfono',
-    'Tipo','Canal','Razón','Entrega','Dirección','Zona','Detalle','Mensaje del cliente','Estado','Factura N°',
-    'Fecha Entrega/Retiro','Recibe/Retira','Comentario interno'
-  ];
-
-  // El prefijo ' evita que Excel ejecute un campo que empiece con = + - @
-  const esc = v => {
-    let t = String(v == null ? '' : v);
-    if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;
-    return `"${t.replace(/"/g,'""')}"`;
-  };
-
-  const rows = data.map(p => [
-    p.id, p.folio||'', p.fecha||'', p.emp, p.rut,
-    p.contacto||'', p.telefono||'',
-    noEsVenta(p) ? 'Sin venta' : 'Venta',
-    esWeb(p) ? 'Página web' : 'Mayorista', p.razon||'',
-    esRetiro(p) ? 'Retiro en oficina' : 'Despacho',
-    p.dir, p.zona||'', p.detalle||'', p.mensaje||'',
-    estadoLabel(p.estado), p.factura_num||'',
-    fechaEntregaVisible(p), p.recibe||'', p.comentario||''
-  ].map(esc).join(';'));
-
-  const csv = [headers.map(esc).join(';'), ...rows].join('\r\n');
+// Las dos descargas bajan lo que se está viendo, con los filtros puestos.
+// El prefijo ' evita que Excel ejecute un campo que empiece con = + - @
+function celdaCSV(v) {
+  let t = String(v == null ? '' : v);
+  if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;
+  return `"${t.replace(/"/g, '""')}"`;
+}
+function bajarCSV(cab, filas, nombre) {
+  const csv = [cab.map(celdaCSV).join(';'), ...filas.map(f => f.map(celdaCSV).join(';'))].join('\r\n');
   const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `nativo-pedidos-${hoy().replace(/\//g,'-')}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  a.href = url; a.download = nombre;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+function nombreBodegaPed(id) {
+  const b = bodBodegas.find(x => String(x.id) === String(id));
+  return b ? b.nombre : (id != null ? 'Bodega #' + id : '');
+}
+function nombreProductoPed(id) {
+  const p = bodProductos.find(x => String(x.id) === String(id));
+  return p ? p.nombre : (id != null ? 'Producto #' + id : '');
+}
+function bodegasDePedido(p) {
+  const mv = bodMovsPorPedido.get(String(p.id)) || [];
+  return [...new Set(mv.map(x => nombreBodegaPed(x.bodega_id)))].join(' + ');
+}
+function quienEntregoPed(p) {
+  if (esRetiro(p)) return 'Retiro en oficina';
+  const r = p.ruta_id ? rutasPorId.get(String(p.ruta_id)) : null;
+  return r ? nombreCamion(r.camion) + (r.chofer ? ' · ' + r.chofer : '') : '';
+}
+function sufijoArchivoPed() {
+  return pedTab + (pedTab === 'entregados' ? '-' + pedPeriodo : '') + '-' + hoyISO();
+}
+
+// Resumen: una fila por pedido.
+function datosDescargaPed() {
+  const d = filtrados();
+  return pedTab === 'entregados'
+    ? d.sort((a, b) => fechaEntregado(b).localeCompare(fechaEntregado(a))) : d;
+}
+
+function exportCSV() {
+  const data = datosDescargaPed();
+  if (!data.length) { alert('No hay pedidos para descargar con los filtros actuales.'); return; }
+  const cab = ['ID','Folio','Fecha pedido','Fecha de entrega','Empresa','RUT','Contacto','Teléfono',
+    'Tipo','Canal','Razón','Entrega','Dirección','Zona','Detalle','Mensaje del cliente','Estado',
+    'Factura N°','Total factura','Bodega de salida','Quién entregó','Recibe/Retira','Bodega descargada','Comentario interno'];
+  const filas = data.map(p => [
+    p.id, p.folio || '', p.fecha || '', fechaEntregaVisible(p), p.emp, p.rut,
+    p.contacto || '', p.telefono || '',
+    TIPOS_PEDIDO[tipoDe(p)].lbl, esWeb(p) ? 'Página web' : 'Mayorista', p.razon || '',
+    esRetiro(p) ? 'Retiro en oficina' : 'Despacho',
+    p.dir, p.zona || '', p.detalle || '', p.mensaje || '',
+    estadoLabel(p.estado), p.factura_num || '', p.total_factura != null ? p.total_factura : '',
+    bodegasDePedido(p), quienEntregoPed(p), p.recibe || '',
+    bodListo ? (bodPedidosConMov.has(String(p.id)) ? 'Sí' : 'No') : '',
+    p.comentario || ''
+  ]);
+  bajarCSV(cab, filas, `nativo-pedidos-resumen-${sufijoArchivoPed()}.csv`);
+}
+
+// Detalle: una fila por producto. Si el pedido ya se descargó de bodega se
+// usa lo que realmente salió (producto, cantidad y bodega); si no, el
+// detalle escrito del pedido, con la bodega en blanco.
+function exportDetalle() {
+  const data = datosDescargaPed();
+  if (!data.length) { alert('No hay pedidos para descargar con los filtros actuales.'); return; }
+  const cab = ['Folio','Fecha de entrega','Empresa','RUT','Producto','Cantidad','Medida',
+    'Bodega de salida','Quién entregó','Factura N°','Estado','Origen del dato'];
+  const filas = [];
+  data.forEach(p => {
+    const mv = bodMovsPorPedido.get(String(p.id)) || [];
+    const base = [p.folio || '#' + p.id, fechaEntregaVisible(p), p.emp, p.rut];
+    const fin = [quienEntregoPed(p), p.factura_num || '', estadoLabel(p.estado)];
+    if (mv.length) {
+      mv.forEach(x => filas.push([...base, nombreProductoPed(x.producto_id), x.cantidad,
+        x.medida === 'unidad' ? 'Unidades' : 'Cajas', nombreBodegaPed(x.bodega_id), ...fin, 'Movimiento de bodega']));
+    } else {
+      const lineas = splitDet(p.detalle);
+      (lineas.length ? lineas : ['(sin detalle)']).forEach(l =>
+        filas.push([...base, l, '', '', '', ...fin, 'Detalle del pedido']));
+    }
+  });
+  bajarCSV(cab, filas, `nativo-pedidos-detalle-${sufijoArchivoPed()}.csv`);
 }
 
 // ══════════════════════════════════════════
@@ -4168,7 +4493,7 @@ async function sacarDeCamion() {
 // filtrados y no exige volver a marcarlos uno por uno.
 function promptDelDia() {
   if (!filtroDia) return;
-  const dia = filtrados().filter(p => !esRetiro(p));
+  const dia = filtradosTodos().filter(p => !esRetiro(p));
   if (!dia.length) return toastRojo('Ese día no tiene despachos que rutear.');
   selRuta = dia.map(p => p.id);
   goTab('rutas', document.getElementById('sec-rutas'));
@@ -7543,6 +7868,6 @@ async function cargarTodo() {
   goTab(id, b);
 })();
 </script>
-<div id="version-marca" style="position:fixed;bottom:4px;right:8px;font-size:10px;font-weight:700;color:#9b8ab0;opacity:.7;z-index:5;pointer-events:none;font-family:sans-serif">v61</div>
+<div id="version-marca" style="position:fixed;bottom:4px;right:8px;font-size:10px;font-weight:700;color:#9b8ab0;opacity:.7;z-index:5;pointer-events:none;font-family:sans-serif">v62</div>
 </body>
 </html>
