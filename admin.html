@@ -538,6 +538,16 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
 .ptab .cnt{min-width:24px;height:22px;padding:0 7px;border-radius:999px;display:grid;place-items:center;font-size:12px;font-weight:900;background:#e7def3;color:var(--texto-medio)}
 .ptab.act{color:var(--mora);border-bottom-color:var(--mora)}
 .ptab.act .cnt{background:var(--mora);color:#fff}
+.ptab.alerta{color:var(--rd)}
+.ptab.alerta .cnt{background:#dc2626;color:#fff}
+.ptab.alerta.act{border-bottom-color:#dc2626}
+.dev-badge{display:inline-block;background:var(--rl);color:var(--rd);border:1px solid #fbc4c4;border-radius:999px;font-size:11px;font-weight:900;padding:3px 9px;text-transform:uppercase;letter-spacing:.3px}
+.dev-motivo{font-size:11.5px;color:var(--rd);font-weight:800;margin-top:3px}
+.btn-dev{border:1px solid var(--borde-fuerte);background:var(--white);color:var(--mora-d);border-radius:7px;font-size:11.5px;font-weight:900;padding:4px 8px;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;margin:0 4px 4px 0}
+.btn-dev:hover{border-color:var(--mora-l);background:#faf6ff}
+.btn-dev.rojo{color:var(--rd);border-color:#f3b4b4}
+.btn-dev.rojo:hover{background:#fff7f7}
+.mk-nar{background:var(--nl);color:var(--nd)}
 .ptab .ojo{background:var(--rl);color:var(--rd);border-radius:999px;font-size:11px;font-weight:900;padding:2px 8px}
 .ped-otras{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12.5px;color:var(--texto-medio);font-weight:700;margin:-6px 0 12px}
 .ped-otras button{border:1px solid var(--borde-fuerte);background:var(--white);border-radius:999px;height:26px;padding:0 10px;font-size:12px;font-weight:800;color:var(--mora-d);cursor:pointer;font-family:'Nunito',sans-serif}
@@ -843,6 +853,7 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
         <label class="casilla" id="fnods-caja" hidden><input type="checkbox" id="fnods" onchange="filtroSinDescargo=this.checked;render()"> Solo sin descargar bodega</label>
         <button class="btn bgray bsm" onclick="limpiarFiltrosPed()">Quitar filtros</button>
       </div>
+      <div id="aviso-dev"></div>
       <div id="aviso-dia"></div>
       <div class="tw">
         <table class="tabla-pedidos">
@@ -1595,6 +1606,24 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
     <div id="ds-alert"></div>
     <div id="ds-cuerpo"></div>
     <div class="mact" id="ds-acciones"></div>
+  </div>
+</div>
+
+<!-- ══ REPROGRAMAR UN DEVUELTO ══
+     Un pedido que volvió no entra solo al flujo: la oficina elige el día y,
+     si salió y no se entregó, aprueba que el producto vuelva a la bodega. -->
+<div class="mbg" id="modal-dev" role="dialog" aria-modal="true" aria-labelledby="dev-titulo">
+  <div class="modal" style="max-width:460px">
+    <h3 id="dev-titulo">Reprogramar</h3>
+    <div id="dev-info"></div>
+    <label for="dev-fecha" style="margin-top:12px">Nuevo día de entrega</label>
+    <input type="date" id="dev-fecha">
+    <div style="font-size:12px;color:var(--textl);font-weight:700;margin-top:6px">Déjalo vacío si todavía no sabes el día: queda en «Sin día».</div>
+    <div id="dev-alert" style="margin-top:10px"></div>
+    <div class="mact">
+      <button class="btn bgray" onclick="cerrarModalDev()">Cancelar</button>
+      <button class="btn bmora" id="dev-ok" onclick="confirmarReprogramar()">Reprogramar</button>
+    </div>
   </div>
 </div>
 
@@ -2415,6 +2444,7 @@ const PED_TABS = [
   ['facturar',   'Por facturar'],
   ['despachar',  'Por despachar'],
   ['ruta',       'En ruta'],
+  ['devueltos',  'Devueltos'],
   ['entregados', 'Entregados']
 ];
 let pedTab = 'facturar';
@@ -2424,6 +2454,9 @@ let pedVerFiltros = false;
 let pedAbierto = null;
 
 function tabDe(p) {
+  // Lo que volvió (no salió el camión, no subió o no se entregó) espera acá
+  // a que la oficina decida, sin importar en qué estado haya quedado.
+  if (p.devuelto_tipo) return 'devueltos';
   const e = p.estado || 'pendiente';
   if (e === 'en-ruta') return 'ruta';
   if (e === 'entregado') return 'entregados';
@@ -2490,20 +2523,22 @@ function filtrados() {
   const sd = (filtroSinDescargo && (pedTab === 'ruta' || pedTab === 'entregados'))
     ? new Set(pedidosSinDescargo().map(p => String(p.id))) : null;
   return pedidos.filter(p => tabDe(p) === pedTab &&
-    pasaBase(p, pedTab !== 'entregados') &&
+    pasaBase(p, !sinDiaPed()) &&
     (pedTab !== 'entregados' || enPeriodo(p)) &&
     (!sd || sd.has(String(p.id))));
 }
 // Sin mirar la pestaña. Lo usan el panel del día y el prompt de ruta, que
 // necesitan todos los pedidos del día, estén facturados o no.
 function filtradosTodos() { return pedidos.filter(p => pasaBase(p, true)); }
+// Pestañas donde la franja de la semana no aplica.
+const sinDiaPed = () => pedTab === 'entregados' || pedTab === 'devueltos';
 
 function contarTab(id) {
   return pedidos.filter(p => tabDe(p) === id && (id !== 'entregados' || enPeriodo(p))).length;
 }
 function irTabPed(id) {
   pedTab = id;
-  if (id === 'facturar' || id === 'despachar') {
+  if (id === 'facturar' || id === 'despachar' || id === 'devueltos') {
     filtroSinDescargo = false;
     const c = document.getElementById('fnods'); if (c) c.checked = false;
   }
@@ -2594,7 +2629,12 @@ function render() {
 
   // La franja de la semana y su panel no aplican a lo ya entregado.
   const enEntregados = pedTab === 'entregados';
-  document.getElementById('card-semana').hidden = enEntregados;
+  document.getElementById('card-semana').hidden = sinDiaPed();
+  document.getElementById('aviso-dev').innerHTML = pedTab === 'devueltos' && contarTab('devueltos')
+    ? `<div class="alert an" style="line-height:1.55;margin-bottom:12px">↩️ <b>Nada de esto vuelve solo al flujo.</b>
+        Decide con cada uno: <b>Reprogramar</b> lo devuelve a Por despachar con el día que elijas;
+        si salió y no se entregó, al reprogramar apruebas también que el producto vuelva a la bodega.
+        <b>Anular</b> lo saca de la plataforma.</div>` : '';
   document.getElementById('barra-periodo').hidden = !enEntregados;
   document.getElementById('periodo-txt').textContent = enEntregados ? textoPeriodo() : '';
   document.getElementById('th-dia').textContent = enEntregados ? 'Entregado' : 'Día y zona';
@@ -2608,8 +2648,8 @@ function render() {
   if (chkAll) chkAll.checked = false;
 
   // El panel del día mira todos los pedidos de ese día, no solo la pestaña.
-  pintarPanelDia(enEntregados ? [] : filtradosTodos());
-  if (enEntregados) document.getElementById('aviso-dia').innerHTML = '';
+  pintarPanelDia(sinDiaPed() ? [] : filtradosTodos());
+  if (sinDiaPed()) document.getElementById('aviso-dia').innerHTML = '';
 
   const tb = document.getElementById('tbody');
   if (!f.length) {
@@ -2629,8 +2669,10 @@ function pintarTabsPed() {
     const act = pedTab === id;
     const ojo = id === 'facturar' && nEsf
       ? `<span class="ojo" title="Ya se entregaron y falta la factura">${nEsf} ya entregado${nEsf === 1 ? '' : 's'}</span>` : '';
-    return `<button class="ptab${act ? ' act' : ''}" role="tab" aria-selected="${act}"
-      onclick="irTabPed('${id}')">${lbl}<span class="cnt">${contarTab(id)}</span>${ojo}</button>`;
+    const n = contarTab(id);
+    const alerta = id === 'devueltos' && n > 0;
+    return `<button class="ptab${act ? ' act' : ''}${alerta ? ' alerta' : ''}" role="tab" aria-selected="${act}"
+      onclick="irTabPed('${id}')">${lbl}<span class="cnt">${n}</span>${ojo}</button>`;
   }).join('');
 }
 
@@ -2652,7 +2694,7 @@ function pintarChipsPed(nVisibles) {
   const chips = [['todos','Todos'],['venta','💵 Ventas'],['web','🌐 Web'],['produccion','🏭 Producción'],
                  ['muestra','🎁 Muestras'],['tarea','🔧 Tareas'],['merma','🗑️ Mermas']];
   const nf = cuantosFiltrosPed();
-  const filtrando = !!(filtroDia && pedTab !== 'entregados') || pedTipo !== 'todos' || nf ||
+  const filtrando = !!(filtroDia && !sinDiaPed()) || pedTipo !== 'todos' || nf ||
     (document.getElementById('buscar').value || '').trim();
   document.getElementById('chips-ped').innerHTML =
     chips.map(([k, l]) => `<button class="chip-ped${pedTipo === k ? ' on' : ''}" aria-pressed="${pedTipo === k}"
@@ -2663,13 +2705,14 @@ function pintarChipsPed(nVisibles) {
 }
 
 function vacioPed() {
-  const filtrando = (filtroDia && pedTab !== 'entregados') || pedTipo !== 'todos' || cuantosFiltrosPed() ||
+  const filtrando = (filtroDia && !sinDiaPed()) || pedTipo !== 'todos' || cuantosFiltrosPed() ||
     (document.getElementById('buscar').value || '').trim();
   if (filtrando) return '<b>Sin resultados</b>Ningún pedido de esta pestaña calza con los filtros puestos.';
   return {
     facturar:   '<b>✅ Todo facturado</b>No hay pedidos esperando factura.',
     despachar:  '<b>Nada por despachar</b>Todo lo facturado ya salió o se entregó.',
     ruta:       '<b>Ningún pedido en la calle</b>Cuando un pedido pase a «En ruta», aparece aquí.',
+    devueltos:  '<b>✅ Nada devuelto</b>Todo lo que salió se entregó.',
     entregados: '<b>Sin entregas en este período</b>Prueba con «Ver todos» o con otro rango de fechas.'
   }[pedTab];
 }
@@ -2748,6 +2791,19 @@ function gruposPed(lista) {
     });
     return g;
   }
+  if (pedTab === 'devueltos') {
+    const tipos = [
+      ['no-salio',     'No salió el camión',    'No se descontó stock'],
+      ['no-subio',     'No subió al camión',    'No se descontó stock'],
+      ['no-entregado', 'Salió y no se entregó', 'El producto vuelve a la bodega cuando lo apruebes']
+    ];
+    tipos.forEach(([t, lbl, der]) => {
+      const it = lista.filter(p => p.devuelto_tipo === t)
+        .sort((a, b) => String(a.devuelto_en || '').localeCompare(String(b.devuelto_en || '')));
+      if (it.length) g.push({ t: lbl, ico: '↩️', cls: t === 'no-entregado' ? 'rojo' : '', items: it, der });
+    });
+    return g;
+  }
   const e = lista.slice().sort((a, b) => fechaEntregado(b).localeCompare(fechaEntregado(a)));
   g.push({ t: textoPeriodo(), ico: '✅', items: e });
   return g;
@@ -2766,7 +2822,10 @@ function filaPed(p) {
 
   // Día y zona
   let diaHtml;
-  if (pedTab === 'entregados') {
+  if (p.devuelto_tipo) {
+    const d = diaEntrega(p);
+    diaHtml = `<div class="dia-ped apagado">${d ? 'Iba el ' + diaCortoPed(d) : 'Sin día'}</div>`;
+  } else if (pedTab === 'entregados') {
     const f = fechaEntregado(p);
     diaHtml = f ? `<div class="dia-ped">${diaCortoPed(f)}</div>` : '<div class="dia-ped apagado">—</div>';
   } else {
@@ -2798,17 +2857,30 @@ function filaPed(p) {
       ? '<span class="mk mk-ok">✔ Bodega descargada</span>'
       : `<button class="btn-desc" onclick="abrirDescargo(${p.id},null)" title="Anotar qué salió de bodega para este pedido">📦 Descargar bodega</button>`;
   }
+  const esDev = !!p.devuelto_tipo;
+  if (esDev) {
+    const falta = netoDevolver(p);
+    const reing = falta.length && !reingresoAprobado(p);
+    m.length = 0;
+    if (reing) m.push(`<span class="mk mk-nar" title="Salió de bodega y volvió">📦 ${falta.reduce((a, x) => a + x.cantidad, 0)} por reingresar</span>`);
+    desc = `<button class="btn-dev" onclick="reprogramarDevuelto(${p.id})">↩️ Reprogramar</button>` +
+           `<button class="btn-dev rojo" onclick="anularDevuelto(${p.id})">✕ Anular</button>`;
+  }
   const marcasHtml = m.slice(0, 2).join('') + desc;
-
   const camionHtml = (ruta && pedTab !== 'despachar')
     ? `<div class="camion-ped">🚚 ${nombreCamion(ruta.camion)}${ruta.chofer ? ' · ' + hesc(ruta.chofer) : ''}</div>` : '';
+  const DEV_TXT = { 'no-salio': 'No salió', 'no-subio': 'No subió', 'no-entregado': 'No entregado' };
+  const estadoHtml = esDev
+    ? `<span class="dev-badge">↩️ ${DEV_TXT[p.devuelto_tipo] || 'Devuelto'}</span>${
+        p.devuelto_motivo ? `<div class="dev-motivo">${hesc(p.devuelto_motivo)}</div>` : ''}`
+    : ebadge(p.estado, p) + camionHtml;
 
   return `<tr class="fila-ped${isChecked ? ' row-sel' : ''}${cliBloq ? ' row-bloq' : ''}${
       p.prioritario ? ' row-prio' : ''}${String(pedAbierto) === String(p.id) ? ' abierto' : ''}"
       data-id="${p.id}" onclick="filaClickPed(event, ${p.id})">
-    <td class="td-check">
+    <td class="td-check">${esDev ? '' : `
       <input type="checkbox" ${isChecked ? 'checked' : ''}
-        onchange="toggleRow(${p.id}, this.checked)" aria-label="Seleccionar ${hesc(p.emp)}">
+        onchange="toggleRow(${p.id}, this.checked)" aria-label="Seleccionar ${hesc(p.emp)}">`}
     </td>
     <td class="td-emp cli-ped">
       <b>${hesc(p.emp) || '(sin nombre)'}</b>
@@ -2817,10 +2889,127 @@ function filaPed(p) {
     </td>
     <td data-rot="Día">${diaHtml}</td>
     <td class="c-tipo" data-rot="Tipo"><span class="tipo-ped">${tipoTxt}</span></td>
-    <td data-rot="Estado">${ebadge(p.estado, p)}${camionHtml}</td>
+    <td data-rot="Estado">${estadoHtml}</td>
     <td data-rot="Factura">${factHtml}</td>
     <td class="c-marcas" data-rot="Marcas">${marcasHtml}</td>
   </tr>`;
+}
+
+// ══════════════════════════════════════════
+//  DEVUELTOS: reprogramar, reingresar, anular
+// ══════════════════════════════════════════
+// Lo que salió de bodega por este pedido y todavía no vuelve, agrupado por
+// bodega, producto y medida: salidas menos entradas.
+function netoDevolver(p) {
+  const mv = bodMovsPorPedido.get(String(p.id)) || [];
+  const m = new Map();
+  mv.forEach(x => {
+    const signo = x.tipo === 'salida' ? 1 : x.tipo === 'entrada' ? -1 : 0;
+    if (!signo) return;
+    const k = `${x.bodega_id}|${x.producto_id}|${x.medida || 'caja'}`;
+    m.set(k, (m.get(k) || 0) + signo * (Number(x.cantidad) || 0));
+  });
+  return [...m.entries()].filter(([, v]) => v > 0.0001).map(([k, v]) => {
+    const [b, pr, me] = k.split('|');
+    return { bodega_id: Number(b), producto_id: Number(pr), medida: me, cantidad: Math.round(v * 1000) / 1000 };
+  });
+}
+// Si un reingreso quedó hecho pero el pedido no se pudo cerrar, no se repite.
+const reingresoAprobado = p => /reingreso aprobado/i.test(String(p.devuelto_motivo || ''));
+function motivoDevolucion() {
+  return bodMotivos.find(m => m.tipo === 'entrada' && m.activo !== false &&
+    /devoluci[oó]n de ruta/i.test(m.nombre || ''));
+}
+function textoReingreso(falta) {
+  return falta.map(x => `${x.cantidad} ${x.medida === 'unidad' ? 'un.' : (x.cantidad === 1 ? 'caja' : 'cajas')} de ${
+    hesc(nombreProductoPed(x.producto_id))} a ${hesc(nombreBodegaPed(x.bodega_id))}`).join('<br>');
+}
+// Devuelve el producto a la bodega de donde salió. Lanza error si no puede.
+async function reingresar(p) {
+  const falta = reingresoAprobado(p) ? [] : netoDevolver(p);
+  if (!falta.length) return 0;
+  const mo = motivoDevolucion();
+  if (!mo) throw new Error('falta el motivo «Devolución de ruta» en Bodega › Configuración (lo crea el SQL de la v64)');
+  await sbSend(T_BOD_MV, 'POST', falta.map(x => ({
+    fecha: fechaHoyISO(), tipo: 'entrada',
+    producto_id: x.producto_id, bodega_id: x.bodega_id, bodega_destino_id: null,
+    cantidad: x.cantidad, medida: x.medida, motivo_id: Number(mo.id),
+    doc: String(p.factura_num || '').trim() || null,
+    nota: 'Devolución de ruta · ' + ({ 'no-salio': 'no salió', 'no-subio': 'no subió', 'no-entregado': 'no se entregó' }[p.devuelto_tipo] || 'devuelto') +
+      ' · Pedido #' + p.id + (p.folio ? ' · ' + p.folio : ''),
+    usuario: quienDescarga(), pedido_id: Number(p.id)
+  })));
+  return falta.length;
+}
+
+let devEdit = null;
+function reprogramarDevuelto(id) {
+  const p = pedidos.find(x => String(x.id) === String(id));
+  if (!p) return;
+  devEdit = p;
+  const falta = reingresoAprobado(p) ? [] : netoDevolver(p);
+  document.getElementById('dev-titulo').textContent = 'Reprogramar · ' + (p.emp || '');
+  document.getElementById('dev-info').innerHTML =
+    `<div class="alert ai" style="line-height:1.55">Vuelve a <b>Por despachar</b>${p.factura_num ? ` con su factura N° ${hesc(p.factura_num)}` : ''},
+      sin camión, para armarlo en una ruta nueva.</div>` +
+    (falta.length ? `<div class="alert an" style="line-height:1.55;margin-top:8px">📦 <b>Apruebas también el reingreso:</b><br>${textoReingreso(falta)}</div>` : '');
+  document.getElementById('dev-fecha').value = '';
+  document.getElementById('dev-alert').innerHTML = '';
+  const b = document.getElementById('dev-ok');
+  b.disabled = false; b.textContent = falta.length ? 'Aprobar reingreso y reprogramar' : 'Reprogramar';
+  document.getElementById('modal-dev').classList.add('open');
+}
+function cerrarModalDev() { document.getElementById('modal-dev').classList.remove('open'); devEdit = null; }
+
+async function confirmarReprogramar() {
+  const p = devEdit; if (!p) return;
+  const b = document.getElementById('dev-ok');
+  b.disabled = true; b.innerHTML = '<span class="sp"></span>Guardando…';
+  try {
+    // El producto PRIMERO: si después falla el pedido, el stock ya está bien
+    // y el pedido sigue a la vista en Devueltos para reintentar.
+    const n = await reingresar(p);
+    const fecha = document.getElementById('dev-fecha').value || null;
+    await sbPatch(p.id, {
+      devuelto_tipo: null, devuelto_motivo: null, devuelto_en: null,
+      ruta_id: null, carga: null, cargado_en: null,
+      estado: noEsVenta(p) ? 'pendiente' : (String(p.factura_num || '').trim() ? 'facturado' : 'pendiente'),
+      fecha_entrega: fecha
+    });
+    cerrarModalDev();
+    await cargarBodega(true);
+    await cargar();
+    toast(`${p.emp} reprogramado${fecha ? ' para el ' + fecha.split('-').reverse().join('-') : ', sin día'}` +
+      (n ? '. Reingreso a bodega aprobado.' : '.'));
+  } catch (e) {
+    document.getElementById('dev-alert').innerHTML =
+      `<div class="alert ae"><b>No se pudo reprogramar.</b> ${hesc(e.message)}</div>`;
+    b.disabled = false; b.textContent = 'Reintentar';
+    await cargarBodega(true); render();
+  }
+}
+
+async function anularDevuelto(id) {
+  const p = pedidos.find(x => String(x.id) === String(id));
+  if (!p) return;
+  const falta = reingresoAprobado(p) ? [] : netoDevolver(p);
+  const txt = `¿Anular el pedido de ${p.emp}?\n\nSale de la plataforma.` +
+    (falta.length ? '\nAntes, el producto vuelve a la bodega de donde salió.' : '') +
+    (String(p.factura_num || '').trim() ? `\n\nTiene la factura N° ${p.factura_num}: recuerda emitir la nota de crédito.` : '');
+  if (!confirm(txt)) return;
+  try {
+    const n = await reingresar(p);
+    if (n) await sbPatch(p.id, { devuelto_motivo: String(p.devuelto_motivo || '') + ' · reingreso aprobado' });
+    await sbDelete(p.id);
+    await cargarBodega(true);
+    await cargar();
+    toast(`${p.emp} anulado` + (String(p.factura_num || '').trim() ? '. Falta la nota de crédito.' : '.'));
+  } catch (e) {
+    await cargarBodega(true);
+    await cargar();
+    toastRojo('No se pudo anular: ' + e.message +
+      '. Si el producto ya volvió a la bodega quedó anotado; puedes reprogramarlo o abrirlo para revisarlo.');
+  }
 }
 
 // Toda la fila abre el detalle; la casilla, los botones y la nota no.
@@ -3039,7 +3228,7 @@ async function cargarBodega(forzar) {
         f => f.bodega_id + '|' + f.producto_id),
       // Con bodega, producto y cantidad: la descarga de Entregados dice de qué
       // bodega salió cada cosa. Son columnas que este mismo archivo ya escribe.
-      sbPagina(T_BOD_MV, 'select=id,pedido_id,bodega_id,producto_id,cantidad,medida&pedido_id=not.is.null&order=id.asc'),
+      sbPagina(T_BOD_MV, 'select=id,pedido_id,tipo,bodega_id,producto_id,cantidad,medida&pedido_id=not.is.null&order=id.asc'),
       // Si la tabla de ajustes todavía no existe, no es un problema: significa
       // que no hay corte puesto y se reclama por todo.
       sbJson(`${T_BOD_C}?select=*&clave=eq.corte_pedidos`).catch(() => [])
@@ -4345,7 +4534,9 @@ function exportCSV() {
     TIPOS_PEDIDO[tipoDe(p)].lbl, esWeb(p) ? 'Página web' : 'Mayorista', p.razon || '',
     esRetiro(p) ? 'Retiro en oficina' : 'Despacho',
     p.dir, p.zona || '', p.detalle || '', p.mensaje || '',
-    estadoLabel(p.estado), p.factura_num || '', p.total_factura != null ? p.total_factura : '',
+    p.devuelto_tipo ? 'Devuelto · ' + ({ 'no-salio': 'no salió', 'no-subio': 'no subió', 'no-entregado': 'no se entregó' }[p.devuelto_tipo] || '') +
+      (p.devuelto_motivo ? ' · ' + p.devuelto_motivo : '') : estadoLabel(p.estado),
+    p.factura_num || '', p.total_factura != null ? p.total_factura : '',
     bodegasDePedido(p), quienEntregoPed(p), p.recibe || '',
     bodListo ? (bodPedidosConMov.has(String(p.id)) ? 'Sí' : 'No') : '',
     p.comentario || ''
@@ -5006,8 +5197,8 @@ function renderChecksRuta() {
   // Una cortesía nunca va a estar "facturada", así que si se pidiera solo ese
   // estado, las muestras no entrarían nunca en la ruta y habría que llevarlas
   // aparte, anotadas en un papel.
-  const listos = pedidos.filter(p =>
-    p.estado === 'facturado' || (noEsVenta(p) && p.estado === 'pendiente'));
+  const listos = pedidos.filter(p => !p.devuelto_tipo &&
+    (p.estado === 'facturado' || (noEsVenta(p) && p.estado === 'pendiente')));
   const f = listos.filter(p => !esRetiro(p));
   const nret = listos.length - f.length;
 
@@ -7993,6 +8184,6 @@ window.addEventListener('hashchange', () => {
   goTab(id, b);
 })();
 </script>
-<div id="version-marca" style="position:fixed;bottom:4px;right:8px;font-size:10px;font-weight:700;color:#9b8ab0;opacity:.7;z-index:5;pointer-events:none;font-family:sans-serif">v63</div>
+<div id="version-marca" style="position:fixed;bottom:4px;right:8px;font-size:10px;font-weight:700;color:#9b8ab0;opacity:.7;z-index:5;pointer-events:none;font-family:sans-serif">v64</div>
 </body>
 </html>
