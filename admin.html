@@ -548,6 +548,60 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
 .btn-dev.rojo{color:var(--rd);border-color:#f3b4b4}
 .btn-dev.rojo:hover{background:#fff7f7}
 .mk-nar{background:var(--nl);color:var(--nd)}
+/* v65 · la fila trae lo que pidió y se factura sin abrir la tarjeta */
+.prod-ped{font-size:12.5px;color:var(--text);font-weight:600;margin-top:4px;line-height:1.5;max-width:520px}
+.prod-ped b{font-weight:900;color:var(--mora-d)}
+.prod-ped.una{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--texto-medio)}
+.msg-ped{font-size:12px;color:var(--mora-d);background:var(--mora-xl);border-radius:6px;padding:3px 8px;margin-top:5px;
+  display:inline-block;font-weight:700;max-width:520px;line-height:1.4}
+.fact-inline{display:flex;gap:4px;align-items:center}
+.fact-inline input{width:104px;padding:6px 8px;font-size:12.5px;border:1px solid var(--borde-fuerte);border-radius:7px;background:var(--white)}
+.fact-inline input:focus{border-color:var(--mora);box-shadow:0 0 0 3px var(--mora-xl);outline:none}
+.fact-inline input.falta{border-color:#dc2626;box-shadow:0 0 0 3px var(--rl)}
+.fact-inline button{border:0;background:var(--mora);color:#fff;border-radius:7px;width:30px;height:30px;font-weight:900;cursor:pointer;flex:none}
+.fact-inline button:hover{background:var(--mora-d)}
+body.panel-abierto .fact-inline input{width:78px}
+/* v65 · tarjeta del pedido: cabecera y pie fijos, el medio se desplaza */
+.modal.modal-ped{padding:0;display:flex;flex-direction:column;overflow:hidden}
+.mp-cab{flex:none;padding:14px 56px 12px 18px;border-bottom:1px solid var(--borde);background:var(--white);position:relative}
+.mp-tit{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mp-tit b{font-size:18px;font-weight:900;color:var(--text);line-height:1.25}
+.mp-seg{font-size:12px;color:var(--textl);font-weight:700;margin-top:5px;line-height:1.55}
+.mp-seg .ok{color:var(--vd)} .mp-seg .mal{color:var(--nd)}
+.mp-x{position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:10px;border:0;background:transparent;
+  font-size:20px;cursor:pointer;color:var(--textl);font-weight:900}
+.mp-x:hover{background:var(--mora-xl);color:var(--mora-d)}
+.mp-cuerpo{flex:1;overflow-y:auto;padding:14px 18px 18px;min-height:0}
+.mp-pie{flex:none;display:flex;gap:8px;align-items:center;padding:11px 18px;border-top:1px solid var(--borde);background:#fcfaff}
+.mp-pie .der{margin-left:auto;display:flex;gap:8px}
+.mp-atajo{font-size:11px;color:var(--textl);font-weight:700}
+.mp-estados{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.mp-estados button{height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--borde-fuerte);background:var(--white);
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:12.5px;color:var(--texto-medio);cursor:pointer}
+.mp-estados button:hover{border-color:var(--mora-l)}
+.mp-estados button.on{background:var(--mora);border-color:var(--mora);color:#fff}
+.mp-sec-btn{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mp-sec-btn .btn{text-transform:none;letter-spacing:0}
+.mp-prods{border:1px solid var(--borde);border-radius:12px;overflow:hidden;margin-bottom:6px}
+.mp-prod{display:flex;align-items:baseline;gap:10px;padding:8px 12px;border-bottom:1px solid var(--crema-d);font-size:13.5px;font-weight:700}
+.mp-prod:last-child{border-bottom:0}
+.mp-prod .q{font-size:17px;font-weight:900;color:var(--mora-d);min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
+.mp-prod.tot{background:#faf7fd;font-size:12.5px;color:var(--textl)}
+.mp-prod.tot .q{font-size:13px;color:var(--text)}
+.mp-prod .sinq{color:var(--textl)}
+.mp-enlace{background:none;border:0;color:var(--mora);font-weight:900;font-size:12.5px;cursor:pointer;padding:4px 0;font-family:'Nunito',sans-serif}
+.mp-mensaje{border-left:4px solid var(--mora)}
+.mp-tel{display:flex;gap:12px;margin-top:5px;font-size:12px;font-weight:800}
+.mp-tel a{color:var(--mora);text-decoration:none}
+details.mp-mas{border:1px solid var(--borde);border-radius:12px;padding:0 14px;margin:16px 0 4px;background:#fdfbff}
+details.mp-mas[open]{padding-bottom:4px}
+details.mp-mas summary{cursor:pointer;padding:12px 0;font-weight:900;color:var(--mora-d);font-size:13px}
+@media(max-width:640px){
+  .mp-atajo{display:none}
+  .mp-cuerpo{padding:12px 14px 16px}
+  .mp-cab{padding:12px 52px 10px 14px}
+  .mp-pie{padding:10px 14px}
+}
 .ptab .ojo{background:var(--rl);color:var(--rd);border-radius:999px;font-size:11px;font-weight:900;padding:2px 8px}
 .ped-otras{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12.5px;color:var(--texto-medio);font-weight:700;margin:-6px 0 12px}
 .ped-otras button{border:1px solid var(--borde-fuerte);background:var(--white);border-radius:999px;height:26px;padding:0 10px;font-size:12px;font-weight:800;color:var(--mora-d);cursor:pointer;font-family:'Nunito',sans-serif}
@@ -617,6 +671,18 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
   body.panel-abierto #page-pedidos{margin-right:456px;margin-left:16px;max-width:none}
   body.panel-abierto .tabla-pedidos .c-tipo,body.panel-abierto .tabla-pedidos .c-marcas{display:none}
   body.panel-abierto .action-bar{right:440px}
+  /* Con el detalle abierto, la barra lateral queda en íconos: así la lista
+     conserva sus columnas y los productos se leen sin cortarse. */
+  body.panel-abierto #app.con-lateral{padding-left:64px}
+  body.panel-abierto .lat-comun{width:64px;padding:14px 8px 12px}
+  body.panel-abierto .lat-comun .lat-logo{font-size:0;text-align:center;padding:4px 0 10px}
+  body.panel-abierto .lat-comun .lat-logo::after{content:'n';font-size:28px}
+  body.panel-abierto .lat-comun .lat-grupo{font-size:0;padding:0;margin:8px 6px 4px;border-top:1px solid rgba(255,255,255,.14)}
+  body.panel-abierto .lat-comun .lat-item{font-size:0;justify-content:center;padding:0}
+  body.panel-abierto .lat-comun .lat-item .ico{font-size:16px;width:auto}
+  body.panel-abierto .lat-comun .lat-salir{font-size:0}
+  body.panel-abierto .lat-comun .lat-salir::before{content:'⏻';font-size:16px}
+  body.panel-abierto .action-bar{left:64px}
 }
 
 /* ══ BARRA LATERAL COMÚN (v63) ══════════════════════════════════════════
@@ -1288,161 +1354,170 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
 </div>
 
 <!-- ══ MODAL EDITAR ══ -->
+<!-- ══ TARJETA DEL PEDIDO ══
+     Ordenada por lo que más se usa: arriba estado y factura, después lo que
+     pidió, después el cliente, y lo que casi no se toca plegado en «Más
+     datos». La cabecera (quién es y cómo cerrar) y el pie (guardar) quedan
+     fijos: antes había que bajar veinte campos para cerrarla. -->
 <div class="mbg" id="modal">
-  <div class="modal">
-    <h3>Editar Pedido</h3>
-    <div id="m-alert"></div>
-    <div id="m-folio"></div>
+  <div class="modal modal-ped" role="dialog" aria-modal="true" aria-labelledby="mp-emp">
+    <div class="mp-cab">
+      <div class="mp-tit"><b id="mp-emp">Pedido</b><span id="mp-estado"></span><span id="m-folio"></span></div>
+      <div class="mp-seg" id="mp-seg"></div>
+      <button class="mp-x" type="button" onclick="cerrar()" aria-label="Cerrar (Esc)" title="Cerrar (Esc)">✕</button>
+    </div>
 
-    <div class="modal-section">Entrega, Zona y Estado</div>
-    <div class="fg" style="margin-bottom:12px">
-      <div>
-        <label>Tipo de entrega</label>
-        <select id="mentrega" onchange="modalEntregaCambio()">
-          <option value="despacho">Despacho a domicilio</option>
-          <option value="retiro">Retiro en oficina</option>
-        </select>
+    <div class="mp-cuerpo">
+      <div id="m-alert"></div>
+
+      <!-- Lo que se toca al despachar: estado, factura, día y quién recibe. -->
+      <div class="modal-section" id="m-titulo-fact" style="margin-top:0">Facturación y Entrega</div>
+      <div class="mp-estados" id="mp-estados" role="group" aria-label="Estado del pedido"></div>
+      <select id="mestado" style="display:none" onchange="pintarEstadosModal()"></select>
+      <div class="fg" style="margin-bottom:12px">
+        <div><label for="mfact">N° Factura</label>
+          <input id="mfact" type="text" inputmode="numeric" placeholder="Al escribirla pasa a Facturado" oninput="facturaEscrita()"></div>
+        <div><label id="mrecibe-lbl" for="mrecibe">Recibe</label>
+          <input id="mrecibe" type="text" placeholder="Nombre de quien recibe"></div>
       </div>
-      <div>
-        <label>De dónde vino</label>
-        <select id="mcanal">
-          <option value="b2b">Cliente mayorista</option>
-          <option value="web">🌐 Página web</option>
-        </select>
-      </div>
-    </div>
-    <label style="display:flex;align-items:center;gap:9px;margin:0 0 14px;
-      padding:11px 13px;background:var(--am-l);border-radius:10px;
-      text-transform:none;font-size:14px;color:#78350f;font-weight:900">
-      <input type="checkbox" id="mprio" style="width:auto">
-      ⚡ Prioritario — va primero en la lista
-    </label>
-
-    <!-- El tipo se puede cambiar después de creado el pedido. Pasa: se
-         despacha como venta y resulta que era una muestra, o una entrega se
-         pierde en el camino y hay que dejarla como merma. -->
-    <div style="margin-bottom:12px">
-      <label>¿Qué es este pedido?</label>
-      <select id="mtipo" onchange="mTipoCambio()">
-        <option value="venta">💵 Venta — se factura y se cobra</option>
-        <option value="muestra">🎁 Muestra — se entrega sin cobrar</option>
-        <option value="merma">🗑️ Merma — salió y se perdió</option>
-        <option value="tarea">🔧 Tarea interna — no se entrega producto</option>
-        <!-- Solo aparece en los pedidos que ya son de producción, para que
-             abrir uno y guardarlo no lo convierta en venta. No se puede
-             elegir: esos pedidos los crea la sala desde su portal. -->
-        <option value="produccion" id="mtipo-prod" disabled hidden>🏭 Producción — pedido interno de la sala</option>
-      </select>
-      <div class="nota-campo" id="mtipo-nota"></div>
-    </div>
-    <div style="margin-bottom:12px;display:none" id="mrazon-box">
-      <label>Razón de la entrega</label>
-      <select id="mrazon"></select>
-      <div class="hint-man">Esta entrega no se cobra. Cambiar la razón cambia también
-        el motivo que se propone al descargar bodega.</div>
-    </div>
-    <div style="margin-bottom:12px">
-      <label>Encargado</label>
-      <input id="mencargado" type="text" placeholder="Quién se hace cargo" list="lista-encargados">
-      <datalist id="lista-encargados"></datalist>
-    </div>
-    <div style="margin-bottom:12px" id="mzona-box">
-      <label>Zona</label>
-      <select id="mzona">
-        <option value="">— Asignar zona —</option>
-        <!-- Las zonas las llena pintarZonas() desde la tabla `zonas`. -->
-      </select>
-      <div class="nota-campo" id="mzona-nota"></div>
-    </div>
-
-    <div class="modal-section">Datos del Cliente</div>
-    <div style="margin-bottom:12px"><label>Empresa</label><input id="memp" type="text"></div>
-    <div class="fg" style="margin-bottom:12px">
-      <div><label>Nombre de Contacto</label><input id="mcontacto" type="text" placeholder="Opcional"></div>
-      <div><label>Teléfono</label><input id="mtel" type="text" placeholder="Opcional"></div>
-    </div>
-
-    <div class="modal-section">Despacho</div>
-    <div style="margin-bottom:12px"><label>Dirección</label><input id="mdir" type="text"></div>
-
-    <div class="modal-section">Productos del pedido</div>
-    <div style="margin-bottom:4px">
-      <textarea id="mdet" placeholder="Balde Acai Nativo (3,6 L) x2, Granola Avena Miel (2 kg) x3"></textarea>
-      <div style="font-size:11px;color:var(--textl);font-weight:700;margin-top:5px;line-height:1.5">
-        Separa los productos con coma. Mantener el formato
-        <b>Nombre (formato) xCantidad</b> permite que “Repetir último pedido” los reconozca.
-      </div>
-    </div>
-
-    <div id="m-mensaje-box" style="display:none">
-      <div class="modal-section">Mensaje del cliente</div>
-      <div class="solo-lectura" id="m-mensaje"></div>
-      <div style="font-size:11px;color:var(--textl);font-weight:700;margin-top:5px">
-        Lo escribió el cliente al hacer el pedido. No se puede editar.
-      </div>
-    </div>
-
-    <!-- ══ LO QUE SE TOCA AL DESPACHAR ══
-         Estado, factura, fecha de entrega y quién recibe, juntos y en ese
-         orden. Antes el estado estaba arriba y la factura abajo, y la
-         secuencia de todos los días —facturado, en ruta, entregado— obligaba
-         a subir y bajar. Esta ventana se abre decenas de veces al día. -->
-    <div class="modal-section" id="m-titulo-fact">Facturación y Entrega</div>
-    <div class="fg" style="margin-bottom:12px">
-      <div>
-        <label>Estado</label>
-        <select id="mestado">
-          <option value="pendiente">Sin facturar</option>
-          <option value="facturado">Facturado</option>
-          <option value="en-ruta">En ruta</option>
-          <option value="entregado-sin-facturar">Entregado · sin facturar</option>
-          <option value="entregado">Entregado</option>
-        </select>
-      </div>
-      <div><label>N° Factura</label><input id="mfact" type="text"></div>
-    </div>
-    <div class="fg" style="margin-bottom:12px">
-      <div><label id="mfentrega-lbl">Fecha de Entrega</label>
+      <div style="margin-bottom:6px">
+        <label id="mfentrega-lbl" for="mfentrega-dia">Fecha de Entrega</label>
         <div style="display:flex;gap:6px">
           <input id="mfentrega-dia" type="date" style="flex:1">
           <input id="mfentrega-hora" type="time" style="width:110px;display:none">
         </div>
         <div class="nota-campo" id="mfentrega-crudo" style="display:none"></div>
       </div>
-      <div><label id="mrecibe-lbl">Recibe</label><input id="mrecibe" type="text" placeholder="Nombre de quien recibe"></div>
-    </div>
-    <div class="fg" style="margin-bottom:12px">
-      <div><label>Momento del día</label>
-        <select id="mturno">
-          <option value="">Sin preferencia</option>
-          <option value="manana">☀️ Mañana</option>
-          <option value="tarde">🌙 Tarde</option>
+
+      <!-- Lo que pidió, para leer de un vistazo y facturar sin transcribir. -->
+      <div class="modal-section mp-sec-btn">Pedido
+        <button type="button" class="btn bol bsm" onclick="copiarParaFacturar()"
+          title="Copia razón social, RUT, dirección y productos">📋 Copiar para facturar</button></div>
+      <div class="mp-prods" id="mp-prods"></div>
+      <button type="button" class="mp-enlace" id="mp-edit-prods" onclick="editarProductosModal()">✏️ Editar productos</button>
+      <div id="mp-det-box" hidden>
+        <textarea id="mdet" placeholder="Balde Acai Nativo (3,6 L) x2, Granola Avena Miel (2 kg) x3" oninput="pintarProductosModal()"></textarea>
+        <div style="font-size:11px;color:var(--textl);font-weight:700;margin-top:5px;line-height:1.5">
+          Separa los productos con coma. Mantener el formato
+          <b>Nombre (formato) xCantidad</b> permite que “Repetir último pedido” los reconozca.
+        </div>
+      </div>
+      <div id="m-mensaje-box" style="display:none">
+        <div class="modal-section">Mensaje del cliente</div>
+        <div class="solo-lectura mp-mensaje" id="m-mensaje"></div>
+        <div style="font-size:11px;color:var(--textl);font-weight:700;margin-top:5px">
+          Lo escribió el cliente al hacer el pedido. No se puede editar.
+        </div>
+      </div>
+
+      <div class="modal-section">Cliente y despacho</div>
+      <div style="margin-bottom:12px"><label for="memp">Empresa</label>
+        <input id="memp" type="text" oninput="document.getElementById('mp-emp').textContent = this.value || 'Pedido'"></div>
+      <div class="fg" style="margin-bottom:12px">
+        <div><label for="mrut">RUT</label><input id="mrut" type="text" placeholder="12.345.678-9" oninput="fmtR(this)"></div>
+        <div><label for="mcontacto">Nombre de Contacto</label><input id="mcontacto" type="text" placeholder="Opcional"></div>
+      </div>
+      <div style="margin-bottom:12px"><label for="mtel">Teléfono</label>
+        <input id="mtel" type="text" placeholder="Opcional" oninput="pintarTelModal()">
+        <div class="mp-tel" id="mp-tel"></div></div>
+      <div style="margin-bottom:12px"><label for="mdir">Dirección</label><input id="mdir" type="text"></div>
+      <div style="margin-bottom:12px" id="mzona-box">
+        <label for="mzona">Zona</label>
+        <select id="mzona">
+          <option value="">— Asignar zona —</option>
+          <!-- Las zonas las llena pintarZonas() desde la tabla `zonas`. -->
         </select>
-        <div class="nota-campo" style="display:block">Lo usa la sala de producción,
-          que tiene freezer chico. En el resto es solo una indicación.</div></div>
-    </div>
-    <div class="fg" style="margin-bottom:12px">
-      <div><label>Fecha Pedido</label><input id="mfecha" type="text"></div>
-      <div><label>Total de la factura</label>
-        <input id="mtotal" type="number" step="any" min="0" placeholder="Opcional">
-        <div class="nota-campo" style="display:block">Solo para calcular comisiones.
-          La plataforma no hace cuentas con esto.</div></div>
+        <div class="nota-campo" id="mzona-nota"></div>
+      </div>
+
+      <!-- Lo que casi no se toca. El resumen dice lo que no es lo de siempre,
+           para que plegado no signifique escondido. -->
+      <details class="mp-mas" id="mp-mas">
+        <summary id="mp-mas-res">Más datos</summary>
+        <div class="fg" style="margin-bottom:12px">
+          <div>
+            <label for="mentrega">Tipo de entrega</label>
+            <select id="mentrega" onchange="modalEntregaCambio();pintarMasDatos()">
+              <option value="despacho">Despacho a domicilio</option>
+              <option value="retiro">Retiro en oficina</option>
+            </select>
+          </div>
+          <div>
+            <label for="mcanal">De dónde vino</label>
+            <select id="mcanal" onchange="pintarMasDatos()">
+              <option value="b2b">Cliente mayorista</option>
+              <option value="web">🌐 Página web</option>
+            </select>
+          </div>
+        </div>
+        <label style="display:flex;align-items:center;gap:9px;margin:0 0 14px;
+          padding:11px 13px;background:var(--am-l);border-radius:10px;
+          text-transform:none;font-size:14px;color:#78350f;font-weight:900">
+          <input type="checkbox" id="mprio" style="width:auto" onchange="pintarMasDatos()">
+          ⚡ Prioritario — va primero en la lista
+        </label>
+        <!-- El tipo se puede cambiar después de creado el pedido. Pasa: se
+             despacha como venta y resulta que era una muestra, o una entrega se
+             pierde en el camino y hay que dejarla como merma. -->
+        <div style="margin-bottom:12px">
+          <label for="mtipo">¿Qué es este pedido?</label>
+          <select id="mtipo" onchange="mTipoCambio();pintarMasDatos()">
+            <option value="venta">💵 Venta — se factura y se cobra</option>
+            <option value="muestra">🎁 Muestra — se entrega sin cobrar</option>
+            <option value="merma">🗑️ Merma — salió y se perdió</option>
+            <option value="tarea">🔧 Tarea interna — no se entrega producto</option>
+            <!-- Solo aparece en los pedidos que ya son de producción, para que
+                 abrir uno y guardarlo no lo convierta en venta. No se puede
+                 elegir: esos pedidos los crea la sala desde su portal. -->
+            <option value="produccion" id="mtipo-prod" disabled hidden>🏭 Producción — pedido interno de la sala</option>
+          </select>
+          <div class="nota-campo" id="mtipo-nota"></div>
+        </div>
+        <div style="margin-bottom:12px;display:none" id="mrazon-box">
+          <label for="mrazon">Razón de la entrega</label>
+          <select id="mrazon"></select>
+          <div class="hint-man">Esta entrega no se cobra. Cambiar la razón cambia también
+            el motivo que se propone al descargar bodega.</div>
+        </div>
+        <div style="margin-bottom:12px">
+          <label for="mencargado">Encargado</label>
+          <input id="mencargado" type="text" placeholder="Quién se hace cargo" list="lista-encargados" oninput="pintarMasDatos()">
+          <datalist id="lista-encargados"></datalist>
+        </div>
+        <div style="margin-bottom:12px"><label for="mturno">Momento del día</label>
+          <select id="mturno" onchange="pintarMasDatos()">
+            <option value="">Sin preferencia</option>
+            <option value="manana">☀️ Mañana</option>
+            <option value="tarde">🌙 Tarde</option>
+          </select>
+          <div class="nota-campo" style="display:block">Lo usa la sala de producción,
+            que tiene freezer chico. En el resto es solo una indicación.</div></div>
+        <div class="fg" style="margin-bottom:12px">
+          <div><label for="mfecha">Fecha Pedido</label><input id="mfecha" type="text"></div>
+          <div><label for="mtotal">Total de la factura</label>
+            <input id="mtotal" type="number" step="any" min="0" placeholder="Opcional">
+            <div class="nota-campo" style="display:block">Solo para calcular comisiones.
+              La plataforma no hace cuentas con esto.</div></div>
+        </div>
+      </details>
+
+      <div class="modal-section">Notas internas</div>
+      <div style="margin-bottom:4px">
+        <label for="mcom">Comentario Interno 🔒</label>
+        <textarea id="mcom" placeholder="Notas internas del equipo nativo..."></textarea>
+      </div>
     </div>
 
-    <div class="modal-section">Notas internas</div>
-    <div style="margin-bottom:4px">
-      <label>Comentario Interno 🔒</label>
-      <textarea id="mcom" placeholder="Notas internas del equipo nativo..."></textarea>
-    </div>
-
-    <div class="mact">
-      <button class="btn bgray bsm" onclick="cerrar()">Cancelar</button>
+    <div class="mp-pie">
       <button class="btn bdng bsm" onclick="eliminar()">Eliminar</button>
-      <button class="btn bmora bsm" id="bguardar" onclick="guardar()">Guardar</button>
+      <span class="mp-atajo">Esc cierra · Ctrl+Enter guarda</span>
+      <div class="der">
+        <button class="btn bgray bsm" onclick="cerrar()">Cancelar</button>
+        <button class="btn bmora bsm" id="bguardar" onclick="guardar()">Guardar</button>
+      </div>
     </div>
   </div>
 </div>
-
 <!-- ══ MODAL CLIENTE ══ -->
 <div class="mbg" id="modal-cli">
   <div class="modal">
@@ -2844,12 +2919,31 @@ function filaPed(p) {
     factHtml = `<span class="fact-ped apagado">$${Number(p.total_factura).toLocaleString('es-CL')}</span>`;
   else factHtml = '<span class="fact-ped apagado">—</span>';
 
+  // Lo que pidió, a la vista: en Por facturar y Por despachar completo (se
+  // factura y se arma mirando esto); en el resto, en una línea.
+  const completo = pedTab === 'facturar' || pedTab === 'despachar';
+  const lineas = lineasPedido(p.detalle);
+  const prodHtml = lineas.length
+    ? `<div class="prod-ped${completo ? '' : ' una'}">${lineas.map(l => l.cant != null
+        ? `<b>${Number(l.cant).toLocaleString('es-CL')}</b> × ${hesc(l.nombre)}` : `<span>${hesc(l.nombre)}</span>`).join(' · ')}</div>`
+    : '';
+  const msgTxt = String(p.mensaje || '').trim();
+  const msgHtml = (msgTxt && completo) ? `<div class="msg-ped">💬 ${hesc(msgTxt)}</div>` : '';
+  // Facturar desde la fila: escribir el número y Enter.
+  if (pedTab === 'facturar' && !noEsVenta(p) && !String(p.factura_num || '').trim() && !p.devuelto_tipo) {
+    factHtml = `<div class="fact-inline"><input type="text" inputmode="numeric" placeholder="N° factura"
+        aria-label="Número de factura de ${hesc(p.emp)}"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();facturarFila(${p.id},this)}"
+        oninput="this.classList.remove('falta')"><button type="button" title="Poner factura"
+        onclick="facturarFila(${p.id},this.previousElementSibling)">✓</button></div>`;
+  }
+
   // Marcas: lo que hay que ver sin abrir el pedido
   const m = [];
   if (cliBloq) m.push(chipBloqueo(cli));
   if (p.prioritario) m.push('<span class="mk mk-am">⚡ Prioritario</span>');
   if (p.turno) m.push(`<span class="mk">${p.turno === 'manana' ? '☀️ Mañana' : '🌙 Tarde'}</span>`);
-  if (String(p.mensaje || '').trim()) m.push(`<span class="mk" title="${hesc(p.mensaje)}">💬 Mensaje</span>`);
+  if (String(p.mensaje || '').trim() && !completo) m.push(`<span class="mk" title="${hesc(p.mensaje)}">💬 Mensaje</span>`);
   if (p.recibe) m.push(`<span class="mk mk-ok">✔ ${esRetiro(p) ? 'Retiró' : 'Recibió'}: ${hesc(p.recibe)}</span>`);
   let desc = '';
   if (bodListo && ['en-ruta', 'entregado', 'entregado-sin-facturar'].includes(p.estado)) {
@@ -2884,7 +2978,8 @@ function filaPed(p) {
     </td>
     <td class="td-emp cli-ped">
       <b>${hesc(p.emp) || '(sin nombre)'}</b>
-      <div class="sub-ped">${hesc(lugar)}${lugar ? ' · ' : ''}<span class="folio-chico">${hesc(p.folio || '#' + p.id)}</span></div>
+      <div class="sub-ped">${hesc(lugar)}${lugar ? ' · ' : ''}${p.rut ? 'RUT ' + hesc(p.rut) + ' · ' : ''}<span class="folio-chico">${hesc(p.folio || '#' + p.id)}</span></div>
+      ${prodHtml}${msgHtml}
       ${notaCelda(p)}
     </td>
     <td data-rot="Día">${diaHtml}</td>
@@ -4296,9 +4391,7 @@ function abrir(id) {
   document.getElementById('m-alert').innerHTML = avisoBloqueo(clienteDelPedido(p));
 
   document.getElementById('m-folio').innerHTML = p.folio
-    ? `<div class="alert ai" style="display:flex;align-items:center;gap:8px">
-         <span>Folio del cliente</span><b class="folio" style="font-size:14px">${hesc(p.folio)}</b></div>`
-    : '';
+    ? `<span class="folio-chico" title="Folio del cliente">${hesc(p.folio)}</span>` : '';
 
   document.getElementById('mentrega').value  = ret ? 'retiro' : 'despacho';
   document.getElementById('mcanal').value    = esWeb(p) ? 'web' : 'b2b';
@@ -4351,9 +4444,182 @@ function abrir(id) {
   // se propone al abrir para no tener que pensarla cada vez.
   if (!ret) proponerZona('mzona', 'mzona-nota', p.dir || '');
 
+  // v65: lo que no estaba en la tarjeta, o estaba enterrado
+  document.getElementById('mrut').value = p.rut || '';
+  document.getElementById('mp-emp').textContent = p.emp || 'Pedido';
+  document.getElementById('mp-det-box').hidden = true;
+  document.getElementById('mp-edit-prods').hidden = false;
+  document.getElementById('mp-mas').open = false;
+  pintarSeguimientoModal(p);
+  pintarEstadosModal();
+  pintarProductosModal();
+  pintarTelModal();
+  pintarMasDatos();
+  document.querySelector('#modal .mp-cuerpo').scrollTop = 0;
+
   document.getElementById('modal').classList.add('open');
   marcarAbierto(id);
 }
+
+// ── v65 · piezas de la tarjeta ──
+// Las líneas del pedido: "Nombre (formato) x3" → { nombre, cant }.
+function lineasPedido(det) {
+  return splitDet(det).map(t => {
+    const txt = String(t || '').trim();
+    const m = txt.match(/^(.*?)\s*[x×]\s*(\d+(?:[.,]\d+)?)\s*(?:cajas?|un\.?|unidades?)?\s*$/i);
+    return m ? { nombre: m[1].trim(), cant: Number(m[2].replace(',', '.')), txt }
+             : { nombre: txt, cant: null, txt };
+  }).filter(l => l.nombre);
+}
+
+function pintarProductosModal() {
+  const ls = lineasPedido(document.getElementById('mdet').value);
+  const tot = ls.reduce((a, l) => a + (l.cant || 0), 0);
+  document.getElementById('mp-prods').innerHTML = ls.length
+    ? ls.map(l => `<div class="mp-prod"><span class="q">${l.cant != null ? Number(l.cant).toLocaleString('es-CL') : ''}</span>
+        <span class="${l.cant != null ? '' : 'sinq'}">${hesc(l.nombre)}</span></div>`).join('') +
+      (ls.length > 1 && tot ? `<div class="mp-prod tot"><span class="q">${tot.toLocaleString('es-CL')}</span><span>en total</span></div>` : '')
+    : '<div class="mp-prod"><span class="sinq">Sin productos anotados</span></div>';
+}
+function editarProductosModal() {
+  document.getElementById('mp-det-box').hidden = false;
+  document.getElementById('mp-edit-prods').hidden = true;
+  const t = document.getElementById('mdet');
+  t.focus(); t.setSelectionRange(t.value.length, t.value.length);
+}
+
+// El estado se elige con botones, en el orden en que avanza un pedido.
+function pintarEstadosModal() {
+  const sel = document.getElementById('mestado');
+  document.getElementById('mp-estados').innerHTML = [...sel.options].map(o =>
+    `<button type="button" class="${o.value === sel.value ? 'on' : ''}" aria-pressed="${o.value === sel.value}"
+      onclick="elegirEstadoModal('${o.value}')">${hesc(o.textContent)}</button>`).join('');
+  const p = pedidos.find(x => String(x.id) === String(eid)) || {};
+  document.getElementById('mp-estado').innerHTML = p.devuelto_tipo
+    ? '<span class="dev-badge">↩️ Devuelto</span>' : ebadge(sel.value, Object.assign({}, p, { estado: sel.value }));
+}
+function elegirEstadoModal(v) {
+  const sel = document.getElementById('mestado');
+  sel.value = v;
+  pintarEstadosModal();
+}
+// Escribir la factura de una venta la deja facturada: es lo que significa.
+function facturaEscrita() {
+  const v = document.getElementById('mfact').value.trim();
+  const sel = document.getElementById('mestado');
+  if (!v || document.getElementById('mtipo').value !== 'venta') return;
+  if (sel.value === 'pendiente') elegirEstadoModal('facturado');
+  else if (sel.value === 'entregado-sin-facturar') elegirEstadoModal('entregado');
+}
+
+function pintarTelModal() {
+  const t = document.getElementById('mtel').value.trim();
+  const dig = t.replace(/[^\d+]/g, '');
+  const wa = dig.replace(/^\+/, '');
+  document.getElementById('mp-tel').innerHTML = dig.length >= 8
+    ? `<a href="tel:${hesc(dig)}">📞 Llamar</a><a href="https://wa.me/${hesc(wa)}" target="_blank" rel="noopener">💬 WhatsApp</a>` : '';
+}
+
+// El resumen de «Más datos» nombra solo lo que no es lo de siempre.
+function pintarMasDatos() {
+  const tp = document.getElementById('mtipo');
+  const extras = [];
+  if (tp.value !== 'venta') extras.push(tp.options[tp.selectedIndex].textContent.split('—')[0].trim());
+  if (document.getElementById('mprio').checked) extras.push('⚡ Prioritario');
+  if (document.getElementById('mentrega').value === 'retiro') extras.push('🏢 Retiro');
+  if (document.getElementById('mcanal').value === 'web') extras.push('🌐 Web');
+  const tu = document.getElementById('mturno').value;
+  if (tu) extras.push(tu === 'manana' ? '☀️ Mañana' : '🌙 Tarde');
+  const enc = document.getElementById('mencargado').value.trim();
+  if (enc) extras.push('Encargado: ' + enc);
+  document.getElementById('mp-mas-res').textContent = 'Más datos' + (extras.length ? ' · ' + extras.join(' · ') : '');
+}
+
+// En qué va: la ruta, si se descargó bodega y cuándo se creó.
+function pintarSeguimientoModal(p) {
+  const partes = [];
+  const r = p.ruta_id ? rutasPorId.get(String(p.ruta_id)) : null;
+  if (r) {
+    const e = ESTADO_RUTA[r.estado] || ESTADO_RUTA.armada;
+    partes.push(`🚚 ${nombreCamion(r.camion)}${r.chofer ? ' · ' + hesc(r.chofer) : ''} · ruta del ${diaCortoPed(String(r.fecha).slice(0, 10))} (${hesc(e.lbl)})`);
+  } else if (p.ruta_id) partes.push('🚚 En una ruta');
+  if (bodListo && ['en-ruta', 'entregado', 'entregado-sin-facturar'].includes(p.estado))
+    partes.push(bodPedidosConMov.has(String(p.id))
+      ? '<span class="ok">📦 Bodega descargada</span>' : '<span class="mal">📦 Sin descargar bodega</span>');
+  if (p.devuelto_tipo) partes.push(`<span class="mal">↩️ ${hesc(p.devuelto_motivo || 'Devuelto')}</span>`);
+  const cr = String(p.created_at || '').slice(0, 10);
+  if (cr) partes.push('Creado el ' + cr.split('-').reverse().join('-'));
+  document.getElementById('mp-seg').innerHTML = partes.join(' · ');
+}
+
+// Razón social, RUT, dirección y productos, listos para pegar.
+function copiarParaFacturar() {
+  const v = id => document.getElementById(id).value.trim();
+  const ls = lineasPedido(v('mdet'));
+  const p = pedidos.find(x => String(x.id) === String(eid)) || {};
+  const txt = [
+    'Razón social: ' + v('memp'),
+    'RUT: ' + (v('mrut') || '—'),
+    'Dirección: ' + (v('mdir') || '—'),
+    p.folio ? 'Folio: ' + p.folio : '',
+    '',
+    'Productos:',
+    ...ls.map(l => l.cant != null ? `${l.cant} × ${l.nombre}` : l.nombre)
+  ].filter((x, i) => x !== '' || i === 4).join('\n');
+  const listo = () => toast('Copiado: razón social, RUT, dirección y productos.');
+  const respaldo = () => {
+    const t = document.createElement('textarea');
+    t.value = txt; t.style.position = 'fixed'; t.style.opacity = '0';
+    document.body.appendChild(t); t.select();
+    try { document.execCommand('copy'); listo(); } catch (_) { toastRojo('No se pudo copiar.'); }
+    t.remove();
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText)
+    navigator.clipboard.writeText(txt).then(listo).catch(respaldo);
+  else respaldo();
+}
+
+// Facturar desde la fila de Por facturar, sin abrir la tarjeta.
+async function facturarFila(id, inp) {
+  const p = pedidos.find(x => String(x.id) === String(id));
+  if (!p || !inp) return;
+  const num = inp.value.trim();
+  if (!num) { inp.classList.add('falta'); inp.focus(); return; }
+  const nuevo = p.estado === 'entregado-sin-facturar' ? 'entregado' : 'facturado';
+  const btn = inp.nextElementSibling;
+  const guardarF = async () => {
+    await sbPatch(id, { factura_num: num, estado: nuevo });
+    p.factura_num = num; p.estado = nuevo;
+    render();
+    toast(`${p.emp}: factura N° ${num}. ` + (nuevo === 'entregado' ? 'Pasó a Entregados.' : 'Pasó a Por despachar.'));
+  };
+  // Igual que al guardar la tarjeta: si ya se entregó y no se descargó la
+  // bodega, es el momento de anotar qué salió.
+  if (nuevo === 'entregado' && bodListo && !bodPedidosConMov.has(String(id))) {
+    await abrirDescargo(id, guardarF);
+    return;
+  }
+  try {
+    inp.disabled = true; if (btn) btn.disabled = true;
+    await guardarF();
+  } catch (e) {
+    inp.disabled = false; if (btn) btn.disabled = false;
+    toastRojo('No se pudo poner la factura: ' + e.message);
+  }
+}
+
+// Con la barra lateral en íconos, el nombre de cada ítem aparece al pasar el mouse.
+document.querySelectorAll('#lat-comun .lat-item').forEach(a => { a.title = a.textContent.trim(); });
+
+// Esc cierra la tarjeta y Ctrl+Enter la guarda, si no hay otra ventana encima.
+document.addEventListener('keydown', e => {
+  const m = document.getElementById('modal');
+  if (!m || !m.classList.contains('open')) return;
+  if (document.querySelectorAll('.mbg.open').length > 1) return;
+  if (e.target.closest && e.target.closest('.nota-wrap')) return;
+  if (e.key === 'Escape') { e.preventDefault(); cerrar(); }
+  else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); guardar(); }
+});
 
 function cerrar() {
   document.getElementById('modal').classList.remove('open');
@@ -4415,6 +4681,7 @@ async function guardar() {
     factura_num:   cort ? '' : document.getElementById('mfact').value.trim(),
     fecha:         document.getElementById('mfecha').value.trim(),
     contacto:      document.getElementById('mcontacto').value.trim(),
+    rut:           document.getElementById('mrut').value.trim(),
     telefono:      document.getElementById('mtel').value.trim(),
     // La fecha y la hora van cada una en su campo. Sin día elegido va null:
     // una columna de fecha no acepta texto vacío.
@@ -8184,6 +8451,6 @@ window.addEventListener('hashchange', () => {
   goTab(id, b);
 })();
 </script>
-<div id="version-marca" style="position:fixed;bottom:4px;right:8px;font-size:10px;font-weight:700;color:#9b8ab0;opacity:.7;z-index:5;pointer-events:none;font-family:sans-serif">v64</div>
+<div id="version-marca" style="position:fixed;bottom:4px;right:8px;font-size:10px;font-weight:700;color:#9b8ab0;opacity:.7;z-index:5;pointer-events:none;font-family:sans-serif">v65</div>
 </body>
 </html>
