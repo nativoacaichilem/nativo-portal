@@ -226,6 +226,17 @@ input[type=checkbox]{
 }
 .ci:hover{border-color:var(--mora-l)}
 .ci.sel{border-color:var(--mora);background:var(--mora-xl)}
+.ruta-grupo{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:var(--textl);
+  margin:14px 2px 6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ruta-grupo .gcnt{background:#ece4f6;border-radius:999px;padding:0 8px;font-size:11px;letter-spacing:0}
+.ruta-grupo button{text-transform:none;letter-spacing:0;border:0;background:none;color:var(--mora);font-weight:900;
+  font-size:12px;cursor:pointer;font-family:'Nunito',sans-serif;margin-left:auto}
+.casilla-r{display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:13px;margin:0 0 10px;
+  color:var(--texto-medio);font-weight:800}
+.casilla-r input{width:16px;height:16px;accent-color:var(--mora)}
+.ci-camion{display:inline-block;font-size:11px;font-weight:900;color:var(--mora-d);background:var(--mora-xl);
+  border-radius:6px;padding:2px 7px;margin-top:4px}
+.ci-camion.salio{background:#dbeafe;color:#1e40af}
 
 /* ── PROMPT BOX ── */
 .pbox{
@@ -1310,7 +1321,9 @@ details.mp-mas summary{cursor:pointer;padding:12px 0;font-weight:900;color:var(-
     <div class="card">
       <h2>🚚 Armar Ruta</h2>
       <p style="font-size:13px;color:var(--textl);margin-bottom:16px;font-weight:600">
-        Selecciona pedidos facturados para generar el prompt de ruta.
+        Elige el día: aparecen todos sus despachos, también los que ya van en el
+        camión y los que todavía no se facturan. Así puedes pedirle a Claude el orden
+        y los links aunque el camión ya haya salido.
         Los retiros en oficina no aparecen: el cliente los viene a buscar.
       </p>
       <div id="ruta-aviso"></div>
@@ -1323,9 +1336,19 @@ details.mp-mas summary{cursor:pointer;padding:12px 0;font-weight:900;color:var(-
         <div class="nota-campo" style="display:block">Se usa en el prompt y queda
           guardado para la próxima vez.</div>
       </div>
+      <!-- El día está arriba y manda en toda la sección: qué pedidos se ven,
+           para qué día se arma el texto y a qué ruta se asignan. -->
+      <div class="fg" style="margin-bottom:6px">
+        <div><label for="ruta-dia">Día del despacho</label>
+          <input id="ruta-dia" type="date" onchange="cargarRutas();renderChecksRuta()"></div>
+        <div style="display:flex;align-items:flex-end">
+          <label class="casilla-r"><input type="checkbox" id="ruta-sindia" onchange="renderChecksRuta()">
+            Mostrar también los facturados sin día</label></div>
+      </div>
       <div id="checks"></div>
       <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn bam2" onclick="genPrompt()">✨ Generar Prompt para Claude</button>
+        <button class="btn bol bsm" onclick="selTodoRuta()">Seleccionar todo</button>
         <button class="btn bgray bsm" onclick="deselRuta()">Deseleccionar todo</button>
       </div>
 
@@ -1335,9 +1358,8 @@ details.mp-mas summary{cursor:pointer;padding:12px 0;font-weight:900;color:var(-
            mañana sin que alguien empiece a cargar lo que todavía va a cambiar. -->
       <div class="modal-section" style="margin-top:18px">Mandar al portal de bodega</div>
       <div id="ruta-asig-alert"></div>
+      <div class="sub" style="margin:0 0 8px">Para el día elegido arriba.</div>
       <div class="fg">
-        <div><label>Día del despacho</label>
-          <input id="ruta-dia" type="date" onchange="cargarRutas()"></div>
         <div><label>Camión</label>
           <select id="ruta-camion" onchange="pintarRutaActual()">
             <option value="camion-1">Camión 1</option>
@@ -5068,12 +5090,14 @@ function promptDelDia() {
   if (!filtroDia) return;
   const dia = filtradosTodos().filter(p => !esRetiro(p));
   if (!dia.length) return toastRojo('Ese día no tiene despachos que rutear.');
+  // El día se pone ANTES de cambiar de pestaña: al abrirse, la lista se arma
+  // para ese día y la selección no se pierde.
+  const d = document.getElementById('ruta-dia');
+  if (d) d.value = filtroDia;
   selRuta = dia.map(p => p.id);
   goTab('rutas', document.getElementById('sec-rutas'));
   // Se espera a que la pestaña termine de dibujarse antes de generar.
   setTimeout(() => {
-    const d = document.getElementById('ruta-dia');
-    if (d) d.value = filtroDia;
     renderChecksRuta();
     genPrompt();
   }, 80);
@@ -5432,7 +5456,12 @@ async function asignarRuta(quitar) {
 
   alerta('ruta-asig-alert', '<span class="sp"></span>Asignando...', 'ai');
   let bien = 0; const mal = []; let porQue = '';
+  // Lo que ya salió en un camión no se cambia de ruta: el bodeguero lo
+  // marca al volver desde la ruta en que salió.
+  const saltados = [];
   for (const id of selRuta) {
+    const pq = pedidos.find(x => String(x.id) === String(id));
+    if (pq && pq.estado === 'en-ruta') { saltados.push(pq.emp); continue; }
     try { await sbPatch(id, { ruta_id: quitar ? null : r.id }); bien++; }
     catch (e) {
       mal.push(id);
@@ -5449,6 +5478,8 @@ async function asignarRuta(quitar) {
   // hace que nadie vuelva a confiar en la pantalla.
   alerta('ruta-asig-alert',
     `${bien} pedido(s) ${quitar ? 'sacados de la ruta' : 'agregados'}.` +
+    (saltados.length ? ` ${saltados.length} ya ${saltados.length === 1 ? 'va' : 'van'} en el camión y no se ` +
+      `${saltados.length === 1 ? 'movió' : 'movieron'}: ${saltados.map(hesc).join(', ')}.` : '') +
     (mal.length
       ? ` <b>No se pudo con ${mal.length}:</b> #${mal.join(', #')}.` +
         `<br><span style="font-weight:400">Motivo: ${hesc(porQue)}</span>` +
@@ -5461,35 +5492,67 @@ async function asignarRuta(quitar) {
 }
 
 function renderChecksRuta() {
-  // Una cortesía nunca va a estar "facturada", así que si se pidiera solo ese
-  // estado, las muestras no entrarían nunca en la ruta y habría que llevarlas
-  // aparte, anotadas en un papel.
-  const listos = pedidos.filter(p => !p.devuelto_tipo &&
-    (p.estado === 'facturado' || (noEsVenta(p) && p.estado === 'pendiente')));
-  const f = listos.filter(p => !esRetiro(p));
-  const nret = listos.length - f.length;
+  // La lista sale del día elegido y trae todo lo que va ese día: lo que ya
+  // salió en el camión, lo que está por despachar y lo que todavía no se
+  // factura. Antes solo traía lo facturado, así que apenas el camión salía
+  // no había forma de pedirle a Claude el orden y los links.
+  const dia = (document.getElementById('ruta-dia') || {}).value || '';
+  const conSinDia = !!(document.getElementById('ruta-sindia') || {}).checked;
+  const entregado = p => p.estado === 'entregado' || p.estado === 'entregado-sin-facturar';
+  const delDia = dia ? pedidos.filter(p => !p.devuelto_tipo && !entregado(p) && diaEntrega(p) === dia) : [];
+  // Los sin día solo si se piden: son los facturados que nadie ha programado.
+  const sinDia = conSinDia ? pedidos.filter(p => !p.devuelto_tipo && !diaEntrega(p) &&
+    (p.estado === 'facturado' || (noEsVenta(p) && p.estado === 'pendiente'))) : [];
+  const todos = [...delDia, ...sinDia];
+  const f = todos.filter(p => !esRetiro(p));
+  const nret = todos.length - f.length;
 
   document.getElementById('ruta-aviso').innerHTML = nret
-    ? `<div class="alert an">🏢 ${nret} pedido${nret > 1 ? 's' : ''} facturado${nret > 1 ? 's' : ''}
+    ? `<div class="alert an">🏢 ${nret} pedido${nret > 1 ? 's' : ''} de este día
          ${nret > 1 ? 'quedaron' : 'quedó'} fuera de la ruta porque ${nret > 1 ? 'son retiros' : 'es un retiro'} en oficina.</div>`
     : '';
 
-  // si un retiro estaba seleccionado de antes, se saca de la selección
+  // Lo que ya no está en la lista se saca de la selección
   const validos = new Set(f.map(p => p.id));
   selRuta = selRuta.filter(id => validos.has(id));
 
   const el = document.getElementById('checks');
-  if (!f.length) {
-    el.innerHTML = '<p style="color:var(--textl);font-size:13px;padding:8px;font-weight:700">No hay pedidos facturados para despachar.</p>';
+  if (!dia) {
+    el.innerHTML = '<p style="color:var(--textl);font-size:13px;padding:8px;font-weight:700">Elige un día para ver sus despachos.</p>';
     return;
   }
-  el.innerHTML = f.map(p => `
+  if (!f.length) {
+    el.innerHTML = '<p style="color:var(--textl);font-size:13px;padding:8px;font-weight:700">Este día no tiene despachos' +
+      (conSinDia ? '' : '. Si hay facturados sin día, marca «Mostrar también los facturados sin día».') + '</p>';
+    return;
+  }
+  const salieron = f.filter(p => p.estado === 'en-ruta');
+  const listos   = f.filter(p => p.estado !== 'en-ruta' && (p.estado === 'facturado' || noEsVenta(p)));
+  const sinFact  = f.filter(p => p.estado !== 'en-ruta' && !(p.estado === 'facturado' || noEsVenta(p)));
+  const grupo = (titulo, lista, nota) => lista.length ? `
+    <div class="ruta-grupo">${titulo}<span class="gcnt">${lista.length}</span>${nota ? `<span style="text-transform:none;letter-spacing:0;font-weight:700">${nota}</span>` : ''}
+      <button type="button" onclick="selGrupoRuta([${lista.map(p => p.id).join(',')}])">Seleccionar estos</button></div>
+    ${lista.map(tarjetaCheckRuta).join('')}` : '';
+  el.innerHTML =
+    grupo('🚚 Ya salió en el camión', salieron, '') +
+    grupo('📦 Por despachar', listos, '') +
+    grupo('🧾 Sin factura todavía', sinFact, '· no sale hasta que se facture');
+}
+
+function tarjetaCheckRuta(p) {
+  const r = p.ruta_id ? rutasPorId.get(String(p.ruta_id)) : null;
+  const camion = r
+    ? `<div class="ci-camion${p.estado === 'en-ruta' ? ' salio' : ''}">🚚 ${nombreCamion(r.camion)}${r.chofer ? ' · ' + hesc(r.chofer) : ''}${
+        p.estado === 'en-ruta' ? ' · ya salió' : ' · ' + hesc((ESTADO_RUTA[r.estado] || ESTADO_RUTA.armada).lbl)}</div>`
+    : (p.estado === 'en-ruta' ? '<div class="ci-camion salio">🚚 Ya salió</div>' : '');
+  const sinDia = !diaEntrega(p) ? ' <span class="badge bpend">Sin día</span>' : '';
+  return `
     <div class="ci ${selRuta.includes(p.id) ? 'sel' : ''}" id="ci${p.id}" onclick="togRuta(${p.id})">
       <input type="checkbox" id="cb${p.id}" ${selRuta.includes(p.id) ? 'checked' : ''}
         onclick="event.stopPropagation(); togRuta(${p.id})">
       <div style="flex:1">
         <div style="font-weight:800;font-size:13px;color:var(--mora-d)">
-          ${hesc(p.emp)} ${zbadge(p.zona)}
+          ${hesc(p.emp)} ${zbadge(p.zona)}${sinDia}
           ${noEsVenta(p) ? `<span class="badge bcort">🎁 ${hesc(p.razon || 'sin venta')}</span>` : ''}
         </div>
         <div style="font-size:12px;color:var(--textl);margin-top:2px;font-weight:600">📍 ${hesc(p.dir)}</div>
@@ -5500,8 +5563,21 @@ function renderChecksRuta() {
         ${String(p.mensaje||'').trim() ? `<div class="msg-cli">💬 <b>Cliente:</b> ${hesc(p.mensaje)}</div>` : ''}
         ${String(p.comentario||'').trim() ? `<div class="nota-int">🔒 <b>Nota:</b> ${hesc(p.comentario)}</div>` : ''}
         ${p.factura_num ? `<div style="font-size:11px;color:var(--mora-l);margin-top:2px;font-weight:700">Factura N° ${hesc(p.factura_num)}</div>` : ''}
+        ${camion}
       </div>
-    </div>`).join('');
+    </div>`;
+}
+
+function selGrupoRuta(ids) {
+  ids.forEach(id => { if (!selRuta.includes(id)) selRuta.push(id); });
+  renderChecksRuta(); pintarRutaActual();
+}
+function selTodoRuta() {
+  document.querySelectorAll('#checks .ci').forEach(c => {
+    const id = Number(c.id.slice(2));
+    if (!selRuta.includes(id)) selRuta.push(id);
+  });
+  renderChecksRuta(); pintarRutaActual();
 }
 
 function togRuta(id) {
@@ -5582,14 +5658,19 @@ function totalesTexto(lista) {
 function genPrompt() {
   if (!selRuta.length) { alert('Selecciona al menos un pedido.'); return; }
   const s    = pedidos.filter(p => selRuta.includes(p.id));
-  const fecha = new Date().toLocaleDateString('es-CL', {
+  // El día de la ruta, no el de hoy: se puede armar la de mañana.
+  const diaR = (document.getElementById('ruta-dia') || {}).value || '';
+  const fecha = (diaR ? new Date(diaR + 'T12:00:00') : new Date()).toLocaleDateString('es-CL', {
     weekday:'long', year:'numeric', month:'long', day:'numeric'
   });
+  const esHoy = !diaR || diaR === hoyISO();
+  const yaSalieron = s.filter(p => p.estado === 'en-ruta').length;
   const lista = s.map((p, i) =>
     `\nPEDIDO ${i+1}:\n` +
     `- Cliente: ${p.emp}\n` +
     (noEsVenta(p) ? `- ENTREGA SIN VENTA: ${p.razon || 'cortesía'} — no se cobra\n` : '') +
     (esWeb(p) ? `- Venta de la página web\n` : '') +
+    (p.estado === 'en-ruta' ? `- Ya va en el camión\n` : '') +
     (p.rut ? `- RUT: ${p.rut}\n` : '') +
     (p.folio ? `- Folio: ${p.folio}\n` : '') +
     (p.contacto ? `- Contacto: ${p.contacto}\n` : '') +
@@ -5602,8 +5683,13 @@ function genPrompt() {
   ).join('\n');
 
   const txt =
-    `Necesito que organices la ruta de despacho más eficiente para hoy ${fecha}.\n\n` +
+    `Necesito que organices la ruta de despacho más eficiente para ${esHoy ? 'hoy ' : 'el '}${fecha}.\n\n` +
     `Punto de partida: ${origenRuta()}.\n\n` +
+    (yaSalieron
+      ? `Ojo: el camión ya salió con ${yaSalieron === s.length ? 'estos pedidos' : yaSalieron + ' de estos pedidos'} ` +
+        `(marcados como «Ya va en el camión»). Si te digo dónde va ahora, ordena desde ese punto; ` +
+        `si no, ordena desde el punto de partida.\n\n`
+      : '') +
     `Pedidos a entregar:\n${lista}\n\n` +
     totalesTexto(s) +
     `Por favor:\n` +
@@ -8451,6 +8537,6 @@ window.addEventListener('hashchange', () => {
   goTab(id, b);
 })();
 </script>
-<div id="version-marca" style="position:fixed;bottom:4px;right:8px;font-size:10px;font-weight:700;color:#9b8ab0;opacity:.7;z-index:5;pointer-events:none;font-family:sans-serif">v65</div>
+<div id="version-marca" style="position:fixed;bottom:4px;right:8px;font-size:10px;font-weight:700;color:#9b8ab0;opacity:.7;z-index:5;pointer-events:none;font-family:sans-serif">v66</div>
 </body>
 </html>
