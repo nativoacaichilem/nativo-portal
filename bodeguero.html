@@ -1727,13 +1727,14 @@ async function confirmarSalio(id) {
     try { await actualizar(`pedidos?id=eq.${p.id}`, { devuelto_tipo: 'no-subio',
       devuelto_motivo: 'No subió al camión', devuelto_en: ahoraISO() }); } catch (_) { malos.push(p.emp); }
   }
+  let errRuta = '';
   try { await actualizar(`bod_rutas?id=eq.${r.id}`, { estado: 'cargada', resultado: 'salio', salio_en: ahoraISO() }); }
-  catch (_) { malos.push('la ruta'); }
+  catch (e) { malos.push('la ruta'); errRuta = e.message; }
   cerrarHoja();
   vistaRuta = null;
   await cargarTodo();
   if (malos.length) av('aviso-global', 'El stock se descontó, pero no quedó marcado: ' + malos.map(esc).join(', ') +
-    '. Avisa a la oficina.', 'naranjo');
+    (errRuta ? '<br><small>' + esc(errRuta) + '</small>' : '') + '<br>Avisa a la oficina.', 'naranjo');
   ir('ruta');
   listo('Salió el ' + nomCamion(r.camion), filas.length ? 'El stock ya se descontó' : '', null);
 }
@@ -1753,12 +1754,14 @@ async function confirmarNoSalio(id) {
     try { await actualizar(`pedidos?id=eq.${p.id}`, { devuelto_tipo: 'no-salio', devuelto_motivo: motivo,
       devuelto_en: ahoraISO() }); } catch (_) { malos.push(p.emp); }
   }
-  try { await actualizar(`bod_rutas?id=eq.${r.id}`, { estado: 'cerrada', resultado: 'no-salio', motivo }); }
-  catch (_) { malos.push('la ruta'); }
+  let errRuta = '';
+  try { await actualizar(`bod_rutas?id=eq.${r.id}`, { estado: 'cerrada', cerrada: ahoraISO(), resultado: 'no-salio', motivo }); }
+  catch (e) { malos.push('la ruta'); errRuta = e.message; }
   cerrarHoja();
   vistaRuta = null;
   await cargarTodo();
-  if (malos.length) av('aviso-global', 'No quedó marcado: ' + malos.map(esc).join(', ') + '. Avisa a la oficina.', 'naranjo');
+  if (malos.length) av('aviso-global', 'No quedó marcado: ' + malos.map(esc).join(', ') +
+    (errRuta ? '<br><small>' + esc(errRuta) + '</small>' : '') + '<br>Avisa a la oficina.', 'naranjo');
   ir('cerradas');
   listo('No salió', 'Sus pedidos volvieron a la oficina', null);
 }
@@ -1858,14 +1861,21 @@ async function confirmarCerrarRuta(id) {
       }
     } catch (_) { malos.push(p.emp); }
   }
+  // La base exige que una ruta cerrada traiga su fecha de cierre (`cerrada`):
+  // sin ella rechaza el cambio.
+  let errRuta = '';
   try {
-    if (!malos.length) await actualizar(`bod_rutas?id=eq.${r.id}`, { estado: 'cerrada', volvio_en: ahoraISO() });
-  } catch (_) { malos.push('la ruta'); }
+    if (!malos.length) {
+      const t = ahoraISO();
+      await actualizar(`bod_rutas?id=eq.${r.id}`, { estado: 'cerrada', cerrada: t, volvio_en: t });
+    }
+  } catch (e) { malos.push('la ruta'); errRuta = e.message; }
   cerrarHoja();
   if (!malos.length) { try { localStorage.removeItem('nativo_bod_vuelta_' + id); } catch (_) {} vistaRuta = null; }
   await cargarTodo();
   if (malos.length) av('aviso-global', 'No quedó marcado: ' + malos.map(esc).join(', ') +
-    '. Revisa la señal y vuelve a tocar «Cerrar la ruta».', 'naranjo');
+    (errRuta ? '<br><small>' + esc(errRuta) + '</small>' : '') +
+    '<br>Vuelve a tocar «Cerrar la ruta». Si sigue igual, avisa a la oficina.', 'naranjo');
   else { ir('cerradas'); listo('Ruta cerrada', `${ent} entregado${ent === 1 ? '' : 's'}${no ? ', ' + no + ' vuelve' + (no === 1 ? '' : 'n') + ' a la oficina' : ''}`, null); }
 }
 
@@ -1979,7 +1989,7 @@ function imprimirConteo() {
 <tbody>${lista.map(fila).join('')}</tbody></table>
 <div class="pie"><div>Contó</div><div>Hora</div><div>Revisó</div></div>
 <script>window.onload = () => setTimeout(() => window.print(), 150);<\/script>
-<div id="version-marca" style="position:fixed;bottom:4px;right:8px;font-size:10px;font-weight:700;color:#9b8ab0;opacity:.7;z-index:5;pointer-events:none;font-family:sans-serif">v64</div>
+<div id="version-marca" style="position:fixed;bottom:4px;right:8px;font-size:10px;font-weight:700;color:#9b8ab0;opacity:.7;z-index:5;pointer-events:none;font-family:sans-serif">v65</div>
 </body></html>`);
   v.document.close();
 }
