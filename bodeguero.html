@@ -222,6 +222,65 @@ h2{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:4px}
 /* Lo que no va en la hoja impresa. */
 @media print{ .noimp{display:none !important} }
 </style>
+<style>
+/* ══ v64 · Por salir · En ruta · Cerradas · Stock ══
+   Las pestañas van abajo, al alcance del pulgar. La carga y la vuelta del
+   camión son pantallas aparte, con sus dos botones fijos abajo. */
+.tabs.tabs-abajo{position:fixed;left:0;right:0;bottom:0;z-index:50;max-width:none;margin:0;
+  padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:var(--white);
+  border-top:2px solid var(--crema-d);gap:4px;box-shadow:0 -4px 16px rgba(30,18,38,.06)}
+.tabs-abajo .tab{border:none;background:transparent;min-height:60px;padding:4px 2px;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:21px;position:relative;
+  border-radius:12px;line-height:1.1}
+.tabs-abajo .tab span{font-size:12.5px}
+.tabs-abajo .tab.act{background:var(--mora-xl);color:var(--mora)}
+.tab-n{position:absolute;top:3px;left:calc(50% + 8px);background:var(--mora);color:#fff;font-size:11px;
+  min-width:20px;height:20px;border-radius:99px;display:none;place-items:center;padding:0 5px;font-style:normal}
+.tab-n.on{display:grid}
+#app .caja{padding-bottom:112px}
+body.con-accion .tabs-abajo{display:none}
+.barra-accion{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--white);
+  border-top:2px solid var(--crema-d);padding:10px 14px calc(12px + env(safe-area-inset-bottom));
+  display:grid;grid-template-columns:1fr 1.5fr;gap:10px;box-shadow:0 -6px 18px rgba(30,18,38,.08)}
+.barra-accion.una{grid-template-columns:1fr}
+.barra-accion .b{margin:0;min-height:60px;padding:8px 10px;font-size:17px;line-height:1.15}
+.barra-accion .b small{display:block;font-size:12.5px;font-weight:700;opacity:.85}
+.b-problema{background:var(--white);color:var(--rojo);border:2px solid #f3b4b4}
+.vista-cab{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.vista-cab .b{width:auto;flex:0 0 auto;margin:0;padding:10px 14px;min-height:46px;font-size:15px}
+.vista-cab h2{margin:0;font-size:20px;line-height:1.2}
+.vista-cab .gris{font-size:14px}
+.seccion-t{font-size:13px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--textl);margin:6px 2px 8px}
+.cifras{display:grid;grid-template-columns:repeat(3,1fr);border:2px solid var(--crema);border-radius:14px;margin:12px 0}
+.cifras div{padding:8px 4px;text-align:center}
+.cifras div+div{border-left:2px solid var(--crema)}
+.cifras b{display:block;font-size:22px;font-weight:900;line-height:1.15}
+.cifras span{font-size:12.5px;color:var(--textl);font-weight:800}
+.est{display:inline-block;padding:4px 11px;border-radius:99px;font-size:13px;font-weight:900;white-space:nowrap}
+.est-listo{background:var(--mora-xl);color:var(--mora-d)}
+.est-mov{background:#dbeafe;color:#1e40af}
+.est-ok{background:var(--verde-l);color:var(--verde)}
+.est-mal{background:var(--rojo-l);color:var(--rojo)}
+.ruta-cab{display:flex;align-items:center;gap:10px}
+.ruta-cab h2{margin:0;font-size:20px}
+.ruta-cab .est{margin-left:auto}
+.parada.cargada{border-color:var(--verde);background:#f4fdf8}
+.parada.fallida{border-color:#f3b4b4;background:#fffafa}
+.parada.bloq{background:#faf8fc}
+.marcar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}
+.marcar .b{margin:0}
+.res-linea{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;font-weight:900;font-size:16px}
+.res-linea.ok{color:var(--verde)}
+.res-linea.mal{color:var(--rojo)}
+.enlace{background:none;border:none;color:var(--mora);font-weight:900;font-size:15px;padding:6px 2px;cursor:pointer;font-family:'Nunito',sans-serif}
+.totales .fila-c small{font-size:13px;color:var(--textl);font-weight:800;margin-left:3px}
+.opcion{display:block;width:100%;text-align:left;min-height:56px;border-radius:14px;border:2px solid var(--crema-d);
+  background:var(--white);font-weight:900;font-size:17px;padding:12px 14px;margin-bottom:8px;cursor:pointer;
+  font-family:'Nunito',sans-serif;color:var(--text)}
+.opcion.on{border-color:var(--mora);background:var(--mora-xl);color:var(--mora-d)}
+.lista-res .fila-n small{display:block;font-size:13px;color:var(--textl);font-weight:700}
+@media print{ .tabs-abajo,.barra-accion{display:none !important} }
+</style>
 </head>
 <body>
 
@@ -252,41 +311,28 @@ h2{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:4px}
     <button onclick="cargarTodo(true)">Actualizar</button>
   </div>
 
-  <div class="tabs">
-    <button class="tab act" id="t-rutas"  onclick="ir('rutas')">🚚 Rutas</button>
-    <button class="tab"     id="t-asig"   onclick="ir('asig')">📋 Asignar</button>
-    <button class="tab"     id="t-stock"  onclick="ir('stock')">📦 Stock</button>
-    <button class="tab"     id="t-dia"    onclick="ir('dia')">📊 Mi día</button>
-  </div>
+  <!-- v64 · Las pestañas siguen el viaje del camión: lo que está por salir,
+       lo que va en la calle y lo que ya volvió. Las rutas las arma y publica
+       la oficina; acá se cargan, se marca la salida y se marca la vuelta. -->
+  <nav class="tabs tabs-abajo" aria-label="Secciones">
+    <button class="tab act" id="t-salir" onclick="ir('salir')">🚚<span>Por salir</span><i class="tab-n" id="n-salir"></i></button>
+    <button class="tab" id="t-ruta" onclick="ir('ruta')">🛣️<span>En ruta</span><i class="tab-n" id="n-ruta"></i></button>
+    <button class="tab" id="t-cerradas" onclick="ir('cerradas')">✅<span>Cerradas</span></button>
+    <button class="tab" id="t-stock" onclick="ir('stock')">📦<span>Stock</span></button>
+  </nav>
+  <div id="barra-accion"></div>
 
   <div class="caja">
     <div id="aviso-global"></div>
 
-    <!-- ══ RUTAS ══ -->
-    <div id="p-rutas" class="p on">
-      <div id="dias"></div>
-      <div id="urgente"></div>
-      <div id="camiones"></div>
-      <div id="rutas-cont"></div>
-    </div>
+    <!-- ══ POR SALIR ══ -->
+    <div id="p-salir" class="p on"><div id="salir-cont"></div></div>
 
-    <!-- ══ POR ASIGNAR ══ -->
-    <div id="p-asig" class="p">
-      <div id="asig-dias"></div>
-      <div id="asig-aviso"></div>
-      <div id="asig-lista"></div>
-      <div id="asig-acc" style="display:none;position:sticky;bottom:10px;
-        background:var(--white);border:2px solid var(--mora);border-radius:16px;
-        padding:12px;box-shadow:0 -4px 16px rgba(0,0,0,.12)">
-        <div class="gris" id="asig-sel" style="margin-bottom:9px"></div>
-        <div style="display:flex;gap:9px">
-          <button class="b b-mora b-chico" style="flex:1" onclick="asignarA('camion-1')">
-            A Camión 1</button>
-          <button class="b b-mora b-chico" style="flex:1" onclick="asignarA('camion-2')">
-            A Camión 2</button>
-        </div>
-      </div>
-    </div>
+    <!-- ══ EN RUTA ══ -->
+    <div id="p-ruta" class="p"><div id="ruta-cont"></div></div>
+
+    <!-- ══ CERRADAS ══ (reemplaza a «Mi día») -->
+    <div id="p-cerradas" class="p"><div id="cerradas-cont"></div></div>
 
     <!-- ══ STOCK ══ -->
     <div id="p-stock" class="p">
@@ -294,8 +340,8 @@ h2{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:4px}
         <h2>📦 Lo que hay</h2>
         <div class="gris">El color dice cuánto alcanza según lo que se vende.</div>
         <div style="display:flex;gap:7px;margin-top:12px;flex-wrap:wrap">
-          <button class="chip-f on" id="f-todo"  onclick="filtrarStock('')">Todo</button>
           <button class="chip-f"    id="f-frio"  onclick="filtrarStock('frio')">❄️ Congelados</button>
+          <button class="chip-f"    id="f-todo"  onclick="filtrarStock('')">Todo</button>
           <button class="chip-f"    id="f-seco"  onclick="filtrarStock('seco')">El resto</button>
           <button class="chip-f"    id="f-poco"  onclick="filtrarStock('poco')">⚠️ Poco stock</button>
         </div>
@@ -305,22 +351,18 @@ h2{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:4px}
           🖨️ Imprimir hoja para contar</button>
       </div>
       <div id="stock-lista"></div>
+      <div id="anote-cont"></div>
     </div>
 
-    <!-- ══ MI DÍA ══ -->
-    <div id="p-dia" class="p">
-      <div class="tarj">
-        <h2>📊 Mi día</h2>
-        <div class="gris">Lo que hiciste hoy, para revisar antes de irte.</div>
-      </div>
-      <div id="dia-cont"></div>
-    </div>
+  </div>
+</div>
+
   </div>
 </div>
 
 <!-- ══ CARGAR AL CAMIÓN ══
-     Acá se descuenta el stock. Marcar "en ruta" sin descontar dejaría el
-     inventario diciendo que hay producto que ya va en la carretera. -->
+     Acá se anota lo que sube. El stock se descuenta cuando se marca «Salió»:
+     así un camión que no sale no deja el inventario corto. -->
 <div class="mbg" id="mod-carga">
   <div class="modal">
     <h3 id="cg-title">Cargar al camión</h3>
@@ -390,6 +432,11 @@ h2{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:4px}
     <button class="b b-verde" id="b-ms" onclick="guardarMov()">Guardar</button>
     <button class="b b-gris" onclick="cerrar('mod-stock')">Cancelar</button>
   </div>
+</div>
+
+<!-- ══ HOJA DE CONFIRMACIÓN Y MOTIVOS ══ -->
+<div class="mbg" id="mod-hoja" role="dialog" aria-modal="true">
+  <div class="modal"><div id="hoja-cuerpo"></div></div>
 </div>
 
 <div id="listo">
@@ -657,10 +704,13 @@ function pintarBarra() {
 function arrancar() {
   // El selector se pinta cuando ya están cargadas las bodegas.
   if (!diaSel) diaSel = hoyISO();
+  // El stock abre en los congelados, que es lo que más se mueve.
+  if (filtroStock !== 'frio') filtrarStock('frio');
   cargarTodo();
 }
 
 function ir(id) {
+  vistaRuta = null;
   document.querySelectorAll('.p').forEach(p => p.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('act'));
   document.getElementById('p-' + id).classList.add('on');
@@ -669,14 +719,16 @@ function ir(id) {
   window.scrollTo({ top: 0 });
 }
 function pintar(id) {
-  if (id === 'rutas') renderRutas();
-  if (id === 'asig')  renderAsignar();
-  if (id === 'stock') renderStock();
-  if (id === 'dia')   renderMiDia();
+  if (id === 'salir')    renderPorSalir();
+  if (id === 'ruta')     renderEnRuta();
+  if (id === 'cerradas') renderCerradas();
+  if (id === 'stock')  { renderStock(); renderAnote(); }
+  pintarContadores();
+  pintarBarraAccion();
 }
 function repintar() {
   const a = document.querySelector('.tab.act');
-  pintar(a ? a.id.replace('t-', '') : 'rutas');
+  pintar(a ? a.id.replace('t-', '') : 'salir');
 }
 
 // El lunes de la semana que se está mirando, para la tira de días.
@@ -719,14 +771,29 @@ async function cargarTodo(avisar) {
     bodegas = b; productos = pr.filter(x => x.activo); motivos = mo; saldos = sa;
     pintarBarra();
 
-    // La semana entera, no solo hoy: lo pidió así y tiene sentido —hay que
-    // preparar lo de mañana antes de que llegue mañana—.
-    const l = lunesDe(diaSel);
-    const f = new Date(l); f.setDate(f.getDate() + 6);
-    rutas = await leer(`bod_rutas?select=*&fecha=gte.${aISO(l)}&fecha=lte.${aISO(f)}` +
-      `&order=fecha.asc,camion.asc`);
+    // Las rutas de una semana para atrás y una para adelante, más cualquier
+    // camión que siga en la calle aunque sea de antes.
+    const [r1, r2] = await Promise.all([
+      leer(`bod_rutas?select=*&fecha=gte.${sumarDias(hoyISO(), -7)}&fecha=lte.${sumarDias(hoyISO(), 7)}` +
+        '&order=fecha.asc,camion.asc'),
+      leer('bod_rutas?select=*&estado=eq.cargada&order=fecha.asc')
+    ]);
+    const vistas = new Set();
+    rutas = [...r1, ...r2].filter(r => !vistas.has(r.id) && vistas.add(r.id));
 
-    pedidos = await leer('pedidos?select=*&order=id.desc&limit=400');
+    // Solo los pedidos de esas rutas: son las paradas.
+    const ids = rutas.map(r => r.id);
+    pedidos = ids.length
+      ? await leer(`pedidos?select=*&ruta_id=in.(${ids.join(',')})&order=id.asc`) : [];
+
+    // Los que ya descontaron stock con la forma anterior (al cargar): esos no
+    // se vuelven a descontar al marcar «Salió».
+    conMov = new Set();
+    const pids = pedidos.map(p => p.id);
+    if (pids.length) {
+      const mv = await leer(`bod_movimientos?select=pedido_id,tipo&pedido_id=in.(${pids.join(',')})`);
+      mv.filter(m => m.tipo === 'salida').forEach(m => conMov.add(String(m.pedido_id)));
+    }
     lotes   = await leer('prod_lotes?select=*&estado=neq.recibido&order=fecha_retiro.asc');
 
     // Los movimientos de hoy, para el reporte del día.
@@ -1236,11 +1303,18 @@ function prepararLineas(p) {
 function abrirCarga(id) {
   const p = pedidos.find(x => String(x.id) === String(id));
   if (!p) return;
-  if (!sePuedeTocar(p))
+  if (!sePuedeTocar(p) && esVentaB(p))
     return av('aviso-global', 'Ese pedido todavía no está facturado.', 'naranjo');
 
   const r = prepararLineas(p);
   cgPed = p; cgLineas = r.out;
+  // Si ya se había anotado, se parte de eso y no de lo que dice el pedido.
+  if (Array.isArray(p.carga) && p.carga.length) {
+    cgLineas = p.carga.map(l => ({
+      producto_id: l.producto_id, pedida: Number(l.pedida != null ? l.pedida : l.cantidad) || 0,
+      cantidad: Number(l.cantidad) || 0, medida: l.medida === 'unidad' ? 'unidad' : 'caja',
+      muestra: !!l.muestra, pistoleada: true }));
+  }
 
   document.getElementById('cg-title').textContent = p.emp;
   document.getElementById('cg-alert').innerHTML = '';
@@ -1368,53 +1442,478 @@ async function confirmarCarga() {
   const utiles = cgLineas.filter(l => l.cantidad > 0);
   if (!utiles.length) return av('cg-alert', 'No anotaste ninguna cantidad.', 'rojo');
 
-  const salidas = motivos.filter(m => m.activo && m.tipo === 'salida');
-  const venta = salidas.find(m => m.es_venta);
-  const sinVenta = salidas.find(m => !m.es_venta && !m.es_perdida);
-  if (!venta && !sinVenta) return av('cg-alert',
-    'La oficina no tiene motivos de salida configurados. Avísales.', 'rojo');
-
   const btn = document.getElementById('b-cg');
   btn.innerHTML = '<span class="sp"></span>Guardando...'; btn.disabled = true;
   try {
-    // El stock PRIMERO y el estado después. Si falla el estado, el descuento
-    // ya quedó —que es lo que importa— y la oficina corrige el estado. Al
-    // revés sería peor: un pedido en ruta sin stock descontado.
-    await crear('bod_movimientos', utiles.map(l => ({
-      tipo: 'salida',
-      fecha: hoyISO(),
-      producto_id: l.producto_id,
-      bodega_id: miBodega.id,
-      cantidad: l.cantidad,
-      medida: l.medida,
-      // Una línea de muestra no es venta: lleva el motivo que corresponde o
-      // la cuadratura del mes la cuenta como vendida.
-      motivo_id: (l.muestra ? (sinVenta || venta) : (venta || sinVenta)).id,
-      doc: String(cgPed.factura_num || '').trim() || null,
-      pedido_id: cgPed.id,
-      usuario: quien,
-      nota: `Cargado al camión · ${cgPed.emp}` +
-        (Math.abs(l.cantidad - l.pedida) > 0.001
-          ? ` · pedían ${num(l.pedida)}, subieron ${num(l.cantidad)}` : '')
-    })));
-
-    try { await actualizar(`pedidos?id=eq.${cgPed.id}`, { estado: 'en-ruta' }); }
-    catch (_) {
-      av('aviso-global', 'Se descontó el stock, pero el pedido no quedó en ruta. ' +
-        'Avisa a la oficina.', 'naranjo');
-    }
+    // Se anota lo que sube. El stock se descuenta cuando se marque «Salió».
+    const carga = utiles.map(l => ({ producto_id: l.producto_id, cantidad: l.cantidad,
+      medida: l.medida, muestra: !!l.muestra, pedida: l.pedida }));
+    await actualizar(`pedidos?id=eq.${cgPed.id}`, { carga, cargado_en: new Date().toISOString() });
+    cgPed.carga = carga;
     cerrar('mod-carga');
     cgPed = null;
-    await cargarTodo();
-    listo('Cargado', 'El stock ya se descontó', null);
+    repintar();
+    listo('Anotado', 'El stock se descuenta cuando marques «Salió»', null);
   } catch (e) {
-    av('cg-alert', '<b>No se pudo guardar.</b> ' + esc(e.message) +
-      '<br>No se descontó nada: puedes reintentar.', 'rojo');
+    av('cg-alert', '<b>No se pudo guardar.</b> ' + esc(e.message) + '<br>Puedes reintentar.', 'rojo');
   }
   btn.innerHTML = 'Listo, ya subió al camión'; btn.disabled = false;
 }
 
 // ══════════════════════════════════════════════════════════════
+//  v64 · POR SALIR · EN RUTA · CERRADAS
+// ══════════════════════════════════════════════════════════════
+// Las rutas las arma y publica la oficina. Bodega las recibe, carga cada
+// pedido, marca si el camión salió y, cuando vuelve, qué se entregó.
+//
+// El stock se descuenta al marcar «Salió», no al cargar: un camión que no
+// sale no deja el inventario corto. Lo que vuelve —no salió, no subió o no
+// se entregó— queda marcado como devuelto y la oficina decide qué hacer.
+let vistaRuta = null;      // { id, modo: 'cargar' | 'vuelta' }
+let conMov = new Set();    // pedidos que ya descontaron stock con la forma anterior
+let hojaElegido = '';
+const MOTIVOS_NO_SALIO   = ['Falta producto', 'Camión con problema', 'Falta chofer', 'Otro motivo'];
+const MOTIVOS_NO_ENTREGA = ['Local cerrado', 'El cliente no lo recibió', 'No alcanzó a llegar', 'Dirección equivocada', 'Otro motivo'];
+
+const nomCamion = c => c === 'camion-2' ? 'Camión 2' : 'Camión 1';
+const ahoraISO = () => new Date().toISOString();
+const horaDe = t => t ? new Date(t).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }) : '';
+function sumarDias(iso, n) { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return aISO(d); }
+function diaTexto(iso) {
+  const f = String(iso || '').slice(0, 10), h = hoyISO();
+  if (f === h) return 'Hoy';
+  if (f === sumarDias(h, 1)) return 'Mañana';
+  if (f === sumarDias(h, -1)) return 'Ayer';
+  const d = new Date(f + 'T12:00:00');
+  return `${DIAS_C[d.getDay()]} ${d.getDate()}`;
+}
+const rutaPorId = id => rutas.find(r => String(r.id) === String(id)) || null;
+// Las paradas que siguen en la ruta: lo devuelto ya no es de ella.
+const paradasDe = r => pedidos.filter(p => String(p.ruta_id) === String(r.id) && !p.devuelto_tipo);
+const todosDe   = r => pedidos.filter(p => String(p.ruta_id) === String(r.id));
+const entregadoYa = p => p.estado === 'entregado' || p.estado === 'entregado-sin-facturar';
+const descontado  = p => conMov.has(String(p.id)) || p.estado === 'en-ruta';
+const cargado     = p => descontado(p) || (Array.isArray(p.carga) && p.carga.length > 0);
+const esVentaB    = p => !p.tipo || p.tipo === 'venta';
+function cajasPed(p) {
+  const l = Array.isArray(p.carga) && p.carga.length ? p.carga
+    : prepararLineas(p).out.map(x => ({ cantidad: x.pedida, medida: x.medida }));
+  return l.reduce((a, x) => a + (x.medida === 'unidad' ? 0 : Number(x.cantidad) || 0), 0);
+}
+const bodegaDeRuta = r => (r && r.bodega_id) || (miBodega && miBodega.id);
+// Una ruta publicada sigue «por salir» si le queda algo por entregar. Las
+// rutas de antes de la v64 quedaban publicadas para siempre aunque todo se
+// hubiera entregado: esas no se muestran.
+const porSalir = r => r.estado === 'en_bodega' &&
+  (!todosDe(r).length || paradasDe(r).some(p => !entregadoYa(p)));
+
+function pintarContadores() {
+  const hoy = hoyISO();
+  const nS = rutas.filter(r => porSalir(r) && String(r.fecha).slice(0, 10) <= hoy).length;
+  const nR = rutas.filter(r => r.estado === 'cargada').length;
+  const a = document.getElementById('n-salir'), b = document.getElementById('n-ruta');
+  if (a) { a.textContent = nS; a.classList.toggle('on', nS > 0); }
+  if (b) { b.textContent = nR; b.classList.toggle('on', nR > 0); }
+}
+
+function tarjetaRuta(r, boton, apagada) {
+  const ps = paradasDe(r);
+  const est = { en_bodega: ['est-listo', 'Por salir'], cargada: ['est-mov', 'En ruta'],
+    cerrada: r.resultado === 'no-salio' ? ['est-mal', 'No salió'] : ['est-ok', 'Cerrada'] }[r.estado] || ['est-listo', r.estado];
+  return `<div class="tarj"${apagada ? ' style="opacity:.8"' : ''}>
+    <div class="ruta-cab"><div><h2>🚚 ${nomCamion(r.camion)}</h2>
+      <div class="gris">${esc(diaTexto(r.fecha))} · ${r.chofer ? esc(r.chofer) : '<b style="color:var(--naranjo)">sin chofer</b>'}${
+        r.estado === 'cargada' && r.salio_en ? ' · salió ' + horaDe(r.salio_en) : ''}</div></div>
+      <span class="est ${est[0]}">${est[1]}</span></div>
+    <div class="cifras"><div><b>${ps.length}</b><span>paradas</span></div>
+      <div><b>${ps.reduce((a, p) => a + cajasPed(p), 0)}</b><span>cajas</span></div>
+      <div><b>${ps.filter(cargado).length}</b><span>cargados</span></div></div>
+    ${r.notas ? `<div class="aviso a-mora" style="margin-bottom:12px">💬 <b>Oficina:</b> ${esc(r.notas)}</div>` : ''}
+    ${boton || ''}
+  </div>`;
+}
+
+// ── Por salir ──
+function renderPorSalir() {
+  const cont = document.getElementById('salir-cont');
+  if (!cont) return;
+  if (vistaRuta && vistaRuta.modo === 'cargar') return renderCargar(cont);
+  const hoy = hoyISO();
+  const pub = rutas.filter(porSalir);
+  const atr = pub.filter(r => String(r.fecha).slice(0, 10) < hoy);
+  const deHoy = pub.filter(r => String(r.fecha).slice(0, 10) === hoy);
+  const prox = pub.filter(r => String(r.fecha).slice(0, 10) > hoy);
+  const lotHoy = lotes.filter(x => String(x.fecha_retiro).slice(0, 10) === hoy);
+  let h = '';
+  if (lotHoy.length) h += `<div class="tarj" style="border:3px solid var(--am)">
+    <h2>🏭 Retiros en la sala hoy</h2>
+    ${lotHoy.map(l => `<div class="fila"><div class="fila-n">📥 ${esc(nombreProd(l.producto_id))}
+      <div class="gris" style="font-size:14px">${num(l.declarada)} ${l.medida === 'caja' ? 'cajas' : 'un'} · ${
+        l.turno === 'manana' ? '☀️ mañana' : '🌙 tarde'}</div></div></div>`).join('')}
+  </div>`;
+  const btn = r => `<button class="b b-mora" style="margin:0" onclick="abrirVista(${r.id},'cargar')">📦 Cargar el ${nomCamion(r.camion)}</button>`;
+  if (atr.length) h += '<div class="seccion-t">Atrasadas</div>' + atr.map(r => tarjetaRuta(r, btn(r))).join('');
+  h += '<div class="seccion-t">Hoy</div>' + (deHoy.length ? deHoy.map(r => tarjetaRuta(r, btn(r))).join('')
+    : `<div class="tarj"><div class="gris">${pub.length ? 'Hoy no hay más camiones por salir.'
+        : 'No hay rutas publicadas. Cuando la oficina publique una, aparece aquí.'}</div></div>`);
+  if (prox.length) h += '<div class="seccion-t">Próximos días</div>' + prox.map(r => tarjetaRuta(r,
+    `<button class="b b-gris" style="margin:0" onclick="abrirVista(${r.id},'cargar')">Ver qué lleva</button>`, true)).join('');
+  cont.innerHTML = h;
+}
+
+function abrirVista(id, modo) { vistaRuta = { id, modo }; repintar(); window.scrollTo({ top: 0 }); }
+function cerrarVista() { vistaRuta = null; repintar(); window.scrollTo({ top: 0 }); }
+
+function lineasTxt(p) {
+  if (Array.isArray(p.carga) && p.carga.length)
+    return p.carga.map(l => `<div class="ped-item">· <b>${num(l.cantidad)}</b> ${l.medida === 'unidad' ? 'un.' : 'cajas'} · ${esc(nombreProd(l.producto_id))}</div>`).join('');
+  return (p.detalle || '').split(/,\s*(?=[A-ZÁÉÍÓÚÑ])/).filter(Boolean)
+    .map(d => `<div class="ped-item">· ${esc(d.trim())}</div>`).join('') || '<div class="ped-item">Sin detalle</div>';
+}
+
+function renderCargar(cont) {
+  const r = rutaPorId(vistaRuta.id);
+  if (!r) { vistaRuta = null; return renderPorSalir(); }
+  const ps = paradasDe(r).filter(p => !entregadoYa(p));
+  const listos = ps.filter(cargado).length;
+  // Total a cargar por producto: sirve para armar el pallet.
+  const tot = new Map();
+  ps.forEach(p => {
+    const ls = Array.isArray(p.carga) && p.carga.length ? p.carga
+      : prepararLineas(p).out.map(x => ({ producto_id: x.producto_id, cantidad: x.pedida, medida: x.medida }));
+    ls.forEach(l => { const k = l.producto_id + '|' + l.medida; tot.set(k, (tot.get(k) || 0) + (Number(l.cantidad) || 0)); });
+  });
+  let h = `<div class="vista-cab"><button class="b b-gris" onclick="cerrarVista()">← Volver</button>
+    <div><h2>Cargar el ${nomCamion(r.camion)}</h2><div class="gris">${esc(diaTexto(r.fecha))} · ${esc(r.chofer || 'sin chofer')}</div></div></div>`;
+  if (r.notas) h += `<div class="aviso a-mora">💬 <b>Nota de la oficina:</b> ${esc(r.notas)}</div>`;
+  if (String(r.fecha).slice(0, 10) > hoyISO())
+    h += '<div class="aviso a-mora">Esta ruta sale otro día. Puedes ir preparando la carga; «Salió» se marca el día que sale.</div>';
+  if (tot.size) h += `<div class="seccion-t">Total a cargar</div><div class="tarj totales">${[...tot.entries()].map(([k, v]) => {
+    const [pid, med] = k.split('|');
+    return `<div class="fila"><div class="fila-n">${esc(nombreProd(pid))}</div><div class="fila-c">${num(v)}<small>${med === 'unidad' ? 'un.' : 'cajas'}</small></div></div>`;
+  }).join('')}</div>`;
+  h += `<div class="seccion-t">Paradas en orden · ${listos} de ${ps.length} cargadas</div>`;
+  h += ps.map((p, i) => {
+    const puede = sePuedeTocar(p) || !esVentaB(p), ok = cargado(p);
+    let pie;
+    if (descontado(p)) pie = '<div class="res-linea ok"><span>✔ Ya cargado · stock descontado</span></div>';
+    else if (ok) pie = `<div class="res-linea ok"><span>✔ Subió</span><span>
+        <button class="enlace" onclick="abrirCarga(${p.id})">Cambiar</button>
+        <button class="enlace" style="color:var(--rojo)" onclick="quitarCarga(${p.id})">No sube</button></span></div>`;
+    else if (!puede) pie = '<div class="res-linea" style="color:var(--naranjo)">🧾 Esperando factura: no se puede cargar todavía</div>';
+    else pie = `<button class="b b-mora b-chico" style="margin-top:11px" onclick="abrirCarga(${p.id})">📦 Cargar</button>`;
+    return `<div class="parada ${ok ? 'cargada' : ''} ${!puede ? 'bloq' : ''} ${esProduccion(p) ? 'urge' : ''}">
+      <div style="display:flex;gap:4px;align-items:flex-start"><div class="parada-n">${i + 1}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:900;font-size:17px;line-height:1.25">${esc(p.emp)}</div>
+          <div class="gris">📍 ${esc(p.dir || 'sin dirección')}</div>
+          <div class="gris">${p.factura_num ? '🧾 Factura ' + esc(p.factura_num)
+            : esProduccion(p) ? '🏭 Producción · sin factura' : (esVentaB(p) ? '' : '🎁 Sin cobro')}</div>
+        </div></div>
+      <div class="ped-items" style="margin-top:10px">${lineasTxt(p)}</div>
+      ${pie}
+    </div>`;
+  }).join('') || '<div class="tarj"><div class="gris">Esta ruta no tiene paradas.</div></div>';
+  cont.innerHTML = h;
+}
+
+async function quitarCarga(id) {
+  const p = pedidos.find(x => String(x.id) === String(id));
+  if (!p || !confirm(`¿${p.emp} no sube al camión?\n\nSi el camión sale sin él, vuelve a la oficina.`)) return;
+  try {
+    await actualizar(`pedidos?id=eq.${id}`, { carga: null, cargado_en: null });
+    p.carga = null; repintar();
+  } catch (e) { av('aviso-global', 'No se pudo cambiar: ' + esc(e.message), 'rojo'); }
+}
+
+// ── La barra de abajo de la carga y de la vuelta ──
+function pintarBarraAccion() {
+  const ab = document.getElementById('barra-accion');
+  if (!ab) return;
+  const r = vistaRuta ? rutaPorId(vistaRuta.id) : null;
+  let h = '';
+  if (r && vistaRuta.modo === 'cargar') {
+    if (String(r.fecha).slice(0, 10) > hoyISO()) {
+      h = `<div class="barra-accion una"><button class="b b-gris" onclick="cerrarVista()">← Volver a Por salir</button></div>`;
+    } else {
+      const ps = paradasDe(r).filter(p => !entregadoYa(p));
+      const n = ps.filter(cargado).length;
+      h = `<div class="barra-accion"><button class="b b-problema" onclick="pedirNoSalio(${r.id})">✕ No salió</button>
+        <button class="b b-mora" onclick="pedirSalio(${r.id})" ${n ? '' : 'disabled'}>🚚 Salió<small>${n} de ${ps.length} cargados</small></button></div>`;
+    }
+  } else if (r && vistaRuta.modo === 'vuelta') {
+    const ps = paradasDe(r).filter(p => !entregadoYa(p));
+    const m = marcasVuelta(r.id);
+    const faltan = ps.filter(p => !m[p.id]).length;
+    h = `<div class="barra-accion una"><button class="b b-mora" onclick="pedirCerrarRuta(${r.id})" ${faltan ? 'disabled' : ''}>
+      ✔ Cerrar la ruta<small>${faltan ? 'Faltan ' + faltan + ' por marcar' : 'Todo marcado'}</small></button></div>`;
+  }
+  ab.innerHTML = h;
+  document.body.classList.toggle('con-accion', !!h);
+}
+
+// ── Hoja de confirmación ──
+function hoja(html) { document.getElementById('hoja-cuerpo').innerHTML = html; abrir('mod-hoja'); }
+function cerrarHoja() { cerrar('mod-hoja'); }
+function hojaMotivos(titulo, extra, motivos, accion) {
+  hojaElegido = '';
+  hoja(`<h3>${esc(titulo)}</h3>${extra ? `<div class="gris" style="margin-bottom:12px">${extra}</div>` : ''}
+    ${motivos.map(m => `<button class="opcion" onclick="elegirMotivo(this, '${esc(m)}')">${esc(m)}</button>`).join('')}
+    <button class="b b-mora" id="hoja-ok" disabled onclick="${accion}">Confirmar</button>
+    <button class="b b-gris" onclick="cerrarHoja()">Cancelar</button>`);
+}
+function elegirMotivo(btn, m) {
+  hojaElegido = m;
+  document.querySelectorAll('#hoja-cuerpo .opcion').forEach(b => b.classList.toggle('on', b === btn));
+  document.getElementById('hoja-ok').disabled = false;
+}
+
+// ── Salió ──
+function pedirSalio(id) {
+  const r = rutaPorId(id); if (!r) return;
+  const ps = paradasDe(r).filter(p => !entregadoYa(p));
+  const suben = ps.filter(cargado), quedan = ps.filter(p => !cargado(p));
+  const aDescontar = suben.filter(p => !descontado(p));
+  const cajas = aDescontar.reduce((a, p) => a + cajasPed(p), 0);
+  hoja(`<h3>¿Salió el ${nomCamion(r.camion)}?</h3>
+    <div class="aviso a-verde">✔ Suben ${suben.length} parada${suben.length === 1 ? '' : 's'}.</div>
+    ${aDescontar.length ? `<div class="aviso a-mora">📦 Se descuentan ${num(cajas)} cajas de ${esc(nombreBodegaB(bodegaDeRuta(r)))}.</div>` : ''}
+    ${quedan.length ? `<div class="aviso a-naranjo">↩️ No subió: ${quedan.map(p => esc(p.emp)).join(', ')}. Vuelve a la oficina para que decida.</div>` : ''}
+    <button class="b b-mora" id="hoja-ok" onclick="confirmarSalio(${r.id})">🚚 Sí, salió</button>
+    <button class="b b-gris" onclick="cerrarHoja()">Volver</button>`);
+}
+function nombreBodegaB(id) { const b = bodegas.find(x => String(x.id) === String(id)); return b ? b.nombre : 'la bodega'; }
+
+async function confirmarSalio(id) {
+  const r = rutaPorId(id); if (!r) return;
+  const ok = document.getElementById('hoja-ok');
+  ok.innerHTML = '<span class="sp"></span>Guardando...'; ok.disabled = true;
+  const ps = paradasDe(r).filter(p => !entregadoYa(p));
+  const suben = ps.filter(cargado), quedan = ps.filter(p => !cargado(p));
+  const salidas = motivos.filter(m => m.activo && m.tipo === 'salida');
+  const venta = salidas.find(m => m.es_venta);
+  const sinVenta = salidas.find(m => !m.es_venta && !m.es_perdida);
+  const filas = [];
+  suben.filter(p => !descontado(p) && Array.isArray(p.carga)).forEach(p => p.carga.forEach(l => {
+    if (!(Number(l.cantidad) > 0)) return;
+    // Una línea de muestra o un pedido sin cobro no es venta: lleva su motivo.
+    const mot = (l.muestra || !esVentaB(p)) ? (sinVenta || venta) : (venta || sinVenta);
+    filas.push({
+      tipo: 'salida', fecha: hoyISO(), producto_id: l.producto_id, bodega_id: bodegaDeRuta(r),
+      cantidad: Number(l.cantidad), medida: l.medida === 'unidad' ? 'unidad' : 'caja',
+      motivo_id: mot ? mot.id : null,
+      doc: String(p.factura_num || '').trim() || null, pedido_id: p.id, usuario: quien,
+      nota: `Salió en el ${nomCamion(r.camion)} · ${p.emp}` +
+        (l.pedida != null && Math.abs(Number(l.cantidad) - Number(l.pedida)) > 0.001
+          ? ` · pedían ${num(l.pedida)}, subieron ${num(l.cantidad)}` : '')
+    });
+  }));
+  if (filas.length && !venta && !sinVenta) {
+    cerrarHoja();
+    return av('aviso-global', 'La oficina no tiene motivos de salida configurados. Avísales antes de marcar «Salió».', 'rojo');
+  }
+  // El stock PRIMERO. Si falla, no cambió nada y se puede reintentar.
+  try { if (filas.length) await crear('bod_movimientos', filas); }
+  catch (e) {
+    cerrarHoja();
+    return av('aviso-global', '<b>No se pudo descontar el stock.</b> ' + esc(e.message) +
+      '<br>No cambió nada: puedes volver a marcar «Salió».', 'rojo');
+  }
+  const malos = [];
+  for (const p of suben) if (p.estado !== 'en-ruta') {
+    try { await actualizar(`pedidos?id=eq.${p.id}`, { estado: 'en-ruta' }); } catch (_) { malos.push(p.emp); }
+  }
+  for (const p of quedan) {
+    try { await actualizar(`pedidos?id=eq.${p.id}`, { devuelto_tipo: 'no-subio',
+      devuelto_motivo: 'No subió al camión', devuelto_en: ahoraISO() }); } catch (_) { malos.push(p.emp); }
+  }
+  try { await actualizar(`bod_rutas?id=eq.${r.id}`, { estado: 'cargada', resultado: 'salio', salio_en: ahoraISO() }); }
+  catch (_) { malos.push('la ruta'); }
+  cerrarHoja();
+  vistaRuta = null;
+  await cargarTodo();
+  if (malos.length) av('aviso-global', 'El stock se descontó, pero no quedó marcado: ' + malos.map(esc).join(', ') +
+    '. Avisa a la oficina.', 'naranjo');
+  ir('ruta');
+  listo('Salió el ' + nomCamion(r.camion), filas.length ? 'El stock ya se descontó' : '', null);
+}
+
+// ── No salió ──
+function pedirNoSalio(id) {
+  const r = rutaPorId(id); if (!r) return;
+  hojaMotivos(`¿Por qué no salió el ${nomCamion(r.camion)}?`,
+    'No se descuenta nada del stock y sus pedidos vuelven a la oficina.', MOTIVOS_NO_SALIO, `confirmarNoSalio(${r.id})`);
+}
+async function confirmarNoSalio(id) {
+  const r = rutaPorId(id); if (!r || !hojaElegido) return;
+  const ok = document.getElementById('hoja-ok');
+  ok.innerHTML = '<span class="sp"></span>Guardando...'; ok.disabled = true;
+  const motivo = hojaElegido, malos = [];
+  for (const p of paradasDe(r).filter(p => !entregadoYa(p))) {
+    try { await actualizar(`pedidos?id=eq.${p.id}`, { devuelto_tipo: 'no-salio', devuelto_motivo: motivo,
+      devuelto_en: ahoraISO() }); } catch (_) { malos.push(p.emp); }
+  }
+  try { await actualizar(`bod_rutas?id=eq.${r.id}`, { estado: 'cerrada', resultado: 'no-salio', motivo }); }
+  catch (_) { malos.push('la ruta'); }
+  cerrarHoja();
+  vistaRuta = null;
+  await cargarTodo();
+  if (malos.length) av('aviso-global', 'No quedó marcado: ' + malos.map(esc).join(', ') + '. Avisa a la oficina.', 'naranjo');
+  ir('cerradas');
+  listo('No salió', 'Sus pedidos volvieron a la oficina', null);
+}
+
+// ── En ruta ──
+function renderEnRuta() {
+  const cont = document.getElementById('ruta-cont');
+  if (!cont) return;
+  if (vistaRuta && vistaRuta.modo === 'vuelta') return renderVuelta(cont);
+  const rs = rutas.filter(r => r.estado === 'cargada');
+  cont.innerHTML = `<div class="aviso a-mora"><b>Cuando el camión vuelva</b>, marca pedido por pedido si se entregó.
+    Lo que no se entregó vuelve a la oficina.</div>` +
+    (rs.length ? rs.map(r => tarjetaRuta(r,
+      `<button class="b b-mora" style="margin:0" onclick="abrirVista(${r.id},'vuelta')">✔ Volvió: marcar entregas</button>`)).join('')
+      : '<div class="tarj"><div class="gris">Ningún camión en la calle. Los que marques como «Salió» aparecen aquí.</div></div>');
+}
+
+// Lo marcado se guarda en el teléfono hasta cerrar la ruta: así se puede
+// corregir antes, y no se pierde si se recarga la página.
+function marcasVuelta(id) {
+  try { return JSON.parse(localStorage.getItem('nativo_bod_vuelta_' + id) || '{}'); } catch (_) { return {}; }
+}
+function guardarMarcas(id, m) {
+  try { localStorage.setItem('nativo_bod_vuelta_' + id, JSON.stringify(m)); } catch (_) {}
+}
+function marcarEntrega(rid, pid, res) {
+  if (res === 'no-entregado') {
+    window._marcando = { rid, pid };
+    return hojaMotivos('¿Por qué no se entregó?', 'El pedido vuelve a la oficina, que aprueba el reingreso del producto.',
+      MOTIVOS_NO_ENTREGA, 'confirmarNoEntregado()');
+  }
+  const m = marcasVuelta(rid); m[pid] = { res: 'entregado' }; guardarMarcas(rid, m); repintar();
+}
+function confirmarNoEntregado() {
+  const x = window._marcando; if (!x || !hojaElegido) return;
+  const m = marcasVuelta(x.rid); m[x.pid] = { res: 'no-entregado', motivo: hojaElegido }; guardarMarcas(x.rid, m);
+  cerrarHoja(); repintar();
+}
+function cambiarMarca(rid, pid) { const m = marcasVuelta(rid); delete m[pid]; guardarMarcas(rid, m); repintar(); }
+
+function renderVuelta(cont) {
+  const r = rutaPorId(vistaRuta.id);
+  if (!r) { vistaRuta = null; return renderEnRuta(); }
+  const ps = paradasDe(r).filter(p => !entregadoYa(p));
+  const m = marcasVuelta(r.id);
+  const hechos = ps.filter(p => m[p.id]).length;
+  let h = `<div class="vista-cab"><button class="b b-gris" onclick="cerrarVista()">← Volver</button>
+    <div><h2>Volvió el ${nomCamion(r.camion)}</h2><div class="gris">Salió ${horaDe(r.salio_en) || '—'} · ${esc(r.chofer || 'sin chofer')}</div></div></div>
+    <div class="seccion-t">${hechos} de ${ps.length} marcados</div>`;
+  h += ps.map((p, i) => {
+    const x = m[p.id];
+    const pie = !x
+      ? `<div class="marcar"><button class="b b-verde b-chico" onclick="marcarEntrega(${r.id},${p.id},'entregado')">✔ Entregado</button>
+          <button class="b b-problema b-chico" onclick="marcarEntrega(${r.id},${p.id},'no-entregado')">✕ No entregado</button></div>`
+      : `<div class="res-linea ${x.res === 'entregado' ? 'ok' : 'mal'}"><span>${x.res === 'entregado' ? '✔ Entregado'
+          : '✕ No entregado · ' + esc(x.motivo || '')}</span><button class="enlace" onclick="cambiarMarca(${r.id},${p.id})">Cambiar</button></div>`;
+    return `<div class="parada ${x ? (x.res === 'entregado' ? 'cargada' : 'fallida') : ''}">
+      <div style="display:flex;gap:4px;align-items:flex-start"><div class="parada-n">${i + 1}</div>
+        <div style="flex:1;min-width:0"><div style="font-weight:900;font-size:17px;line-height:1.25">${esc(p.emp)}</div>
+          <div class="gris">📍 ${esc(p.dir || 'sin dirección')}</div></div></div>
+      <div class="ped-items" style="margin-top:10px">${lineasTxt(p)}</div>
+      ${pie}</div>`;
+  }).join('') || '<div class="tarj"><div class="gris">Nada que marcar en esta ruta.</div></div>';
+  cont.innerHTML = h;
+}
+
+function pedirCerrarRuta(id) {
+  const r = rutaPorId(id); if (!r) return;
+  const ps = paradasDe(r).filter(p => !entregadoYa(p)), m = marcasVuelta(id);
+  const ent = ps.filter(p => m[p.id] && m[p.id].res === 'entregado').length;
+  const no = ps.length - ent;
+  hoja(`<h3>¿Cerrar la ruta del ${nomCamion(r.camion)}?</h3>
+    <div class="aviso a-verde">✔ ${ent} entregado${ent === 1 ? '' : 's'}.</div>
+    ${no ? `<div class="aviso a-naranjo">↩️ ${no} vuelve${no === 1 ? '' : 'n'} a la oficina, que aprueba el reingreso del producto.</div>` : ''}
+    <button class="b b-mora" id="hoja-ok" onclick="confirmarCerrarRuta(${r.id})">✔ Sí, cerrar</button>
+    <button class="b b-gris" onclick="cerrarHoja()">Volver</button>`);
+}
+async function confirmarCerrarRuta(id) {
+  const r = rutaPorId(id); if (!r) return;
+  const ok = document.getElementById('hoja-ok');
+  ok.innerHTML = '<span class="sp"></span>Guardando...'; ok.disabled = true;
+  const m = marcasVuelta(id), malos = [];
+  let ent = 0, no = 0;
+  for (const p of paradasDe(r).filter(p => !entregadoYa(p))) {
+    const x = m[p.id]; if (!x) continue;
+    try {
+      if (x.res === 'entregado') {
+        // Una venta que salió sin factura queda «entregado sin facturar»:
+        // así la oficina la ve arriba de Por facturar.
+        await actualizar(`pedidos?id=eq.${p.id}`, {
+          estado: esVentaB(p) && !esProduccion(p) && !String(p.factura_num || '').trim() ? 'entregado-sin-facturar' : 'entregado' });
+        ent++;
+      } else {
+        await actualizar(`pedidos?id=eq.${p.id}`, { devuelto_tipo: 'no-entregado', devuelto_motivo: x.motivo || 'No se entregó',
+          devuelto_en: ahoraISO() });
+        no++;
+      }
+    } catch (_) { malos.push(p.emp); }
+  }
+  try {
+    if (!malos.length) await actualizar(`bod_rutas?id=eq.${r.id}`, { estado: 'cerrada', volvio_en: ahoraISO() });
+  } catch (_) { malos.push('la ruta'); }
+  cerrarHoja();
+  if (!malos.length) { try { localStorage.removeItem('nativo_bod_vuelta_' + id); } catch (_) {} vistaRuta = null; }
+  await cargarTodo();
+  if (malos.length) av('aviso-global', 'No quedó marcado: ' + malos.map(esc).join(', ') +
+    '. Revisa la señal y vuelve a tocar «Cerrar la ruta».', 'naranjo');
+  else { ir('cerradas'); listo('Ruta cerrada', `${ent} entregado${ent === 1 ? '' : 's'}${no ? ', ' + no + ' vuelve' + (no === 1 ? '' : 'n') + ' a la oficina' : ''}`, null); }
+}
+
+// ── Cerradas (reemplaza a «Mi día») ──
+function renderCerradas() {
+  const cont = document.getElementById('cerradas-cont');
+  if (!cont) return;
+  const hoy = hoyISO();
+  const cer = rutas.filter(r => r.estado === 'cerrada')
+    .sort((a, b) => String(b.volvio_en || b.fecha).localeCompare(String(a.volvio_en || a.fecha)));
+  const esHoy = r => String(r.volvio_en || '').slice(0, 10) === hoy || String(r.fecha).slice(0, 10) === hoy;
+  const deHoy = cer.filter(esHoy), antes = cer.filter(r => !esHoy(r));
+  let ent = 0, vol = 0;
+  deHoy.forEach(r => todosDe(r).forEach(p => { if (entregadoYa(p)) ent++; else if (p.devuelto_tipo) vol++; }));
+  const tarjeta = r => {
+    const ps = todosDe(r);
+    const cuerpo = r.resultado === 'no-salio'
+      ? `<div class="aviso a-rojo">✕ No salió · ${esc(r.motivo || '')}. ${ps.length} pedido${ps.length === 1 ? '' : 's'} volvieron a la oficina.</div>`
+      : `<div class="tarj lista-res" style="box-shadow:none;padding:0;margin:0">${ps.map(p => `<div class="fila"><div class="fila-n">${
+          entregadoYa(p) ? '✔' : '↩️'} ${esc(p.emp)}${entregadoYa(p) ? ''
+          : `<small>${esc(p.devuelto_motivo || 'No se entregó')} · volvió a la oficina</small>`}</div></div>`).join('')}</div>`;
+    return tarjetaRuta(r, cuerpo + (r.salio_en ? `<div class="gris" style="margin-top:8px">Salió ${horaDe(r.salio_en)}${
+      r.volvio_en ? ' · volvió ' + horaDe(r.volvio_en) : ''}</div>` : ''));
+  };
+  cont.innerHTML = `<div class="tarj"><h2>📊 Resumen de hoy</h2>
+      <div class="cifras"><div><b>${ent}</b><span>entregados</span></div><div><b>${vol}</b><span>volvieron</span></div>
+        <div><b>${deHoy.length}</b><span>rutas cerradas</span></div></div></div>
+    <div class="seccion-t">Hoy</div>${deHoy.length ? deHoy.map(tarjeta).join('')
+      : '<div class="tarj"><div class="gris">Todavía nada cerrado hoy.</div></div>'}
+    ${antes.length ? '<div class="seccion-t">Días anteriores</div>' + antes.map(tarjeta).join('') : ''}`;
+}
+
+// ── Lo que anoté hoy (estaba en «Mi día») ──
+function renderAnote() {
+  const cont = document.getElementById('anote-cont');
+  if (!cont) return;
+  const mios = movs.filter(m => (m.usuario || '').toLowerCase() === quien.toLowerCase());
+  cont.innerHTML = `<div class="tarj"><h2>📝 Lo que anoté hoy</h2>${mios.length ? mios.map(m => `<div class="fila">
+      <div class="fila-n"><span class="marca ${m.tipo === 'entrada' ? 'm-verde' : 'm-naranjo'}">
+        ${m.tipo === 'entrada' ? '📥 entró' : m.tipo === 'ajuste' ? '🔢 conteo' : m.tipo === 'traslado' ? '↔️ traslado' : '📤 salió'}</span>
+        <div style="margin-top:4px">${esc(nombreProd(m.producto_id))}</div>
+        <div class="gris" style="font-size:14px">${esc(m.nota || '')}</div></div>
+      <div class="fila-c">${num(m.cantidad)}</div></div>`).join('')
+    : '<div class="gris">Nada todavía.</div>'}</div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  HOJA PARA CONTAR// ══════════════════════════════════════════════════════════════
 //  HOJA PARA CONTAR
 // ══════════════════════════════════════════════════════════════
 //
@@ -1480,7 +1979,7 @@ function imprimirConteo() {
 <tbody>${lista.map(fila).join('')}</tbody></table>
 <div class="pie"><div>Contó</div><div>Hora</div><div>Revisó</div></div>
 <script>window.onload = () => setTimeout(() => window.print(), 150);<\/script>
-<div id="version-marca" style="position:fixed;bottom:4px;right:8px;font-size:10px;font-weight:700;color:#9b8ab0;opacity:.7;z-index:5;pointer-events:none;font-family:sans-serif">v61</div>
+<div id="version-marca" style="position:fixed;bottom:4px;right:8px;font-size:10px;font-weight:700;color:#9b8ab0;opacity:.7;z-index:5;pointer-events:none;font-family:sans-serif">v64</div>
 </body></html>`);
   v.document.close();
 }
