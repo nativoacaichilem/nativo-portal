@@ -418,6 +418,7 @@ tbody tr:hover td{background:#faf6ff}
       ['Operación', [
         ['📋', 'Pedidos',     'admin.html',  'pedidos'],
         ['🚚', 'Rutas',       'admin.html',  'rutas'],
+        ['🛍️', 'Portal de clientes', 'admin.html', 'portal'],
         ['🏭', 'Producción',  'admin.html',  'produccion']]],
       ['Inventario', [
         ['📦', 'Stock',                'bodega.html', 'panorama'],
@@ -768,24 +769,6 @@ async function sbJson(path) {
 // la pantalla vuelve a ofrecer el botón de descargar, y el stock se descuenta
 // dos veces. Antes eso pasaba en silencio. Ahora no.
 const TECHO_FILAS = 60000;
-
-function avisarTruncado(tabla, cuantas) {
-  let caja = document.getElementById('aviso-truncado');
-  if (!caja) {
-    caja = document.createElement('div');
-    caja.id = 'aviso-truncado';
-    caja.style.cssText =
-      'position:fixed;left:0;right:0;top:0;z-index:9999;background:#7f1d1d;' +
-      'color:#fff;padding:12px 16px;font-size:13px;font-weight:800;' +
-      'line-height:1.5;box-shadow:0 2px 12px rgba(0,0,0,.3)';
-    document.body.appendChild(caja);
-  }
-  caja.textContent =
-    '⚠ EL LIBRO ESTÁ INCOMPLETO — "' + tabla + '" tiene más de ' +
-    cuantas.toLocaleString('es-CL') + ' movimientos y solo se cargaron esos. ' +
-    'Los saldos que ves están MAL y un pedido ya descargado puede volver a ' +
-    'ofrecerse. No anotes movimientos ni descargues pedidos hasta resolverlo.';
-}
 
 
 function esc(s) {

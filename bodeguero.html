@@ -453,7 +453,6 @@ let rutas = [], pedidos = [], movs = [], lotes = [];
 
 // Qué se está mirando. El día manda: casi todo lo que hace cuelga de un día.
 let diaSel = '', camionSel = 'camion-1', filtroStock = '';
-let aAsignar = new Set();
 
 // ── red ───────────────────────────────────────────────────────
 function explicarRed(e) {
@@ -572,7 +571,6 @@ function nombreProd(id) {
   if (!p) return 'producto ' + id;
   return p.nombre + (p.formato ? ' (' + p.formato + ')' : '');
 }
-const unidadDe = id => (prod(id) || {}).unidad || 'un';
 function saldoDe(prodId) {
   if (!miBodega) return 0;
   const f = saldos.find(s => String(s.bodega_id) === String(miBodega.id) &&
@@ -1070,100 +1068,6 @@ function verParada(id) {
   // Se lleva a la ruta de su día: ahí está con todo lo demás del viaje.
   const d = diaDe(p);
   if (d) { diaSel = d; cargarTodo(); }
-}
-
-// ══════════════════════════════════════════════════════════════
-//  ASIGNAR — los pedidos del día que todavía no tienen camión
-// ══════════════════════════════════════════════════════════════
-function renderAsignar() {
-  pintarDias('asig-dias', 'verDiaAsig');
-  const cont = document.getElementById('asig-lista');
-  if (!cont) return;
-
-  const delDia = pedidos.filter(p => diaDe(p) === diaSel);
-  const libres = delDia.filter(p => !p.ruta_id && sePuedeTocar(p));
-  // Los que no se pueden tocar se MUESTRAN igual. Esconderlos haría creer que
-  // ese día tiene menos trabajo del que tiene, y el bodeguero necesita saber
-  // qué viene aunque todavía no pueda moverlo.
-  const bloqueados = delDia.filter(p => !p.ruta_id && !sePuedeTocar(p));
-
-  if (!delDia.length) {
-    cont.innerHTML = '<div class="tarj"><div class="gris">Nada agendado para ' +
-      esc(fechaCorta(diaSel)) + '.</div></div>';
-    document.getElementById('asig-acc').style.display = 'none';
-    return;
-  }
-
-  cont.innerHTML = `
-    ${libres.length ? `<div class="tarj">
-      <h2>Por asignar</h2>
-      <div class="gris" style="margin-bottom:10px">Marca los que van juntos en un camión.</div>
-      ${libres.map(p => `<div class="fila" onclick="togAsig(${p.id})"
-          style="cursor:pointer">
-        <div style="flex:0 0 auto;font-size:22px">${aAsignar.has(p.id) ? '☑️' : '⬜'}</div>
-        <div class="fila-n">${esProduccion(p) ? '🏭 ' : ''}${esc(p.emp)}
-          <div class="gris" style="font-size:14px">${esc(p.dir || 'sin dirección')}</div>
-          <div class="gris" style="font-size:14px">${esc(p.detalle || '')}</div>
-        </div>
-      </div>`).join('')}
-    </div>` : '<div class="tarj"><div class="gris">Todos los pedidos de este día ' +
-      'ya están en un camión.</div></div>'}
-
-    ${bloqueados.length ? `<div class="tarj" style="opacity:.7">
-      <h2>Todavía sin facturar</h2>
-      <div class="gris" style="margin-bottom:10px">
-        Los puedes ver, pero no moverlos hasta que la oficina los facture.
-      </div>
-      ${bloqueados.map(p => `<div class="fila">
-        <div class="fila-n">${esc(p.emp)}
-          <div class="gris" style="font-size:14px">${esc(p.dir || '')}</div></div>
-        <span class="marca m-gris">esperando factura</span>
-      </div>`).join('')}
-    </div>` : ''}
-  `;
-  pintarAccAsig();
-}
-
-function verDiaAsig(iso) { diaSel = iso; aAsignar.clear(); cargarTodo(); }
-
-function togAsig(id) {
-  if (aAsignar.has(id)) aAsignar.delete(id); else aAsignar.add(id);
-  renderAsignar();
-}
-
-function pintarAccAsig() {
-  const caja = document.getElementById('asig-acc');
-  if (!caja) return;
-  caja.style.display = aAsignar.size ? 'block' : 'none';
-  const e = document.getElementById('asig-sel');
-  if (e) e.textContent = `${aAsignar.size} pedido(s) marcado(s)`;
-}
-
-// Asigna lo marcado al camión, creando la ruta del día si no existe.
-async function asignarA(camion) {
-  if (!aAsignar.size) return;
-  let r = rutas.find(x => x.fecha === diaSel && x.camion === camion);
-  try {
-    if (!r) {
-      const resp = await crear('bod_rutas', [{
-        fecha: diaSel, camion, bodega_id: miBodega.id, estado: 'en_bodega'
-      }]);
-      const d = await resp.json();
-      r = Array.isArray(d) ? d[0] : d;
-      if (!r || !r.id) throw new Error('no se pudo crear la ruta');
-    }
-    let bien = 0; const mal = [];
-    for (const id of aAsignar) {
-      try { await actualizar(`pedidos?id=eq.${id}`, { ruta_id: r.id }); bien++; }
-      catch (_) { mal.push(id); }
-    }
-    aAsignar.clear();
-    await cargarTodo();
-    listo(`${bien} al ${camion === 'camion-1' ? 'Camión 1' : 'Camión 2'}`,
-      mal.length ? `${mal.length} no se pudieron` : '', null);
-  } catch (e) {
-    av('asig-aviso', 'No se pudo asignar: ' + esc(e.message), 'rojo');
-  }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -2165,46 +2069,6 @@ async function guardarMov() {
       '<br>Nada quedó anotado.', 'rojo');
   }
   btn.innerHTML = 'Guardar'; btn.disabled = false;
-}
-
-// ══════════════════════════════════════════════════════════════
-//  MI DÍA
-// ══════════════════════════════════════════════════════════════
-function renderMiDia() {
-  const cont = document.getElementById('dia-cont');
-  if (!cont) return;
-  const hoy = hoyISO();
-  const mios = movs.filter(m => (m.usuario || '').toLowerCase() === quien.toLowerCase());
-  const entregados = pedidos.filter(p =>
-    diaDe(p) === hoy && (p.estado === 'entregado' || p.estado === 'entregado-sin-facturar'));
-  const porEntregar = pedidos.filter(p =>
-    diaDe(p) === hoy && p.ruta_id && p.estado !== 'entregado' &&
-    p.estado !== 'entregado-sin-facturar');
-
-  cont.innerHTML = `
-    <div class="tarj">
-      <div class="fila"><div class="fila-n">Entregas hechas hoy</div>
-        <div class="fila-c">${entregados.length}</div></div>
-      <div class="fila"><div class="fila-n">Por entregar</div>
-        <div class="fila-c">${porEntregar.length}</div></div>
-      <div class="fila"><div class="fila-n">Movimientos que anoté</div>
-        <div class="fila-c">${mios.length}</div></div>
-    </div>
-
-    ${mios.length ? `<div class="tarj">
-      <div class="gris" style="margin-bottom:8px"><b>Lo que anoté hoy</b></div>
-      ${mios.map(m => `<div class="fila">
-        <div class="fila-n">
-          <span class="marca ${m.tipo === 'entrada' ? 'm-verde' : 'm-naranjo'}">
-            ${m.tipo === 'entrada' ? '📥 entró' : m.tipo === 'ajuste' ? '🔢 conteo'
-              : m.tipo === 'traslado' ? '↔️ traslado' : '📤 salió'}</span>
-          <div style="margin-top:4px">${esc(nombreProd(m.producto_id))}</div>
-          <div class="gris" style="font-size:14px">${esc(m.nota || '')}</div>
-        </div>
-        <div class="fila-c">${num(m.cantidad)}</div>
-      </div>`).join('')}
-    </div>` : ''}
-  `;
 }
 
 // ── reanudar ──────────────────────────────────────────────────

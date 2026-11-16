@@ -375,6 +375,7 @@ tbody tr:hover td{background:#faf6ff}
       ['Operación', [
         ['📋', 'Pedidos',     'admin.html',  'pedidos'],
         ['🚚', 'Rutas',       'admin.html',  'rutas'],
+        ['🛍️', 'Portal de clientes', 'admin.html', 'portal'],
         ['🏭', 'Producción',  'admin.html',  'produccion']]],
       ['Inventario', [
         ['📦', 'Stock',                'bodega.html', 'panorama'],
@@ -732,6 +733,43 @@ tbody tr:hover td{background:#faf6ff}
           <div style="display:flex;align-items:flex-end">
             <button class="btn bmora bsm" style="width:100%" onclick="guardarBodegaPortal()">
               Guardar</button></div>
+        </div>
+      </div>
+
+      <!-- v65 · el portal de clientes. De qué bodega sale lo que los clientes
+           pueden comprar, y los links de las vendedoras de Pichilemu. Lo fija
+           la oficina, igual que la bodega del bodeguero. -->
+      <div class="card">
+        <div class="card-head"><h2>🛒 Portal de clientes</h2></div>
+        <div id="pc-alert"></div>
+        <div class="hint" style="display:block;margin-bottom:10px">
+          Qué pueden pedir los clientes lo decides en Pedidos › Portal, producto por
+          producto. Estas bodegas son las que ahí se muestran como stock de
+          referencia: lo que hay menos lo que ya está pedido y no sale. Almafrigo y
+          Golden Frost no cuentan.
+        </div>
+        <div class="fg3">
+          <div><label for="pc-general">Portal general · stock de referencia</label>
+            <select id="pc-general"></select></div>
+          <div><label for="pc-pich">Links de Pichilemu · stock de referencia</label>
+            <select id="pc-pich"></select></div>
+          <div style="display:flex;align-items:flex-end">
+            <button class="btn bmora bsm" style="width:100%" onclick="guardarBodegasClientes()">
+              Guardar</button></div>
+        </div>
+
+        <label style="margin-top:6px">Vendedoras de Pichilemu</label>
+        <div class="hint" style="display:block;margin:0 0 8px">
+          Cada vendedora tiene su propio link. Sus clientes piden por ahí, ven lo que
+          marques como disponible para Pichilemu en Pedidos › Portal, y el pedido llega
+          a tu panel con su nombre. Si una deja de vender, desactívala: su link deja de
+          funcionar.
+        </div>
+        <div id="pc-vendedoras"></div>
+        <div class="fg" style="margin-top:8px">
+          <div><input id="pc-vnom" maxlength="60" placeholder="Nombre de la vendedora"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();agregarVendedora()}"></div>
+          <div><button class="btn bol bsm" onclick="agregarVendedora()">+ Agregar vendedora</button></div>
         </div>
       </div>
 
@@ -1822,6 +1860,7 @@ function pintarTodo() {
   renderVentas();
   renderBodegas();
   cargarBodegaPortal();
+  cargarPortalClientes();
   renderProductos();
   renderMinimos();
   renderMotivos();
@@ -3622,6 +3661,172 @@ async function guardarBodegaPortal() {
   } catch (e) {
     alerta('pb-alert', 'No se pudo guardar: ' + esc(e.message), 'ae');
   }
+}
+
+// ── el portal de clientes (v65) ──
+//
+// Tres filas de `bod_config`, la misma tabla de los demás ajustes:
+//   bodega_clientes       id de la bodega del portal general
+//   bodega_pichilemu      id de la bodega de los links de Pichilemu
+//   vendedoras_pichilemu  la lista de vendedoras, como texto JSON
+//
+// El Worker las lee al calcular el stock que ve el cliente. Sin elegir, usa
+// la bodega cuyo nombre dice «Oficina» (o «Pichilemu»), para que el portal
+// funcione desde el primer día.
+const CLAVES_CLIENTES = ['bodega_clientes', 'bodega_pichilemu', 'vendedoras_pichilemu'];
+let cfgClientes = { general: '', pich: '', vendedoras: [] };
+let cfgClientesHay = {};   // qué claves ya tienen fila: decide si se crea o se actualiza
+
+async function cargarPortalClientes() {
+  try {
+    const d = await sbJson(`bod_config?select=clave,valor&clave=in.(${CLAVES_CLIENTES.join(',')})`);
+    cfgClientesHay = {};
+    d.forEach(f => { cfgClientesHay[f.clave] = true; });
+    const v = k => { const f = d.find(x => x.clave === k); return f ? String(f.valor == null ? '' : f.valor) : ''; };
+    let lista = [];
+    try { lista = JSON.parse(v('vendedoras_pichilemu') || '[]'); } catch (_) { lista = []; }
+    cfgClientes = { general: v('bodega_clientes'), pich: v('bodega_pichilemu'),
+                    vendedoras: Array.isArray(lista) ? lista : [] };
+  } catch (_) { /* sin la tabla de ajustes se muestra vacío */ }
+  pintarPortalClientes();
+}
+
+// La bodega que usa el Worker cuando la oficina todavía no elige ninguna.
+function bodegaSugerida(pista) {
+  const b = bodegas.find(x => x.activa !== false && String(x.nombre || '').toLowerCase().includes(pista));
+  return b ? String(b.id) : '';
+}
+
+function pintarPortalClientes() {
+  const selG = document.getElementById('pc-general');
+  const selP = document.getElementById('pc-pich');
+  if (!selG || !selP) return;
+  const vivas = bodegas.filter(b => b.activa);
+  const ops = (elegida, pista) => {
+    const marcada = elegida || bodegaSugerida(pista);
+    return '<option value="">— Sin definir —</option>' + vivas.map(b =>
+      `<option value="${b.id}"${String(b.id) === marcada ? ' selected' : ''}>${esc(b.nombre)}</option>`).join('');
+  };
+  selG.innerHTML = ops(cfgClientes.general, 'oficina');
+  selP.innerHTML = ops(cfgClientes.pich, 'pichilemu');
+  const falta = [];
+  if (!cfgClientes.general) falta.push('del portal general');
+  if (!cfgClientes.pich) falta.push('de los links de Pichilemu');
+  alerta('pc-alert', falta.length
+    ? `Todavía no guardas la bodega ${falta.join(' ni ')}. Mientras tanto se usa la ` +
+      'que aparece marcada (la que se llama «Oficina» o «Pichilemu»). Revisa que sea la correcta y aprieta Guardar.'
+    : '', falta.length ? 'an' : 'ai');
+  pintarVendedoras();
+}
+
+async function guardarCfgCliente(clave, valor) {
+  const fila = { valor: String(valor), quien: operadorNombre() };
+  if (cfgClientesHay[clave]) {
+    await sbSend(`bod_config?clave=eq.${clave}`, 'PATCH', fila);
+    return;
+  }
+  // Igual que la bodega del bodeguero: el Worker no reenvía `Prefer`, así que
+  // no hay upsert. Se crea, y si ya existía se actualiza.
+  try { await sbSend('bod_config', 'POST', { clave, ...fila }); }
+  catch (e) {
+    if (!/duplicate|23505/i.test(String(e.message))) throw e;
+    await sbSend(`bod_config?clave=eq.${clave}`, 'PATCH', fila);
+  }
+  cfgClientesHay[clave] = true;
+}
+
+async function guardarBodegasClientes() {
+  const g = document.getElementById('pc-general').value;
+  const p = document.getElementById('pc-pich').value;
+  if (!g) return alerta('pc-alert', 'Elige la bodega del portal general.', 'ae');
+  try {
+    await guardarCfgCliente('bodega_clientes', g);
+    if (p) await guardarCfgCliente('bodega_pichilemu', p);
+    cfgClientes.general = g;
+    if (p) cfgClientes.pich = p;
+    pintarPortalClientes();
+    toast('Guardado');
+  } catch (e) {
+    alerta('pc-alert', 'No se pudo guardar: ' + esc(e.message), 'ae');
+  }
+}
+
+// El link lleva el nombre y una parte al azar: así no se adivina el link de
+// otra vendedora cambiando el nombre en la dirección.
+function slugVendedora(nombre) {
+  const base = String(nombre).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30) || 'vendedora';
+  const abc = 'abcdefghjkmnpqrstuvwxyz23456789';
+  let azar = '';
+  try { crypto.getRandomValues(new Uint8Array(5)).forEach(b => { azar += abc[b % abc.length]; }); }
+  catch (_) { for (let i = 0; i < 5; i++) azar += abc[Math.floor(Math.random() * abc.length)]; }
+  return `${base}-${azar}`;
+}
+
+// El portal vive en la misma carpeta que esta pantalla.
+function linkVendedora(v) {
+  return `${location.origin}${location.pathname.replace(/[^/]*$/, '')}index.html?pichilemu=${encodeURIComponent(v.slug)}`;
+}
+
+function pintarVendedoras() {
+  const caja = document.getElementById('pc-vendedoras');
+  if (!caja) return;
+  const l = cfgClientes.vendedoras;
+  if (!l.length) {
+    caja.innerHTML = '<div class="hint" style="display:block">Todavía no hay vendedoras.</div>';
+    return;
+  }
+  caja.innerHTML = l.map((v, i) => `
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--crema-d)">
+      <div style="font-weight:800;min-width:120px">${esc(v.nombre)}${v.activa === false ? ' <span class="chip">desactivada</span>' : ''}</div>
+      <input readonly value="${esc(linkVendedora(v))}" style="flex:1 1 260px;font-size:12px"
+        onclick="this.select()" aria-label="Link de ${esc(v.nombre)}"${v.activa === false ? ' disabled' : ''}>
+      ${v.activa === false
+        ? `<button class="btn bgreen bsm" onclick="cambiarVendedora(${i}, true)">Activar</button>`
+        : `<button class="btn bmora bsm" onclick="copiarLinkVendedora(${i})">Copiar link</button>
+           <button class="btn bdng bsm" onclick="cambiarVendedora(${i}, false)">Desactivar</button>`}
+    </div>`).join('');
+}
+
+async function guardarVendedoras(lista, aviso) {
+  try {
+    await guardarCfgCliente('vendedoras_pichilemu', JSON.stringify(lista));
+    cfgClientes.vendedoras = lista;
+    pintarVendedoras();
+    toast(aviso);
+    return true;
+  } catch (e) {
+    alerta('pc-alert', 'No se pudo guardar: ' + esc(e.message), 'ae');
+    return false;
+  }
+}
+
+async function agregarVendedora() {
+  const inp = document.getElementById('pc-vnom');
+  const nombre = inp.value.trim().replace(/\s+/g, ' ');
+  if (!nombre) { inp.focus(); return; }
+  if (cfgClientes.vendedoras.some(v => String(v.nombre).toLowerCase() === nombre.toLowerCase() && v.activa !== false))
+    return alerta('pc-alert', `Ya hay una vendedora activa que se llama ${esc(nombre)}.`, 'ae');
+  const lista = [...cfgClientes.vendedoras, { slug: slugVendedora(nombre), nombre, activa: true }];
+  if (await guardarVendedoras(lista, `${nombre} agregada. Copia su link y mándaselo.`)) inp.value = '';
+}
+
+// Desactivar no borra: los pedidos que ya entraron siguen diciendo de quién
+// son, y si vuelve a vender, se reactiva con el mismo link.
+async function cambiarVendedora(i, activa) {
+  const v = cfgClientes.vendedoras[i];
+  if (!v) return;
+  if (!activa && !confirm(`¿Desactivar a ${v.nombre}? Su link deja de funcionar hasta que la vuelvas a activar.`)) return;
+  const lista = cfgClientes.vendedoras.map((x, j) => j === i ? { ...x, activa } : x);
+  await guardarVendedoras(lista, activa ? `${v.nombre} activada` : `${v.nombre} desactivada`);
+}
+
+async function copiarLinkVendedora(i) {
+  const v = cfgClientes.vendedoras[i];
+  if (!v) return;
+  const link = linkVendedora(v);
+  try { await navigator.clipboard.writeText(link); toast('Link copiado'); }
+  catch (_) { prompt('Copia este link:', link); }
 }
 
 function renderBodegas() {

@@ -395,10 +395,6 @@ function listo(txt, sub, luego) {
   c.classList.add('on');
   setTimeout(() => { c.classList.remove('on'); if (luego) luego(); }, 1700);
 }
-function sumar(id, cuanto) {
-  const e = document.getElementById(id);
-  e.value = Math.max(0, (Number(e.value) || 0) + cuanto);
-}
 const prod = id => productos.find(p => String(p.id) === String(id)) || null;
 
 // Lo que la sala puede producir. La materia prima NO se filtra por esto: lo

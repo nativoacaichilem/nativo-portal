@@ -252,6 +252,18 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
   font-size:15px;font-weight:900;cursor:pointer;font-family:'Nunito',sans-serif;
 }
 
+/* ── DISPONIBILIDAD (v65) ──
+   Lo agotado se ve, apagado: si desapareciera, el cliente creería que dejamos
+   de venderlo. Lo oculto no se dibuja. Lo decide la oficina. */
+.prod-card.agotado{opacity:.55;background:#f7f3ee}
+.prod-card.agotado .qty-btn,.prod-card.agotado .qty-inp{cursor:not-allowed}
+.prod-card.agotado .qty-btn{background:#c9bfd6}
+.prod-agotado{font-size:10.5px;font-weight:800;color:var(--rd);margin-top:2px}
+.pich-nota{background:rgba(255,255,255,.12);color:#fff;border-radius:10px;padding:8px 14px;
+  font-size:13px;font-weight:800;margin-top:14px;display:none}
+.pich-chip{background:var(--am);color:var(--mora-d);border-radius:20px;padding:4px 10px;
+  font-size:11px;font-weight:900;white-space:nowrap}
+
 @media(max-width:480px){
   .prod-grid{grid-template-columns:repeat(2,1fr)}
   .doc-datos{grid-template-columns:1fr}
@@ -270,6 +282,8 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
   <div class="brand">
     <div class="brand-logo">nativo</div>
     <div class="brand-sub">Portal de Órdenes de Compra</div>
+    <!-- v65 · solo en el link de una vendedora de Pichilemu -->
+    <div class="pich-nota" id="pich-nota"></div>
   </div>
   <div class="login-card">
     <h3>Bienvenido</h3>
@@ -291,7 +305,7 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
       <div class="field"><label>Nombre de Contacto *</label><input type="text" id="contacto-inp" placeholder="Nombre completo"></div>
       <div class="field"><label>Teléfono de Contacto *</label><input type="text" id="tel-inp" placeholder="+56 9 1234 5678"></div>
     </div>
-    <button class="btn-primary" onclick="login()">Ver catálogo →</button>
+    <button class="btn-primary" id="btn-login" onclick="login()">Ver catálogo →</button>
   </div>
 </div>
 
@@ -300,6 +314,7 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
   <div class="app-header">
     <div class="app-logo">nativo</div>
     <div class="app-user">
+      <span class="pich-chip" id="hdr-pich" style="display:none"></span>
       <span id="hdr-emp"></span>
       <button class="btn-logout" onclick="logout()">Salir</button>
     </div>
@@ -340,13 +355,13 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
       <div class="eopts">
         <label class="eopt sel" id="eopt-despacho">
           <input type="radio" name="entrega" value="despacho" checked onchange="cambiarEntrega()">
-          <div><b>🚚 Despacho a domicilio</b>
-               <span>Lo llevamos a la dirección que registraste</span></div>
+          <div><b id="eopt-despacho-t">🚚 Despacho a domicilio</b>
+               <span id="eopt-despacho-s">Lo llevamos a la dirección que registraste</span></div>
         </label>
         <label class="eopt" id="eopt-retiro">
           <input type="radio" name="entrega" value="retiro" onchange="cambiarEntrega()">
-          <div><b>🏢 Retiro en nuestra oficina</b>
-               <span>Lo vienes a buscar tú</span></div>
+          <div><b id="eopt-retiro-t">🏢 Retiro en nuestra oficina</b>
+               <span id="eopt-retiro-s">Lo vienes a buscar tú</span></div>
         </label>
       </div>
 
@@ -493,6 +508,73 @@ let sess = {}, qtys = {}, confirmando = false;
 let entrega = 'despacho';
 
 // ══════════════════════════════════════════════════════════════
+//  DISPONIBILIDAD (v65)
+//
+//  Qué se puede pedir lo decide la oficina, producto por producto, en el
+//  panel (Portal de clientes): disponible, agotado u oculto. El portal lo lee
+//  una vez al abrir y lo respeta: lo agotado se ve apagado, lo oculto no
+//  aparece. No hay topes ni alertas a mitad del pedido: lo que el cliente ve
+//  al entrar es lo que puede pedir.
+//
+//  El link de una vendedora de Pichilemu (index.html?pichilemu=<código>) usa
+//  su propia lista, que la oficina maneja aparte.
+//
+//  Si no se puede leer, todo queda disponible, como antes: la oficina revisa
+//  cada pedido antes de facturarlo.
+// ══════════════════════════════════════════════════════════════
+const SLUG_PICH = (new URLSearchParams(location.search).get('pichilemu') || '').trim().slice(0, 60);
+let estados = {};   // nombre del producto en minúsculas → 'agotado' | 'oculto'
+let canalPortal = SLUG_PICH ? 'pichilemu' : 'general';
+let vendedoraPortal = '', linkInvalido = '';
+const normTxt = t => String(t == null ? '' : t).toLowerCase().trim().replace(/\s+/g, ' ');
+const estadoDe = n => estados[normTxt(n)] || '';
+
+async function cargarDisponibilidad() {
+  try {
+    const r = await fetch(`${PROXY}/portal${SLUG_PICH ? '?v=' + encodeURIComponent(SLUG_PICH) : ''}`);
+    const d = await r.json().catch(() => ({}));
+    if (r.status === 404 && SLUG_PICH) {
+      linkInvalido = d.error || 'Este link de pedidos ya no está activo. Pídele a tu vendedora el link actualizado.';
+      return;
+    }
+    if (!r.ok) return;
+    canalPortal = d.canal === 'pichilemu' ? 'pichilemu' : 'general';
+    vendedoraPortal = String(d.vendedora || '');
+    estados = (d.estados && typeof d.estados === 'object') ? d.estados : {};
+  } catch (_) { /* sin conexión: todo disponible */ }
+}
+
+// Parte al abrir la página, mientras el cliente escribe sus datos. Si tarda
+// más de cinco segundos, el catálogo se abre igual.
+const disponibilidadLista = Promise.race([cargarDisponibilidad(), new Promise(r => setTimeout(r, 5000))]);
+
+// ── el link de una vendedora de Pichilemu ──
+const txtRetiro = () => canalPortal === 'pichilemu'
+  ? `🏠 Retiro coordinado con ${vendedoraPortal || 'tu vendedora'}` : '🏢 Retiro en nuestra oficina';
+
+function prepararPichilemu() {
+  if (!SLUG_PICH) return;
+  const nota = document.getElementById('pich-nota');
+  nota.style.display = 'block';
+  if (linkInvalido) {
+    nota.textContent = linkInvalido;
+    document.getElementById('btn-login').disabled = true;
+    return;
+  }
+  nota.textContent = vendedoraPortal
+    ? `Pedidos de Pichilemu · te atiende ${vendedoraPortal}` : 'Pedidos de Pichilemu';
+  const chip = document.getElementById('hdr-pich');
+  chip.style.display = '';
+  chip.textContent = '🏖️ Pichilemu';
+  document.getElementById('eopt-despacho-t').textContent = '🚚 Te lo llevamos';
+  document.getElementById('eopt-despacho-s').textContent =
+    `${vendedoraPortal || 'Tu vendedora'} lo lleva a la dirección que registraste`;
+  document.getElementById('eopt-retiro-t').textContent = '🏠 Lo retiro yo';
+  document.getElementById('eopt-retiro-s').textContent =
+    `Coordinas con ${vendedoraPortal || 'tu vendedora'} dónde y cuándo`;
+}
+
+// ══════════════════════════════════════════════════════════════
 //  UTILIDADES
 // ══════════════════════════════════════════════════════════════
 // Todo lo que escribe el cliente pasa por aquí antes de insertarse en la
@@ -572,7 +654,7 @@ function showScreen(id) {
 // ══════════════════════════════════════════════════════════════
 //  LOGIN
 // ══════════════════════════════════════════════════════════════
-function login() {
+async function login() {
   const dato = id => document.getElementById(id).value.trim();
   const rut = dato('rut-inp'), emp = dato('emp-inp'), dir = dato('dir-inp');
   const email = dato('email-inp'), contacto = dato('contacto-inp'), tel = dato('tel-inp');
@@ -582,6 +664,18 @@ function login() {
       '<div class="alert alert-error">Por favor completa todos los campos.</div>';
     return;
   }
+
+  if (linkInvalido) {
+    document.getElementById('login-alert').innerHTML =
+      `<div class="alert alert-error">${esc(linkInvalido)}</div>`;
+    return;
+  }
+  // El catálogo se arma con la disponibilidad a la vista. Casi siempre ya
+  // llegó, porque se pidió al abrir la página.
+  const btnL = document.getElementById('btn-login');
+  btnL.disabled = true; btnL.textContent = 'Abriendo catálogo…';
+  await disponibilidadLista;
+  btnL.disabled = false; btnL.textContent = 'Ver catálogo →';
 
   sess = { rut, emp, dir, email, contacto, tel, fecha: new Date().toLocaleDateString('es-CL') };
 
@@ -623,7 +717,10 @@ function slug(s) { return s.replace(/[^a-zA-Z0-9]/g, '_'); }
 const formatoVisible = (f, u) => Number(u) > 1 ? `${f} · por caja de ${u}` : f;
 
 function buildCatalogo() {
-  document.getElementById('catalogo-wrap').innerHTML = CATS.map(cat => `
+  // Lo oculto no se dibuja; una categoría que queda vacía, tampoco.
+  const visibles = CATS.map(cat => ({ ...cat, items: cat.items.filter(it => estadoDe(it.n) !== 'oculto') }))
+                       .filter(cat => cat.items.length);
+  document.getElementById('catalogo-wrap').innerHTML = visibles.map(cat => `
     <div class="seccion" id="sec-${cat.id}">
       <div class="sec-header" onclick="toggleSec('${cat.id}')">
         <div class="sec-left">
@@ -637,18 +734,19 @@ function buildCatalogo() {
       </div>
       <div class="sec-body" id="body-${cat.id}">
         <div class="prod-grid">
-          ${cat.items.map(({n,f,u}) => `
-            <div class="prod-card" id="pc-${slug(n)}" data-prod="${esc(n)}">
+          ${cat.items.map(({n,f,u}) => { const ag = estadoDe(n) === 'agotado'; const off = ag ? ' disabled' : ''; return `
+            <div class="prod-card${ag ? ' agotado' : ''}" id="pc-${slug(n)}" data-prod="${esc(n)}">
               <div>
                 <div class="prod-name">${esc(n)}</div>
                 <div class="prod-format">${esc(formatoVisible(f, u))}</div>
+                ${ag ? '<div class="prod-agotado">No disponible por ahora</div>' : ''}
               </div>
               <div class="qty-row">
-                <button class="qty-btn" data-menos="${slug(n)}">−</button>
-                <input class="qty-inp" type="number" min="0" id="qi-${slug(n)}" value="0" data-set="${slug(n)}">
-                <button class="qty-btn" data-mas="${slug(n)}">+</button>
+                <button class="qty-btn" data-menos="${slug(n)}"${off}>−</button>
+                <input class="qty-inp" type="number" min="0" id="qi-${slug(n)}" value="0" data-set="${slug(n)}"${off}>
+                <button class="qty-btn" data-mas="${slug(n)}"${off}>+</button>
               </div>
-            </div>`).join('')}
+            </div>`; }).join('')}
         </div>
       </div>
     </div>`).join('');
@@ -672,11 +770,13 @@ function toggleSec(id) {
 }
 
 function chg(id, name, d) {
+  if (estadoDe(name) === 'agotado') return;
   const el = document.getElementById('qi-' + id);
   const v = Math.max(0, (parseInt(el.value) || 0) + d);
   el.value = v; upd(id, name, v);
 }
 function setQ(id, name, v) {
+  if (estadoDe(name) === 'agotado') return;
   const val = Math.max(0, parseInt(v) || 0);
   document.getElementById('qi-' + id).value = val; upd(id, name, val);
 }
@@ -797,12 +897,13 @@ function pintarDocumento() {
       <div class="doc-dato"><label>RUT</label><p>${esc(sess.rut)}</p></div>
       <div class="doc-dato"><label>Forma de entrega</label>
         ${esRetiro()
-          ? `<div class="doc-retiro"><b>🏢 Retiro en nuestra oficina</b>
+          ? `<div class="doc-retiro"><b>${esc(txtRetiro())}</b>
                <span>Te contactamos para coordinar día, hora y dirección</span></div>`
           : `<p>🚚 Despacho a domicilio</p>`}
       </div>
       <div class="doc-dato"><label>${esRetiro() ? 'Dirección registrada' : 'Dirección de Despacho'}</label><p>${esc(sess.dir)}</p></div>
       <div class="doc-dato"><label>Fecha del Pedido</label><p>${esc(sess.fecha)}</p></div>
+      ${canalPortal === 'pichilemu' ? `<div class="doc-dato"><label>Vendedora</label><p>🏖️ ${esc(vendedoraPortal || 'Pichilemu')}</p></div>` : ''}
       <div class="doc-dato"><label>Email</label><p>${esc(sess.email)}</p></div>
       <div class="doc-dato"><label>Nombre de Contacto</label><p>${esc(sess.contacto)}</p></div>
       <div class="doc-dato"><label>Teléfono de Contacto</label><p>${esc(sess.tel)}</p></div>
@@ -896,7 +997,9 @@ async function enviarPedido() {
     contacto: sess.contacto, telefono: sess.tel,
     detalle: lineas.join(', '), fecha: sess.fecha, folio: sess.folio,
     entrega,
-    mensaje: document.getElementById('mensaje').value.trim().slice(0, 500)
+    mensaje: document.getElementById('mensaje').value.trim().slice(0, 500),
+    // El código del link de la vendedora. El Worker lo cambia por su nombre.
+    ...(SLUG_PICH ? { pichilemu: SLUG_PICH } : {})
   };
 
   let motivo = '';
@@ -952,7 +1055,8 @@ function pantallaConfirmacion(lineas, yaEstaba) {
     <div class="confirm-box">
       <div class="confirm-box-title">Datos del pedido</div>
       <div class="confirm-row"><span>Empresa</span><span>${esc(sess.emp)}</span></div>
-      <div class="confirm-row"><span>Forma de entrega</span><span>${esRetiro() ? '🏢 Retiro en nuestra oficina' : '🚚 Despacho a domicilio'}</span></div>
+      <div class="confirm-row"><span>Forma de entrega</span><span>${esRetiro() ? esc(txtRetiro()) : '🚚 Despacho a domicilio'}</span></div>
+      ${canalPortal === 'pichilemu' ? `<div class="confirm-row"><span>Vendedora</span><span>🏖️ ${esc(vendedoraPortal || 'Pichilemu')}</span></div>` : ''}
       <div class="confirm-row"><span>${esRetiro() ? 'Dirección registrada' : 'Dirección de despacho'}</span><span>${esc(sess.dir)}</span></div>
       <div class="confirm-row"><span>Email</span><span>${esc(sess.email)}</span></div>
       <div class="confirm-row"><span>Contacto</span><span>${esc(sess.contacto)}</span></div>
@@ -997,6 +1101,7 @@ function nuevosPedido() {
 
 // ── INIT ──
 showScreen('screen-login');
+disponibilidadLista.then(prepararPichilemu);
 </script>
 </body>
 </html>

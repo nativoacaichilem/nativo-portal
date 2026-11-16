@@ -563,6 +563,39 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
 .prod-ped{font-size:12.5px;color:var(--text);font-weight:600;margin-top:4px;line-height:1.5;max-width:520px}
 .prod-ped b{font-weight:900;color:var(--mora-d)}
 .prod-ped.una{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--texto-medio)}
+/* v65 · «Por facturar»: llegada, dirección, RUT y productos a la vista */
+.prod-ped.lista{display:flex;flex-direction:column;gap:1px;max-width:none;font-size:13px}
+.llegada-ped{font-size:12px;color:var(--texto-medio);font-weight:700;margin-top:2px}
+.llegada-ped b{color:var(--mora-d);font-weight:900}
+.datos-fact{display:flex;flex-wrap:wrap;gap:3px 16px;margin-top:4px;font-size:13px;font-weight:600;color:var(--text)}
+.datos-fact b{font-weight:800}
+.datos-fact i{color:var(--rd);font-style:normal;font-weight:800}
+.datos-fact .rut-f{font-variant-numeric:tabular-nums;white-space:nowrap}
+.mk-pich{background:#e0f2fe;color:#075985}
+/* v65 · Portal de clientes */
+.pt-barra{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.pt-canal{display:inline-flex;border:1.5px solid var(--mora);border-radius:9px;overflow:hidden}
+.pt-canal button{border:0;background:var(--white);color:var(--mora);font:800 13px 'Nunito',sans-serif;padding:7px 14px;cursor:pointer}
+.pt-canal button.act{background:var(--mora);color:#fff}
+.pt-bod{font-size:12px;font-weight:700;color:var(--texto-medio)}
+.pt-resumen{font-size:12.5px;font-weight:800;color:var(--texto-medio);margin:4px 0 6px}
+.pt-cat{font-size:12px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;color:var(--mora-d);margin:16px 0 4px}
+.pt-fila{display:grid;grid-template-columns:minmax(0,1fr) 110px auto;gap:10px;align-items:center;padding:8px 10px;border-radius:9px;border:1px solid transparent}
+.pt-fila:nth-child(even){background:#faf7fd}
+.pt-fila.agotado{background:#fff7ed;border-color:#fed7aa}
+.pt-fila.oculto{background:#f4f4f5;opacity:.7}
+.pt-nom b{display:block;font-size:13.5px}
+.pt-nom span{font-size:11.5px;color:var(--texto-medio)}
+.pt-st{font-size:12.5px;font-weight:800;text-align:right;font-variant-numeric:tabular-nums}
+.pt-st.cero{color:var(--rd)}
+.pt-st .ojo{display:block;font-size:10.5px;color:#065f46}
+.pt-seg{display:inline-flex;border:1px solid #d8cdea;border-radius:8px;overflow:hidden}
+.pt-seg button{border:0;background:#fff;font:700 12px 'Nunito',sans-serif;padding:6px 10px;cursor:pointer;color:var(--texto-medio)}
+.pt-seg button+button{border-left:1px solid #d8cdea}
+.pt-seg button.act[data-v=""]{background:#d1fae5;color:#065f46}
+.pt-seg button.act[data-v="agotado"]{background:#ffedd5;color:#9a3412}
+.pt-seg button.act[data-v="oculto"]{background:#e4e4e7;color:#3f3f46}
+@media(max-width:640px){.pt-fila{grid-template-columns:1fr auto}.pt-seg{grid-column:1/-1}}
 .msg-ped{font-size:12px;color:var(--mora-d);background:var(--mora-xl);border-radius:6px;padding:3px 8px;margin-top:5px;
   display:inline-block;font-weight:700;max-width:520px;line-height:1.4}
 .fact-inline{display:flex;gap:4px;align-items:center}
@@ -758,6 +791,7 @@ details.mp-mas summary{cursor:pointer;padding:12px 0;font-weight:900;color:var(-
       ['Operación', [
         ['📋', 'Pedidos',     'admin.html',  'pedidos'],
         ['🚚', 'Rutas',       'admin.html',  'rutas'],
+        ['🛍️', 'Portal de clientes', 'admin.html', 'portal'],
         ['🏭', 'Producción',  'admin.html',  'produccion']]],
       ['Inventario', [
         ['📦', 'Stock',                'bodega.html', 'panorama'],
@@ -854,6 +888,7 @@ details.mp-mas summary{cursor:pointer;padding:12px 0;font-weight:900;color:var(-
     <button class="sec"     id="sec-clientes" onclick="goTab('clientes',this)">👥 Clientes</button>
     <button class="sec"     id="sec-aprobar"  onclick="goTab('aprobar',this)">✅ <span id="sec-aprobar-n">Aprobar</span></button>
     <button class="sec"     id="sec-produccion" onclick="goTab('produccion',this)">🏭 <span id="sec-produccion-n">Producción</span></button>
+    <button class="sec"     id="sec-portal"   onclick="goTab('portal',this)">🛍️ Portal</button>
     <button class="sec"     id="sec-zonas"    onclick="goTab('zonas',this)">🗺️ Zonas</button>
   </div>
 
@@ -1254,6 +1289,33 @@ details.mp-mas summary{cursor:pointer;padding:12px 0;font-weight:900;color:var(-
     </div>
   </div>
 
+  <!-- ── PORTAL DE CLIENTES (v65) ── -->
+  <div id="page-portal" class="page">
+    <div class="card">
+      <h2>🛍️ Portal de clientes · qué se puede pedir</h2>
+      <div id="pt-alert"></div>
+      <div class="alert ai" style="line-height:1.55;margin-bottom:14px">
+        Tú decides qué pueden pedir los clientes. <b>Agotado</b>: se ve en el portal,
+        apagado, y no se puede pedir. <b>Oculto</b>: no aparece. El cambio vale desde
+        la próxima vez que un cliente abra el portal.<br>
+        El stock es solo referencia: lo que hay en la bodega del portal menos lo que ya
+        está pedido y todavía no sale.
+      </div>
+      <div class="pt-barra">
+        <div class="pt-canal" role="group" aria-label="Qué portal">
+          <button class="act" id="pt-c-general" onclick="ptCanal('general')">Portal general</button>
+          <button id="pt-c-pichilemu" onclick="ptCanal('pichilemu')">Links de Pichilemu</button>
+        </div>
+        <span class="pt-bod" id="pt-bod"></span>
+        <span style="flex:1"></span>
+        <button class="btn bol bsm" onclick="ptAgotarCeros()">Marcar agotado lo que está en cero</button>
+        <button class="btn bol bsm" id="pt-nunca" onclick="ptOcultarAjenos()" style="display:none">
+          Ocultar lo que nunca pasó por Pichilemu</button>
+      </div>
+      <div id="pt-lista"></div>
+    </div>
+  </div>
+
   <div id="page-zonas" class="page">
     <div class="card">
       <h2>🗺️ Zonas de reparto</h2>
@@ -1469,6 +1531,7 @@ details.mp-mas summary{cursor:pointer;padding:12px 0;font-weight:900;color:var(-
             <select id="mcanal" onchange="pintarMasDatos()">
               <option value="b2b">Cliente mayorista</option>
               <option value="web">🌐 Página web</option>
+              <option value="pichilemu">🏖️ Pichilemu</option>
             </select>
           </div>
         </div>
@@ -1899,11 +1962,19 @@ async function doLogin() {
 
   // La pregunta por el rol va aparte y envuelta: si el Worker no la conoce o
   // la respuesta se bloquea, no pasa nada y se entra como siempre.
-  if (rol === 'admin') {
-    try {
-      const rr = await fetch(`${PROXY}/rol`, { headers: { 'X-Admin-Token': clave } });
-      if (rr.ok) rol = (await rr.json()).rol || 'admin';
-    } catch (_) { /* da lo mismo: ya se sabe que la clave sirve */ }
+  //
+  // v65 · se pregunta también cuando el primer intento dio 403: ya no solo la
+  // clave de bodega recibe ese 403, también la de producción, y cada una tiene
+  // su pantalla.
+  try {
+    const rr = await fetch(`${PROXY}/rol`, { headers: { 'X-Admin-Token': clave } });
+    if (rr.ok) rol = (await rr.json()).rol || rol;
+  } catch (_) { /* da lo mismo: ya se sabe que la clave sirve */ }
+
+  if (rol === 'produccion') {
+    try { sessionStorage.setItem('nativo_pro_token', clave); } catch (_) {}
+    location.href = 'produccion.html';
+    return;
   }
 
   if (rol === 'bodega') {
@@ -1975,6 +2046,7 @@ function pintarPestana(id) {
   if (id === 'aprobar')  { renderAprobar(); return; }
   if (id === 'produccion') { renderProduccion(); return; }
   if (id === 'zonas')    { renderZonas(); return; }
+  if (id === 'portal')   { renderPortal(); return; }
   if (id === 'nuevo') {
     pintarCat('man');
     if (!document.getElementById('nfecha').value)
@@ -2668,32 +2740,6 @@ function limpiarFiltrosPed() {
   render();
 }
 
-// Retiros que todavía no tienen fecha acordada. Un retiro entregado ya pasó,
-// así que sale de la cuenta: el contador se apaga con el trabajo hecho, no
-// con un tilde.
-const retirosPendientes = () => pedidos.filter(p =>
-  esRetiro(p) && !diaEntrega(p) && !yaEntregado(p.estado));
-
-// Cortesías que todavía no salen: es la lista de trabajo de las muestras.
-const cortesiasPendientes = () => pedidos.filter(p =>
-  noEsVenta(p) && !yaEntregado(p.estado));
-
-// Los contadores pinchables llevan la tabla a lo que representan
-function verSinFacturar() {
-  document.getElementById('buscar').value = '';
-  irTabPed('facturar');
-}
-
-function verEntregadoSinFacturar() { verSinFacturar(); }
-
-function verRetirosPendientes() {
-  document.getElementById('fentrega').value = 'retiro';
-  document.getElementById('fzona').value = '';
-  document.getElementById('buscar').value = '';
-  pedVerFiltros = true;
-  irTabPed('despachar');
-}
-
 function render() {
   // Corte de bodega: solo se ofrece si bodega está andando.
   const bc = document.getElementById('b-corte');
@@ -2826,17 +2872,41 @@ function diaCortoPed(iso) {
   return (dif >= -6 && dif <= 6) ? `${DIA_SEM_PED[f.getDay()]} ${d}` : `${d} ${MES_PED[m - 1]}`;
 }
 
+// v65 · el lugar de cada pedido en la fila de «Por facturar»: 1º es el que
+// lleva más tiempo esperando. Lo arma gruposPed y lo lee filaPed.
+let ordenFacturar = new Map();
+
+// La hora de llegada, como se dice: «hoy 10:42», «ayer 18:03», «12 nov 09:15».
+function llegadaPed(p) {
+  const t = p.created_at ? new Date(p.created_at) : null;
+  if (!t || isNaN(t)) return 'sin hora';
+  const hh = t.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+  const h = new Date(); h.setHours(0, 0, 0, 0);
+  const d = new Date(t); d.setHours(0, 0, 0, 0);
+  const dif = Math.round((h - d) / 864e5);
+  if (dif === 0) return `hoy ${hh}`;
+  if (dif === 1) return `ayer ${hh}`;
+  return `${t.getDate()} ${MES_PED[t.getMonth()]} ${hh}`;
+}
+
 function gruposPed(lista) {
   const prio = (a, b) => (b.prioritario ? 1 : 0) - (a.prioritario ? 1 : 0);
   const g = [];
   if (pedTab === 'facturar') {
-    const ya  = lista.filter(p => p.estado === 'entregado-sin-facturar').sort(prio);
-    const con = lista.filter(p => p.estado !== 'entregado-sin-facturar' && diaEntrega(p))
-      .sort((a, b) => diaEntrega(a).localeCompare(diaEntrega(b)) || prio(a, b));
-    const sin = lista.filter(p => p.estado !== 'entregado-sin-facturar' && !diaEntrega(p)).sort(prio);
-    if (ya.length)  g.push({ t: 'Ya entregados · falta la factura', ico: '⚠️', cls: 'rojo', items: ya });
-    if (con.length) g.push({ t: 'Con día asignado, el más cercano primero', ico: '📅', items: con });
-    if (sin.length) g.push({ t: 'Sin día', ico: '📅', items: sin });
+    // v65 · por orden de llegada, el primero que entró arriba. Se facturan en
+    // ese orden y, ya facturados, pasan a «Por despachar»: si la lista se
+    // reordenara por día o por prioridad, un pedido podría quedarse abajo días
+    // sin que nadie lo note.
+    //
+    // Lo ya entregado sin factura va primero y en rojo: ahí la factura está
+    // atrasada, no en espera.
+    const llegada = (a, b) => String(a.created_at || '').localeCompare(String(b.created_at || '')) ||
+                              Number(a.id) - Number(b.id);
+    const ya    = lista.filter(p => p.estado === 'entregado-sin-facturar').sort(llegada);
+    const resto = lista.filter(p => p.estado !== 'entregado-sin-facturar').sort(llegada);
+    ordenFacturar = new Map(resto.map((p, i) => [String(p.id), i + 1]));
+    if (ya.length)    g.push({ t: 'Ya entregados · falta la factura', ico: '⚠️', cls: 'rojo', items: ya });
+    if (resto.length) g.push({ t: 'Por orden de llegada · el primero que entró está arriba', ico: '🕒', items: resto });
     return g;
   }
   if (pedTab === 'despachar') {
@@ -2944,11 +3014,26 @@ function filaPed(p) {
   // Lo que pidió, a la vista: en Por facturar y Por despachar completo (se
   // factura y se arma mirando esto); en el resto, en una línea.
   const completo = pedTab === 'facturar' || pedTab === 'despachar';
+  const enFact = pedTab === 'facturar';
   const lineas = lineasPedido(p.detalle);
+  // En «Por facturar», un producto por línea: quien factura los copia uno a
+  // uno, y en una sola línea separada por puntos es fácil saltarse uno.
   const prodHtml = lineas.length
-    ? `<div class="prod-ped${completo ? '' : ' una'}">${lineas.map(l => l.cant != null
-        ? `<b>${Number(l.cant).toLocaleString('es-CL')}</b> × ${hesc(l.nombre)}` : `<span>${hesc(l.nombre)}</span>`).join(' · ')}</div>`
+    ? `<div class="prod-ped${enFact ? ' lista' : completo ? '' : ' una'}">${lineas.map(l => l.cant != null
+        ? `<span><b>${Number(l.cant).toLocaleString('es-CL')}</b> × ${hesc(l.nombre)}</span>` : `<span>${hesc(l.nombre)}</span>`)
+        .join(enFact ? '' : ' · ')}</div>`
     : '';
+  // Dirección y RUT, grandes y en su propia línea: son lo que se mira para
+  // facturar. El RUT del pedido manda; si no trae, el del cliente.
+  const rutTxt = p.rut || (cli && cli.rut) || '';
+  const dirTxt = p.dir || (suc && (suc.dir || suc.direccion)) || '';
+  const sub = enFact
+    ? `<div class="llegada-ped">${ordenFacturar.has(String(p.id)) ? `<b>${ordenFacturar.get(String(p.id))}º</b> · ` : ''}Llegó ${hesc(llegadaPed(p))} · <span class="folio-chico">${hesc(p.folio || '#' + p.id)}</span></div>
+       <div class="datos-fact">
+         <span>${esRetiro(p) ? '🏢 Retira' : '📍'} ${suc ? `<b>${hesc(suc.nombre)}</b> · ` : ''}${hesc(dirTxt) || '<i>sin dirección</i>'}</span>
+         <span class="rut-f">🧾 RUT ${rutTxt ? `<b>${hesc(rutTxt)}</b>` : '<i>sin RUT</i>'}</span>
+       </div>`
+    : `<div class="sub-ped">${hesc(lugar)}${lugar ? ' · ' : ''}${p.rut ? 'RUT ' + hesc(p.rut) + ' · ' : ''}<span class="folio-chico">${hesc(p.folio || '#' + p.id)}</span></div>`;
   const msgTxt = String(p.mensaje || '').trim();
   const msgHtml = (msgTxt && completo) ? `<div class="msg-ped">💬 ${hesc(msgTxt)}</div>` : '';
   // Facturar desde la fila: escribir el número y Enter.
@@ -2963,12 +3048,14 @@ function filaPed(p) {
   // Marcas: lo que hay que ver sin abrir el pedido
   const m = [];
   if (cliBloq) m.push(chipBloqueo(cli));
+  // v65 · lo que llega por el link de una vendedora de Pichilemu
+  if (p.canal === 'pichilemu') m.push(`<span class="mk mk-pich">🏖️ Pichilemu${p.vendedora ? ' · ' + hesc(p.vendedora) : ''}</span>`);
   if (p.prioritario) m.push('<span class="mk mk-am">⚡ Prioritario</span>');
   if (p.turno) m.push(`<span class="mk">${p.turno === 'manana' ? '☀️ Mañana' : '🌙 Tarde'}</span>`);
   if (String(p.mensaje || '').trim() && !completo) m.push(`<span class="mk" title="${hesc(p.mensaje)}">💬 Mensaje</span>`);
   if (p.recibe) m.push(`<span class="mk mk-ok">✔ ${esRetiro(p) ? 'Retiró' : 'Recibió'}: ${hesc(p.recibe)}</span>`);
   let desc = '';
-  if (bodListo && ['en-ruta', 'entregado', 'entregado-sin-facturar'].includes(p.estado)) {
+  if (bodListo && ['en-ruta', 'entregado', 'entregado-sin-facturar'].includes(p.estado) && !nadaQueDescontar(p)) {
     desc = bodPedidosConMov.has(String(p.id))
       ? '<span class="mk mk-ok">✔ Bodega descargada</span>'
       : `<button class="btn-desc" onclick="abrirDescargo(${p.id},null)" title="Anotar qué salió de bodega para este pedido">📦 Descargar bodega</button>`;
@@ -3000,7 +3087,7 @@ function filaPed(p) {
     </td>
     <td class="td-emp cli-ped">
       <b>${hesc(p.emp) || '(sin nombre)'}</b>
-      <div class="sub-ped">${hesc(lugar)}${lugar ? ' · ' : ''}${p.rut ? 'RUT ' + hesc(p.rut) + ' · ' : ''}<span class="folio-chico">${hesc(p.folio || '#' + p.id)}</span></div>
+      ${sub}
       ${prodHtml}${msgHtml}
       ${notaCelda(p)}
     </td>
@@ -3493,6 +3580,9 @@ function bodMotivoPropuesto(p) {
 // guardar el pedido con su nuevo estado.
 async function abrirDescargo(pedidoId, tras) {
   const p = pedidos.find(x => String(x.id) === String(pedidoId));
+  // Una tarea o el retiro de un lote no tienen nada que descontar: se sigue
+  // con lo que venía después, sin abrir la ventana.
+  if (p && nadaQueDescontar(p)) { if (tras) await tras(); return; }
   // Sin aviso, el botón "no hace nada" y no hay forma de saber por qué.
   if (!p) {
     toastRojo(pedidos.length
@@ -3848,6 +3938,7 @@ function pedidosSinDescargo() {
   return pedidos.filter(p =>
     ['en-ruta', 'entregado', 'entregado-sin-facturar'].includes(p.estado) &&
     !bodPedidosConMov.has(String(p.id)) &&
+    !nadaQueDescontar(p) &&
     !antesDelCorte(p));
 }
 
@@ -3965,21 +4056,6 @@ async function quitarCorte() {
     await cargarBodega(true);
     render();
   } catch (e) { alert('No se pudo quitar: ' + e.message); }
-}
-
-function verCortesias() {
-  document.getElementById('buscar').value = '';
-  pedTipo = 'muestra';
-  irTabPed('despachar');
-}
-
-function verSinDescargo() {
-  document.getElementById('buscar').value = '';
-  pedTab = 'entregados';
-  filtroSinDescargo = true;
-  const c = document.getElementById('fnods'); if (c) c.checked = true;
-  pedVerFiltros = true;
-  cambiarPeriodo('todo');
 }
 
 let filtroSinDescargo = false;
@@ -4341,6 +4417,11 @@ const noEsVenta = p => tipoDe(p) !== 'venta';
 // bodega. Distinguirla importa: ofrecer "descargar stock" en una parada que
 // es ir a cobrar confunde a quien la ve.
 const esTarea = p => tipoDe(p) === 'tarea';
+// Traer un lote de la sala no saca nada de bodega: lo trae. Su entrada la
+// registra Producción al recibirlo. Ofrecer «Descargar bodega» ahí descontaría
+// al revés.
+const esRetiroLote = p => tipoDe(p) === 'produccion' && /·\s*RETIRO$/i.test(String(p.emp || ''));
+const nadaQueDescontar = p => esTarea(p) || esRetiroLote(p);
 const esWeb = p => (p.canal || 'b2b') === 'web';
 
 // ══════════════════════════════════════════
@@ -4416,7 +4497,7 @@ function abrir(id) {
     ? `<span class="folio-chico" title="Folio del cliente">${hesc(p.folio)}</span>` : '';
 
   document.getElementById('mentrega').value  = ret ? 'retiro' : 'despacho';
-  document.getElementById('mcanal').value    = esWeb(p) ? 'web' : 'b2b';
+  document.getElementById('mcanal').value    = p.canal === 'pichilemu' ? 'pichilemu' : esWeb(p) ? 'web' : 'b2b';
   document.getElementById('mzona').value     = p.zona          || '';
   llenarEstadoModal(p);
   document.getElementById('memp').value      = p.emp           || '';
@@ -4550,6 +4631,7 @@ function pintarMasDatos() {
   if (document.getElementById('mprio').checked) extras.push('⚡ Prioritario');
   if (document.getElementById('mentrega').value === 'retiro') extras.push('🏢 Retiro');
   if (document.getElementById('mcanal').value === 'web') extras.push('🌐 Web');
+  if (document.getElementById('mcanal').value === 'pichilemu') extras.push('🏖️ Pichilemu');
   const tu = document.getElementById('mturno').value;
   if (tu) extras.push(tu === 'manana' ? '☀️ Mañana' : '🌙 Tarde');
   const enc = document.getElementById('mencargado').value.trim();
@@ -4692,7 +4774,10 @@ async function guardar() {
   const entrega = document.getElementById('mentrega').value === 'retiro' ? 'retiro' : 'despacho';
   const row = {
     entrega,
-    canal:         document.getElementById('mcanal').value === 'web' ? 'web' : 'b2b',
+    // v65 · tres orígenes. Antes la tarjeta escribía «b2b» a todo lo que no
+    // fuera web, y al guardar un pedido de Pichilemu le habría borrado el origen.
+    canal:         ['web', 'pichilemu'].includes(document.getElementById('mcanal').value)
+                     ? document.getElementById('mcanal').value : 'b2b',
     zona:          entrega === 'retiro' ? '' : document.getElementById('mzona').value,
     estado:        document.getElementById('mestado').value,
     emp:           document.getElementById('memp').value.trim(),
@@ -7509,6 +7594,159 @@ function usosDeZona() {
   return m;
 }
 
+// ══════════════════════════════════════════
+//  PORTAL DE CLIENTES (v65)
+//
+//  Qué se puede pedir lo decide la oficina, no un cálculo: cada producto del
+//  catálogo, en cada portal, está disponible, agotado (se ve apagado) u
+//  oculto (no aparece). Se guarda en bod_config, clave
+//  `portal_disponibilidad`; el Worker se lo entrega al portal al abrir.
+//
+//  La llave es el nombre del producto en el catálogo (CATS), en minúsculas:
+//  es el mismo catálogo del portal, así que no depende de cómo se llame el
+//  producto en bodega.
+//
+//  El stock de cada fila es referencia para decidir (ruta /disponible del
+//  Worker, solo con clave de admin). Nunca bloquea nada por sí solo.
+// ══════════════════════════════════════════
+const PT_CLAVE = 'portal_disponibilidad';
+let ptCanalSel = 'general';
+let ptEstados = { general: {}, pichilemu: {} };
+let ptHay = false;                              // si la fila ya existe en bod_config
+let ptStock = { general: null, pichilemu: null }; // lo que respondió /disponible
+
+async function renderPortal() {
+  pintarPortal();
+  try {
+    const d = await sbJson(`bod_config?select=clave,valor&clave=eq.${PT_CLAVE}`);
+    ptHay = d.length > 0;
+    let v = {};
+    try { v = JSON.parse((d[0] && d[0].valor) || '{}') || {}; } catch (_) { v = {}; }
+    const obj = x => (x && typeof x === 'object' && !Array.isArray(x)) ? x : {};
+    ptEstados = { general: obj(v.general), pichilemu: obj(v.pichilemu) };
+    document.getElementById('pt-alert').innerHTML = '';
+  } catch (e) {
+    alerta('pt-alert', 'No se pudo leer qué está agotado u oculto: ' + hesc(e.message), 'ae');
+  }
+  pintarPortal();
+  cargarStockPortal(ptCanalSel);
+}
+
+async function cargarStockPortal(canal) {
+  try {
+    const r = await fetch(`${PROXY}/disponible?canal=${canal}`, { headers: cabeceras(false) });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    ptStock[canal] = await r.json();
+  } catch (_) { ptStock[canal] = { error: true }; }
+  if (canal === ptCanalSel) pintarPortal();
+}
+
+function ptCanal(c) {
+  ptCanalSel = c;
+  document.getElementById('pt-c-general').classList.toggle('act', c === 'general');
+  document.getElementById('pt-c-pichilemu').classList.toggle('act', c === 'pichilemu');
+  pintarPortal();
+  if (!ptStock[c]) cargarStockPortal(c);
+}
+
+// El stock de un producto del catálogo, con la misma regla que el Worker:
+// nombre y formato; si el formato no calza, basta el nombre.
+function ptStockDe(it) {
+  const st = ptStock[ptCanalSel];
+  if (!st || !Array.isArray(st.productos)) return null;
+  const n = normTxt(it.n), f = normTxt(it.f || '');
+  return st.productos.find(p => normTxt(p.nombre) === n && normTxt(p.formato) === f) ||
+         st.productos.find(p => normTxt(p.nombre) === n) || null;
+}
+const ptUnidad = (it, q) => Number(it.u) > 1 ? (q === 1 ? 'caja' : 'cajas') : 'un.';
+
+function pintarPortal() {
+  const caja = document.getElementById('pt-lista');
+  if (!caja) return;
+  const est = ptEstados[ptCanalSel] || {};
+  const st = ptStock[ptCanalSel];
+  document.getElementById('pt-bod').textContent = !st ? 'Cargando stock…'
+    : st.error ? 'No se pudo leer el stock (la disponibilidad se puede cambiar igual)'
+    : st.bodega ? `Stock de referencia: ${st.bodega}`
+    : 'Sin bodega elegida: Bodegas y productos › Portal de clientes';
+  document.getElementById('pt-nunca').style.display = ptCanalSel === 'pichilemu' ? '' : 'none';
+  const cuenta = { agotado: 0, oculto: 0 };
+  Object.values(est).forEach(v => { if (v in cuenta) cuenta[v]++; });
+  const nombre = { '': 'Disponible', agotado: 'Agotado', oculto: 'Oculto' };
+  caja.innerHTML = `<div class="pt-resumen">${cuenta.agotado} agotado(s) · ${cuenta.oculto} oculto(s) en ${
+      ptCanalSel === 'pichilemu' ? 'los links de Pichilemu' : 'el portal general'}</div>` +
+    CATS.map(cat => `<div class="pt-cat">${cat.icon} ${hesc(cat.label)}</div>` + cat.items.map(it => {
+      const k = normTxt(it.n), e = est[k] || '';
+      const s = ptStockDe(it);
+      // Si está marcado agotado pero volvió a haber, se avisa: la marca no se
+      // quita sola, la quita quien la puso.
+      const ojo = e === 'agotado' && s && s.disponible > 0 ? '<span class="ojo">volvió a haber</span>' : '';
+      return `<div class="pt-fila${e ? ' ' + e : ''}">
+        <div class="pt-nom"><b>${hesc(it.n)}</b><span>${hesc(it.f || '')}</span></div>
+        <div class="pt-st${s && !s.disponible ? ' cero' : ''}">${s ? `${num(s.disponible)} ${ptUnidad(it, s.disponible)}` : '—'}${ojo}</div>
+        <div class="pt-seg" role="group" aria-label="${hesc(it.n)}">${['', 'agotado', 'oculto'].map(v =>
+          `<button class="${e === v ? 'act' : ''}" data-k="${hesc(k)}" data-v="${v}"
+            onclick="ptMarcar(this.dataset.k, this.dataset.v)">${nombre[v]}</button>`).join('')}</div>
+      </div>`;
+    }).join('')).join('');
+}
+
+async function ptGuardar(msg) {
+  const fila = { valor: JSON.stringify(ptEstados), quien: 'Panel · Portal de clientes' };
+  try {
+    if (ptHay) await sbSend(`bod_config?clave=eq.${PT_CLAVE}`, 'PATCH', fila);
+    else {
+      // El Worker no reenvía `Prefer`, así que no hay upsert: se crea, y si ya
+      // existía (otra pestaña la creó), se actualiza.
+      try { await sbSend('bod_config', 'POST', { clave: PT_CLAVE, ...fila }); }
+      catch (e) {
+        if (!/duplicate|23505/i.test(String(e.message))) throw e;
+        await sbSend(`bod_config?clave=eq.${PT_CLAVE}`, 'PATCH', fila);
+      }
+      ptHay = true;
+    }
+    toast(msg);
+    return true;
+  } catch (e) {
+    toastRojo('No se pudo guardar: ' + e.message);
+    return false;
+  }
+}
+
+// Cada cambio se guarda al tiro. Si falla, la fila vuelve a como estaba.
+async function ptMarcar(k, v) {
+  const antes = ptEstados[ptCanalSel] || {};
+  const nuevo = { ...antes };
+  if (v) nuevo[k] = v; else delete nuevo[k];
+  ptEstados[ptCanalSel] = nuevo;
+  pintarPortal();
+  const it = CATS.flatMap(c => c.items).find(x => normTxt(x.n) === k);
+  const dondeTxt = ptCanalSel === 'pichilemu' ? 'en los links de Pichilemu' : 'en el portal';
+  const ok = await ptGuardar(`${it ? it.n : k}: ${v === 'agotado' ? 'agotado' : v === 'oculto' ? 'oculto' : 'disponible'} ${dondeTxt}`);
+  if (!ok) { ptEstados[ptCanalSel] = antes; pintarPortal(); }
+}
+
+// Las dos ayudas en bloque. Proponen, preguntan y recién ahí marcan: la
+// decisión sigue siendo de la oficina.
+async function ptEnBloque(regla, estado, pregunta, listo) {
+  const st = ptStock[ptCanalSel];
+  if (!st || !Array.isArray(st.productos)) { toastRojo('Todavía no se puede leer el stock.'); return; }
+  const est = { ...(ptEstados[ptCanalSel] || {}) };
+  const cuales = CATS.flatMap(c => c.items).filter(it => { const s = ptStockDe(it); return s && regla(s) && !est[normTxt(it.n)]; });
+  if (!cuales.length) { toast('No hay productos que marcar.'); return; }
+  if (!confirm(`${pregunta(cuales.length)}\n\n${cuales.map(it => '· ' + it.n).join('\n')}`)) return;
+  const antes = ptEstados[ptCanalSel];
+  cuales.forEach(it => { est[normTxt(it.n)] = estado; });
+  ptEstados[ptCanalSel] = est;
+  pintarPortal();
+  if (!(await ptGuardar(listo(cuales.length)))) { ptEstados[ptCanalSel] = antes; pintarPortal(); }
+}
+const ptAgotarCeros = () => ptEnBloque(s => s.disponible === 0, 'agotado',
+  n => `¿Marcar como agotados ${n} producto(s) que están en cero?`, n => `${n} producto(s) marcados como agotados`);
+const ptOcultarAjenos = () => ptEnBloque(s => !s.enBodega, 'oculto',
+  n => `¿Ocultar en los links de Pichilemu ${n} producto(s) que nunca han pasado por esa bodega?`,
+  n => `${n} producto(s) ocultos en Pichilemu`);
+
 function renderZonas() {
   const cont = document.getElementById('zn-list');
   if (!cont) return;
@@ -8527,7 +8765,7 @@ window.addEventListener('hashchange', () => {
 
 (function irAHash(){
   const id = (location.hash || '').slice(1);
-  if (!['pedidos','nuevo','clientes','rutas','zonas','aprobar','produccion'].includes(id)) return;
+  if (!['pedidos','nuevo','clientes','rutas','zonas','aprobar','produccion','portal'].includes(id)) return;
   // Los botones de sección tienen id fijo, así que se buscan directo en vez de
   // rastrearlos por su texto o su onclick. Antes se buscaban por la clase de la
   // barra vieja y, al unificar la navegación, dejaban de encontrarse: entrar a
