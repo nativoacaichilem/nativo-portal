@@ -399,9 +399,10 @@ const CATS = [
   // línea del pedido no cambia —sigue sin sufijo— porque admin la lee como
   // cajas.
   //
-  // `Acai Puro` (4×100 g) NO va acá a propósito: se vende a un solo cliente,
-  // que no usa este portal, así que vive solo en admin.html y en bodega. Si
-  // vuelve a venderse a todos, se agrega con el mismo nombre y formato.
+  // `Acai Puro` (4×100 g) volvió al portal (nov 2026): antes se vendía a un
+  // solo cliente y vivía solo en admin.html. Va con el mismo nombre y formato
+  // que en admin, que es lo que une el pedido con bodega. Si hay que sacarlo
+  // del portal, se marca «Oculto» en Pedidos › Portal, sin tocar el código.
   {id:'congelados', icon:'🧊', label:'Congelados', items:[
     {n:'Balde Acai Nativo', f:'3,6 L'},
     {n:'Balde Acai Blue Monkey', f:'3,6 L'},
@@ -410,6 +411,7 @@ const CATS = [
     {n:'Acai Puro Blue Monkey', f:'60×100 g · 6 kg'},
     {n:'Scoopable Acai', f:'500 ml', u:12},
     {n:'Acai Fused', f:'4×100 g', u:15},
+    {n:'Acai Puro', f:'4×100 g', u:15},
     {n:'Balde Pitaya Blue Monkey', f:'3,6 L'},
     {n:'Balde Pitaya Zero Blue Monkey', f:'5 L'},
     {n:'Pitaya Puro Blue Monkey', f:'60×100 g · 6 kg'},
