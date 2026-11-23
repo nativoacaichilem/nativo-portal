@@ -678,6 +678,10 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
 .pcl-ped span{color:var(--texto-medio);font-weight:600}
 .pcl-peligro{margin-top:20px;padding:12px;border:1px solid #fecaca;background:#fff7f7;border-radius:10px;display:flex;
   justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;color:#7f1d1d;font-weight:600}
+.pcl-clave{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pcl-pin{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:20px;font-weight:800;letter-spacing:6px;
+  background:#faf6ff;border:1.5px solid #d8cdea;border-radius:9px;padding:4px 10px 4px 16px;color:var(--mora-d)}
+.pcl-sinclave{color:#9a3412;font-weight:800}
 .btn-mini{border:1px solid #d8cdea;background:var(--white);color:var(--mora-d);font:800 11.5px 'Nunito',sans-serif;border-radius:7px;padding:4px 9px;cursor:pointer}
 .btn-mini:hover{background:#faf6ff}
 .btn-mini.rojo{border-color:#fecaca;color:#b91c1c}
@@ -1451,8 +1455,8 @@ details.mp-mas summary{cursor:pointer;padding:12px 0;font-weight:900;color:var(-
       </div>
       <div class="alert ai" style="line-height:1.55;margin-bottom:12px">
         Los que se registran como cliente nuevo en el portal. Viven aparte del directorio de Clientes.
-        Si un cliente te pide cambiar un dato o borrarlo, se hace aquí: el cambio vale desde su próximo pedido,
-        y sus pedidos anteriores no se tocan.
+        Si un cliente te pide cambiar un dato, su clave o borrar sus datos, se hace aquí: el cambio vale desde su
+        próximo pedido, y sus pedidos anteriores no se tocan.
       </div>
       <div id="pcl-alert"></div>
       <div class="pcl-wrap">
@@ -8145,7 +8149,7 @@ function pintarClientesPortal() {
     return `<button class="pcl-item${String(pclSel) === String(c.id) ? ' act' : ''}" onclick="pclElegir(${Number(c.id)})">
       <b>${hesc(c.nombre_local || c.razon_social)}</b>
       <small>${hesc(c.razon_social)} · RUT ${hesc(rutConPuntos(c.rut))}</small>
-      <div class="pcl-meta">${dirs} dirección(es) · ${peds} pedido(s) · desde ${hesc(fechaPc(c.creado))}</div>
+      <div class="pcl-meta">${dirs} dirección(es) · ${peds} pedido(s) · desde ${hesc(fechaPc(c.creado))}${c.pin ? '' : ' · <span class="pcl-sinclave">sin clave</span>'}</div>
     </button>`;
   }).join('') : `<div class="pcl-vacio">${todos.length ? 'Ningún cliente calza con la búsqueda.' : 'Todavía no se registra ningún cliente en el portal.'}</div>`;
   pintarDetalleCliente();
@@ -8199,6 +8203,14 @@ function pintarDetalleCliente() {
     <div class="pcl-acc">
       <button class="btn bmora bsm" id="pc-guardar" onclick="pclGuardar()">Guardar cambios</button>
       <span class="pcl-nota">Si cambias el RUT, el cliente entra al portal con el RUT nuevo.</span>
+    </div>
+
+    <div class="pcl-sec">Clave de acceso</div>
+    <div class="pcl-clave">
+      ${c.pin
+        ? `<span class="pcl-pin" id="pc-pin">${hesc(c.pin)}</span><span class="pcl-nota">El portal la pide cada vez que entra.</span>`
+        : '<span class="pcl-nota pcl-sinclave">Sin clave: la crea el cliente la próxima vez que entre, o se la asignas tú.</span>'}
+      <button class="btn-mini" onclick="pclCambiarClave()">${c.pin ? 'Cambiar clave' : 'Asignar clave'}</button>
     </div>
 
     <div class="pcl-sec">Direcciones de despacho · ${activas.length} activa(s)<span class="crece"></span>
@@ -8271,6 +8283,22 @@ async function pclGuardar() {
     btn.disabled = false;
     toastRojo(/23505|duplicate|409/i.test(e.message) ? 'Ya hay otro perfil con ese RUT.' : 'No se pudo guardar: ' + e.message);
   }
+}
+
+// v69 · la clave la cambia solo la oficina: el cliente que la olvida, la pide.
+async function pclCambiarClave() {
+  const c = clientesPortal.get(String(pclSel));
+  if (!c) return;
+  const nombre = c.nombre_local || c.razon_social;
+  const nueva = prompt(`Clave nueva para ${nombre} (4 números):`, '');
+  if (nueva === null) return;
+  const pin = nueva.trim();
+  if (!/^\d{4}$/.test(pin)) return toastRojo('La clave debe tener 4 números.');
+  try {
+    await sbSend(`portal_clientes?id=eq.${Number(c.id)}`, 'PATCH', { pin, actualizado: new Date().toISOString() });
+    toast(`Clave de ${nombre}: ${pin}. Avísale al cliente.`);
+    await renderClientesPortal();
+  } catch (e) { toastRojo('No se pudo cambiar la clave: ' + e.message); }
 }
 
 async function pclDirGuardar(id) {
