@@ -312,6 +312,31 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
   color:var(--text);font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif}
 .lnk{background:none;border:0;color:inherit;text-decoration:underline;font:inherit;font-weight:900;cursor:pointer;padding:0}
 
+/* ── DÍAS DE REPARTO (v68) ──
+   Arriba del portal: los días con su zona, y el mensaje de la oficina. En
+   computador van en una fila; en celular, uno debajo del otro. */
+.cal{width:100%;max-width:980px;margin:0 auto 18px;padding:0 4px}
+.cal[hidden]{display:none}
+.cal-tit{color:#fff;font-size:12px;font-weight:900;letter-spacing:1px;text-transform:uppercase;opacity:.85;margin:0 0 8px 2px}
+.cal-dias{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.cal-dia{background:var(--white);border-radius:12px;padding:10px 12px;box-shadow:0 4px 14px rgba(0,0,0,.12);text-align:left}
+.cal-nom{display:block;font-size:11px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;color:var(--mora)}
+.cal-dia b{display:block;font-size:14px;color:var(--mora-d);font-weight:900;margin-top:2px}
+.cal-dia small{display:block;font-size:12px;color:var(--textl);font-weight:600;line-height:1.35;margin-top:2px}
+.cal-dia.aviso{background:#fff7e0;border:1.5px solid var(--am)}
+.cal-dia.aviso .cal-nom{color:#9a3412}
+.cal-dia.aviso small{color:#713f12}
+.cal-msg{margin-top:10px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);color:#fff;
+  border-radius:12px;padding:10px 14px;font-size:13px;font-weight:700;line-height:1.45;text-align:left}
+.cal-rec{margin:0 0 14px}
+.cal-rec[hidden]{display:none}
+.cal-rec details{background:var(--mora-xl);border-radius:12px;padding:10px 14px;color:var(--mora-d);font-size:13px;font-weight:700}
+.cal-rec summary{cursor:pointer;list-style:none}
+.cal-rec summary::-webkit-details-marker{display:none}
+.cal-rec summary u{font-weight:900;margin-left:4px}
+.cal-mini{margin-top:8px;display:flex;flex-direction:column;gap:4px;font-weight:600;color:var(--text)}
+.cal-mini .aviso{color:#9a3412}
+
 /* En el encabezado del catálogo, el nombre cede espacio antes que los botones */
 .app-user{min-width:0}
 #hdr-emp{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:34vw}
@@ -319,6 +344,9 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
 
 @media(max-width:480px){
   .login-card{padding:24px 18px}
+  .cal-dias{grid-template-columns:1fr;gap:6px}
+  .cal-dia{display:grid;grid-template-columns:92px 1fr;column-gap:10px;align-items:baseline;padding:9px 12px}
+  .cal-dia small{grid-column:2}
   /* En el celular el local y la dirección ya salen en la barra de datos */
   #hdr-emp{display:none}
   .app-header{padding:11px 12px}
@@ -344,6 +372,9 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
     <!-- v65 · solo en el link de una vendedora de Pichilemu -->
     <div class="pich-nota" id="pich-nota"></div>
   </div>
+  <!-- v68 · los días de reparto, que la oficina edita en el panel -->
+  <div class="cal" id="cal-portal" hidden></div>
+
   <div class="login-card" id="acceso">
     <div id="login-alert" role="alert"></div>
 
@@ -471,6 +502,7 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
   </div>
   <div class="oc-wrap">
     <div id="oc-alert"></div>
+    <div class="cal-rec" id="cal-rec" hidden></div>
 
     <div class="entrega-card" id="entrega-card">
       <label>¿Cómo quieres recibirlo?</label>
@@ -665,12 +697,61 @@ async function cargarDisponibilidad() {
     canalPortal = d.canal === 'pichilemu' ? 'pichilemu' : 'general';
     vendedoraPortal = String(d.vendedora || '');
     estados = (d.estados && typeof d.estados === 'object') ? d.estados : {};
+    // null = la oficina todavía no lo guarda: queda el de fábrica.
+    if (d.calendario && Array.isArray(d.calendario.dias)) calendario = d.calendario;
   } catch (_) { /* sin conexión: todo disponible */ }
 }
 
 // Parte al abrir la página, mientras el cliente escribe sus datos. Si tarda
 // más de cinco segundos, el catálogo se abre igual.
 const disponibilidadLista = Promise.race([cargarDisponibilidad(), new Promise(r => setTimeout(r, 5000))]);
+
+// ══════════════════════════════════════════════════════════════
+//  DÍAS DE REPARTO (v68)
+//
+//  Arriba del portal se muestran los días con la zona donde se reparte, y el
+//  mensaje de la oficina. En la orden de compra, un recordatorio corto que se
+//  abre con el calendario. Lo edita la oficina en el panel (Portal de
+//  clientes › Días de reparto); el Worker lo entrega con la disponibilidad.
+//
+//  Si la oficina todavía no lo guarda, o no se puede leer, se usa este de
+//  fábrica. Los links de Pichilemu no lo muestran: ahí entrega la vendedora.
+// ══════════════════════════════════════════════════════════════
+const CAL_FABRICA = {
+  visible: true,
+  mensaje: 'Estimado cliente: debido a la temporada alta, le compartimos los días de reparto por zona. ' +
+           'Le recomendamos ajustar su reabastecimiento para que calce con el día de la zona más cercana a su local.',
+  recordatorio: 'Recuerde: repartimos por zona y día.',
+  dias: [
+    { dia: 'Lunes',     zona: 'Centro y oriente',  comunas: 'Providencia, Vitacura, Las Condes, Lo Barnechea y alrededores' },
+    { dia: 'Martes',    zona: 'Sur oriente',       comunas: 'La Florida, La Reina, Peñalolén y alrededores' },
+    { dia: 'Miércoles', zona: 'Ruta sur',          comunas: 'Buin, Rancagua, Machalí y San Vicente' },
+    { dia: 'Jueves',    zona: 'Quinta Región',     comunas: 'Viña del Mar, Valparaíso, Limache, Catemu y Maitencillo' },
+    { dia: 'Viernes',   zona: 'Solo emergencias',  aviso: true,
+      comunas: 'Es el día con más pedidos. No recomendamos pedir para el viernes: úselo solo como opción de emergencia.' }
+  ]
+};
+let calendario = CAL_FABRICA;
+
+function pintarCalendario() {
+  const caja = document.getElementById('cal-portal');
+  const rec = document.getElementById('cal-rec');
+  const c = calendario;
+  const ver = !!(c && c.visible !== false && Array.isArray(c.dias) && c.dias.length && canalPortal !== 'pichilemu');
+  caja.hidden = !ver;
+  rec.hidden = !ver;
+  if (!ver) return;
+  caja.innerHTML = `<div class="cal-tit">📅 Días de reparto</div>
+    <div class="cal-dias">${c.dias.map(d => `
+      <div class="cal-dia${d.aviso ? ' aviso' : ''}">
+        <span class="cal-nom">${d.aviso ? '⚠️ ' : ''}${esc(d.dia)}</span>
+        <b>${esc(d.zona)}</b>${d.comunas ? `<small>${esc(d.comunas)}</small>` : ''}
+      </div>`).join('')}</div>
+    ${c.mensaje ? `<div class="cal-msg">${esc(c.mensaje)}</div>` : ''}`;
+  rec.innerHTML = `<details><summary>📅 ${esc(c.recordatorio || 'Recuerde: repartimos por zona y día.')}<u>Ver días</u></summary>
+    <div class="cal-mini">${c.dias.map(d => `<div${d.aviso ? ' class="aviso"' : ''}><b>${esc(d.dia)}</b> · ${esc(d.zona)}${
+      d.comunas ? ` — ${esc(d.comunas)}` : ''}</div>`).join('')}</div></details>`;
+}
 
 // ── el link de una vendedora de Pichilemu ──
 const txtRetiro = () => canalPortal === 'pichilemu'
@@ -1367,7 +1448,7 @@ function nuevosPedido() {
 
 // ── INIT ──
 showScreen('screen-login');
-disponibilidadLista.then(prepararPichilemu);
+disponibilidadLista.then(() => { prepararPichilemu(); pintarCalendario(); });
 </script>
 </body>
 </html>
