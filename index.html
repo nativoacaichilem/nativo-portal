@@ -310,6 +310,10 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
 .pf-acc .btn-primary{flex:1;margin-top:0}
 .btn-sec{padding:13px 16px;border:1.5px solid var(--crema-d);border-radius:10px;background:var(--white);
   color:var(--text);font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif}
+.pin{letter-spacing:10px;font-size:20px!important;font-weight:900;text-align:center}
+.pin-ayuda{font-size:12px;color:var(--textl);font-weight:600;margin:-6px 0 14px;line-height:1.45}
+.olvido{display:block;margin:12px auto 0;background:none;border:0;color:var(--mora);font:800 12.5px 'Nunito',sans-serif;cursor:pointer}
+.olvido-txt{margin-top:10px;background:var(--crema);border-radius:10px;padding:10px 12px;font-size:12.5px;font-weight:700;color:var(--text);line-height:1.45}
 .lnk{background:none;border:0;color:inherit;text-decoration:underline;font:inherit;font-weight:900;cursor:pointer;padding:0}
 
 /* ── DÍAS DE REPARTO (v68) ──
@@ -420,18 +424,49 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
         <div class="field"><label for="n-tel">Teléfono *</label>
           <input id="n-tel" type="tel" placeholder="+56 9 1234 5678" autocomplete="tel"></div>
       </div>
+      <div class="sub-tit">Tu clave</div>
+      <div class="field-row">
+        <div class="field"><label for="n-pin">Crea una clave de 4 números *</label>
+          <input id="n-pin" class="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password"
+            placeholder="••••" oninput="soloNumeros(this)"></div>
+        <div class="field"><label for="n-pin2">Repítela *</label>
+          <input id="n-pin2" class="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password"
+            placeholder="••••" oninput="soloNumeros(this)"></div>
+      </div>
+      <p class="pin-ayuda">La pedimos cada vez que entras, para que nadie más vea ni use los datos de tu empresa.</p>
       <button class="btn-primary" id="b-nuevo" onclick="crearPerfil()">Guardar y continuar →</button>
     </div>
 
     <!-- 3 · Ya tengo mis datos: solo el RUT -->
     <div id="ac-rut" hidden>
       <button class="volver" onclick="verAcceso('inicio')">‹ Volver</button>
-      <h3>Entra con tu RUT</h3>
+      <h3>Entra con tu RUT y tu clave</h3>
       <p>El RUT de la empresa con que ingresaste tus datos.</p>
       <div class="field"><label for="r-rut">RUT de la empresa</label>
-        <input id="r-rut" placeholder="76.123.456-0" oninput="fmtR(this)" autocomplete="off"
-          onkeydown="if(event.key==='Enter')entrarConRut()"></div>
+        <input id="r-rut" placeholder="76.123.456-0" oninput="fmtR(this)" autocomplete="username"
+          onkeydown="if(event.key==='Enter')document.getElementById('r-pin').focus()"></div>
+      <div class="field"><label for="r-pin">Clave de 4 números</label>
+        <input id="r-pin" class="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="current-password"
+          placeholder="••••" oninput="soloNumeros(this)" onkeydown="if(event.key==='Enter')entrarConRut()"></div>
       <button class="btn-primary" id="b-rut" onclick="entrarConRut()">Entrar →</button>
+      <button class="olvido" onclick="document.getElementById('olvido-txt').hidden=false">¿Olvidaste tu clave?</button>
+      <div class="olvido-txt" id="olvido-txt" hidden>Comunícate con Nativo: te decimos tu clave o te la cambiamos.</div>
+    </div>
+
+    <!-- 3b · Crear la clave (clientes registrados antes de que existiera) -->
+    <div id="ac-clave" hidden>
+      <button class="volver" onclick="verAcceso('rut')">‹ Volver</button>
+      <h3>Crea tu clave</h3>
+      <p>Tu empresa todavía no tiene clave. Créala ahora: la pediremos cada vez que entres.</p>
+      <div class="field-row">
+        <div class="field"><label for="c-pin">Clave de 4 números *</label>
+          <input id="c-pin" class="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password"
+            placeholder="••••" oninput="soloNumeros(this)"></div>
+        <div class="field"><label for="c-pin2">Repítela *</label>
+          <input id="c-pin2" class="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password"
+            placeholder="••••" oninput="soloNumeros(this)" onkeydown="if(event.key==='Enter')crearClave()"></div>
+      </div>
+      <button class="btn-primary" id="b-clave" onclick="crearClave()">Crear clave y entrar →</button>
     </div>
 
     <!-- 4 · El perfil: elegir o crear la dirección de despacho -->
@@ -841,16 +876,24 @@ function showScreen(id) {
 //
 //  Al navegador le llegan el email y el teléfono del encargado tapados: el
 //  pedido los toma completos del perfil guardado, en el Worker.
+//
+//  v69 · se entra con el RUT y una clave de 4 números. El cliente la crea al
+//  registrarse (o al entrar, si se registró antes de que existiera); si se le
+//  olvida, la pide a Nativo, que la ve y la cambia en el panel.
 // ══════════════════════════════════════════════════════════════
 let perfil = null;          // lo que devuelve el Worker: rut, razón social, local, contacto, direcciones
 let direccionSel = null;    // la dirección de despacho elegida
 let catalogoListo = false;  // el catálogo se arma una vez; cambiar de dirección no borra lo elegido
+// v69 · la clave con que entró. Vive solo en la memoria de esta pestaña (nunca
+// en el navegador guardado) y acompaña cada cambio y cada pedido.
+let pinSesion = '';
+let rutPendiente = '';      // el RUT que tiene que crear su clave
 
-const VISTAS = ['inicio', 'nuevo', 'rut', 'perfil'];
+const VISTAS = ['inicio', 'nuevo', 'rut', 'clave', 'perfil'];
 function verAcceso(v) {
   VISTAS.forEach(x => { document.getElementById('ac-' + x).hidden = x !== v; });
   avisoAcceso('');
-  const foco = { nuevo: 'n-rut', rut: 'r-rut' }[v];
+  const foco = { nuevo: 'n-rut', rut: document.getElementById('r-rut').value ? 'r-pin' : 'r-rut', clave: 'c-pin' }[v];
   if (foco) setTimeout(() => document.getElementById(foco).focus(), 50);
   window.scrollTo(0, 0);
 }
@@ -874,6 +917,27 @@ async function llamar(ruta, cuerpo) {
     return { ok: false, status: 0, d: { error: 'No se pudo conectar. Revisa tu conexión e intenta de nuevo.' } };
   }
 }
+const soloNumeros = el => { el.value = el.value.replace(/\D/g, '').slice(0, 4); el.classList.remove('err'); };
+
+// Revisa una clave y su repetición. Devuelve el mensaje de error, o ''.
+function revisarClaves(idA, idB) {
+  const a = document.getElementById(idA).value, b = document.getElementById(idB).value;
+  if (!/^\d{4}$/.test(a)) { document.getElementById(idA).classList.add('err'); return 'La clave debe tener 4 números.'; }
+  if (a !== b) { document.getElementById(idB).classList.add('err'); return 'Las dos claves no son iguales.'; }
+  return '';
+}
+
+// Si la clave dejó de servir (la oficina la cambió), se vuelve a la entrada.
+function claveVencida(msg) {
+  const rut = perfil ? perfil.rut : '';
+  perfil = null; direccionSel = null; pinSesion = '';
+  showScreen('screen-login');
+  verAcceso('rut');
+  document.getElementById('r-rut').value = rut;
+  document.getElementById('r-pin').value = '';
+  avisoAcceso(esc(msg || 'Tu clave cambió. Vuelve a entrar.'));
+}
+
 // Marca en rojo los campos vacíos. Devuelve true si falta alguno.
 function marcarFaltantes(pares) {
   let falta = false;
@@ -892,7 +956,8 @@ async function crearPerfil() {
     encargado_telefono: v('n-tel') };
   if (marcarFaltantes([[datos.rut, 'n-rut'], [datos.razon_social, 'n-razon'], [datos.nombre_local, 'n-local'],
       [datos.giro, 'n-giro'], [datos.dir_facturacion, 'n-dirfact'], [datos.encargado_nombre, 'n-encargado'],
-      [datos.encargado_email, 'n-email'], [datos.encargado_telefono, 'n-tel']]))
+      [datos.encargado_email, 'n-email'], [datos.encargado_telefono, 'n-tel'],
+      [v('n-pin'), 'n-pin'], [v('n-pin2'), 'n-pin2']]))
     return avisoAcceso('Completa los campos marcados en rojo.');
   // El RUT es la llave de su perfil: uno mal escrito lo dejaría sin poder entrar.
   if (!rutOk(datos.rut)) {
@@ -907,6 +972,9 @@ async function crearPerfil() {
     document.getElementById('n-tel').classList.add('err');
     return avisoAcceso('Revisa el teléfono: le faltan dígitos.');
   }
+  const errClave = revisarClaves('n-pin', 'n-pin2');
+  if (errClave) return avisoAcceso(errClave);
+  datos.pin = v('n-pin');
   if (linkInvalido) return avisoAcceso(esc(linkInvalido));
   ocupado('b-nuevo', 'Guardando…');
   const r = await llamar('/cliente/nuevo', datos);
@@ -918,21 +986,56 @@ async function crearPerfil() {
     return avisoAcceso(esc(r.d.error));
   }
   if (!r.ok) return avisoAcceso(esc(r.d.error || 'No se pudo guardar. Intenta de nuevo.'));
+  pinSesion = datos.pin;
   perfil = r.d;
   mostrarPerfil();
 }
 
 async function entrarConRut() {
   const rut = document.getElementById('r-rut').value.trim();
+  const pin = document.getElementById('r-pin').value;
   if (!rut) return avisoAcceso('Escribe el RUT de tu empresa.');
   if (!rutOk(rut)) return avisoAcceso('Revisa el RUT: el dígito verificador no calza.');
   if (linkInvalido) return avisoAcceso(esc(linkInvalido));
-  ocupado('b-rut', 'Buscando…');
-  const r = await llamar('/cliente?rut=' + encodeURIComponent(rut));
+  // La clave puede faltar solo si la empresa todavía no tiene una: el Worker
+  // lo dice y se pasa a crearla.
+  if (pin && !/^\d{4}$/.test(pin)) {
+    document.getElementById('r-pin').classList.add('err');
+    return avisoAcceso('La clave tiene 4 números.');
+  }
+  ocupado('b-rut', 'Entrando…');
+  const r = await llamar('/cliente/entrar', { rut, pin });
   ocupado('b-rut', '');
   if (r.status === 404)
     return avisoAcceso(`${esc(r.d.error)} <button class="lnk" onclick="irANuevo()">Soy cliente nuevo</button>`);
+  if (r.status === 428) {
+    rutPendiente = rut;
+    verAcceso('clave');
+    return avisoAcceso(esc(r.d.error));
+  }
+  if (r.status === 401) {
+    document.getElementById('r-pin').classList.add('err');
+    document.getElementById('r-pin').value = '';
+    document.getElementById('r-pin').focus();
+    return avisoAcceso(esc(r.d.error));
+  }
   if (!r.ok) return avisoAcceso(esc(r.d.error || 'No se pudo entrar. Intenta de nuevo.'));
+  pinSesion = pin;
+  perfil = r.d;
+  mostrarPerfil();
+}
+
+// v69 · para los que se registraron antes de que existiera la clave.
+async function crearClave() {
+  const errClave = revisarClaves('c-pin', 'c-pin2');
+  if (errClave) return avisoAcceso(errClave);
+  const pin = document.getElementById('c-pin').value;
+  ocupado('b-clave', 'Creando…');
+  const r = await llamar('/cliente/crear-clave', { rut: rutPendiente, pin });
+  ocupado('b-clave', '');
+  if (r.status === 409) { verAcceso('rut'); return avisoAcceso(esc(r.d.error)); }
+  if (!r.ok) return avisoAcceso(esc(r.d.error || 'No se pudo crear la clave. Intenta de nuevo.'));
+  pinSesion = pin;
   perfil = r.d;
   mostrarPerfil();
 }
@@ -980,12 +1083,13 @@ function mostrarFormDir(ver) {
 
 async function agregarDireccion() {
   const v = id => document.getElementById(id).value.trim();
-  const nueva = { rut: perfil.rut, nombre: v('nd-nombre'), dir: v('nd-dir'), comuna: v('nd-comuna') };
+  const nueva = { rut: perfil.rut, pin: pinSesion, nombre: v('nd-nombre'), dir: v('nd-dir'), comuna: v('nd-comuna') };
   if (marcarFaltantes([[nueva.nombre, 'nd-nombre'], [nueva.dir, 'nd-dir'], [nueva.comuna, 'nd-comuna']]))
     return avisoAcceso('Completa el nombre, la dirección y la comuna.');
   ocupado('b-dir', 'Guardando…');
   const r = await llamar('/cliente/direccion', nueva);
   ocupado('b-dir', '');
+  if (r.status === 401 || r.status === 428) return claveVencida(r.d.error);
   if (!r.ok) return avisoAcceso(esc(r.d.error || 'No se pudo guardar la dirección.'));
   perfil = r.d;
   mostrarFormDir(false);
@@ -997,7 +1101,8 @@ async function agregarDireccion() {
 async function quitarDireccion(id) {
   const d = (perfil.direcciones || []).find(x => Number(x.id) === Number(id));
   if (!d || !confirm(`¿Quitar «${d.nombre}»? Ya no aparecerá para tus próximos pedidos.`)) return;
-  const r = await llamar('/cliente/direccion/archivar', { rut: perfil.rut, id: Number(id) });
+  const r = await llamar('/cliente/direccion/archivar', { rut: perfil.rut, pin: pinSesion, id: Number(id) });
+  if (r.status === 401 || r.status === 428) return claveVencida(r.d.error);
   if (!r.ok) return avisoAcceso(esc(r.d.error || 'No se pudo quitar la dirección.'));
   perfil = r.d;
   if (direccionSel && Number(direccionSel.id) === Number(id)) direccionSel = null;
@@ -1038,11 +1143,12 @@ function cambiarDireccion() {
 
 function logout() {
   sess = {}; qtys = {}; entrega = 'despacho';
-  perfil = null; direccionSel = null; catalogoListo = false;
+  perfil = null; direccionSel = null; catalogoListo = false; pinSesion = ''; rutPendiente = '';
+  document.getElementById('olvido-txt').hidden = true;
   document.getElementById('mensaje').value = '';
   contarMensaje();
-  ['n-rut', 'n-razon', 'n-local', 'n-giro', 'n-dirfact', 'n-encargado', 'n-email', 'n-tel', 'r-rut',
-   'nd-nombre', 'nd-dir', 'nd-comuna'].forEach(id => {
+  ['n-rut', 'n-razon', 'n-local', 'n-giro', 'n-dirfact', 'n-encargado', 'n-email', 'n-tel', 'n-pin', 'n-pin2',
+   'r-rut', 'r-pin', 'c-pin', 'c-pin2', 'nd-nombre', 'nd-dir', 'nd-comuna'].forEach(id => {
     const el = document.getElementById(id); el.value = ''; el.classList.remove('err');
   });
   updateCart();
@@ -1346,7 +1452,7 @@ async function enviarPedido() {
     ...(SLUG_PICH ? { pichilemu: SLUG_PICH } : {}),
     // El perfil y la dirección elegida. El Worker toma de ahí la empresa, el
     // RUT, la dirección y el contacto completos.
-    ...(perfil && direccionSel ? { portal_rut: perfil.rut, portal_direccion: String(direccionSel.id) } : {})
+    ...(perfil && direccionSel ? { portal_rut: perfil.rut, portal_direccion: String(direccionSel.id), portal_pin: pinSesion } : {})
   };
 
   let motivo = '';
