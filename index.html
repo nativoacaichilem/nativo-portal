@@ -264,7 +264,66 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
 .pich-chip{background:var(--am);color:var(--mora-d);border-radius:20px;padding:4px 10px;
   font-size:11px;font-weight:900;white-space:nowrap}
 
+/* ── ACCESO (v66): cliente nuevo / ya tengo mis datos / perfil ── */
+#screen-login .login-card{max-width:460px}
+.login-card [hidden]{display:none!important}
+.opcion{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:16px;margin-bottom:12px;
+  border:1.5px solid var(--crema-d);border-radius:14px;background:var(--crema);cursor:pointer;
+  font-family:'Nunito',sans-serif;transition:border-color .15s,transform .15s,box-shadow .15s}
+.opcion:hover,.opcion:focus-visible{border-color:var(--mora);transform:translateY(-1px);box-shadow:0 6px 18px rgba(74,31,122,.10);outline:none}
+.opcion:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.op-ico{font-size:26px;flex:none;width:34px;text-align:center}
+.opcion b{display:block;font-size:15px;color:var(--mora-d);font-weight:900}
+.opcion small{display:block;font-size:12.5px;color:var(--textl);font-weight:600;margin-top:2px}
+.op-ir{margin-left:auto;font-size:26px;color:var(--mora);font-weight:700;line-height:1}
+.volver{background:none;border:none;color:var(--mora);font-weight:800;font-size:13px;cursor:pointer;padding:4px 0;
+  margin-bottom:10px;font-family:'Nunito',sans-serif}
+.volver.abajo{display:block;margin:18px auto 0;color:var(--textl)}
+.sub-tit{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.8px;color:var(--textl);margin:8px 0 10px}
+.perfil-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-bottom:14px;
+  margin-bottom:6px;border-bottom:1px solid var(--crema-d)}
+.perfil-cab b{display:block;font-family:'DM Serif Display',serif;font-size:22px;color:var(--mora-d);font-weight:400;line-height:1.2}
+.perfil-cab small{display:block;font-size:12.5px;color:var(--textl);font-weight:700;margin-top:3px}
+.perfil-rut{flex:none;background:var(--mora-xl);color:var(--mora-d);border-radius:20px;padding:5px 11px;
+  font-size:12px;font-weight:900;white-space:nowrap}
+.dir-card{display:flex;align-items:center;gap:6px;border:1.5px solid var(--crema-d);border-radius:12px;
+  padding:4px 6px 4px 4px;margin-bottom:10px;background:var(--white);transition:border-color .15s}
+.dir-card:hover{border-color:var(--mora)}
+.dir-card .ir{flex:1;display:flex;align-items:center;gap:12px;text-align:left;background:none;border:0;cursor:pointer;
+  font-family:'Nunito',sans-serif;padding:10px;min-width:0}
+.dir-card .ir:focus-visible{outline:2px solid var(--mora);border-radius:9px}
+.dir-ico{font-size:20px;flex:none}
+.dir-card b{display:block;font-size:14.5px;color:var(--text);font-weight:900}
+.dir-card small{display:block;font-size:12.5px;color:var(--textl);font-weight:600;overflow-wrap:anywhere}
+.dir-card .flecha{margin-left:auto;color:var(--mora);font-size:24px;font-weight:700;padding-left:6px}
+.dir-quitar{flex:none;background:none;border:0;color:var(--textl);font-size:12px;font-weight:800;cursor:pointer;
+  padding:8px;font-family:'Nunito',sans-serif;border-radius:8px}
+.dir-quitar:hover{color:var(--rd);background:var(--rl)}
+.dir-vacia{text-align:center;padding:16px;color:var(--textl);font-size:13px;font-weight:700;background:var(--crema);
+  border-radius:12px;margin-bottom:10px}
+.btn-agregar{width:100%;padding:13px;border:1.5px dashed var(--mora);border-radius:12px;background:transparent;
+  color:var(--mora);font-weight:900;font-size:14px;cursor:pointer;font-family:'Nunito',sans-serif}
+.btn-agregar:hover{background:var(--mora-xl)}
+.pf-form{margin-top:4px;padding:14px;border-radius:12px;background:var(--crema);border:1px solid var(--crema-d)}
+.pf-form .field input{background:var(--white)}
+.pf-acc{display:flex;gap:10px}
+.pf-acc .btn-primary{flex:1;margin-top:0}
+.btn-sec{padding:13px 16px;border:1.5px solid var(--crema-d);border-radius:10px;background:var(--white);
+  color:var(--text);font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif}
+.lnk{background:none;border:0;color:inherit;text-decoration:underline;font:inherit;font-weight:900;cursor:pointer;padding:0}
+
+/* En el encabezado del catálogo, el nombre cede espacio antes que los botones */
+.app-user{min-width:0}
+#hdr-emp{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:34vw}
+.btn-logout{white-space:nowrap}
+
 @media(max-width:480px){
+  .login-card{padding:24px 18px}
+  /* En el celular el local y la dirección ya salen en la barra de datos */
+  #hdr-emp{display:none}
+  .app-header{padding:11px 12px}
+  .btn-logout{padding:6px 10px;font-size:11.5px}
+  .field-row{grid-template-columns:1fr;gap:0}
   .prod-grid{grid-template-columns:repeat(2,1fr)}
   .doc-datos{grid-template-columns:1fr}
   #oc-doc{padding:20px 14px}
@@ -285,27 +344,89 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
     <!-- v65 · solo en el link de una vendedora de Pichilemu -->
     <div class="pich-nota" id="pich-nota"></div>
   </div>
-  <div class="login-card">
-    <h3>Bienvenido</h3>
-    <p>Ingresa los datos de tu empresa para acceder al catálogo</p>
-    <div id="login-alert"></div>
-    <div class="field">
-      <label>RUT Empresa *</label>
-      <input type="text" id="rut-inp" placeholder="76.123.456-0" oninput="fmtR(this); avisoRut()">
-      <div id="rut-aviso" class="aviso-campo"></div>
+  <div class="login-card" id="acceso">
+    <div id="login-alert" role="alert"></div>
+
+    <!-- 1 · ¿Primera compra? -->
+    <div id="ac-inicio">
+      <h3>Bienvenido</h3>
+      <p>¿Es tu primera compra con nosotros?</p>
+      <button class="opcion" onclick="verAcceso('nuevo')">
+        <span class="op-ico">🆕</span>
+        <span><b>Soy cliente nuevo</b><small>Deja los datos de tu empresa una sola vez</small></span>
+        <span class="op-ir">›</span>
+      </button>
+      <button class="opcion" onclick="verAcceso('rut')">
+        <span class="op-ico">👋</span>
+        <span><b>Ya tengo mis datos ingresados</b><small>Entra solo con el RUT de tu empresa</small></span>
+        <span class="op-ir">›</span>
+      </button>
     </div>
-    <div class="field"><label>Nombre Empresa *</label><input type="text" id="emp-inp" placeholder="Nombre de tu empresa"></div>
-    <div class="field"><label>Dirección de Despacho *</label><input type="text" id="dir-inp" placeholder="Av. Ejemplo 1234, Santiago"></div>
-    <div class="field">
-      <label>Email *</label>
-      <input type="email" id="email-inp" placeholder="correo@empresa.cl" oninput="avisoEmail()">
-      <div id="email-aviso" class="aviso-campo"></div>
+
+    <!-- 2 · Cliente nuevo: los datos de facturación, una sola vez -->
+    <div id="ac-nuevo" hidden>
+      <button class="volver" onclick="verAcceso('inicio')">‹ Volver</button>
+      <h3>Datos de tu empresa</h3>
+      <p>Los usamos para emitir tus facturas. Los ingresas una sola vez.</p>
+      <div class="field"><label for="n-rut">RUT de la empresa *</label>
+        <input id="n-rut" placeholder="76.123.456-0" oninput="fmtR(this)" autocomplete="off"></div>
+      <div class="field"><label for="n-razon">Razón social *</label>
+        <input id="n-razon" placeholder="Comercial Ejemplo SpA" autocomplete="organization"></div>
+      <div class="field-row">
+        <div class="field"><label for="n-local">Nombre del local *</label>
+          <input id="n-local" placeholder="Café Ejemplo"></div>
+        <div class="field"><label for="n-giro">Giro *</label>
+          <input id="n-giro" placeholder="Venta de alimentos"></div>
+      </div>
+      <div class="field"><label for="n-dirfact">Dirección de facturación *</label>
+        <input id="n-dirfact" placeholder="Av. Ejemplo 1234, Santiago" autocomplete="street-address"></div>
+      <div class="sub-tit">Encargado</div>
+      <div class="field"><label for="n-encargado">Nombre *</label>
+        <input id="n-encargado" placeholder="Nombre y apellido" autocomplete="name"></div>
+      <div class="field-row">
+        <div class="field"><label for="n-email">Email *</label>
+          <input id="n-email" type="email" placeholder="correo@empresa.cl" autocomplete="email"></div>
+        <div class="field"><label for="n-tel">Teléfono *</label>
+          <input id="n-tel" type="tel" placeholder="+56 9 1234 5678" autocomplete="tel"></div>
+      </div>
+      <button class="btn-primary" id="b-nuevo" onclick="crearPerfil()">Guardar y continuar →</button>
     </div>
-    <div class="field-row">
-      <div class="field"><label>Nombre de Contacto *</label><input type="text" id="contacto-inp" placeholder="Nombre completo"></div>
-      <div class="field"><label>Teléfono de Contacto *</label><input type="text" id="tel-inp" placeholder="+56 9 1234 5678"></div>
+
+    <!-- 3 · Ya tengo mis datos: solo el RUT -->
+    <div id="ac-rut" hidden>
+      <button class="volver" onclick="verAcceso('inicio')">‹ Volver</button>
+      <h3>Entra con tu RUT</h3>
+      <p>El RUT de la empresa con que ingresaste tus datos.</p>
+      <div class="field"><label for="r-rut">RUT de la empresa</label>
+        <input id="r-rut" placeholder="76.123.456-0" oninput="fmtR(this)" autocomplete="off"
+          onkeydown="if(event.key==='Enter')entrarConRut()"></div>
+      <button class="btn-primary" id="b-rut" onclick="entrarConRut()">Entrar →</button>
     </div>
-    <button class="btn-primary" id="btn-login" onclick="login()">Ver catálogo →</button>
+
+    <!-- 4 · El perfil: elegir o crear la dirección de despacho -->
+    <div id="ac-perfil" hidden>
+      <div class="perfil-cab">
+        <div><b id="pf-nombre"></b><small id="pf-razon"></small></div>
+        <span class="perfil-rut" id="pf-rut"></span>
+      </div>
+      <div class="sub-tit">¿A dónde enviamos tu pedido?</div>
+      <div id="pf-dirs"></div>
+      <button class="btn-agregar" id="b-agregar" onclick="mostrarFormDir(true)">+ Agregar dirección de despacho</button>
+      <div id="pf-form" class="pf-form" hidden>
+        <div class="field"><label for="nd-nombre">Nombre de la dirección *</label>
+          <input id="nd-nombre" placeholder="Ej: Local Providencia" maxlength="80"></div>
+        <div class="field"><label for="nd-dir">Dirección *</label>
+          <input id="nd-dir" placeholder="Av. Ejemplo 1234, local 5" maxlength="300" autocomplete="street-address"></div>
+        <div class="field"><label for="nd-comuna">Comuna *</label>
+          <input id="nd-comuna" placeholder="Providencia" maxlength="80"
+            onkeydown="if(event.key==='Enter')agregarDireccion()"></div>
+        <div class="pf-acc">
+          <button class="btn-sec" id="b-cancelar-dir" onclick="mostrarFormDir(false)">Cancelar</button>
+          <button class="btn-primary" id="b-dir" onclick="agregarDireccion()">Guardar y pedir aquí →</button>
+        </div>
+      </div>
+      <button class="volver abajo" onclick="logout()">No soy yo · salir</button>
+    </div>
   </div>
 </div>
 
@@ -316,6 +437,7 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
     <div class="app-user">
       <span class="pich-chip" id="hdr-pich" style="display:none"></span>
       <span id="hdr-emp"></span>
+      <button class="btn-logout" onclick="cambiarDireccion()">Cambiar dirección</button>
       <button class="btn-logout" onclick="logout()">Salir</button>
     </div>
   </div>
@@ -560,7 +682,7 @@ function prepararPichilemu() {
   nota.style.display = 'block';
   if (linkInvalido) {
     nota.textContent = linkInvalido;
-    document.getElementById('btn-login').disabled = true;
+    document.querySelectorAll('#ac-inicio .opcion').forEach(b => { b.disabled = true; });
     return;
   }
   nota.textContent = vendedoraPortal
@@ -604,39 +726,8 @@ function rutOk(r) {
   return (r2 === 11 ? '0' : r2 === 10 ? 'K' : String(r2)) === d;
 }
 
-function avisoRut() {
-  const el = document.getElementById('rut-inp');
-  const av = document.getElementById('rut-aviso');
-  const v  = el.value.replace(/[^0-9kK]/g, '');
-  if (v.length < 8) { av.style.display = 'none'; el.style.borderColor = ''; return; }
-  if (rutOk(el.value)) {
-    av.style.display = 'none';
-    el.style.borderColor = '';
-  } else {
-    av.style.display = 'block';
-    av.textContent = v.length > 9
-      ? '⚠️ Ese RUT tiene demasiados dígitos. ¿Escribiste el teléfono por error?'
-      : '⚠️ Revisa el RUT, parece que hay un dígito cambiado. Puedes continuar igual.';
-    el.style.borderColor = '#f59e0b';
-  }
-}
-
-// Mismo criterio que el RUT: avisa, no bloquea. Un email mal escrito significa
-// que no vas a poder responderle el pedido a ese cliente.
+// Un email mal escrito significa que no vas a poder responderle a ese cliente.
 const emailOk = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(e || '').trim());
-
-function avisoEmail() {
-  const el = document.getElementById('email-inp');
-  const av = document.getElementById('email-aviso');
-  const v  = el.value.trim();
-  if (v.length < 5 || emailOk(v)) {
-    av.style.display = 'none'; el.style.borderColor = '';
-  } else {
-    av.style.display = 'block';
-    av.textContent = '⚠️ Revisa el email, parece incompleto. Puedes continuar igual.';
-    el.style.borderColor = '#f59e0b';
-  }
-}
 
 function fmtR(el) {
   let v = el.value.replace(/[^0-9kK]/g, '');
@@ -654,58 +745,228 @@ function showScreen(id) {
 }
 
 // ══════════════════════════════════════════════════════════════
-//  LOGIN
+//  ACCESO (v66)
+//
+//  Dos puertas:
+//    Soy cliente nuevo           deja los datos de facturación una sola vez
+//                                (RUT, razón social, local, giro, dirección de
+//                                facturación y el encargado con su email y
+//                                teléfono) y pasa a su perfil.
+//    Ya tengo mis datos          escribe el RUT y pasa a su perfil.
+//
+//  En el perfil elige la dirección de despacho, crea una nueva o quita las
+//  que ya no usa, y de ahí va al catálogo. Todo lo guarda el Worker en tablas
+//  propias del portal, aparte de los clientes y sucursales del panel.
+//
+//  Al navegador le llegan el email y el teléfono del encargado tapados: el
+//  pedido los toma completos del perfil guardado, en el Worker.
 // ══════════════════════════════════════════════════════════════
-async function login() {
-  const dato = id => document.getElementById(id).value.trim();
-  const rut = dato('rut-inp'), emp = dato('emp-inp'), dir = dato('dir-inp');
-  const email = dato('email-inp'), contacto = dato('contacto-inp'), tel = dato('tel-inp');
+let perfil = null;          // lo que devuelve el Worker: rut, razón social, local, contacto, direcciones
+let direccionSel = null;    // la dirección de despacho elegida
+let catalogoListo = false;  // el catálogo se arma una vez; cambiar de dirección no borra lo elegido
 
-  if (!rut || !emp || !dir || !email || !contacto || !tel) {
-    document.getElementById('login-alert').innerHTML =
-      '<div class="alert alert-error">Por favor completa todos los campos.</div>';
-    return;
+const VISTAS = ['inicio', 'nuevo', 'rut', 'perfil'];
+function verAcceso(v) {
+  VISTAS.forEach(x => { document.getElementById('ac-' + x).hidden = x !== v; });
+  avisoAcceso('');
+  const foco = { nuevo: 'n-rut', rut: 'r-rut' }[v];
+  if (foco) setTimeout(() => document.getElementById(foco).focus(), 50);
+  window.scrollTo(0, 0);
+}
+function avisoAcceso(html) {
+  document.getElementById('login-alert').innerHTML = html ? `<div class="alert alert-error">${html}</div>` : '';
+}
+// Mientras espera, el botón dice qué está pasando y no se puede apretar dos veces.
+function ocupado(id, txt) {
+  const b = document.getElementById(id);
+  if (!b.dataset.txt) b.dataset.txt = b.textContent;
+  b.disabled = !!txt;
+  b.textContent = txt || b.dataset.txt;
+}
+async function llamar(ruta, cuerpo) {
+  try {
+    const r = await fetch(PROXY + ruta, cuerpo
+      ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo) } : {});
+    const d = await r.json().catch(() => ({}));
+    return { ok: r.ok, status: r.status, d };
+  } catch (_) {
+    return { ok: false, status: 0, d: { error: 'No se pudo conectar. Revisa tu conexión e intenta de nuevo.' } };
   }
+}
+// Marca en rojo los campos vacíos. Devuelve true si falta alguno.
+function marcarFaltantes(pares) {
+  let falta = false;
+  pares.forEach(([valor, id]) => {
+    const vacio = !String(valor || '').trim();
+    document.getElementById(id).classList.toggle('err', vacio);
+    if (vacio) falta = true;
+  });
+  return falta;
+}
 
-  if (linkInvalido) {
-    document.getElementById('login-alert').innerHTML =
-      `<div class="alert alert-error">${esc(linkInvalido)}</div>`;
-    return;
+async function crearPerfil() {
+  const v = id => document.getElementById(id).value.trim();
+  const datos = { rut: v('n-rut'), razon_social: v('n-razon'), nombre_local: v('n-local'), giro: v('n-giro'),
+    dir_facturacion: v('n-dirfact'), encargado_nombre: v('n-encargado'), encargado_email: v('n-email'),
+    encargado_telefono: v('n-tel') };
+  if (marcarFaltantes([[datos.rut, 'n-rut'], [datos.razon_social, 'n-razon'], [datos.nombre_local, 'n-local'],
+      [datos.giro, 'n-giro'], [datos.dir_facturacion, 'n-dirfact'], [datos.encargado_nombre, 'n-encargado'],
+      [datos.encargado_email, 'n-email'], [datos.encargado_telefono, 'n-tel']]))
+    return avisoAcceso('Completa los campos marcados en rojo.');
+  // El RUT es la llave de su perfil: uno mal escrito lo dejaría sin poder entrar.
+  if (!rutOk(datos.rut)) {
+    document.getElementById('n-rut').classList.add('err');
+    return avisoAcceso('Revisa el RUT: el dígito verificador no calza.');
   }
-  // El catálogo se arma con la disponibilidad a la vista. Casi siempre ya
-  // llegó, porque se pidió al abrir la página.
-  const btnL = document.getElementById('btn-login');
-  btnL.disabled = true; btnL.textContent = 'Abriendo catálogo…';
+  if (!emailOk(datos.encargado_email)) {
+    document.getElementById('n-email').classList.add('err');
+    return avisoAcceso('Revisa el email: parece incompleto.');
+  }
+  if (datos.encargado_telefono.replace(/\D/g, '').length < 8) {
+    document.getElementById('n-tel').classList.add('err');
+    return avisoAcceso('Revisa el teléfono: le faltan dígitos.');
+  }
+  if (linkInvalido) return avisoAcceso(esc(linkInvalido));
+  ocupado('b-nuevo', 'Guardando…');
+  const r = await llamar('/cliente/nuevo', datos);
+  ocupado('b-nuevo', '');
+  if (r.status === 409) {
+    // Ya existe: se le lleva a la otra puerta con su RUT escrito.
+    document.getElementById('r-rut').value = datos.rut;
+    verAcceso('rut');
+    return avisoAcceso(esc(r.d.error));
+  }
+  if (!r.ok) return avisoAcceso(esc(r.d.error || 'No se pudo guardar. Intenta de nuevo.'));
+  perfil = r.d;
+  mostrarPerfil();
+}
+
+async function entrarConRut() {
+  const rut = document.getElementById('r-rut').value.trim();
+  if (!rut) return avisoAcceso('Escribe el RUT de tu empresa.');
+  if (!rutOk(rut)) return avisoAcceso('Revisa el RUT: el dígito verificador no calza.');
+  if (linkInvalido) return avisoAcceso(esc(linkInvalido));
+  ocupado('b-rut', 'Buscando…');
+  const r = await llamar('/cliente?rut=' + encodeURIComponent(rut));
+  ocupado('b-rut', '');
+  if (r.status === 404)
+    return avisoAcceso(`${esc(r.d.error)} <button class="lnk" onclick="irANuevo()">Soy cliente nuevo</button>`);
+  if (!r.ok) return avisoAcceso(esc(r.d.error || 'No se pudo entrar. Intenta de nuevo.'));
+  perfil = r.d;
+  mostrarPerfil();
+}
+function irANuevo() {
+  const rut = document.getElementById('r-rut').value;
+  verAcceso('nuevo');
+  document.getElementById('n-rut').value = rut;
+}
+
+function mostrarPerfil() {
+  document.getElementById('pf-nombre').textContent = perfil.nombre_local || perfil.razon_social;
+  document.getElementById('pf-razon').textContent = perfil.nombre_local ? perfil.razon_social : '';
+  document.getElementById('pf-rut').textContent = 'RUT ' + perfil.rut;
+  pintarDirecciones();
+  verAcceso('perfil');
+  // Sin direcciones, el formulario parte abierto: es lo único que puede hacer.
+  mostrarFormDir(!perfil.direcciones.length);
+}
+
+function pintarDirecciones() {
+  const l = perfil.direcciones || [];
+  document.getElementById('pf-dirs').innerHTML = l.length ? l.map(d => `
+    <div class="dir-card">
+      <button class="ir" onclick="elegirDireccion(${Number(d.id)})">
+        <span class="dir-ico">📍</span>
+        <span style="min-width:0"><b>${esc(d.nombre)}</b><small>${esc(d.dir)}${d.comuna ? ', ' + esc(d.comuna) : ''}</small></span>
+        <span class="flecha">›</span>
+      </button>
+      <button class="dir-quitar" onclick="quitarDireccion(${Number(d.id)})" aria-label="Quitar ${esc(d.nombre)}">Quitar</button>
+    </div>`).join('')
+    : '<div class="dir-vacia">Todavía no tienes direcciones de despacho. Agrega la primera para hacer tu pedido.</div>';
+}
+
+function mostrarFormDir(ver) {
+  const sinDirs = !(perfil && perfil.direcciones && perfil.direcciones.length);
+  document.getElementById('pf-form').hidden = !ver;
+  document.getElementById('b-agregar').hidden = ver;
+  // Si no tiene ninguna, no hay a qué volver.
+  document.getElementById('b-cancelar-dir').hidden = sinDirs;
+  if (ver) setTimeout(() => document.getElementById('nd-nombre').focus(), 50);
+  else ['nd-nombre', 'nd-dir', 'nd-comuna'].forEach(id => {
+    const el = document.getElementById(id); el.value = ''; el.classList.remove('err');
+  });
+}
+
+async function agregarDireccion() {
+  const v = id => document.getElementById(id).value.trim();
+  const nueva = { rut: perfil.rut, nombre: v('nd-nombre'), dir: v('nd-dir'), comuna: v('nd-comuna') };
+  if (marcarFaltantes([[nueva.nombre, 'nd-nombre'], [nueva.dir, 'nd-dir'], [nueva.comuna, 'nd-comuna']]))
+    return avisoAcceso('Completa el nombre, la dirección y la comuna.');
+  ocupado('b-dir', 'Guardando…');
+  const r = await llamar('/cliente/direccion', nueva);
+  ocupado('b-dir', '');
+  if (!r.ok) return avisoAcceso(esc(r.d.error || 'No se pudo guardar la dirección.'));
+  perfil = r.d;
+  mostrarFormDir(false);
+  pintarDirecciones();
+  // Recién creada, se pide ahí: es para lo que la creó.
+  if (r.d.nueva) elegirDireccion(r.d.nueva);
+}
+
+async function quitarDireccion(id) {
+  const d = (perfil.direcciones || []).find(x => Number(x.id) === Number(id));
+  if (!d || !confirm(`¿Quitar «${d.nombre}»? Ya no aparecerá para tus próximos pedidos.`)) return;
+  const r = await llamar('/cliente/direccion/archivar', { rut: perfil.rut, id: Number(id) });
+  if (!r.ok) return avisoAcceso(esc(r.d.error || 'No se pudo quitar la dirección.'));
+  perfil = r.d;
+  if (direccionSel && Number(direccionSel.id) === Number(id)) direccionSel = null;
+  pintarDirecciones();
+  if (!perfil.direcciones.length) mostrarFormDir(true);
+}
+
+async function elegirDireccion(id) {
+  const d = (perfil.direcciones || []).find(x => Number(x.id) === Number(id));
+  if (!d) return;
+  direccionSel = d;
   await disponibilidadLista;
-  btnL.disabled = false; btnL.textContent = 'Ver catálogo →';
-
-  sess = { rut, emp, dir, email, contacto, tel, fecha: new Date().toLocaleDateString('es-CL') };
-
-  const poner = (id, v) => document.getElementById(id).textContent = v;
-  poner('hdr-emp', emp);
+  const c = perfil.contacto || {};
+  const emp = perfil.nombre_local || perfil.razon_social;
+  sess = { ...sess, rut: perfil.rut, emp, dir: d.dir + (d.comuna ? ', ' + d.comuna : ''),
+           email: c.email || '', contacto: c.nombre || '', tel: c.telefono || '',
+           fecha: sess.fecha || new Date().toLocaleDateString('es-CL') };
+  const poner = (idEl, v) => { document.getElementById(idEl).textContent = v; };
+  poner('hdr-emp', `${emp} · ${d.nombre}`);
   poner('d-emp', emp);
-  poner('d-rut', rut);
-  poner('d-dir', dir);
-  poner('d-email', email);          // antes quedaba vacío
-  poner('d-contacto', contacto);
-  poner('d-tel', tel);
+  poner('d-rut', sess.rut);
+  poner('d-dir', `${d.nombre} · ${sess.dir}`);
+  poner('d-email', sess.email);
+  poner('d-contacto', sess.contacto);
+  poner('d-tel', sess.tel);
   poner('d-fecha', sess.fecha);
-
-  buildCatalogo();
+  if (!catalogoListo) { buildCatalogo(); catalogoListo = true; }
   showScreen('screen-catalogo');
+}
+
+// Vuelve al perfil para elegir otra dirección; lo que ya eligió se mantiene.
+function cambiarDireccion() {
+  showScreen('screen-login');
+  pintarDirecciones();
+  verAcceso('perfil');
+  mostrarFormDir(false);
 }
 
 function logout() {
   sess = {}; qtys = {}; entrega = 'despacho';
+  perfil = null; direccionSel = null; catalogoListo = false;
   document.getElementById('mensaje').value = '';
   contarMensaje();
-  ['rut-aviso','email-aviso'].forEach(id => document.getElementById(id).style.display = 'none');
-  ['rut-inp','emp-inp','dir-inp','email-inp','contacto-inp','tel-inp'].forEach(id => {
-    const el = document.getElementById(id);
-    el.value = ''; el.style.borderColor = '';
+  ['n-rut', 'n-razon', 'n-local', 'n-giro', 'n-dirfact', 'n-encargado', 'n-email', 'n-tel', 'r-rut',
+   'nd-nombre', 'nd-dir', 'nd-comuna'].forEach(id => {
+    const el = document.getElementById(id); el.value = ''; el.classList.remove('err');
   });
-  document.getElementById('login-alert').innerHTML = '';
+  updateCart();
   showScreen('screen-login');
+  verAcceso('inicio');
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -983,7 +1244,7 @@ async function enviarPedido() {
   }
   if (!sess.emp) {
     cancelarConfirmacion();
-    avisoOC('<div class="alert alert-error">Se perdieron los datos de la empresa. Vuelve a ingresarlos.</div>');
+    avisoOC('<div class="alert alert-error">Se perdieron los datos de la empresa. Vuelve a entrar con tu RUT.</div>');
     return;
   }
   if (!sess.folio) sess.folio = nuevoFolio();
@@ -1001,7 +1262,10 @@ async function enviarPedido() {
     entrega,
     mensaje: document.getElementById('mensaje').value.trim().slice(0, 500),
     // El código del link de la vendedora. El Worker lo cambia por su nombre.
-    ...(SLUG_PICH ? { pichilemu: SLUG_PICH } : {})
+    ...(SLUG_PICH ? { pichilemu: SLUG_PICH } : {}),
+    // El perfil y la dirección elegida. El Worker toma de ahí la empresa, el
+    // RUT, la dirección y el contacto completos.
+    ...(perfil && direccionSel ? { portal_rut: perfil.rut, portal_direccion: String(direccionSel.id) } : {})
   };
 
   let motivo = '';
