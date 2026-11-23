@@ -608,6 +608,88 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
 .pt-seg button.act[data-v="agotado"]{background:#ffedd5;color:#9a3412}
 .pt-seg button.act[data-v="oculto"]{background:#e4e4e7;color:#3f3f46}
 @media(max-width:640px){.pt-fila{grid-template-columns:1fr auto}.pt-seg{grid-column:1/-1}}
+/* v68 · Días de reparto */
+.cal-check{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13.5px;margin:0 0 12px;cursor:pointer}
+.cal-ed-cab,.cal-fila{display:grid;grid-template-columns:110px 170px minmax(0,1fr) 54px 60px;gap:6px;align-items:center}
+.cal-ed-cab{font-size:11px;font-weight:800;color:var(--texto-medio);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.cal-fila{margin-bottom:6px}
+.cal-fila input[type=text]{width:100%;padding:7px 9px;border:1.5px solid #d8cdea;border-radius:8px;font:600 13px 'Nunito',sans-serif;box-sizing:border-box;outline:none}
+.cal-fila input[type=text]:focus{border-color:var(--mora)}
+.cal-fila.aviso input[type=text]{background:#fff7e0}
+.cal-fila .cal-av{display:flex;justify-content:center}
+.cal-campos{margin-top:14px;display:flex;flex-direction:column;gap:4px}
+.cal-campos label{font-size:11px;font-weight:800;color:var(--texto-medio);text-transform:uppercase;letter-spacing:.04em;margin-top:6px}
+.cal-campos textarea,.cal-campos input{width:100%;padding:8px 10px;border:1.5px solid #d8cdea;border-radius:8px;font:600 13px 'Nunito',sans-serif;box-sizing:border-box;outline:none;resize:vertical}
+.cal-vista{background:linear-gradient(160deg,#4a1f7a 0%,#6b35b8 100%);border-radius:14px;padding:16px}
+.cal-vista .cv-tit{color:#fff;font-size:11px;font-weight:900;letter-spacing:1px;text-transform:uppercase;opacity:.85;margin-bottom:8px}
+.cal-vista .cv-dias{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.cal-vista .cv-dia{background:#fff;border-radius:11px;padding:9px 11px}
+.cal-vista .cv-dia span{display:block;font-size:10.5px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;color:var(--mora)}
+.cal-vista .cv-dia b{display:block;font-size:13.5px;color:var(--mora-d)}
+.cal-vista .cv-dia small{display:block;font-size:11.5px;color:var(--texto-medio);font-weight:600;line-height:1.35}
+.cal-vista .cv-dia.aviso{background:#fff7e0;border:1.5px solid var(--am)}
+.cal-vista .cv-dia.aviso span{color:#9a3412}
+.cal-vista .cv-msg{margin-top:10px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:11px;padding:9px 12px;font-size:12.5px;font-weight:700}
+.cal-vista .cv-off{color:#fff;font-weight:800;text-align:center;padding:14px;opacity:.85}
+@media(max-width:760px){.cal-ed-cab{display:none}.cal-fila{grid-template-columns:1fr 1fr;padding:8px;border:1px solid #eee6f6;border-radius:9px}.cal-fila .cal-com{grid-column:1/-1}}
+/* v67 · Clientes del portal */
+.pt-vistas{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.pt-vistas button{border:1.5px solid #d8cdea;background:var(--white);color:var(--texto-medio);font:800 13px 'Nunito',sans-serif;
+  padding:8px 14px;border-radius:10px;cursor:pointer}
+.pt-vistas button.act{background:var(--mora);border-color:var(--mora);color:#fff}
+.ptv-n{display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:rgba(0,0,0,.08);font-size:11.5px;text-align:center}
+.pt-vistas button.act .ptv-n{background:rgba(255,255,255,.25)}
+.pcl-cab{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.pcl-cab h2{margin:0}
+.pcl-buscar{flex:0 1 300px;padding:9px 12px;border:1.5px solid #d8cdea;border-radius:9px;font:600 13px 'Nunito',sans-serif;outline:none}
+.pcl-buscar:focus{border-color:var(--mora)}
+.pcl-wrap{display:grid;grid-template-columns:minmax(260px,340px) minmax(0,1fr);gap:16px;align-items:start}
+.pcl-lista{display:flex;flex-direction:column;gap:6px;max-height:70vh;overflow:auto;padding-right:2px}
+.pcl-item{display:block;width:100%;text-align:left;border:1.5px solid #e4daf0;background:var(--white);border-radius:10px;
+  padding:10px 12px;cursor:pointer;font-family:'Nunito',sans-serif}
+.pcl-item:hover{border-color:var(--mora-l,#9b6fd4)}
+.pcl-item.act{border-color:var(--mora);background:#faf6ff}
+.pcl-item b{display:block;font-size:14px;color:var(--text)}
+.pcl-item small{display:block;font-size:12px;color:var(--texto-medio);font-weight:600}
+.pcl-item .pcl-meta{font-size:11.5px;color:var(--mora-d);font-weight:800;margin-top:3px}
+.pcl-vacio{padding:30px 16px;text-align:center;color:var(--texto-medio);font-weight:700;background:#faf7fd;border-radius:10px}
+.pcl-detalle{border:1px solid #e4daf0;border-radius:12px;padding:16px;min-height:200px}
+.pcl-d-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
+.pcl-d-cab b{display:block;font-size:18px;color:var(--mora-d)}
+.pcl-d-cab small{display:block;font-size:12px;color:var(--texto-medio);font-weight:700}
+.pcl-volver{display:none;border:0;background:none;color:var(--mora);font:800 13px 'Nunito',sans-serif;cursor:pointer;padding:0;margin-bottom:8px}
+.pcl-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px}
+.pcl-grid .ancho{grid-column:1/-1}
+.pcl-grid label{display:block;font-size:11px;font-weight:800;color:var(--texto-medio);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.pcl-grid input,.pcl-dform input{width:100%;padding:8px 10px;border:1.5px solid #d8cdea;border-radius:8px;font:600 13.5px 'Nunito',sans-serif;outline:none;box-sizing:border-box}
+.pcl-grid input:focus,.pcl-dform input:focus{border-color:var(--mora)}
+.pcl-grid input.err,.pcl-dform input.err{border-color:#dc2626;background:#fff7f7}
+.pcl-sec{font-size:12px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;color:var(--mora-d);margin:18px 0 8px;display:flex;align-items:center;gap:8px}
+.pcl-sec .crece{flex:1}
+.pcl-acc{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.pcl-nota{font-size:11.5px;color:var(--texto-medio);font-weight:600}
+.pcl-dir{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px 10px;border:1px solid #eee6f6;border-radius:9px;margin-bottom:6px}
+.pcl-dir.arch{background:#f4f4f5;opacity:.75}
+.pcl-dir b{font-size:13.5px}
+.pcl-dir small{display:block;font-size:12px;color:var(--texto-medio);font-weight:600}
+.pcl-dir .bts{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.pcl-dform{display:grid;grid-template-columns:1fr 1.6fr 1fr auto;gap:6px;align-items:center;padding:8px;border:1px dashed var(--mora);border-radius:9px;margin-bottom:6px}
+.pcl-ped{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:6px 2px;border-bottom:1px solid #f1ecf7}
+.pcl-ped span{color:var(--texto-medio);font-weight:600}
+.pcl-peligro{margin-top:20px;padding:12px;border:1px solid #fecaca;background:#fff7f7;border-radius:10px;display:flex;
+  justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;color:#7f1d1d;font-weight:600}
+.btn-mini{border:1px solid #d8cdea;background:var(--white);color:var(--mora-d);font:800 11.5px 'Nunito',sans-serif;border-radius:7px;padding:4px 9px;cursor:pointer}
+.btn-mini:hover{background:#faf6ff}
+.btn-mini.rojo{border-color:#fecaca;color:#b91c1c}
+.btn-mini.rojo:hover{background:#fee2e2}
+@media(max-width:860px){
+  .pcl-wrap{grid-template-columns:1fr}
+  .pcl-wrap.con-detalle .pcl-lista{display:none}
+  .pcl-wrap:not(.con-detalle) .pcl-detalle{display:none}
+  .pcl-volver{display:inline-block}
+  .pcl-grid{grid-template-columns:1fr}
+  .pcl-dform{grid-template-columns:1fr}
+}
 .msg-ped{font-size:12px;color:var(--mora-d);background:var(--mora-xl);border-radius:6px;padding:3px 8px;margin-top:5px;
   display:inline-block;font-weight:700;max-width:520px;line-height:1.4}
 .fact-inline{display:flex;gap:4px;align-items:center}
@@ -1303,7 +1385,12 @@ details.mp-mas summary{cursor:pointer;padding:12px 0;font-weight:900;color:var(-
 
   <!-- ── PORTAL DE CLIENTES (v65) ── -->
   <div id="page-portal" class="page">
-    <div class="card">
+    <div class="pt-vistas" role="tablist" aria-label="Portal de clientes">
+      <button class="act" id="ptv-disp" role="tab" onclick="ptVista('disp')">🛍️ Qué se puede pedir</button>
+      <button id="ptv-cli" role="tab" onclick="ptVista('cli')">👥 Clientes del portal <span class="ptv-n" id="ptv-cli-n"></span></button>
+      <button id="ptv-cal" role="tab" onclick="ptVista('cal')">📅 Días de reparto</button>
+    </div>
+    <div class="card" id="pt-vista-disp">
       <h2>🛍️ Portal de clientes · qué se puede pedir</h2>
       <div id="pt-alert"></div>
       <div class="alert ai" style="line-height:1.55;margin-bottom:14px">
@@ -1325,6 +1412,53 @@ details.mp-mas summary{cursor:pointer;padding:12px 0;font-weight:900;color:var(-
           Ocultar lo que nunca pasó por Pichilemu</button>
       </div>
       <div id="pt-lista"></div>
+    </div>
+
+    <!-- v68 · los días de reparto que el portal muestra arriba -->
+    <div class="card" id="pt-vista-cal" hidden>
+      <h2>📅 Días de reparto</h2>
+      <div class="alert ai" style="line-height:1.55;margin-bottom:12px">
+        Se muestra arriba del portal de pedidos, y como recordatorio corto en la orden de compra.
+        Un día sin zona ni comunas no se muestra. Los links de Pichilemu no lo muestran.
+        El cambio vale desde la próxima vez que un cliente abra el portal.
+      </div>
+      <div id="cal-alert"></div>
+      <label class="cal-check"><input type="checkbox" id="cal-visible" onchange="calVista()"> Mostrar en el portal</label>
+      <div class="cal-ed-cab"><span>Día</span><span>Zona</span><span>Comunas o mensaje</span><span>Aviso</span><span></span></div>
+      <div id="cal-filas"></div>
+      <button class="btn-mini" onclick="calAgregarDia()">+ Agregar día</button>
+      <div class="cal-campos">
+        <label for="cal-mensaje">Mensaje para los clientes (debajo de los días)</label>
+        <textarea id="cal-mensaje" rows="3" maxlength="600" oninput="calVista()"></textarea>
+        <label for="cal-recordatorio">Recordatorio en la orden de compra</label>
+        <input id="cal-recordatorio" maxlength="200" oninput="calVista()">
+      </div>
+      <div class="pcl-acc">
+        <button class="btn bmora bsm" id="cal-guardar" onclick="calGuardar()">Guardar</button>
+        <button class="btn-mini" onclick="calFabrica()">Volver al calendario original</button>
+        <span class="pcl-nota" id="cal-estado"></span>
+      </div>
+      <div class="pcl-sec">Así lo ve el cliente</div>
+      <div class="cal-vista" id="cal-vista"></div>
+    </div>
+
+    <!-- v67 · los clientes que se registran en el portal: ver, corregir y borrar -->
+    <div class="card" id="pt-vista-cli" hidden>
+      <div class="pcl-cab">
+        <h2>👥 Clientes del portal</h2>
+        <input class="pcl-buscar" id="pcl-buscar" type="search" placeholder="Buscar por RUT, razón social o local"
+          oninput="pintarClientesPortal()" aria-label="Buscar cliente del portal">
+      </div>
+      <div class="alert ai" style="line-height:1.55;margin-bottom:12px">
+        Los que se registran como cliente nuevo en el portal. Viven aparte del directorio de Clientes.
+        Si un cliente te pide cambiar un dato o borrarlo, se hace aquí: el cambio vale desde su próximo pedido,
+        y sus pedidos anteriores no se tocan.
+      </div>
+      <div id="pcl-alert"></div>
+      <div class="pcl-wrap">
+        <div class="pcl-lista" id="pcl-lista"></div>
+        <div class="pcl-detalle" id="pcl-detalle"><div class="pcl-vacio">Elige un cliente para ver y editar sus datos.</div></div>
+      </div>
     </div>
   </div>
 
@@ -2058,7 +2192,7 @@ function pintarPestana(id) {
   if (id === 'aprobar')  { renderAprobar(); return; }
   if (id === 'produccion') { renderProduccion(); return; }
   if (id === 'zonas')    { renderZonas(); return; }
-  if (id === 'portal')   { renderPortal(); return; }
+  if (id === 'portal')   { renderPortal(); if (ptVistaSel === 'cli') renderClientesPortal(); else pintarClientesPortal(); return; }
   if (id === 'nuevo') {
     pintarCat('man');
     if (!document.getElementById('nfecha').value)
@@ -7810,6 +7944,388 @@ const ptAgotarCeros = () => ptEnBloque(s => s.disponible === 0, 'agotado',
 const ptOcultarAjenos = () => ptEnBloque(s => !s.enBodega, 'oculto',
   n => `¿Ocultar en los links de Pichilemu ${n} producto(s) que nunca han pasado por esa bodega?`,
   n => `${n} producto(s) ocultos en Pichilemu`);
+
+// ══════════════════════════════════════════
+//  CLIENTES DEL PORTAL (v67)
+//
+//  Ver, corregir y borrar lo que los clientes dejan en el portal: sus datos
+//  de facturación (`portal_clientes`) y sus direcciones de despacho
+//  (`portal_direcciones`). Aparte del directorio de Clientes del panel.
+//
+//  Corregir vale desde el próximo pedido: cada pedido guarda copia de la
+//  empresa, el RUT y la dirección con que salió, así que los anteriores no
+//  cambian. Lo mismo al borrar: se van el perfil y sus direcciones, y los
+//  pedidos quedan como estaban.
+// ══════════════════════════════════════════
+let ptVistaSel = 'disp';
+let pclDirs = new Map();     // cliente_id → todas sus direcciones, activas y archivadas
+let pclSel = null;           // id del cliente abierto
+let pclEditDir = null;       // id de la dirección que se está editando, o 'nueva'
+let pclVerArch = false;      // mostrar también las direcciones archivadas
+
+function ptVista(v) {
+  ptVistaSel = v;
+  ['disp', 'cli', 'cal'].forEach(x => {
+    document.getElementById('ptv-' + x).classList.toggle('act', v === x);
+    document.getElementById('pt-vista-' + x).hidden = v !== x;
+  });
+  if (v === 'cli') renderClientesPortal();
+  if (v === 'cal') renderCalendario();
+}
+
+// ══════════════════════════════════════════
+//  DÍAS DE REPARTO (v68)
+//
+//  Lo que el portal muestra arriba: los días con su zona y el mensaje para
+//  los clientes, más un recordatorio en la orden de compra. Se guarda en
+//  bod_config, clave `portal_calendario`. Sin nada guardado, el portal usa
+//  su calendario de fábrica, que es este mismo (si se cambia uno, cambiar el
+//  otro en index.html).
+// ══════════════════════════════════════════
+const CAL_CLAVE = 'portal_calendario';
+const CAL_FABRICA = {
+  visible: true,
+  mensaje: 'Estimado cliente: debido a la temporada alta, le compartimos los días de reparto por zona. ' +
+           'Le recomendamos ajustar su reabastecimiento para que calce con el día de la zona más cercana a su local.',
+  recordatorio: 'Recuerde: repartimos por zona y día.',
+  dias: [
+    { dia: 'Lunes',     zona: 'Centro y oriente',  comunas: 'Providencia, Vitacura, Las Condes, Lo Barnechea y alrededores' },
+    { dia: 'Martes',    zona: 'Sur oriente',       comunas: 'La Florida, La Reina, Peñalolén y alrededores' },
+    { dia: 'Miércoles', zona: 'Ruta sur',          comunas: 'Buin, Rancagua, Machalí y San Vicente' },
+    { dia: 'Jueves',    zona: 'Quinta Región',     comunas: 'Viña del Mar, Valparaíso, Limache, Catemu y Maitencillo' },
+    { dia: 'Viernes',   zona: 'Solo emergencias',  aviso: true,
+      comunas: 'Es el día con más pedidos. No recomendamos pedir para el viernes: úselo solo como opción de emergencia.' }
+  ]
+};
+let calCfg = JSON.parse(JSON.stringify(CAL_FABRICA));
+let calHay = false;   // si la fila ya existe en bod_config
+
+async function renderCalendario() {
+  try {
+    const d = await sbJson(`bod_config?select=clave,valor&clave=eq.${CAL_CLAVE}`);
+    calHay = d.length > 0;
+    let v = null;
+    try { v = d[0] ? JSON.parse(d[0].valor || 'null') : null; } catch (_) { v = null; }
+    calCfg = (v && Array.isArray(v.dias)) ? v : JSON.parse(JSON.stringify(CAL_FABRICA));
+    document.getElementById('cal-estado').textContent = calHay ? '' : 'Todavía no lo guardas: el portal muestra este, el original.';
+  } catch (e) {
+    document.getElementById('cal-alert').innerHTML = `<div class="alert ae">No se pudo leer el calendario: ${hesc(e.message)}</div>`;
+  }
+  pintarEditorCal();
+}
+
+function pintarEditorCal() {
+  document.getElementById('cal-visible').checked = calCfg.visible !== false;
+  document.getElementById('cal-mensaje').value = calCfg.mensaje || '';
+  document.getElementById('cal-recordatorio').value = calCfg.recordatorio || '';
+  document.getElementById('cal-filas').innerHTML = (calCfg.dias || []).map((d, i) => `
+    <div class="cal-fila${d.aviso ? ' aviso' : ''}" data-i="${i}">
+      <input type="text" class="cal-dia" value="${hesc(d.dia || '')}" maxlength="20" placeholder="Día" oninput="calVista()" aria-label="Día">
+      <input type="text" class="cal-zona" value="${hesc(d.zona || '')}" maxlength="60" placeholder="Zona" oninput="calVista()" aria-label="Zona">
+      <input type="text" class="cal-com" value="${hesc(d.comunas || '')}" maxlength="300" placeholder="Comunas o mensaje" oninput="calVista()" aria-label="Comunas o mensaje">
+      <label class="cal-av" title="Destacar como aviso"><input type="checkbox" class="cal-aviso"${d.aviso ? ' checked' : ''} onchange="calVista()"></label>
+      <button class="btn-mini rojo" onclick="calQuitarDia(${i})">Quitar</button>
+    </div>`).join('');
+  calVista();
+}
+
+// Lo que hay escrito en el editor, como se guardaría.
+function calLeer() {
+  const dias = [...document.querySelectorAll('#cal-filas .cal-fila')].map(f => ({
+    dia: f.querySelector('.cal-dia').value.trim(),
+    zona: f.querySelector('.cal-zona').value.trim(),
+    comunas: f.querySelector('.cal-com').value.trim(),
+    aviso: f.querySelector('.cal-aviso').checked
+  }));
+  return {
+    visible: document.getElementById('cal-visible').checked,
+    mensaje: document.getElementById('cal-mensaje').value.trim(),
+    recordatorio: document.getElementById('cal-recordatorio').value.trim(),
+    dias
+  };
+}
+
+// La vista previa, con las mismas reglas que el portal: un día sin zona ni
+// comunas no se muestra.
+function calVista() {
+  const c = calLeer();
+  document.querySelectorAll('#cal-filas .cal-fila').forEach(f =>
+    f.classList.toggle('aviso', f.querySelector('.cal-aviso').checked));
+  const dias = c.dias.filter(d => d.dia && (d.zona || d.comunas));
+  document.getElementById('cal-vista').innerHTML = !c.visible || !dias.length
+    ? '<div class="cv-off">No se muestra en el portal.</div>'
+    : `<div class="cv-tit">📅 Días de reparto</div>
+       <div class="cv-dias">${dias.map(d => `<div class="cv-dia${d.aviso ? ' aviso' : ''}">
+         <span>${d.aviso ? '⚠️ ' : ''}${hesc(d.dia)}</span><b>${hesc(d.zona)}</b>${d.comunas ? `<small>${hesc(d.comunas)}</small>` : ''}</div>`).join('')}</div>
+       ${c.mensaje ? `<div class="cv-msg">${hesc(c.mensaje)}</div>` : ''}`;
+}
+
+function calAgregarDia() {
+  calCfg = calLeer();
+  if (calCfg.dias.length >= 7) return toastRojo('Ya hay siete días.');
+  calCfg.dias.push({ dia: '', zona: '', comunas: '', aviso: false });
+  pintarEditorCal();
+  const filas = document.querySelectorAll('#cal-filas .cal-fila .cal-dia');
+  filas[filas.length - 1].focus();
+}
+function calQuitarDia(i) { calCfg = calLeer(); calCfg.dias.splice(i, 1); pintarEditorCal(); }
+function calFabrica() {
+  if (!confirm('¿Volver al calendario original? Se reemplaza lo que hay en el editor (no se guarda hasta que apretes Guardar).')) return;
+  calCfg = JSON.parse(JSON.stringify(CAL_FABRICA));
+  pintarEditorCal();
+}
+
+async function calGuardar() {
+  const c = calLeer();
+  c.dias = c.dias.filter(d => d.dia && (d.zona || d.comunas));
+  const fila = { valor: JSON.stringify(c), quien: 'Panel · Días de reparto' };
+  const btn = document.getElementById('cal-guardar');
+  btn.disabled = true;
+  try {
+    if (calHay) await sbSend(`bod_config?clave=eq.${CAL_CLAVE}`, 'PATCH', fila);
+    else {
+      try { await sbSend('bod_config', 'POST', { clave: CAL_CLAVE, ...fila }); }
+      catch (e) {
+        if (!/duplicate|23505/i.test(String(e.message))) throw e;
+        await sbSend(`bod_config?clave=eq.${CAL_CLAVE}`, 'PATCH', fila);
+      }
+      calHay = true;
+    }
+    calCfg = c;
+    pintarEditorCal();
+    document.getElementById('cal-estado').textContent = '';
+    toast('Días de reparto guardados · el portal ya los muestra así');
+  } catch (e) {
+    toastRojo('No se pudo guardar: ' + e.message);
+  }
+  btn.disabled = false;
+}
+
+// El RUT como lo guarda el portal: sin puntos y con guion.
+const rutPortal = r => { const v = normRut(r); return v.length < 2 ? '' : v.slice(0, -1).replace(/^0+/, '') + '-' + v.slice(-1); };
+const fechaPc = iso => { const t = iso ? new Date(iso) : null; return t && !isNaN(t) ? `${t.getDate()} ${MES_PED[t.getMonth()]} ${t.getFullYear()}` : '—'; };
+const pedidosDeCliente = id => pedidos.filter(p => String(p.portal_cliente_id) === String(id))
+  .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
+
+async function renderClientesPortal() {
+  pintarClientesPortal();
+  try {
+    const [cli, dirs] = await Promise.all([
+      sbJson('portal_clientes?select=*&order=creado.desc'),
+      sbJson('portal_direcciones?select=*&order=creada.asc')
+    ]);
+    clientesPortal = new Map(cli.map(c => [String(c.id), c]));
+    pclDirs = new Map();
+    dirs.forEach(d => {
+      const k = String(d.cliente_id);
+      if (!pclDirs.has(k)) pclDirs.set(k, []);
+      pclDirs.get(k).push(d);
+    });
+    document.getElementById('pcl-alert').innerHTML = '';
+  } catch (e) {
+    document.getElementById('pcl-alert').innerHTML = `<div class="alert ae">No se pudieron leer los clientes del portal
+      (${hesc(e.message)}). Si todavía no corres el SQL de la v66, esta lista queda vacía.</div>`;
+  }
+  if (pclSel && !clientesPortal.has(String(pclSel))) pclSel = null;
+  pintarClientesPortal();
+}
+
+function pintarClientesPortal() {
+  const caja = document.getElementById('pcl-lista');
+  if (!caja) return;
+  const todos = [...clientesPortal.values()].sort((a, b) => String(b.creado || '').localeCompare(String(a.creado || '')));
+  document.getElementById('ptv-cli-n').textContent = todos.length || '';
+  const q = normTxt(document.getElementById('pcl-buscar').value);
+  const qRut = normRut(q);
+  const lista = !q ? todos : todos.filter(c => normTxt(c.razon_social).includes(q) || normTxt(c.nombre_local).includes(q) ||
+    (qRut.length >= 3 && normRut(c.rut).includes(qRut)));
+  caja.innerHTML = lista.length ? lista.map(c => {
+    const dirs = (pclDirs.get(String(c.id)) || []).filter(d => d.activa !== false).length;
+    const peds = pedidosDeCliente(c.id).length;
+    return `<button class="pcl-item${String(pclSel) === String(c.id) ? ' act' : ''}" onclick="pclElegir(${Number(c.id)})">
+      <b>${hesc(c.nombre_local || c.razon_social)}</b>
+      <small>${hesc(c.razon_social)} · RUT ${hesc(rutConPuntos(c.rut))}</small>
+      <div class="pcl-meta">${dirs} dirección(es) · ${peds} pedido(s) · desde ${hesc(fechaPc(c.creado))}</div>
+    </button>`;
+  }).join('') : `<div class="pcl-vacio">${todos.length ? 'Ningún cliente calza con la búsqueda.' : 'Todavía no se registra ningún cliente en el portal.'}</div>`;
+  pintarDetalleCliente();
+}
+
+function pclElegir(id) { pclSel = id; pclEditDir = null; pclVerArch = false; pintarClientesPortal(); }
+function pclCerrar() { pclSel = null; pintarClientesPortal(); }
+
+function pintarDetalleCliente() {
+  const caja = document.getElementById('pcl-detalle');
+  const wrap = caja.parentElement;
+  const c = pclSel != null ? clientesPortal.get(String(pclSel)) : null;
+  wrap.classList.toggle('con-detalle', !!c);
+  if (!c) { caja.innerHTML = '<div class="pcl-vacio">Elige un cliente para ver y editar sus datos.</div>'; return; }
+  const campo = (id, lbl, val, extra = '') =>
+    `<div${extra}><label for="${id}">${lbl}</label><input id="${id}" value="${hesc(val || '')}"></div>`;
+  const dirs = pclDirs.get(String(c.id)) || [];
+  const activas = dirs.filter(d => d.activa !== false), archivadas = dirs.filter(d => d.activa === false);
+  const filaDir = d => {
+    if (String(pclEditDir) === String(d.id)) return formDir(d);
+    const arch = d.activa === false;
+    return `<div class="pcl-dir${arch ? ' arch' : ''}">
+      <div><b>${hesc(d.nombre)}</b><small>${hesc(d.dir)}${d.comuna ? ', ' + hesc(d.comuna) : ''}${arch ? ` · archivada el ${hesc(fechaPc(d.archivada_en))}` : ''}</small></div>
+      <div class="bts">${arch
+        ? `<button class="btn-mini" onclick="pclDirArchivar(${Number(d.id)}, false)">Restaurar</button>
+           <button class="btn-mini rojo" onclick="pclDirEliminar(${Number(d.id)})">Eliminar</button>`
+        : `<button class="btn-mini" onclick="pclEditDir=${Number(d.id)};pintarDetalleCliente()">Editar</button>
+           <button class="btn-mini" onclick="pclDirArchivar(${Number(d.id)}, true)">Archivar</button>`}</div>
+    </div>`;
+  };
+  const peds = pedidosDeCliente(c.id);
+  caja.innerHTML = `
+    <button class="pcl-volver" onclick="pclCerrar()">‹ Todos los clientes</button>
+    <div class="pcl-d-cab">
+      <div><b>${hesc(c.nombre_local || c.razon_social)}</b>
+        <small>Registrado el ${hesc(fechaPc(c.creado))}${c.actualizado && c.actualizado !== c.creado ? ` · modificado el ${hesc(fechaPc(c.actualizado))}` : ''}</small></div>
+      <button class="fc-copiar" onclick="copiarFactCli(${Number(c.id)})">Copiar datos</button>
+    </div>
+
+    <div class="pcl-sec">Datos de facturación</div>
+    <div class="pcl-grid">
+      ${campo('pc-rut', 'RUT', rutConPuntos(c.rut))}
+      ${campo('pc-razon', 'Razón social', c.razon_social)}
+      ${campo('pc-local', 'Nombre del local', c.nombre_local)}
+      ${campo('pc-giro', 'Giro', c.giro)}
+      ${campo('pc-dirfact', 'Dirección de facturación', c.dir_facturacion, ' class="ancho"')}
+      ${campo('pc-enc', 'Encargado', c.encargado_nombre)}
+      ${campo('pc-email', 'Email', c.encargado_email)}
+      ${campo('pc-tel', 'Teléfono', c.encargado_telefono)}
+    </div>
+    <div class="pcl-acc">
+      <button class="btn bmora bsm" id="pc-guardar" onclick="pclGuardar()">Guardar cambios</button>
+      <span class="pcl-nota">Si cambias el RUT, el cliente entra al portal con el RUT nuevo.</span>
+    </div>
+
+    <div class="pcl-sec">Direcciones de despacho · ${activas.length} activa(s)<span class="crece"></span>
+      <button class="btn-mini" onclick="pclEditDir='nueva';pintarDetalleCliente()">+ Agregar</button></div>
+    ${pclEditDir === 'nueva' ? formDir(null) : ''}
+    ${activas.length ? activas.map(filaDir).join('') : '<div class="pcl-nota" style="margin-bottom:6px">No tiene direcciones activas.</div>'}
+    ${archivadas.length ? `<button class="btn-mini" style="margin-top:4px" onclick="pclVerArch=!pclVerArch;pintarDetalleCliente()">
+        ${pclVerArch ? 'Ocultar' : 'Ver'} archivadas (${archivadas.length})</button>
+      <div style="margin-top:6px">${pclVerArch ? archivadas.map(filaDir).join('') : ''}</div>` : ''}
+
+    <div class="pcl-sec">Pedidos · ${peds.length}</div>
+    ${peds.length ? peds.slice(0, 6).map(p => `<div class="pcl-ped"><b>${hesc(p.folio || '#' + p.id)}</b>
+        <span>${hesc(fechaPc(p.created_at))} · ${hesc((ESTADOS[p.estado] || {}).lbl || p.estado || '')}</span></div>`).join('') +
+        (peds.length > 6 ? `<div class="pcl-nota" style="margin-top:4px">y ${peds.length - 6} más</div>` : '')
+      : '<div class="pcl-nota">Todavía no hace pedidos.</div>'}
+
+    <div class="pcl-peligro">
+      <span>Eliminar el perfil borra sus datos de facturación y sus direcciones. Sus pedidos no se tocan.</span>
+      <button class="btn-mini rojo" onclick="pclEliminarCliente()">Eliminar perfil</button>
+    </div>`;
+}
+
+function formDir(d) {
+  const id = d ? Number(d.id) : 'null';
+  return `<div class="pcl-dform">
+    <input id="pd-nombre" placeholder="Nombre (Local Providencia)" value="${hesc(d ? d.nombre : '')}" aria-label="Nombre de la dirección">
+    <input id="pd-dir" placeholder="Dirección" value="${hesc(d ? d.dir : '')}" aria-label="Dirección">
+    <input id="pd-comuna" placeholder="Comuna" value="${hesc(d ? d.comuna : '')}" aria-label="Comuna">
+    <div style="display:flex;gap:4px">
+      <button class="btn-mini" onclick="pclDirGuardar(${id})">Guardar</button>
+      <button class="btn-mini" onclick="pclEditDir=null;pintarDetalleCliente()">Cancelar</button>
+    </div>
+  </div>`;
+}
+
+// Marca en rojo lo vacío y devuelve los valores, o null si falta algo.
+function pclLeer(ids) {
+  const out = {}; let falta = false;
+  for (const [k, id] of Object.entries(ids)) {
+    const el = document.getElementById(id);
+    const v = el.value.trim().replace(/\s+/g, ' ');
+    el.classList.toggle('err', !v);
+    if (!v) falta = true;
+    out[k] = v;
+  }
+  return falta ? null : out;
+}
+
+async function pclGuardar() {
+  const c = clientesPortal.get(String(pclSel));
+  if (!c) return;
+  const v = pclLeer({ rut: 'pc-rut', razon_social: 'pc-razon', nombre_local: 'pc-local', giro: 'pc-giro',
+    dir_facturacion: 'pc-dirfact', encargado_nombre: 'pc-enc', encargado_email: 'pc-email', encargado_telefono: 'pc-tel' });
+  if (!v) return toastRojo('Completa los campos marcados en rojo.');
+  // Con el mismo validador del directorio, más el RUT de mostrador: como
+  // llave de un perfil, varias personas verían las direcciones de otras.
+  if (!rutValido(v.rut)) { document.getElementById('pc-rut').classList.add('err'); return toastRojo('Revisa el RUT: no es válido.'); }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.encargado_email)) {
+    document.getElementById('pc-email').classList.add('err'); return toastRojo('Revisa el email: parece incompleto.');
+  }
+  const fila = { ...v, rut: rutPortal(v.rut), encargado_email: v.encargado_email.toLowerCase(), actualizado: new Date().toISOString() };
+  const btn = document.getElementById('pc-guardar');
+  btn.disabled = true;
+  try {
+    await sbSend(`portal_clientes?id=eq.${Number(c.id)}`, 'PATCH', fila);
+    toast(`${fila.nombre_local}: datos guardados`);
+    await renderClientesPortal();
+    render();   // «Por facturar» muestra los datos nuevos
+  } catch (e) {
+    btn.disabled = false;
+    toastRojo(/23505|duplicate|409/i.test(e.message) ? 'Ya hay otro perfil con ese RUT.' : 'No se pudo guardar: ' + e.message);
+  }
+}
+
+async function pclDirGuardar(id) {
+  const v = pclLeer({ nombre: 'pd-nombre', dir: 'pd-dir', comuna: 'pd-comuna' });
+  if (!v) return toastRojo('Completa el nombre, la dirección y la comuna.');
+  try {
+    if (id) await sbSend(`portal_direcciones?id=eq.${Number(id)}`, 'PATCH', v);
+    else await sbSend('portal_direcciones', 'POST', { ...v, cliente_id: Number(pclSel) });
+    pclEditDir = null;
+    toast(id ? 'Dirección guardada' : 'Dirección agregada');
+    await renderClientesPortal();
+  } catch (e) { toastRojo('No se pudo guardar la dirección: ' + e.message); }
+}
+
+// Archivar es lo mismo que «Quitar» en el portal: el cliente deja de verla,
+// pero queda acá y se puede restaurar.
+async function pclDirArchivar(id, archivar) {
+  try {
+    await sbSend(`portal_direcciones?id=eq.${Number(id)}`, 'PATCH',
+      { activa: !archivar, archivada_en: archivar ? new Date().toISOString() : null });
+    toast(archivar ? 'Dirección archivada' : 'Dirección restaurada');
+    await renderClientesPortal();
+  } catch (e) { toastRojo('No se pudo cambiar la dirección: ' + e.message); }
+}
+
+// Borrar de verdad solo se ofrece en una dirección ya archivada: dos pasos
+// para algo que no tiene vuelta.
+async function pclDirEliminar(id) {
+  const d = (pclDirs.get(String(pclSel)) || []).find(x => String(x.id) === String(id));
+  if (!d || !confirm(`¿Eliminar para siempre «${d.nombre}»? No se puede deshacer. Los pedidos que ya fueron ahí no cambian.`)) return;
+  try {
+    await sbSend(`portal_direcciones?id=eq.${Number(id)}`, 'DELETE');
+    toast('Dirección eliminada');
+    await renderClientesPortal();
+  } catch (e) { toastRojo('No se pudo eliminar: ' + e.message); }
+}
+
+async function pclEliminarCliente() {
+  const c = clientesPortal.get(String(pclSel));
+  if (!c) return;
+  const nombre = c.nombre_local || c.razon_social;
+  const escrito = prompt(`Vas a eliminar el perfil de ${nombre} (RUT ${rutConPuntos(c.rut)}) con todas sus direcciones.\n` +
+    'Sus pedidos no se tocan. Si vuelve a comprar, tendrá que registrarse de nuevo.\n\nPara confirmar, escribe ELIMINAR:');
+  if (escrito === null) return;
+  if (escrito.trim().toUpperCase() !== 'ELIMINAR') return toastRojo('No se eliminó: no escribiste ELIMINAR.');
+  try {
+    // Sus direcciones se van con él: la base las borra en cascada.
+    await sbSend(`portal_clientes?id=eq.${Number(c.id)}`, 'DELETE');
+    clientesPortal.delete(String(c.id));
+    pclSel = null;
+    toast(`Perfil de ${nombre} eliminado`);
+    await renderClientesPortal();
+    render();
+  } catch (e) { toastRojo('No se pudo eliminar: ' + e.message); }
+}
 
 function renderZonas() {
   const cont = document.getElementById('zn-list');
