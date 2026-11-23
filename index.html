@@ -116,6 +116,16 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
 .prod-card.sel{border-color:var(--mora);background:#f5eeff}
 .prod-name{font-size:12px;font-weight:700;color:var(--text);line-height:1.3;flex:1}
 .prod-format{font-size:10px;color:var(--textl);font-weight:600}
+/* v70 · precio neto (solo en los productos que lo tienen) */
+.prod-precio{font-size:13px;font-weight:900;color:var(--mora-d);margin-top:3px}
+.prod-precio span{font-size:10px;font-weight:700;color:var(--textl)}
+.doc-total td{font-weight:900;color:var(--mora-d);border-top:2px solid var(--crema-d)}
+.doc-nota{font-size:11.5px;color:var(--textl);font-weight:600;margin-top:8px;line-height:1.45}
+.num{text-align:right;white-space:nowrap}
+.doc-fmt{display:block;font-size:11px;color:var(--textl);font-weight:600;margin-top:1px}
+.doc-table.con-precio td.num,.doc-table.con-precio th.num{text-align:right}
+/* Si aun así no cabe, la tabla se desliza dentro de su caja y la página no se corre */
+.doc-tabla-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .qty-row{display:flex;align-items:center;gap:6px}
 .qty-btn{
   width:28px;height:28px;border:none;border-radius:7px;
@@ -347,6 +357,9 @@ body{font-family:'Nunito',sans-serif;background:var(--crema);color:var(--text);m
 .btn-logout{white-space:nowrap}
 
 @media(max-width:480px){
+  /* Con precios, en el celular el formato cede su columna (ya sale en el catálogo) */
+  .doc-table.con-precio th,.doc-table.con-precio td{padding-left:6px;padding-right:6px;font-size:12px}
+  .doc-table.con-precio th{white-space:normal}
   .login-card{padding:24px 18px}
   .cal-dias{grid-template-columns:1fr;gap:6px}
   .cal-dia{display:grid;grid-template-columns:92px 1fr;column-gap:10px;align-items:baseline;padding:9px 12px}
@@ -699,6 +712,27 @@ let sess = {}, qtys = {}, confirmando = false;
 let entrega = 'despacho';
 
 // ══════════════════════════════════════════════════════════════
+//  PRECIOS (v70)
+//
+//  Precios netos (sin IVA) que pone la oficina en el panel, producto por
+//  producto. El portal los recibe con la disponibilidad. Un producto sin
+//  precio no muestra precio, y el total de la orden suma solo los que
+//  tienen, avisando que el resto se confirma en la factura.
+// ══════════════════════════════════════════════════════════════
+let precios = {};   // nombre del producto en minúsculas → precio neto
+const precioDe = n => {
+  const v = precios[String(n == null ? '' : n).toLowerCase().trim().replace(/\s+/g, ' ')];
+  return Number.isInteger(v) && v > 0 ? v : null;
+};
+const fmtPeso = n => '$' + Number(n).toLocaleString('es-CL');
+// Lo elegido, sumado: el total neto de lo que tiene precio y cuántos no tienen.
+function totalNeto() {
+  let total = 0, sinPrecio = 0;
+  Object.entries(qtys).forEach(([n, q]) => { const p = precioDe(n); if (p) total += p * q; else sinPrecio++; });
+  return { total, sinPrecio };
+}
+
+// ══════════════════════════════════════════════════════════════
 //  DISPONIBILIDAD (v65)
 //
 //  Qué se puede pedir lo decide la oficina, producto por producto, en el
@@ -732,6 +766,7 @@ async function cargarDisponibilidad() {
     canalPortal = d.canal === 'pichilemu' ? 'pichilemu' : 'general';
     vendedoraPortal = String(d.vendedora || '');
     estados = (d.estados && typeof d.estados === 'object') ? d.estados : {};
+    precios = (d.precios && typeof d.precios === 'object' && !Array.isArray(d.precios)) ? d.precios : {};
     // null = la oficina todavía no lo guarda: queda el de fábrica.
     if (d.calendario && Array.isArray(d.calendario.dias)) calendario = d.calendario;
   } catch (_) { /* sin conexión: todo disponible */ }
@@ -1189,6 +1224,7 @@ function buildCatalogo() {
               <div>
                 <div class="prod-name">${esc(n)}</div>
                 <div class="prod-format">${esc(formatoVisible(f, u))}</div>
+                ${precioDe(n) ? `<div class="prod-precio">${fmtPeso(precioDe(n))} <span>neto</span></div>` : ''}
                 ${ag ? '<div class="prod-agotado">No disponible por ahora</div>' : ''}
               </div>
               <div class="qty-row">
@@ -1241,8 +1277,10 @@ function upd(id, name, v) {
 function updateCart() {
   const items = Object.entries(qtys);
   const n = items.length;
+  const { total } = totalNeto();
   document.getElementById('cart-count').textContent =
-    n > 0 ? `${n} producto${n > 1 ? 's' : ''} seleccionado${n > 1 ? 's' : ''}` : '0 productos seleccionados';
+    (n > 0 ? `${n} producto${n > 1 ? 's' : ''} seleccionado${n > 1 ? 's' : ''}` : '0 productos seleccionados') +
+    (total ? ` · ${fmtPeso(total)} neto` : '');
   document.getElementById('cart-preview').textContent =
     n > 0 ? items.map(([k,q]) => `${k} ×${q}`).join(', ') : 'Selecciona productos del catálogo';
   document.getElementById('btn-oc').disabled = n === 0;
@@ -1323,15 +1361,31 @@ function pintarDocumento() {
   cancelarConfirmacion();
   avisoOC('');
 
+  // v70 · con precios, la orden suma: precio neto y subtotal por línea, y el
+  // total neto de lo que tiene precio. Sin ningún precio, queda como antes.
+  const conPrecio = Object.keys(qtys).some(n => precioDe(n));
+  // Con precio, el formato va bajo el nombre: cuatro columnas que caben en un
+  // celular sin esconder nada.
+  const cols = conPrecio ? 4 : 3;
   let rows = '';
   CATS.forEach(({label, items}) => {
     const sel = items.filter(({n}) => qtys[n]);
     if (!sel.length) return;
-    rows += `<tr class="doc-cat"><td colspan="3">${esc(label)}</td></tr>`;
+    rows += `<tr class="doc-cat"><td colspan="${cols}">${esc(label)}</td></tr>`;
     sel.forEach(({n,f,u}) => {
-      rows += `<tr><td>${esc(n)}</td><td style="color:var(--textl);font-size:12px">${esc(formatoVisible(f, u))}</td><td>${qtys[n]}</td></tr>`;
+      const p = precioDe(n);
+      rows += conPrecio
+        ? `<tr><td>${esc(n)}<small class="doc-fmt">${esc(formatoVisible(f, u))}</small></td><td>${qtys[n]}</td>
+             <td class="num">${p ? fmtPeso(p) : '—'}</td><td class="num">${p ? fmtPeso(p * qtys[n]) : '—'}</td></tr>`
+        : `<tr><td>${esc(n)}</td><td style="color:var(--textl);font-size:12px">${esc(formatoVisible(f, u))}</td><td>${qtys[n]}</td></tr>`;
     });
   });
+  const { total, sinPrecio } = totalNeto();
+  if (conPrecio) rows += `<tr class="doc-total"><td colspan="3">Total neto${sinPrecio ? ' (de los productos con precio)' : ''}</td>
+    <td class="num">${fmtPeso(total)}</td></tr>`;
+  const notaPrecio = !conPrecio ? '' : `<p class="doc-nota">Valores netos, sin IVA.${sinPrecio
+    ? ` ${sinPrecio === 1 ? 'Un producto no tiene' : sinPrecio + ' productos no tienen'} precio publicado: el total final te lo confirmamos en la factura.`
+    : ' El total final te lo confirmamos en la factura.'}</p>`;
 
   document.getElementById('oc-doc').innerHTML = `
     <div class="doc-header">
@@ -1358,10 +1412,13 @@ function pintarDocumento() {
       <div class="doc-dato"><label>Nombre de Contacto</label><p>${esc(sess.contacto)}</p></div>
       <div class="doc-dato"><label>Teléfono de Contacto</label><p>${esc(sess.tel)}</p></div>
     </div>
-    <table class="doc-table">
-      <thead><tr><th style="width:55%">Producto</th><th>Formato</th><th>Cant.</th></tr></thead>
+    <div class="doc-tabla-wrap"><table class="doc-table${conPrecio ? ' con-precio' : ''}">
+      <thead><tr>${conPrecio
+        ? '<th style="width:46%">Producto</th><th>Cant.</th><th class="num">Precio neto</th><th class="num">Subtotal</th>'
+        : '<th style="width:55%">Producto</th><th>Formato</th><th>Cant.</th>'}</tr></thead>
       <tbody>${rows}</tbody>
-    </table>
+    </table></div>
+    ${notaPrecio}
     <div class="doc-footer">
       <p>nativo — Documento generado electrónicamente</p>
       <p class="doc-num">${esc(sess.folio)}</p>

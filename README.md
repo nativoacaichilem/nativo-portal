@@ -2,7 +2,7 @@
 
 | Archivo | Quién lo usa | Para qué |
 | --- | --- | --- |
-| index.html | Clientes | Portal de pedidos. Con `?pichilemu=<código>`, el link de una vendedora de Pichilemu |
+| index.html | Clientes | Portal de pedidos: cliente nuevo o «ya tengo mis datos» (RUT), perfil con direcciones de despacho. Con `?pichilemu=<código>`, el link de una vendedora |
 | admin.html | Oficina | Pedidos, rutas, clientes, producción y qué se puede pedir en el portal (Portal) |
 | bodega.html | Oficina | Stock, movimientos, conteos y configuración (incluido el portal de clientes) |
 | compras.html, maquinas.html, kpi.html, planner.html | Oficina | Compras, máquinas, indicadores, planificador |

@@ -592,7 +592,12 @@ tr.row-bloq > td:first-child{box-shadow:inset 4px 0 0 var(--rd)}
 .pt-bod{font-size:12px;font-weight:700;color:var(--texto-medio)}
 .pt-resumen{font-size:12.5px;font-weight:800;color:var(--texto-medio);margin:4px 0 6px}
 .pt-cat{font-size:12px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;color:var(--mora-d);margin:16px 0 4px}
-.pt-fila{display:grid;grid-template-columns:minmax(0,1fr) 110px auto;gap:10px;align-items:center;padding:8px 10px;border-radius:9px;border:1px solid transparent}
+.pt-precio{display:flex;align-items:center;gap:4px;border:1.5px solid #d8cdea;border-radius:8px;padding:0 8px;background:#fff}
+.pt-precio:focus-within{border-color:var(--mora)}
+.pt-precio span{font-weight:800;color:var(--texto-medio);font-size:12.5px}
+.pt-precio input{border:0;outline:none;width:100%;padding:6px 0;font:800 13px 'Nunito',sans-serif;text-align:right;background:transparent}
+.pt-precio input::placeholder{font-weight:600;color:#b9aecb}
+.pt-fila{display:grid;grid-template-columns:minmax(0,1fr) 110px 120px auto;gap:10px;align-items:center;padding:8px 10px;border-radius:9px;border:1px solid transparent}
 .pt-fila:nth-child(even){background:#faf7fd}
 .pt-fila.agotado{background:#fff7ed;border-color:#fed7aa}
 .pt-fila.oculto{background:#f4f4f5;opacity:.7}
@@ -1401,6 +1406,8 @@ details.mp-mas summary{cursor:pointer;padding:12px 0;font-weight:900;color:var(-
         Tú decides qué pueden pedir los clientes. <b>Agotado</b>: se ve en el portal,
         apagado, y no se puede pedir. <b>Oculto</b>: no aparece. El cambio vale desde
         la próxima vez que un cliente abra el portal.<br>
+        <b>Precio neto</b> (sin IVA): el cliente lo ve junto al producto y la orden suma el total.
+        Vacío: ese producto no muestra precio. Es el mismo en el portal general y en los links de Pichilemu.<br>
         El stock es solo referencia: lo que hay en la bodega del portal menos lo que ya
         está pedido y todavía no sale.
       </div>
@@ -7812,6 +7819,11 @@ function usosDeZona() {
 //  Worker, solo con clave de admin). Nunca bloquea nada por sí solo.
 // ══════════════════════════════════════════
 const PT_CLAVE = 'portal_disponibilidad';
+// v70 · los precios netos, en su propia fila de bod_config. Uno solo para el
+// portal general y los links de Pichilemu.
+const PT_PRECIOS = 'portal_precios';
+let ptPrecios = {};      // nombre del producto en minúsculas → precio neto
+let ptPreciosHay = false;
 let ptCanalSel = 'general';
 let ptEstados = { general: {}, pichilemu: {} };
 let ptHay = false;                              // si la fila ya existe en bod_config
@@ -7820,7 +7832,12 @@ let ptStock = { general: null, pichilemu: null }; // lo que respondió /disponib
 async function renderPortal() {
   pintarPortal();
   try {
-    const d = await sbJson(`bod_config?select=clave,valor&clave=eq.${PT_CLAVE}`);
+    const filas = await sbJson(`bod_config?select=clave,valor&clave=in.(${PT_CLAVE},${PT_PRECIOS})`);
+    const d = filas.filter(f => f.clave === PT_CLAVE);
+    const fp = filas.find(f => f.clave === PT_PRECIOS);
+    ptPreciosHay = !!fp;
+    try { ptPrecios = JSON.parse((fp && fp.valor) || '{}') || {}; } catch (_) { ptPrecios = {}; }
+    if (typeof ptPrecios !== 'object' || Array.isArray(ptPrecios)) ptPrecios = {};
     ptHay = d.length > 0;
     let v = {};
     try { v = JSON.parse((d[0] && d[0].valor) || '{}') || {}; } catch (_) { v = {}; }
@@ -7886,11 +7903,42 @@ function pintarPortal() {
       return `<div class="pt-fila${e ? ' ' + e : ''}">
         <div class="pt-nom"><b>${hesc(it.n)}</b><span>${hesc(it.f || '')}</span></div>
         <div class="pt-st${s && !s.disponible ? ' cero' : ''}">${s ? `${num(s.disponible)} ${ptUnidad(it, s.disponible)}` : '—'}${ojo}</div>
+        <label class="pt-precio" title="Precio neto (sin IVA). Vacío: sin precio en el portal">
+          <span>$</span><input inputmode="numeric" data-k="${hesc(k)}" value="${ptPrecios[k] ? Number(ptPrecios[k]).toLocaleString('es-CL') : ''}"
+            placeholder="sin precio" aria-label="Precio neto de ${hesc(it.n)}"
+            onfocus="this.select()" onkeydown="if(event.key==='Enter')this.blur()" onchange="ptPrecio(this)"></label>
         <div class="pt-seg" role="group" aria-label="${hesc(it.n)}">${['', 'agotado', 'oculto'].map(v =>
           `<button class="${e === v ? 'act' : ''}" data-k="${hesc(k)}" data-v="${v}"
             onclick="ptMarcar(this.dataset.k, this.dataset.v)">${nombre[v]}</button>`).join('')}</div>
       </div>`;
     }).join('')).join('');
+}
+
+// Cada precio se guarda al salir del campo. Vacío o cero: sin precio.
+async function ptPrecio(inp) {
+  const k = inp.dataset.k;
+  const n = parseInt(String(inp.value).replace(/\D/g, ''), 10);
+  const antes = { ...ptPrecios };
+  if (n > 0 && n < 100000000) ptPrecios[k] = n; else delete ptPrecios[k];
+  inp.value = ptPrecios[k] ? ptPrecios[k].toLocaleString('es-CL') : '';
+  const it = CATS.flatMap(c => c.items).find(x => normTxt(x.n) === k);
+  const fila = { valor: JSON.stringify(ptPrecios), quien: 'Panel · Precios del portal' };
+  try {
+    if (ptPreciosHay) await sbSend(`bod_config?clave=eq.${PT_PRECIOS}`, 'PATCH', fila);
+    else {
+      try { await sbSend('bod_config', 'POST', { clave: PT_PRECIOS, ...fila }); }
+      catch (e) {
+        if (!/duplicate|23505/i.test(String(e.message))) throw e;
+        await sbSend(`bod_config?clave=eq.${PT_PRECIOS}`, 'PATCH', fila);
+      }
+      ptPreciosHay = true;
+    }
+    toast(`${it ? it.n : k}: ${ptPrecios[k] ? '$' + ptPrecios[k].toLocaleString('es-CL') + ' neto' : 'sin precio'}`);
+  } catch (e) {
+    ptPrecios = antes;
+    inp.value = ptPrecios[k] ? ptPrecios[k].toLocaleString('es-CL') : '';
+    toastRojo('No se pudo guardar el precio: ' + e.message);
+  }
 }
 
 async function ptGuardar(msg) {

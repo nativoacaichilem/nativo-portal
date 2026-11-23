@@ -12,6 +12,7 @@
 - Lo agotado se ve apagado, con «No disponible por ahora», y no se puede pedir. Lo oculto no aparece.
 - No hay topes ni alertas a mitad del pedido: lo que el cliente ve al entrar es lo que puede pedir.
 - Si la disponibilidad no se puede leer, todo queda disponible, como antes, para no perder ventas por una falla de red.
+- El **Açaí Puro (4×100 g)** vuelve a estar en el portal, por caja de 15, con el mismo nombre y formato que en el panel. Si hay que sacarlo, se marca «Oculto» en Pedidos › Portal.
 
 **Links de las vendedoras de Pichilemu**
 - Cada vendedora tiene su link: `index.html?pichilemu=<código>`. Sus clientes ven lo que marques como disponible para Pichilemu en Pedidos › Portal.

@@ -3,7 +3,7 @@
   "private": true,
   "description": "Plataforma Nativo Açaí: portal de clientes, panel, bodega y Worker",
   "scripts": {
-    "test": "node pruebas/prueba_v65.mjs",
+    "test": "node pruebas/prueba_v65.mjs && node pruebas/prueba_v66.mjs && node pruebas/prueba_v68.mjs && node pruebas/prueba_v70.mjs",
     "test:pantallas": "python3 pruebas/prueba_pantallas_v65.py"
   }
 }
