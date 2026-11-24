@@ -123,6 +123,22 @@ tbody tr:hover td{background:#faf6ff}
 .btra{background:#dbeafe;color:#1e40af}
 .baju{background:var(--mora-xl);color:var(--mora-d)}
 .brev{background:#f3f4f6;color:#6b7280;border:1px dashed #d1d5db}
+/* v71 · Traslados */
+.tr-form{background:var(--crema);border:1px solid var(--crema-d);border-radius:12px;padding:14px;margin-bottom:16px}
+.tr-linea{display:grid;grid-template-columns:minmax(0,1fr) 90px 100px auto;gap:6px;align-items:center;margin-bottom:6px}
+.tr-linea small{grid-column:1/-1;color:var(--textl);font-weight:700;font-size:11.5px;margin-top:-3px}
+.tr-grupo{font-size:12px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;color:var(--mora-d);margin:16px 0 8px}
+.tr-grupo.rojo{color:var(--rd)}
+.tr-card{border:1.5px solid var(--crema-d);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:var(--white)}
+.tr-card.falta{border-color:#fdba74;background:#fff7ed}
+.tr-card.hecho{opacity:.75}
+.tr-cab{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tr-cab b{font-size:15px}
+.tr-sub{font-size:12.5px;color:var(--textl);font-weight:700;margin:3px 0 8px}
+.tr-tabla td{padding:5px 6px}
+.tr-tabla input{width:80px;padding:5px 7px;border:1.5px solid var(--crema-d);border-radius:7px;font:700 13px 'Nunito',sans-serif;text-align:right}
+.tr-acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+@media(max-width:640px){.tr-linea{grid-template-columns:1fr 80px}.tr-linea select.tr-med{grid-column:1}}
 .chip{display:inline-block;background:var(--crema);border:1px solid var(--crema-d);border-radius:20px;
   padding:2px 9px;font-size:10px;font-weight:800;color:var(--mora);white-space:nowrap}
 .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;font-weight:700;letter-spacing:.2px}
@@ -380,6 +396,7 @@ tbody tr:hover td{background:#faf6ff}
       ['Inventario', [
         ['📦', 'Stock',                'bodega.html', 'panorama'],
         ['📖', 'Movimientos',          'bodega.html', 'movimientos'],
+        ['🔁', 'Traslados',            'bodega.html', 'traslados'],
         ['✅', 'Aprobaciones',         'admin.html',  'aprobar'],
         ['🔢', 'Conteos',              'bodega.html', 'conteo'],
         ['🧾', 'Cuadratura de ventas', 'bodega.html', 'ventas'],
@@ -462,6 +479,7 @@ tbody tr:hover td{background:#faf6ff}
       <div class="secbar" role="group" aria-label="Secciones de bodega">
         <button id="s-panorama" class="sec act"    aria-pressed="true"  onclick="irA('panorama')">📊 Panorama</button>
         <button id="s-movimientos" class="sec" aria-pressed="false" onclick="irA('movimientos')">📖 Movimientos</button>
+        <button id="s-traslados" class="sec"   aria-pressed="false" onclick="irA('traslados')">🔁 Traslados</button>
         <button id="s-conteo" class="sec"      aria-pressed="false" onclick="irA('conteo')">🔢 Conteo físico</button>
         <button id="s-ventas" class="sec"      aria-pressed="false" onclick="irA('ventas')">🧾 Ventas</button>
         <button id="s-maestros" class="sec"    aria-pressed="false" onclick="irA('maestros')">⚙️ Configuración</button>
@@ -586,6 +604,44 @@ tbody tr:hover td{background:#faf6ff}
     </div>
 
     <!-- ══════════════ CONTEO ══════════════ -->
+    <!-- v71 · traslados entre bodegas que viajan en el camión -->
+    <div id="page-traslados" class="page">
+      <div class="card">
+        <div class="card-head">
+          <h2>🔁 Traslados entre bodegas</h2>
+          <span style="flex:1"></span>
+          <button class="btn bmora bsm" id="tr-nuevo-btn" onclick="trAbrirForm(true)">+ Agendar traslado</button>
+        </div>
+        <div class="hint" style="display:block;margin-bottom:12px">
+          Los traslados van aparte de los pedidos de clientes. Se agendan acá, el camión los ve en su ruta
+          como una parada especial 🔁 y no pasan por facturación. El stock se mueve recién cuando registras
+          la recepción: sale de la bodega de origen y entra en la de destino.
+        </div>
+        <div id="tr-alert"></div>
+
+        <div id="tr-form" class="tr-form" hidden>
+          <div class="fg3">
+            <div><label for="tr-origen">Desde *</label><select id="tr-origen" onchange="trPintarLineas()"></select></div>
+            <div><label for="tr-destino">Hacia *</label><select id="tr-destino"></select></div>
+            <div><label for="tr-dia">Día del camión</label><input id="tr-dia" type="date"></div>
+          </div>
+          <div class="fg">
+            <div><label for="tr-zona">Zona de la ruta</label><select id="tr-zona"></select></div>
+            <div><label for="tr-nota">Nota para el camión</label><input id="tr-nota" maxlength="200" placeholder="Ej: retirar en andén 3"></div>
+          </div>
+          <label>Productos *</label>
+          <div id="tr-lineas"></div>
+          <button class="btn bol bsm" onclick="trAgregarLinea()">+ Agregar producto</button>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap">
+            <button class="btn bol bsm" onclick="trAbrirForm(false)">Cancelar</button>
+            <button class="btn bmora bsm" id="tr-guardar" onclick="trGuardar()">Agendar traslado</button>
+          </div>
+        </div>
+
+        <div id="tr-lista"></div>
+      </div>
+    </div>
+
     <div id="page-conteo" class="page">
       <div class="card">
         <div class="card-head">
@@ -743,13 +799,13 @@ tbody tr:hover td{background:#faf6ff}
         <div class="card-head"><h2>🛒 Portal de clientes</h2></div>
         <div id="pc-alert"></div>
         <div class="hint" style="display:block;margin-bottom:10px">
-          Qué pueden pedir los clientes lo decides en Pedidos › Portal, producto por
-          producto. Estas bodegas son las que ahí se muestran como stock de
-          referencia: lo que hay menos lo que ya está pedido y no sale. Almafrigo y
-          Golden Frost no cuentan.
+          <b>La bodega del camión</b> (la Oficina) es de donde salen y se descuentan todos los
+          pedidos: el panel la propone al descargar y el bodeguero descuenta de ella al marcar
+          «Salió». Su stock es también el de referencia del portal. Las bodegas grandes
+          (Almafrigo, Golden Frost) solo se mueven con traslados, en Bodega › Traslados.
         </div>
         <div class="fg3">
-          <div><label for="pc-general">Portal general · stock de referencia</label>
+          <div><label for="pc-general">Bodega del camión · de aquí salen los pedidos</label>
             <select id="pc-general"></select></div>
           <div><label for="pc-pich">Links de Pichilemu · stock de referencia</label>
             <select id="pc-pich"></select></div>
@@ -1829,7 +1885,7 @@ function coberturaDias(bodegaId, productoId) {
 // ══════════════════════════════════════════════════════════════
 //  NAVEGACIÓN
 // ══════════════════════════════════════════════════════════════
-const SECCIONES = ['panorama', 'movimientos', 'conteo', 'ventas', 'maestros', 'diag'];
+const SECCIONES = ['panorama', 'movimientos', 'traslados', 'conteo', 'ventas', 'maestros', 'diag'];
 
 function irA(s) {
   if (!SECCIONES.includes(s)) s = 'panorama';
@@ -1847,10 +1903,14 @@ function irA(s) {
   if (window.marcarLateral) marcarLateral(s);
   if (s === 'conteo') { nombreCuadraturaPorOmision(); ajustarFiltroConteo();
                        renderConteo(); renderCuadraturas(); }
+  if (s === 'traslados') renderTraslados();
   window.scrollTo({ top: 0, behavior: 'auto' });
 }
 
 function pintarTodo() {
+  // Los traslados usan los nombres de bodegas y productos: si la sección está
+  // abierta cuando terminan de cargar, se vuelve a dibujar con los nombres.
+  if (seccion === 'traslados' && trLista.length) pintarTraslados();
   llenarSelects();
   pintarCuandoRespaldo();
   renderKPIs();
@@ -3710,7 +3770,7 @@ function pintarPortalClientes() {
   selG.innerHTML = ops(cfgClientes.general, 'oficina');
   selP.innerHTML = ops(cfgClientes.pich, 'pichilemu');
   const falta = [];
-  if (!cfgClientes.general) falta.push('del portal general');
+  if (!cfgClientes.general) falta.push('del camión');
   if (!cfgClientes.pich) falta.push('de los links de Pichilemu');
   alerta('pc-alert', falta.length
     ? `Todavía no guardas la bodega ${falta.join(' ni ')}. Mientras tanto se usa la ` +
@@ -3827,6 +3887,250 @@ async function copiarLinkVendedora(i) {
   const link = linkVendedora(v);
   try { await navigator.clipboard.writeText(link); toast('Link copiado'); }
   catch (_) { prompt('Copia este link:', link); }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  TRASLADOS (v71)
+//
+//  Mover producto entre bodegas usando el camión, aparte de los pedidos.
+//
+//  Se agenda acá y se guarda como un pedido de tipo «traslado»: así entra a
+//  «Por despachar» y a la ruta del camión como una parada más, sin pasar por
+//  facturación (no es venta). El camión no lo descuenta: el stock se mueve
+//  cuando la oficina registra la recepción acá, como movimiento de traslado
+//  de una bodega a la otra, ligado al pedido. Mientras no se registre, el
+//  traslado sigue en «Falta registrar en stock».
+//
+//  Los productos van dos veces: en `traslado_lineas`, con el id de bodega y
+//  la medida (lo que se usa para registrar), y en `detalle`, como texto, que
+//  es lo que leen el panel y el portal del bodeguero.
+// ══════════════════════════════════════════════════════════════
+let trLista = [];            // los pedidos de tipo traslado
+let trConMov = new Set();    // los que ya tienen su movimiento en el libro
+let trZonas = [];
+let trLineas = [];           // las del formulario: { producto_id, cantidad, medida }
+
+const trBod = id => bodegas.find(b => String(b.id) === String(id));
+const trNomBod = id => (trBod(id) || {}).nombre || '¿bodega?';
+
+async function renderTraslados() {
+  const caja = document.getElementById('tr-lista');
+  if (!trLista.length) caja.innerHTML = '<div class="hint" style="display:block">Cargando traslados…</div>';
+  try {
+    const [lista, zonas] = await Promise.all([
+      sbJson('pedidos?select=*&tipo=eq.traslado&order=created_at.desc&limit=200'),
+      trZonas.length ? Promise.resolve(trZonas)
+        : sbJson('zonas?select=id,nombre,activa&order=orden.asc,nombre.asc').catch(() => [])
+    ]);
+    trLista = lista; trZonas = zonas;
+    trConMov = new Set();
+    if (lista.length) {
+      const mv = await sbJson(`${T_MOV}?select=pedido_id&pedido_id=in.(${lista.map(p => Number(p.id)).join(',')})`).catch(() => []);
+      mv.forEach(m => trConMov.add(String(m.pedido_id)));
+    }
+    document.getElementById('tr-alert').innerHTML = '';
+  } catch (e) {
+    caja.innerHTML = '';
+    alerta('tr-alert', 'No se pudieron leer los traslados: ' + esc(e.message) +
+      '. Si es la primera vez, revisa que corriste el SQL de la v71.', 'ae');
+    return;
+  }
+  pintarTraslados();
+}
+
+// En qué va cada traslado, dicho como se dice en la bodega.
+function trEstado(p) {
+  if (trConMov.has(String(p.id))) return { txt: '✔ Registrado en stock', cls: 'bgreen', grupo: 'hecho' };
+  if (p.estado === 'entregado' || p.estado === 'entregado-sin-facturar')
+    return { txt: '🚚 Entregado por el camión', cls: 'bdng', grupo: 'falta' };
+  if (p.estado === 'en-ruta') return { txt: '🚚 En el camión', cls: 'bdng', grupo: 'falta' };
+  return { txt: p.fecha_entrega ? '📅 Agendado' : '📅 Agendado · sin día', cls: '', grupo: 'agendado' };
+}
+
+function trLineasDe(p) {
+  return Array.isArray(p.traslado_lineas) ? p.traslado_lineas.filter(l => l && l.producto_id && Number(l.cantidad) > 0) : [];
+}
+
+function pintarTraslados() {
+  const caja = document.getElementById('tr-lista');
+  const grupos = { falta: [], agendado: [], hecho: [] };
+  trLista.forEach(p => grupos[trEstado(p).grupo].push(p));
+  const diaTxt = p => p.fecha_entrega
+    ? new Date(p.fecha_entrega + 'T12:00:00').toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'short' })
+    : 'sin día';
+  const tarjeta = p => {
+    const e = trEstado(p), ls = trLineasDe(p), hecho = e.grupo === 'hecho';
+    const puedeQuitar = !hecho && (p.estado || 'pendiente') !== 'en-ruta' &&
+      !['entregado', 'entregado-sin-facturar'].includes(p.estado);
+    return `<div class="tr-card ${e.grupo === 'falta' ? 'falta' : hecho ? 'hecho' : ''}" id="tr-${Number(p.id)}">
+      <div class="tr-cab"><b>🔁 ${esc(trNomBod(p.bodega_origen_id))} → ${esc(trNomBod(p.bodega_destino_id))}</b>
+        <span class="chip ${e.cls}">${e.txt}</span></div>
+      <div class="tr-sub">Camión: ${esc(diaTxt(p))}${p.comentario ? ' · ' + esc(p.comentario) : ''}</div>
+      ${ls.length ? `<table class="tr-tabla"><tbody>${ls.map((l, i) => `<tr>
+          <td>${esc(nombreProducto(l.producto_id))}</td>
+          <td style="text-align:right;white-space:nowrap">${hecho
+            ? `${num(l.cantidad)} ${l.medida === 'unidad' ? 'un.' : 'cj'}`
+            : `<input type="number" min="0" step="any" id="tr-q-${Number(p.id)}-${i}" value="${Number(l.cantidad)}"
+                 aria-label="Cantidad recibida de ${esc(nombreProducto(l.producto_id))}"> ${l.medida === 'unidad' ? 'un.' : 'cj'}`}</td>
+        </tr>`).join('')}</tbody></table>`
+        : `<div class="hint" style="display:block">${esc(p.detalle || 'Sin productos')}</div>`}
+      ${hecho ? '' : `<div class="tr-acc">
+        <button class="btn bgreen bsm" onclick="trRegistrar(${Number(p.id)})">✔ Registrar recepción</button>
+        ${puedeQuitar ? `<button class="btn bdng bsm" onclick="trQuitar(${Number(p.id)})">Quitar</button>` : ''}
+        <span class="hint" style="display:block;align-self:center">Si llegó otra cantidad, corrígela antes de registrar.</span>
+      </div>`}
+    </div>`;
+  };
+  let h = '';
+  if (grupos.falta.length) h += '<div class="tr-grupo rojo">Falta registrar en stock</div>' + grupos.falta.map(tarjeta).join('');
+  if (grupos.agendado.length) h += '<div class="tr-grupo">Agendados · esperan al camión</div>' + grupos.agendado.map(tarjeta).join('');
+  if (grupos.hecho.length) h += '<div class="tr-grupo">Registrados</div>' + grupos.hecho.slice(0, 15).map(tarjeta).join('');
+  caja.innerHTML = h || '<div class="hint" style="display:block">Todavía no hay traslados. Usa «+ Agendar traslado».</div>';
+}
+
+function trAbrirForm(ver) {
+  document.getElementById('tr-form').hidden = !ver;
+  document.getElementById('tr-nuevo-btn').hidden = ver;
+  if (!ver) return;
+  const vivas = bodegas.filter(b => b.activa !== false);
+  const ops = vivas.map(b => `<option value="${b.id}">${esc(b.nombre)}</option>`).join('');
+  document.getElementById('tr-origen').innerHTML = '<option value="">— Elegir —</option>' + ops;
+  document.getElementById('tr-destino').innerHTML = '<option value="">— Elegir —</option>' + ops;
+  // El destino más común es la bodega del camión (la Oficina): lo que se
+  // trae de una bodega grande, para despachar.
+  const cam = vivas.find(b => cfgClientes.general && String(b.id) === String(cfgClientes.general)) ||
+              vivas.find(b => /oficina/i.test(b.nombre));
+  if (cam) document.getElementById('tr-destino').value = cam.id;
+  document.getElementById('tr-zona').innerHTML = '<option value="">— Sin zona —</option>' +
+    trZonas.filter(z => z.activa !== false).map(z => `<option value="${esc(z.id)}">${esc(z.nombre)}</option>`).join('');
+  const manana = new Date(); manana.setDate(manana.getDate() + 1);
+  document.getElementById('tr-dia').value = manana.toISOString().slice(0, 10);
+  document.getElementById('tr-nota').value = '';
+  trLineas = [{ producto_id: '', cantidad: '', medida: 'caja' }];
+  trPintarLineas();
+  document.getElementById('tr-origen').focus();
+}
+
+function trLeerLineas() {
+  document.querySelectorAll('#tr-lineas .tr-linea').forEach((f, i) => {
+    if (!trLineas[i]) return;
+    trLineas[i].producto_id = f.querySelector('.tr-prod').value;
+    trLineas[i].cantidad = f.querySelector('.tr-cant').value;
+    trLineas[i].medida = f.querySelector('.tr-med').value;
+  });
+}
+
+// Cada línea muestra cuánto hay en la bodega de origen: ayuda a no agendar
+// más de lo que existe, sin impedirlo (el libro puede estar atrasado).
+function trPintarLineas() {
+  trLeerLineas();
+  const origen = document.getElementById('tr-origen').value;
+  const prods = productos.filter(p => p.activo !== false).slice().sort((a, b) => String(a.nombre).localeCompare(String(b.nombre)));
+  document.getElementById('tr-lineas').innerHTML = trLineas.map((l, i) => `
+    <div class="tr-linea">
+      <select class="tr-prod" onchange="trPintarLineas()" aria-label="Producto">
+        <option value="">— Producto —</option>
+        ${prods.map(p => `<option value="${p.id}"${String(p.id) === String(l.producto_id) ? ' selected' : ''}>${
+          esc(p.nombre)}${p.formato ? ' · ' + esc(p.formato) : ''}</option>`).join('')}</select>
+      <input class="tr-cant" type="number" min="0" step="any" value="${esc(l.cantidad)}" placeholder="Cant." aria-label="Cantidad">
+      <select class="tr-med" aria-label="Medida">
+        <option value="caja"${l.medida !== 'unidad' ? ' selected' : ''}>cajas</option>
+        <option value="unidad"${l.medida === 'unidad' ? ' selected' : ''}>unidades</option></select>
+      <button class="btn bol bsm" onclick="trQuitarLinea(${i})" aria-label="Quitar producto">✕</button>
+      ${origen && l.producto_id ? `<small>En ${esc(trNomBod(origen))}: ${fmtBase(l.producto_id, saldoDe(Number(origen), Number(l.producto_id)))}</small>` : ''}
+    </div>`).join('');
+}
+function trAgregarLinea() { trLeerLineas(); trLineas.push({ producto_id: '', cantidad: '', medida: 'caja' }); trPintarLineas(); }
+function trQuitarLinea(i) { trLeerLineas(); trLineas.splice(i, 1); if (!trLineas.length) trLineas.push({ producto_id: '', cantidad: '', medida: 'caja' }); trPintarLineas(); }
+
+async function trGuardar() {
+  trLeerLineas();
+  const origen = document.getElementById('tr-origen').value;
+  const destino = document.getElementById('tr-destino').value;
+  if (!origen || !destino) return alerta('tr-alert', 'Elige la bodega de origen y la de destino.', 'ae');
+  if (origen === destino) return alerta('tr-alert', 'El destino tiene que ser una bodega distinta al origen.', 'ae');
+  const lineas = trLineas.filter(l => l.producto_id && Number(l.cantidad) > 0)
+    .map(l => ({ producto_id: Number(l.producto_id), cantidad: Number(l.cantidad), medida: l.medida === 'unidad' ? 'unidad' : 'caja' }));
+  if (!lineas.length) return alerta('tr-alert', 'Agrega al menos un producto con su cantidad.', 'ae');
+  const o = trNomBod(origen), d = trNomBod(destino);
+  // El mismo formato de texto que usan los pedidos: «Nombre (formato) x3», y
+  // «x3 un» para unidades sueltas. Así el panel y el bodeguero lo leen igual.
+  const detalle = lineas.map(l => {
+    const p = productos.find(x => String(x.id) === String(l.producto_id)) || {};
+    return `${p.nombre || 'Producto'}${p.formato ? ` (${p.formato})` : ''} x${l.cantidad}${l.medida === 'unidad' ? ' un' : ''}`;
+  }).join(', ');
+  const nota = document.getElementById('tr-nota').value.trim();
+  const fila = {
+    emp: `Traslado · ${o} → ${d}`,
+    rut: '', dir: `Retiro en ${o} · entrega en ${d}`,
+    zona: document.getElementById('tr-zona').value || '',
+    detalle, entrega: 'despacho', contacto: '', telefono: '',
+    // Sin factura: un traslado no es venta.
+    factura_num: '', factura_nombre: '',
+    estado: 'pendiente', fecha: new Date().toLocaleDateString('es-CL'),
+    fecha_entrega: document.getElementById('tr-dia').value || null, recibe: '',
+    comentario: nota, tipo: 'traslado', razon: 'Traslado entre bodegas',
+    bodega_origen_id: Number(origen), bodega_destino_id: Number(destino), traslado_lineas: lineas
+  };
+  const b = document.getElementById('tr-guardar');
+  b.disabled = true; b.innerHTML = '<span class="sp"></span>Agendando…';
+  try {
+    await sbSend('pedidos', 'POST', fila);
+    trAbrirForm(false);
+    toast(`Traslado agendado: ${o} → ${d}. Ya está en «Por despachar».`);
+    await renderTraslados();
+  } catch (e) {
+    alerta('tr-alert', 'No se pudo agendar: ' + esc(e.message), 'ae');
+  } finally {
+    b.disabled = false; b.innerHTML = 'Agendar traslado';
+  }
+}
+
+// Registrar la recepción: un movimiento de traslado por producto, de la
+// bodega de origen a la de destino, ligado al pedido; y el pedido queda
+// entregado (sale de «Por despachar» si todavía estaba ahí).
+async function trRegistrar(id) {
+  const p = trLista.find(x => String(x.id) === String(id));
+  if (!p) return;
+  if (trConMov.has(String(p.id))) return toast('Este traslado ya está registrado en stock.');
+  if (!p.bodega_origen_id || !p.bodega_destino_id) return toast('Al traslado le faltan las bodegas: créalo de nuevo.', true);
+  const ls = trLineasDe(p);
+  const filas = ls.map((l, i) => {
+    const inp = document.getElementById(`tr-q-${Number(p.id)}-${i}`);
+    const q = inp ? Number(inp.value) : Number(l.cantidad);
+    return {
+      fecha: HOY(), tipo: 'traslado', producto_id: Number(l.producto_id),
+      bodega_id: Number(p.bodega_origen_id), bodega_destino_id: Number(p.bodega_destino_id),
+      cantidad: q, medida: l.medida === 'unidad' ? 'unidad' : 'caja', motivo_id: null,
+      doc: null, pedido_id: Number(p.id), usuario: operadorNombre(),
+      nota: `Traslado agendado · ${p.emp}` + (Math.abs(q - Number(l.cantidad)) > 0.001
+        ? ` · se agendaron ${num(l.cantidad)}, llegaron ${num(q)}` : '')
+    };
+  }).filter(f => f.cantidad > 0);
+  if (!filas.length) return toast('No hay cantidades para registrar.', true);
+  const resumen = filas.map(f => `· ${nombreProducto(f.producto_id)}: ${num(f.cantidad)} ${f.medida === 'unidad' ? 'un.' : 'cj'}`).join('\n');
+  if (!confirm(`Registrar en stock el traslado ${trNomBod(p.bodega_origen_id)} → ${trNomBod(p.bodega_destino_id)}:\n\n${resumen}`)) return;
+  try {
+    await sbSend(T_MOV, 'POST', filas);
+    if (!['entregado', 'entregado-sin-facturar'].includes(p.estado))
+      await sbSend(`pedidos?id=eq.${Number(p.id)}`, 'PATCH', { estado: 'entregado' });
+    toast('Traslado registrado en stock');
+    await cargarTodo();
+    await renderTraslados();
+  } catch (e) {
+    toast('No se pudo registrar: ' + e.message, true);
+  }
+}
+
+// Quitar un traslado que todavía no sale: se borra el pedido y sale de la ruta.
+async function trQuitar(id) {
+  const p = trLista.find(x => String(x.id) === String(id));
+  if (!p || !confirm(`¿Quitar el traslado ${trNomBod(p.bodega_origen_id)} → ${trNomBod(p.bodega_destino_id)}? Sale también de la ruta del camión.`)) return;
+  try {
+    await sbSend(`pedidos?id=eq.${Number(p.id)}`, 'DELETE');
+    toast('Traslado quitado');
+    await renderTraslados();
+  } catch (e) { toast('No se pudo quitar: ' + e.message, true); }
 }
 
 function renderBodegas() {

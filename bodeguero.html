@@ -639,6 +639,7 @@ async function entrar() {
     } catch (_) { /* sin /rol se sigue igual */ }
 
     miBodega = await buscarBodega();
+    bodegaCamionId = await buscarBodegaCamion();
     if (!miBodega) {
       TOKEN = '';
       av('login-aviso', '<b>No hay ninguna bodega activa.</b><br>' +
@@ -944,6 +945,7 @@ function tarjetaParada(p, n) {
         <div class="gris">${p.factura_num
           ? '🧾 Factura ' + esc(p.factura_num)
           : esProduccion(p) ? '🏭 Producción · sin factura'
+          : esTraslado(p) ? '🔁 Traslado entre bodegas · sin factura'
           : '<b style="color:var(--naranjo)">🧾 Sin número de factura</b>'}</div>
       </div>
     </div>
@@ -1397,14 +1399,36 @@ const paradasDe = r => pedidos.filter(p => String(p.ruta_id) === String(r.id) &&
 const todosDe   = r => pedidos.filter(p => String(p.ruta_id) === String(r.id));
 const entregadoYa = p => p.estado === 'entregado' || p.estado === 'entregado-sin-facturar';
 const descontado  = p => conMov.has(String(p.id)) || p.estado === 'en-ruta';
-const cargado     = p => descontado(p) || (Array.isArray(p.carga) && p.carga.length > 0);
+// v71 · un traslado entre bodegas viaja en el camión pero no se carga ni se
+// descuenta acá: el stock lo registra la oficina al recibirlo, como traslado.
+// Para la salida cuenta como cargado, así no queda marcado «no subió».
+const esTraslado  = p => (p.tipo || '') === 'traslado';
+const cargado     = p => esTraslado(p) || descontado(p) || (Array.isArray(p.carga) && p.carga.length > 0);
 const esVentaB    = p => !p.tipo || p.tipo === 'venta';
 function cajasPed(p) {
   const l = Array.isArray(p.carga) && p.carga.length ? p.carga
     : prepararLineas(p).out.map(x => ({ cantidad: x.pedida, medida: x.medida }));
   return l.reduce((a, x) => a + (x.medida === 'unidad' ? 0 : Number(x.cantidad) || 0), 0);
 }
-const bodegaDeRuta = r => (r && r.bodega_id) || (miBodega && miBodega.id);
+// v71 · todo lo que sube al camión sale de la bodega del camión (la Oficina),
+// sin importar en qué bodega esté trabajando el encargado. La elige la oficina
+// en Bodegas y productos › Portal de clientes; sin elegir, la que se llama
+// «Oficina». Solo si no hay ninguna, la de la ruta o la suya, como antes.
+let bodegaCamionId = null;
+async function buscarBodegaCamion() {
+  try {
+    const [cfg, bods] = await Promise.all([
+      leer('bod_config?select=clave,valor&clave=eq.bodega_clientes').catch(() => []),
+      leer('bod_bodegas?select=id,nombre,activa')
+    ]);
+    const vivas = bods.filter(b => b.activa !== false);
+    const elegida = cfg[0] && cfg[0].valor;
+    const b = vivas.find(x => elegida && String(x.id) === String(elegida)) ||
+              vivas.find(x => /oficina/i.test(String(x.nombre || '')));
+    return b ? b.id : null;
+  } catch (_) { return null; }
+}
+const bodegaDeRuta = r => bodegaCamionId || (r && r.bodega_id) || (miBodega && miBodega.id);
 // Una ruta publicada sigue «por salir» si le queda algo por entregar. Las
 // rutas de antes de la v64 quedaban publicadas para siempre aunque todo se
 // hubiera entregado: esas no se muestran.
@@ -1500,7 +1524,8 @@ function renderCargar(cont) {
   h += ps.map((p, i) => {
     const puede = sePuedeTocar(p) || !esVentaB(p), ok = cargado(p);
     let pie;
-    if (descontado(p)) pie = '<div class="res-linea ok"><span>✔ Ya cargado · stock descontado</span></div>';
+    if (esTraslado(p)) pie = '<div class="res-linea ok"><span>🔁 Traslado: súbelo al camión. El stock lo registra la oficina.</span></div>';
+    else if (descontado(p)) pie = '<div class="res-linea ok"><span>✔ Ya cargado · stock descontado</span></div>';
     else if (ok) pie = `<div class="res-linea ok"><span>✔ Subió</span><span>
         <button class="enlace" onclick="abrirCarga(${p.id})">Cambiar</button>
         <button class="enlace" style="color:var(--rojo)" onclick="quitarCarga(${p.id})">No sube</button></span></div>`;
@@ -1512,7 +1537,8 @@ function renderCargar(cont) {
           <div style="font-weight:900;font-size:17px;line-height:1.25">${esc(p.emp)}</div>
           <div class="gris">📍 ${esc(p.dir || 'sin dirección')}</div>
           <div class="gris">${p.factura_num ? '🧾 Factura ' + esc(p.factura_num)
-            : esProduccion(p) ? '🏭 Producción · sin factura' : (esVentaB(p) ? '' : '🎁 Sin cobro')}</div>
+            : esProduccion(p) ? '🏭 Producción · sin factura'
+            : esTraslado(p) ? '🔁 Traslado entre bodegas' : (esVentaB(p) ? '' : '🎁 Sin cobro')}</div>
         </div></div>
       <div class="ped-items" style="margin-top:10px">${lineasTxt(p)}</div>
       ${pie}
@@ -2087,6 +2113,7 @@ async function guardarMov() {
     (async () => {
       try {
         miBodega = await buscarBodega();
+        bodegaCamionId = await buscarBodegaCamion();
         if (!miBodega) throw new Error('sin bodega');
         document.getElementById('p-login').style.display = 'none';
         document.getElementById('app').style.display = 'block';

@@ -899,6 +899,7 @@ details.mp-mas summary{cursor:pointer;padding:12px 0;font-weight:900;color:var(-
       ['Inventario', [
         ['📦', 'Stock',                'bodega.html', 'panorama'],
         ['📖', 'Movimientos',          'bodega.html', 'movimientos'],
+        ['🔁', 'Traslados',            'bodega.html', 'traslados'],
         ['✅', 'Aprobaciones',         'admin.html',  'aprobar'],
         ['🔢', 'Conteos',              'bodega.html', 'conteo'],
         ['🧾', 'Cuadratura de ventas', 'bodega.html', 'ventas'],
@@ -3644,10 +3645,13 @@ async function cargarBodega(forzar) {
       sbPagina(T_BOD_MV, 'select=id,pedido_id,tipo,bodega_id,producto_id,cantidad,medida&pedido_id=not.is.null&order=id.asc'),
       // Si la tabla de ajustes todavía no existe, no es un problema: significa
       // que no hay corte puesto y se reclama por todo.
-      sbJson(`${T_BOD_C}?select=*&clave=eq.corte_pedidos`).catch(() => [])
+      sbJson(`${T_BOD_C}?select=*&clave=in.(corte_pedidos,bodega_clientes)`).catch(() => [])
     ]);
-    bodCorte = cfg.length ? cfg[0].valor : null;
-    bodCorteQuien = cfg.length ? (cfg[0].quien || '') : '';
+    const fCorte = cfg.find(f => f.clave === 'corte_pedidos');
+    bodCorte = fCorte ? fCorte.valor : null;
+    bodCorteQuien = fCorte ? (fCorte.quien || '') : '';
+    const fCamion = cfg.find(f => f.clave === 'bodega_clientes');
+    bodCamionId = fCamion ? fCamion.valor : null;
     bodBodegas = b; bodProductos = p; bodMotivos = mo; bodSaldos = s;
     bodPedidosConMov = new Map();
     bodMovsPorPedido = new Map();
@@ -3701,6 +3705,28 @@ function bodSaldo(bid, pid) {
 
 // La bodega propuesta es la que más tiene de ese producto. Es la respuesta
 // correcta casi siempre y ahorra el clic; igual se puede cambiar.
+// ══════════════════════════════════════════
+//  LA BODEGA DEL CAMIÓN (v71)
+//
+//  Todo pedido que sube al camión sale de una sola bodega: la del camión (la
+//  Oficina). Se elige en Bodegas y productos › Portal de clientes, y es la
+//  misma cuyo stock ve como referencia el portal. Sin elegir, la que se llama
+//  «Oficina».
+//
+//  Antes, al descargar un pedido se proponía la bodega con más stock de cada
+//  producto, que casi siempre era una bodega grande (Almafrigo, Golden
+//  Frost). Esas solo se mueven con traslados, en Bodega › Traslados.
+// ══════════════════════════════════════════
+let bodCamionId = null;    // de bod_config «bodega_clientes»
+function bodCamion() {
+  const vivas = bodVivas();
+  return vivas.find(b => bodCamionId != null && bodCamionId !== '' && String(b.id) === String(bodCamionId))
+      || vivas.find(b => /oficina/i.test(String(b.nombre || ''))) || null;
+}
+// La bodega que se propone al descontar: la del camión. Solo si no hay
+// ninguna definida, la de más stock, como antes.
+const bodPropuesta = pid => bodCamion() || bodMejor(pid);
+
 function bodMejor(pid) {
   let mejor = null, max = -Infinity;
   for (const b of bodVivas()) {
@@ -3736,7 +3762,7 @@ function bodPreparar(p) {
     if (!prod) prod = bodVigentes().find(calza(alias));
 
     if (!prod || cant === null || !(cant > 0)) { fuera.push(it); return; }
-    const b = bodMejor(prod.id);
+    const b = bodPropuesta(prod.id);
     lineas.push({ producto_id: prod.id, bodega_id: b ? b.id : '', cantidad: cant,
                   medida: L ? L.medida : 'caja', motivo_id: '', texto: it });
   });
@@ -4032,8 +4058,8 @@ function dsCambiar(i, campo, valor) {
   if (campo === 'cantidad') ds.lineas[i].cantidad = valor;
   else if (campo === 'producto_id') {
     ds.lineas[i].producto_id = Number(valor) || valor;
-    // al cambiar el producto, la bodega propuesta cambia con él
-    const b = bodMejor(ds.lineas[i].producto_id);
+    // al cambiar el producto, la bodega propuesta se vuelve a calcular
+    const b = bodPropuesta(ds.lineas[i].producto_id);
     if (b) ds.lineas[i].bodega_id = b.id;
   }
   else ds.lineas[i][campo] = valor ? (Number(valor) || valor) : '';
@@ -4045,7 +4071,7 @@ function dsQuitar(i) { ds.lineas.splice(i, 1); pintarDescargo(); }
 function dsAgregar() {
   const p = bodVigentes()[0];
   if (!p) { alert('No hay productos cargados en bodega.'); return; }
-  const b = bodMejor(p.id);
+  const b = bodPropuesta(p.id);
   const def = bodMotivoPropuesto(ds.pedido || {});
   ds.lineas.push({ producto_id: p.id, bodega_id: b ? b.id : '', cantidad: 1,
                    motivo_id: def ? def.id : '', texto: '' });
@@ -4612,7 +4638,11 @@ const TIPOS_PEDIDO = {
   muestra:    { lbl: 'Muestra',        corto: 'muestra',    ico: '🎁' },
   merma:      { lbl: 'Merma',          corto: 'merma',      ico: '🗑️' },
   tarea:      { lbl: 'Tarea interna',  corto: 'tarea',      ico: '🔧' },
-  produccion: { lbl: 'Producción',     corto: 'producción', ico: '🏭', soloLectura: true }
+  produccion: { lbl: 'Producción',     corto: 'producción', ico: '🏭', soloLectura: true },
+  // v71 · se agenda en Bodega › Traslados. Viaja en el camión como una parada
+  // más, no se factura (no es venta) y el stock lo mueve la oficina al
+  // registrar la recepción allá, no un descargo acá.
+  traslado:   { lbl: 'Traslado',       corto: 'traslado',   ico: '🔁', soloLectura: true }
 };
 const tipoDe = p => TIPOS_PEDIDO[p && p.tipo] ? p.tipo : 'venta';
 
@@ -4630,7 +4660,10 @@ const esTarea = p => tipoDe(p) === 'tarea';
 // registra Producción al recibirlo. Ofrecer «Descargar bodega» ahí descontaría
 // al revés.
 const esRetiroLote = p => tipoDe(p) === 'produccion' && /·\s*RETIRO$/i.test(String(p.emp || ''));
-const nadaQueDescontar = p => esTarea(p) || esRetiroLote(p);
+// Un traslado tampoco se descarga acá: su stock se registra en Bodega ›
+// Traslados, como traslado entre las dos bodegas y no como salida.
+const esTraslado = p => tipoDe(p) === 'traslado';
+const nadaQueDescontar = p => esTarea(p) || esRetiroLote(p) || esTraslado(p);
 const esWeb = p => (p.canal || 'b2b') === 'web';
 
 // ══════════════════════════════════════════
@@ -5305,7 +5338,8 @@ async function asignarDiaCamion(camion) {
       'El bodeguero los va a ver en su ruta, pero no los va a poder cargar ' +
       'hasta que los factures.\n\n¿Asignarlos igual?')) return;
 
-  const bodDef = bodBodegas.find(b => b.activa);
+  // La ruta nueva sale de la bodega del camión.
+  const bodDef = bodCamion() || bodBodegas.find(b => b.activa);
 
   try {
     // ¿Ya hay ruta para ese día y camión? Si no, se crea.
@@ -5666,6 +5700,8 @@ function llenarBodegasRuta(sel, id) {
     e.innerHTML = '<option value="">— sin bodegas —</option>';
     return;
   }
+  // Sin bodega elegida, se propone la del camión.
+  if (sel == null || sel === '') sel = (bodCamion() || {}).id;
   e.innerHTML = '<option value="">— Elegir —</option>' + vivas.map(b =>
     `<option value="${b.id}"${String(b.id) === String(sel) ? ' selected' : ''}>` +
     `${hesc(b.nombre)}</option>`).join('');
